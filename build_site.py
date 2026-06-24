@@ -279,7 +279,19 @@ def pricing():
              "The recurring-income service playbook, on its own.", ["65-page PDF", "Prompts and templates included", "7-day refund"],
              "Get this ebook", "#", buy="boring-money"),
     ])
-    return head("Pricing — BUILD MODE", "Simple pricing. Two ebooks, a bundle that saves, and a community on the way.", "/pricing/") + header("Pricing") + f"""
+    video_cards = "".join([
+        card('<span class="tag gold"><span class="dot"></span>ALL-ACCESS</span> <span class="tag live"><span class="dot"></span>SOON</span>',
+             "The All-Access Pass",
+             "A monthly membership. Stream every video in the library, anytime, plus new releases as they drop, and the community.",
+             ["Watch every video, anytime", "New releases included", "The community included", "Cancel anytime"],
+             "Join the waitlist", "/#waitlist", featured=True),
+        card('<span class="tag">PER VIDEO</span> <span class="tag live"><span class="dot"></span>SOON</span>',
+             "Single Videos",
+             "A la carte. Just need one thing? Buy that single video, watch it, and download it to keep.",
+             ["Buy any one video", "Watch it and download it", "Yours forever, no subscription", "Upgrade to All-Access anytime"],
+             "Join the waitlist", "/#waitlist"),
+    ])
+    return head("Pricing — BUILD MODE", "Simple pricing. Ebooks one-time, and the video courses two ways: an all-access subscription or a single video to keep.", "/pricing/") + header("Pricing") + f"""
 <main>
 <section class="section tight"><div class="wrap" style="text-align:center">
 <span class="kicker gold reveal">Pricing</span>
@@ -287,11 +299,12 @@ def pricing():
 <p class="reveal" style="margin:16px auto 0;color:var(--muted);max-width:48ch">Honest, one-time pricing. No subscription to read a book. Prices land here the moment they are set.</p>
 </div></section>
 <section class="section" style="padding-top:0"><div class="wrap"><div class="products reveal" style="grid-template-columns:repeat(3,1fr)">{cards}</div>
-<div class="reveal" style="text-align:center;margin-top:40px;padding:28px;border:1px dashed var(--hair);border-radius:var(--r)">
-<span class="tag live"><span class="dot"></span>COMING SOON</span>
-<h2 class="display-m" style="margin-top:14px">The community + video courses</h2>
-<p style="margin:12px auto 0;color:var(--muted);max-width:50ch">A membership for the community and the video courses is on the way. Join the waitlist and you will hear about it first.</p>
-<a class="btn ghost" style="margin-top:18px" href="/#waitlist">Join the waitlist <span class="arr">&rarr;</span></a></div>
+<div class="reveal" style="margin-top:60px">
+<div class="eyebrow-row"><span class="kicker gold">The video courses</span><span class="tag live"><span class="dot"></span>IN PRODUCTION</span><hr class="rule hair"></div>
+<div class="sec-head" style="margin:18px 0 26px"><h2 class="display-m">Watch me build it. Two ways in.</h2>
+<p style="color:var(--muted);margin-top:10px;max-width:58ch">The step-by-step tutorial videos are in production. When they drop, you choose how you watch: go All-Access and stream everything anytime, or buy the single video you need and keep it. Join the waitlist and you will hear the launch price first.</p></div>
+<div class="products" style="grid-template-columns:1fr 1fr">{video_cards}</div>
+</div>
 </div></section>
 </main>""" + footer()
 
@@ -355,8 +368,9 @@ if __name__ == "__main__":
     render("/pricing/", pricing())
     render("/about/", about())
     render("/community/", community())
-    render("/login/", stub("Sign in", "Member access", "Sign in is opening soon.",
-        "<p>Accounts and your library turn on this week, the moment payments go live. If you already bought an ebook, your download link is in your email. Anything missing, reach out and I will sort it.</p>", "Store"))
+    # NOTE: /login/, /dashboard/, and /library/ are the live member-area app pages.
+    # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
+    # generator must NOT render or overwrite them. Edit those index.html files directly.
     render("/refunds/", stub("Refunds", "Policy", "Refund policy",
         "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>"))
     render("/terms/", stub("Terms", "Legal", "Terms of use",
@@ -365,4 +379,5 @@ if __name__ == "__main__":
         "<p>I collect only what is needed to run your account and deliver what you bought: your email, your purchases, and your activity on the site. Payments are handled by Stripe; I never see your card. I do not sell your information. A full privacy policy will be posted here before payments go live.</p>"))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
-    print("built: home, store, 2 product pages, pricing, about, community, + 5 stubs")
+    print("built: home, store, 2 product pages, pricing, about, community, + 4 stubs")
+    print("note: login/dashboard/library are hand-maintained app pages and are left untouched")

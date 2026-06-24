@@ -29,14 +29,21 @@
       var email = (e.target.email && e.target.email.value || '').trim();
       if (!email) return false;
       var done = function () { BM.toast('You are on the list. <b>I will tell you first.</b>'); e.target.reset(); };
-      try {
+      var fallback = function () {
         if (CFG.WAITLIST_FALLBACK) {
-          fetch(CFG.WAITLIST_FALLBACK, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, _subject: 'BUILD MODE waitlist signup' })
-          }).then(done, done);
+          fetch(CFG.WAITLIST_FALLBACK, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, _subject: 'BUILD MODE waitlist signup' }) }).then(done, done);
         } else { done(); }
-      } catch (_) { done(); }
+      };
+      try {
+        if (CFG.SUPABASE_URL && CFG.SUPABASE_KEY) {
+          fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/ea_join_waitlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': CFG.SUPABASE_KEY, 'Authorization': 'Bearer ' + CFG.SUPABASE_KEY },
+            body: JSON.stringify({ p_email: email })
+          }).then(function (r) { if (r.ok) done(); else fallback(); }, fallback);
+        } else { fallback(); }
+      } catch (_) { fallback(); }
       return false;
     }
   };

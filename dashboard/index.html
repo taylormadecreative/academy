@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your library - BUILD MODE</title>
+<meta name="description" content="Your BUILD MODE library.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://academy.taylormadecreative.net/dashboard/">
+<meta property="og:type" content="website"><meta property="og:title" content="Your library - BUILD MODE">
+<meta property="og:description" content="Your BUILD MODE library."><meta property="og:url" content="https://academy.taylormadecreative.net/dashboard/">
+<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css">
+<style>
+  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
+  .appbar .who{display:flex;align-items:center;gap:16px;}
+  .appbar .email{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lib{display:grid;gap:clamp(16px,2.2vw,24px);grid-template-columns:1fr 1fr;margin-top:30px;}
+  .lib .pcard .top{align-items:center;}
+  .lib .pcard .foot{justify-content:flex-end;}
+  .empty{border:1.5px dashed var(--hair);border-radius:var(--r);background:var(--paper-2);padding:clamp(28px,5vw,48px);text-align:center;margin-top:24px;}
+  .statusrow{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+    background:var(--ink);color:var(--paper);border-radius:var(--r);padding:22px clamp(18px,3vw,28px);margin-top:30px;}
+  .statusrow h3{color:var(--paper);font-size:20px;}
+  .statusrow p{color:#D7D2C6;font-size:14px;margin-top:6px;}
+  .skel{height:150px;border-radius:var(--r);background:linear-gradient(100deg,var(--paper-2) 30%,#e7e2d6 50%,var(--paper-2) 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;border:1px solid var(--hair);}
+  @keyframes sh{to{background-position:-200% 0;}}
+  .hide{display:none !important;}
+  @media(max-width:880px){.lib{grid-template-columns:1fr;}.appbar .email{max-width:42vw;}}
+</style>
+</head><body>
+<header class="appbar"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><span class="mark">BUILD<b>MODE</b></span><span class="by">by Taylormade Creative</span></a>
+<div class="who">
+  <span class="email" id="userEmail"></span>
+  <button class="btn ghost sm" id="signOut">Sign out</button>
+</div>
+</div></div></header>
+
+<main><section class="section"><div class="wrap">
+
+<span class="kicker gold">Your library</span>
+<h1 class="display-m" style="margin-top:12px">Everything you own, in one place.</h1>
+<p style="margin-top:14px;color:var(--muted);max-width:50ch">Open any ebook to read it in the browser or download the PDF. Your access is tied to this account.</p>
+
+<!-- membership / waitlist status (only shown when present) -->
+<div id="statusRow" class="statusrow hide">
+  <div>
+    <h3 id="statusTitle">Membership</h3>
+    <p id="statusBody"></p>
+  </div>
+  <a class="btn gold" id="statusCta" href="/community/">Open community <span class="arr">&rarr;</span></a>
+</div>
+
+<!-- loading -->
+<div id="loading" class="lib"><div class="skel"></div><div class="skel"></div></div>
+
+<!-- library list -->
+<div id="lib" class="lib hide"></div>
+
+<!-- empty -->
+<div id="empty" class="empty hide">
+  <h3 style="font-size:24px">Your library is empty for now.</h3>
+  <p style="margin-top:12px;color:var(--muted);max-width:46ch;margin-inline:auto">Grab an ebook and it lands here right away, ready to read and download.</p>
+  <p style="margin-top:22px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p>
+</div>
+
+<!-- could-not-load fallback -->
+<div id="errState" class="empty hide">
+  <h3 style="font-size:22px">Could not load your library.</h3>
+  <p style="margin-top:12px;color:var(--muted)">Refresh the page. If it keeps happening, reach out and I will sort it.</p>
+  <p style="margin-top:22px"><a class="btn ghost" href="/store/">Go to the store</a></p>
+</div>
+
+</div></section>
+
+<section class="section tight" style="padding-top:0"><div class="wrap">
+<hr class="rule hair" style="margin-bottom:34px">
+<span class="kicker gold">Video courses</span>
+<h2 class="display-m" style="margin-top:10px">Your videos.</h2>
+<p style="margin-top:12px;color:var(--muted);max-width:54ch">With the All-Access pass you watch every video here, anytime. Buy a single video and it shows up here to watch and download. The courses are in production now.</p>
+<div id="vidLoading" class="lib" style="margin-top:26px"><div class="skel"></div><div class="skel"></div></div>
+<div id="vidLib" class="lib hide" style="margin-top:26px"></div>
+<div id="vidEmpty" class="empty hide" style="margin-top:26px">
+  <span class="tag live"><span class="dot"></span>IN PRODUCTION</span>
+  <h3 style="font-size:22px;margin-top:14px">The video courses are on the way.</h3>
+  <p style="margin-top:12px;color:var(--muted);max-width:48ch;margin-inline:auto">When they drop, your All-Access pass unlocks all of them right here, and any single video you buy lands here too.</p>
+  <p style="margin-top:20px"><a class="btn ghost" href="/pricing/">See video pricing <span class="arr">&rarr;</span></a></p>
+</div>
+</div></section></main>
+
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top"><div class="foot-brand"><div class="mark">BUILD<b>MODE</b></div>
+<p>Learn to build real things with AI. No code, no hype. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
+<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span class="mono">NO CODE / NO HYPE / JUST BUILD</span></div>
+</div></footer>
+
+<div class="toast" id="toast"></div>
+<script src="/js/config.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+
+// No keys -> the dashboard cannot exist yet; send to login, which explains it.
+if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
+  location.replace("/login/");
+} else {
+  const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    location.replace("/login/");
+  } else {
+    const user = session.user;
+    $("userEmail").textContent = user.email || "";
+
+    $("signOut").addEventListener("click", async () => {
+      $("signOut").disabled = true;
+      try { await supabase.auth.signOut(); } catch (_) {}
+      location.replace("/login/");
+    });
+
+    function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+    function typeLabel(t){
+      if (t === "course") return "VIDEO COURSE";
+      if (t === "membership") return "MEMBERSHIP";
+      if (t === "bundle") return "BUNDLE";
+      return "EBOOK";
+    }
+
+    function coverBlock(item){
+      if (item.cover_url) {
+        return '<img class="cover" src="' + esc(item.cover_url) + '" alt="' + esc(item.title) + ' cover" loading="lazy">';
+      }
+      return '<div class="cover-ph">' + esc(typeLabel(item.type)) + '</div>';
+    }
+
+    function renderLibrary(items){
+      const lib = $("lib");
+      lib.innerHTML = items.map(function (item){
+        const open = "/library/?p=" + encodeURIComponent(item.slug);
+        return '<article class="pcard"><div class="top">' +
+          coverBlock(item) +
+          '<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>' + esc(typeLabel(item.type)) + '</span><span class="tag">Owned</span></div>' +
+          '<h3>' + esc(item.title) + '</h3></div></div>' +
+          '<div class="foot"><a class="btn" href="' + open + '">Read / Download <span class="arr">&rarr;</span></a></div></article>';
+      }).join("");
+      lib.classList.remove("hide");
+    }
+
+    // Membership / waitlist status block.
+    async function loadStatus(){
+      try {
+        const { data, error } = await supabase.rpc("ea_my_membership");
+        if (error) return; // table/RPC may not exist in earlier states; just skip
+        const m = Array.isArray(data) ? data[0] : data;
+        if (!m || !m.status || m.status === "inactive") return;
+        const row = $("statusRow");
+        if (m.status === "active") {
+          $("statusTitle").textContent = "Membership active";
+          let body = "You are a member. The community and member perks are open to you.";
+          if (m.current_period_end) {
+            const d = new Date(m.current_period_end);
+            if (!isNaN(d)) body += " Renews " + d.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" }) + ".";
+          }
+          $("statusBody").textContent = body;
+          $("statusCta").classList.remove("hide");
+        } else if (m.status === "past_due") {
+          $("statusTitle").textContent = "Payment needs attention";
+          $("statusBody").textContent = "Your last membership payment did not go through. Update it to keep your access.";
+          $("statusCta").textContent = "Manage billing"; $("statusCta").setAttribute("href", "/dashboard/#billing");
+        } else if (m.status === "canceled") {
+          $("statusTitle").textContent = "Membership canceled";
+          $("statusBody").textContent = "Your membership is canceled. Anything you bought outright is still yours below.";
+          $("statusCta").textContent = "See membership"; $("statusCta").setAttribute("href", "/pricing/");
+        }
+        row.classList.remove("hide");
+      } catch (_) { /* status is optional, never block the page */ }
+    }
+
+    // The library itself.
+    async function loadLibrary(){
+      try {
+        const { data, error } = await supabase.rpc("ea_my_library");
+        if (error) throw error;
+        $("loading").classList.add("hide");
+        const items = Array.isArray(data) ? data : [];
+        if (items.length === 0) { $("empty").classList.remove("hide"); return; }
+        renderLibrary(items);
+      } catch (err) {
+        $("loading").classList.add("hide");
+        $("errState").classList.remove("hide");
+      }
+    }
+
+    // All videos, with lock state: unlocked by an active All-Access membership OR a single-video purchase.
+    async function loadVideos(){
+      try {
+        const [pr, mr, lr] = await Promise.all([
+          supabase.rpc("ea_list_products"),
+          supabase.rpc("ea_my_membership"),
+          supabase.rpc("ea_my_library"),
+        ]);
+        $("vidLoading").classList.add("hide");
+        const courses = (pr.data || []).filter(p => p.type === "course" && p.status === "published");
+        if (!courses.length) { $("vidEmpty").classList.remove("hide"); return; }
+        const m = Array.isArray(mr.data) ? mr.data[0] : mr.data;
+        const isMember = !!(m && m.status === "active");
+        const owned = new Set((lr.data || []).map(x => x.slug));
+        $("vidLib").innerHTML = courses.map(function (c) {
+          const unlocked = isMember || owned.has(c.slug);
+          const open = "/library/?p=" + encodeURIComponent(c.slug);
+          const cover = c.cover_url ? '<img class="cover" src="' + esc(c.cover_url) + '" alt="">' : '<div class="cover-ph">VIDEO</div>';
+          const cta = unlocked
+            ? '<a class="btn" href="' + open + '">Watch / Download <span class="arr">&rarr;</span></a>'
+            : '<a class="btn ghost" href="/pricing/">Subscribe or buy <span class="arr">&rarr;</span></a>';
+          const badge = unlocked ? '<span class="tag gold"><span class="dot"></span>UNLOCKED</span>' : '<span class="tag">LOCKED</span>';
+          return '<article class="pcard"><div class="top">' + cover + '<div class="meta"><div class="tagrow"><span class="tag">VIDEO</span>' + badge + '</div><h3>' + esc(c.title) + '</h3></div></div><div class="foot">' + cta + '</div></article>';
+        }).join("");
+        $("vidLib").classList.remove("hide");
+      } catch (_) { $("vidLoading").classList.add("hide"); $("vidEmpty").classList.remove("hide"); }
+    }
+
+    loadStatus();
+    loadLibrary();
+    loadVideos();
+  }
+}
+</script>
+</body></html>

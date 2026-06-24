@@ -1,30 +1,177 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sign in — BUILD MODE</title>
-<meta name="description" content="Sign in is opening soon.">
-<link rel="canonical" href="https://academy.taylormadecreative.net/">
-<meta property="og:type" content="website"><meta property="og:title" content="Sign in — BUILD MODE">
-<meta property="og:description" content="Sign in is opening soon."><meta property="og:url" content="https://academy.taylormadecreative.net/">
+<title>Sign in - BUILD MODE</title>
+<meta name="description" content="Sign in to your BUILD MODE library.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://academy.taylormadecreative.net/login/">
+<meta property="og:type" content="website"><meta property="og:title" content="Sign in - BUILD MODE">
+<meta property="og:description" content="Sign in to your BUILD MODE library."><meta property="og:url" content="https://academy.taylormadecreative.net/login/">
 <meta property="og:image" content="https://academy.taylormadecreative.net/assets/og.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css">
-</head><body><header class="site-header"><div class="wrap"><div class="bar">
+<style>
+  /* app pages: simple top bar + centered card, all from the existing system */
+  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
+  .authwrap{max-width:520px;}
+  .authcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:clamp(24px,4vw,40px);box-shadow:var(--shadow);}
+  .field{margin-top:18px;}
+  .field label{display:block;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:var(--paper-2);
+    border:1.5px solid var(--hair);border-radius:10px;padding:13px 15px;transition:border-color .15s;}
+  .field input:focus{outline:none;border-color:var(--gold);}
+  .field input.code{font-family:ui-monospace,monospace;letter-spacing:.4em;font-size:20px;text-align:center;}
+  .btn.block{width:100%;}
+  .formnote{font-size:13.5px;color:var(--muted);margin-top:14px;}
+  .formerr{font-size:14px;color:var(--clay);margin-top:14px;font-weight:500;}
+  .hide{display:none !important;}
+  .swaplink{background:none;border:0;cursor:pointer;color:var(--ink);font-weight:600;font-family:inherit;font-size:14px;border-bottom:2px solid var(--gold);padding:0 0 1px;}
+  .swaplink:hover{border-color:var(--ink);}
+</style>
+</head><body>
+<header class="appbar"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><span class="mark">BUILD<b>MODE</b></span><span class="by">by Taylormade Creative</span></a>
-<nav class="nav"><a class="navlink active" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/community/">Community</a><a class="navlink" href="/about/">About</a></nav>
-<div class="nav-cta"><a class="btn gold sm" href="/store/">Get the ebooks</a>
-<button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
-</div></div><div class="mobile-nav" id="mnav"><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/community/">Community</a><a href="/about/">About</a><a class="btn gold" href="/store/">Get the ebooks</a></div></header>
-<main><section class="section"><div class="wrap" style="max-width:760px">
-<span class="kicker gold">Member access</span><h1 class="display-m" style="margin-top:12px">Sign in is opening soon.</h1>
-<div style="margin-top:20px"><p>Accounts and your library turn on this week, the moment payments go live. If you already bought an ebook, your download link is in your email. Anything missing, reach out and I will sort it.</p></div>
-<p style="margin-top:30px"><a class="btn ghost" href="/">Back home</a></p>
-</div></section></main><footer class="site-footer"><div class="wrap">
+<a class="navlink" href="/store/">Back to store</a>
+</div></div></header>
+<main><section class="section"><div class="wrap authwrap">
+
+<span class="kicker gold">Member access</span>
+<h1 class="display-m" id="head" style="margin-top:12px">Sign in to your library.</h1>
+<p id="sub" style="margin-top:14px;color:var(--muted);max-width:42ch">Use the email you bought with. I will send a one-time link. No password to remember.</p>
+
+<div class="authcard" id="card" style="margin-top:26px">
+
+  <!-- accounts-off state (no Supabase keys yet) -->
+  <div id="offState" class="hide">
+    <h3 style="font-size:22px">Accounts open soon.</h3>
+    <p style="margin-top:12px;color:var(--muted)">Sign in turns on this week, the moment payments go live. If you already bought an ebook, your download link is in your email. Anything missing, reach out and I will sort it.</p>
+    <p style="margin-top:22px"><a class="btn ghost block" href="/">Back home</a></p>
+  </div>
+
+  <!-- email entry -->
+  <form id="emailForm" class="hide" autocomplete="on" novalidate>
+    <div class="field">
+      <label for="email">Email address</label>
+      <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" required>
+    </div>
+    <button class="btn gold block" type="submit" id="sendBtn" style="margin-top:18px">Send my sign-in link <span class="arr">&rarr;</span></button>
+    <p class="formerr hide" id="emailErr"></p>
+    <p class="formnote">New here? Buying an ebook creates your account automatically. You can also sign in first, then buy.</p>
+  </form>
+
+  <!-- check email + code fallback -->
+  <div id="sentState" class="hide">
+    <h3 style="font-size:22px">Check your email.</h3>
+    <p style="margin-top:12px;color:var(--muted)">I sent a sign-in link to <b id="sentTo" style="color:var(--ink)"></b>. Open it on this device and you are in.</p>
+    <hr class="rule hair" style="margin:22px 0">
+    <p style="font-size:14px;color:var(--muted)">Prefer a code? The same email has a 6-digit code. Enter it here.</p>
+    <form id="codeForm" novalidate>
+      <div class="field">
+        <label for="code">6-digit code</label>
+        <input id="code" name="code" class="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
+      </div>
+      <button class="btn block" type="submit" id="verifyBtn" style="margin-top:18px">Verify and sign in</button>
+      <p class="formerr hide" id="codeErr"></p>
+    </form>
+    <p class="formnote">Wrong email? <button type="button" class="swaplink" id="backBtn">Start over</button></p>
+  </div>
+
+</div>
+</div></section></main>
+
+<footer class="site-footer"><div class="wrap">
 <div class="foot-top"><div class="foot-brand"><div class="mark">BUILD<b>MODE</b></div>
 <p>Learn to build real things with AI. No code, no hype. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
 <div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">NO CODE / NO HYPE / JUST BUILD</span></div>
 </div></footer>
+
 <div class="toast" id="toast"></div>
-<script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>
+<script src="/js/config.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+
+const offState  = $("offState");
+const emailForm = $("emailForm");
+const sentState = $("sentState");
+
+function show(el){ el.classList.remove("hide"); }
+function hide(el){ el.classList.add("hide"); }
+function setErr(node, msg){ if(!msg){ hide(node); node.textContent=""; return; } node.textContent = msg; show(node); }
+
+// No keys yet -> graceful "accounts open soon" and stop.
+if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
+  $("sub").textContent = "Sign in is opening soon.";
+  show(offState);
+} else {
+  const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+
+  // Already signed in -> straight to the dashboard.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    location.replace("/dashboard/");
+  } else {
+    show(emailForm);
+
+    let pendingEmail = "";
+
+    emailForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setErr($("emailErr"), "");
+      const email = ($("email").value || "").trim().toLowerCase();
+      if (!email || email.indexOf("@") < 1) { setErr($("emailErr"), "Enter a valid email address."); return; }
+      const btn = $("sendBtn");
+      btn.disabled = true; btn.textContent = "Sending...";
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: location.origin + "/dashboard/", shouldCreateUser: true }
+        });
+        if (error) throw error;
+        pendingEmail = email;
+        $("sentTo").textContent = email;
+        $("head").textContent = "Check your email.";
+        $("sub").textContent = "Your sign-in link is on the way.";
+        hide(emailForm); show(sentState);
+        $("code").focus();
+      } catch (err) {
+        setErr($("emailErr"), (err && err.message) ? err.message : "Could not send the link. Try again in a minute.");
+      } finally {
+        btn.disabled = false; btn.innerHTML = 'Send my sign-in link <span class="arr">&rarr;</span>';
+      }
+    });
+
+    $("codeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setErr($("codeErr"), "");
+      const token = ($("code").value || "").replace(/\D/g, "");
+      if (token.length !== 6) { setErr($("codeErr"), "Enter the 6-digit code from your email."); return; }
+      const btn = $("verifyBtn");
+      btn.disabled = true; btn.textContent = "Verifying...";
+      try {
+        const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
+        if (error) throw error;
+        location.replace("/dashboard/");
+      } catch (err) {
+        setErr($("codeErr"), (err && err.message) ? err.message : "That code did not work. Check it, or use the link in the email.");
+        btn.disabled = false; btn.textContent = "Verify and sign in";
+      }
+    });
+
+    $("backBtn").addEventListener("click", () => {
+      setErr($("codeErr"), ""); setErr($("emailErr"), "");
+      $("code").value = "";
+      $("head").textContent = "Sign in to your library.";
+      $("sub").textContent = "Use the email you bought with. I will send a one-time link. No password to remember.";
+      hide(sentState); show(emailForm); $("email").focus();
+    });
+  }
+}
+</script>
+</body></html>
