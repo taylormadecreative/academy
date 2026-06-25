@@ -107,11 +107,20 @@
         try { form.reset(); } catch (_) {}
         BM.popMark(); BM.hidePop();
       };
-      // capture the lead, but never block the freebie if the call fails
+      // collect lead data for building ad audiences (UTM, referrer, landing page)
+      var q = {};
+      try { (location.search || '').replace(/^\?/, '').split('&').forEach(function (p) { var kv = p.split('='); if (kv[0]) q[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || ''); }); } catch (_) {}
+      var payload = {
+        email: email, source: 'ebook-popup', lead_magnet: 'ai-playbook',
+        landing_page: location.pathname + location.search, referrer: document.referrer || '',
+        utm_source: q.utm_source || '', utm_medium: q.utm_medium || '', utm_campaign: q.utm_campaign || '',
+        utm_content: q.utm_content || '', utm_term: q.utm_term || ''
+      };
+      // capture the lead + email the ebook, but never block the freebie if it fails
       if (CFG.FUNCTIONS_BASE) {
-        fetch(CFG.FUNCTIONS_BASE + '/ea-subscribe', {
+        fetch(CFG.FUNCTIONS_BASE + '/ea-get-ebook', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, source: 'ebook-popup' })
+          body: JSON.stringify(payload)
         }).then(deliver, deliver);
       } else { deliver(); }
       return false;
