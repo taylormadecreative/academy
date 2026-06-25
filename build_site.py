@@ -236,6 +236,12 @@ def cover_pic(p, cls="cover", lazy=True, style=""):
     return (f'<picture><source srcset="{webp}" type="image/webp">'
             f'<img class="{cls}" src="{png}" alt="{p["title"]} cover" width="{w}" height="{h}"{lz}{st}></picture>')
 
+def course_top(base, alt):
+    """Top image for an in-production course card: WebP thumbnail + 'Coming soon' badge."""
+    return (f'<div class="top"><picture><source srcset="/assets/{base}.webp" type="image/webp">'
+            f'<img class="cover" src="/assets/{base}.png" width="960" height="640" alt="{alt} course thumbnail" '
+            f'loading="lazy" decoding="async"></picture><span class="soon-badge">Coming soon</span></div>')
+
 def popular_cards():
     out = ""
     for slug in ("ai-agent-ebook", "boring-money"):
@@ -244,9 +250,9 @@ def popular_cards():
                 f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
                 f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:92]}…</p></div>'
                 f'<div class="foot">{price_block(slug)}<a class="btn ghost sm" href="/store/{slug}/">Details <span class="arr">&rarr;</span></a></div></article>')
-    for name, desc in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools."),
-                       ("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.")):
-        out += (f'<article class="pcard"><div class="top"><div class="cover-ph">COURSE<br>COMING</div></div>'
+    for name, desc, thumb in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "course-design"),
+                       ("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "course-video")):
+        out += (f'<article class="pcard">{course_top(thumb, name)}'
                 f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
                 f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
                 f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'home-course\')" style="display:flex;gap:8px">'
@@ -317,7 +323,7 @@ def store():
                 f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:88]}…</p></div>'
                 f'<div class="foot">{price_block(slug)}<button class="btn gold sm" data-add-cart="{slug}" data-title="{p["title"]}">Add to cart</button></div></article>')
     def soon_card(name, desc, key):
-        return (f'<article class="pcard" data-cat="soon"><div class="top"><div class="cover-ph">COURSE<br>COMING</div></div>'
+        return (f'<article class="pcard" data-cat="soon">{course_top("course-" + key, name)}'
                 f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
                 f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
                 f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'store-{key}\')" style="display:flex;gap:8px">'
