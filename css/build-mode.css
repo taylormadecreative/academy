@@ -240,3 +240,30 @@ p{max-width:68ch;}
   .foot-top{grid-template-columns:1fr;}
   .preview .pv-side{display:none;}
 }
+
+/* ---------- cart ---------- */
+.cart-btn{position:relative;}
+.cart-btn .cc{position:absolute;top:-7px;right:-7px;background:var(--clay);color:#fff;font-size:10px;min-width:17px;height:17px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;padding:0 4px;}
+.cart-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.42);opacity:0;pointer-events:none;transition:opacity .25s;z-index:90;}
+.cart-backdrop.open{opacity:1;pointer-events:auto;}
+.cart-drawer{position:fixed;top:0;right:0;height:100%;width:384px;max-width:92vw;background:#fff;box-shadow:-16px 0 50px -20px rgba(15,23,42,.35);transform:translateX(100%);transition:transform .28s var(--ease);z-index:100;display:flex;flex-direction:column;}
+.cart-drawer.open{transform:none;}
+.cart-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--hair);font-size:17px;font-weight:800;}
+.cart-items{flex:1;overflow-y:auto;padding:4px 20px;}
+.cart-item{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--hair-soft);}
+.cart-item .ci-t{font-weight:600;font-size:14.5px;color:var(--ink);overflow-wrap:anywhere;}
+.cart-item .ci-p{font-weight:800;color:var(--ink);margin-top:3px;font-size:15px;}
+.ci-x{appearance:none;border:0;background:none;font-size:22px;line-height:1;color:var(--muted-ink);cursor:pointer;padding:2px 4px;flex:0 0 auto;}
+.ci-x:hover{color:var(--clay);}
+.cart-foot{padding:18px 20px;border-top:1px solid var(--hair);background:var(--bg-soft);}
+.cart-sub{display:flex;justify-content:space-between;font-weight:800;font-size:18px;margin-bottom:14px;}
+.cart-up{margin-top:14px;background:#fff;border:1px solid var(--hair);border-radius:12px;padding:14px;}
+.cart-up .h{font-weight:700;font-size:14px;}
+.cart-up p{font-size:12.5px;color:var(--muted);margin:5px 0 10px;}
+@media(max-width:920px){ .nav-cta .cart-btn{display:inline-flex !important;} }
+
+/* ---------- filter chips (store / generic) ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{appearance:none;border:1.5px solid var(--hair);background:#fff;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 16px;border-radius:100px;cursor:pointer;}
+.chip:hover{border-color:var(--muted-ink);}
+.chip.active{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}

@@ -3,27 +3,69 @@
   var CFG = window.BM_CONFIG || {};
   var BM = {
     _t: null,
+    _cart: [],
+    _prods: {},
+    esc: function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); },
+    fmt: function (c) { var d = c / 100; return (c % 100 === 0) ? ('$' + d) : ('$' + d.toFixed(2)); },
     toast: function (msg, ms) {
       var t = document.getElementById('toast'); if (!t) return;
       t.innerHTML = msg; t.classList.add('show');
       clearTimeout(BM._t); BM._t = setTimeout(function () { t.classList.remove('show'); }, ms || 3600);
     },
     buy: function (slug) {
-      if (!CFG.FUNCTIONS_BASE) {
-        BM.toast('The store is live, payments switch on this week. <b>Drop your email on the home page to get told first.</b>');
-        return;
-      }
+      if (!CFG.FUNCTIONS_BASE) { BM.toast('The store is live, payments switch on this week.'); return; }
       fetch(CFG.FUNCTIONS_BASE + '/ea-create-checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_id: slug })
-      }).then(function (r) {
-        if (r.status === 503) { BM.toast('Payments are not switched on yet. <b>Check back very soon.</b>'); return null; }
-        return r.json();
-      }).then(function (d) {
-        if (d && d.url) { location.href = d.url; }
-        else if (d) { BM.toast('Could not start checkout. Try again in a minute.'); }
-      }).catch(function () { BM.toast('Payments turn on soon. <b>Hang tight.</b>'); });
+      }).then(function (r) { if (r.status === 503) { BM.toast('Payments are not switched on yet. <b>Check back very soon.</b>'); return null; } return r.json(); })
+        .then(function (d) { if (d && d.url) { location.href = d.url; } else if (d) { BM.toast('Could not start checkout. Try again in a minute.'); } })
+        .catch(function () { BM.toast('Payments turn on soon. <b>Hang tight.</b>'); });
     },
+
+    /* ---------------- cart ---------------- */
+    cartLoad: function () { try { BM._cart = JSON.parse(localStorage.getItem('ea_cart') || '[]') || []; } catch (_) { BM._cart = []; } },
+    cartSave: function () { try { localStorage.setItem('ea_cart', JSON.stringify(BM._cart)); } catch (_) {} },
+    addToCart: function (slug, title) {
+      if (!slug) return;
+      if (BM._cart.some(function (i) { return i.slug === slug; })) { BM.openCart(); BM.toast('Already in your cart.'); return; }
+      BM._cart.push({ slug: slug, title: title || slug }); BM.cartSave(); BM.renderCart(); BM.openCart(); BM.toast('Added to cart.');
+    },
+    removeFromCart: function (slug) { BM._cart = BM._cart.filter(function (i) { return i.slug !== slug; }); BM.cartSave(); BM.renderCart(); },
+    openCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.add('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.add('open'); },
+    closeCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.remove('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.remove('open'); },
+    renderCart: function () {
+      var n = BM._cart.length;
+      var badge = document.getElementById('cartCount'); if (badge) { badge.textContent = n; badge.style.display = n > 0 ? '' : 'none'; }
+      var box = document.getElementById('cartItems');
+      var sub = 0;
+      if (box) {
+        if (!n) { box.innerHTML = '<p class="muted" style="padding:30px 4px;text-align:center">Your cart is empty.</p>'; }
+        else {
+          var html = '';
+          BM._cart.forEach(function (it) {
+            var p = BM._prods[it.slug]; var c = (p && p.price_cents != null) ? p.price_cents : null; if (c != null) sub += c;
+            html += '<div class="cart-item"><div style="flex:1;min-width:0"><div class="ci-t">' + BM.esc(it.title || it.slug) + '</div><div class="ci-p">' + (c != null ? BM.fmt(c) : '—') + '</div></div><button class="ci-x" data-cart-remove="' + BM.esc(it.slug) + '" aria-label="Remove">×</button></div>';
+          });
+          box.innerHTML = html;
+        }
+      }
+      var st = document.getElementById('cartSubtotal'); if (st) st.textContent = BM.fmt(sub);
+      var co = document.getElementById('cartCheckout'); if (co) co.disabled = !n;
+    },
+    checkoutCart: function () {
+      if (!BM._cart.length) return;
+      if (!CFG.FUNCTIONS_BASE) { BM.toast('Payments switch on soon.'); return; }
+      var btn = document.getElementById('cartCheckout'); if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout...'; }
+      fetch(CFG.FUNCTIONS_BASE + '/ea-create-checkout', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_ids: BM._cart.map(function (i) { return i.slug; }) })
+      }).then(function (r) { return r.status === 503 ? null : r.json(); })
+        .then(function (d) {
+          if (d && d.url) { location.href = d.url; }
+          else { BM.toast('Could not start checkout. Try again.'); if (btn) { btn.disabled = false; btn.innerHTML = 'Checkout Securely <span class="arr">&rarr;</span>'; } }
+        }).catch(function () { BM.toast('Payments turn on soon.'); if (btn) { btn.disabled = false; btn.innerHTML = 'Checkout Securely <span class="arr">&rarr;</span>'; } });
+    },
+
     subscribe: function (e, source) {
       e.preventDefault();
       var form = e.target;
@@ -64,10 +106,15 @@
     }
   };
   window.BM = BM;
+  BM.cartLoad();
 
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-buy]');
-    if (b) { ev.preventDefault(); BM.buy(b.getAttribute('data-buy')); }
+    var b = ev.target.closest('[data-buy]'); if (b) { ev.preventDefault(); BM.buy(b.getAttribute('data-buy')); return; }
+    var ac = ev.target.closest('[data-add-cart]'); if (ac) { ev.preventDefault(); BM.addToCart(ac.getAttribute('data-add-cart'), ac.getAttribute('data-title')); return; }
+    var oc = ev.target.closest('[data-open-cart]'); if (oc) { ev.preventDefault(); BM.openCart(); return; }
+    var cl = ev.target.closest('[data-close-cart]'); if (cl) { ev.preventDefault(); BM.closeCart(); return; }
+    var rm = ev.target.closest('[data-cart-remove]'); if (rm) { ev.preventDefault(); BM.removeFromCart(rm.getAttribute('data-cart-remove')); return; }
+    var co = ev.target.closest('[data-checkout-cart]'); if (co) { ev.preventDefault(); BM.checkoutCart(); return; }
   });
 
   if ('IntersectionObserver' in window) {
@@ -79,11 +126,10 @@
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
   }
 
-  // Fill prices from the database (single source of truth, always matches checkout).
+  // Fill prices from the database (single source of truth, always matches checkout)
+  // and cache the catalog for the cart.
   function fillPrices() {
-    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) return;
-    var els = document.querySelectorAll('[data-price]');
-    if (!els.length) return;
+    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { BM.renderCart(); return; }
     fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/ea_list_products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': CFG.SUPABASE_KEY, 'Authorization': 'Bearer ' + CFG.SUPABASE_KEY },
@@ -91,7 +137,8 @@
     }).then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
       var map = {};
       (list || []).forEach(function (p) { map[p.slug] = p; });
-      els.forEach(function (el) {
+      BM._prods = map;
+      document.querySelectorAll('[data-price]').forEach(function (el) {
         var slug = el.getAttribute('data-price'); if (!slug) return;
         var p = map[slug]; if (!p || p.price_cents == null) return;
         var d = p.price_cents / 100;
@@ -99,7 +146,19 @@
         if (p.billing === 'recurring') s += '/mo';
         el.textContent = s;
       });
-    }).catch(function () {});
+      BM.renderCart();
+    }).catch(function () { BM.renderCart(); });
   }
   fillPrices();
+
+  // store category filter
+  var sf = document.getElementById('storeFilter');
+  if (sf) {
+    sf.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cat]'); if (!b) return;
+      var cat = b.getAttribute('data-cat');
+      sf.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('active', x === b); });
+      document.querySelectorAll('#storeGrid [data-cat]').forEach(function (c) { c.style.display = (cat === 'all' || c.getAttribute('data-cat') === cat) ? '' : 'none'; });
+    });
+  }
 })();

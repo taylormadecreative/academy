@@ -59,6 +59,7 @@ def header(active=""):
 <a class="brand" href="/">{LOGO}<span class="mark">Taylormade Academy</span></a>
 <nav class="nav">{links}</nav>
 <div class="nav-cta"><a class="navlink" href="/login/">Sign In</a><a class="btn gold sm" href="/login/">Join Community <span class="arr">&rarr;</span></a>
+<button class="btn ghost sm cart-btn" data-open-cart aria-label="Cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="cc" id="cartCount" style="display:none">0</span></button>
 <button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
 </div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign In</a><a class="btn gold" href="/login/">Join Community</a></div></header>"""
 
@@ -87,6 +88,16 @@ def footer():
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
+<div class="cart-backdrop" id="cartBackdrop" data-close-cart></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Your cart">
+<div class="cart-head"><span>Your cart</span><button class="ci-x" data-close-cart aria-label="Close">&times;</button></div>
+<div class="cart-items" id="cartItems"></div>
+<div class="cart-foot">
+<div class="cart-sub"><span>Subtotal</span><span id="cartSubtotal">$0</span></div>
+<button class="btn gold" id="cartCheckout" data-checkout-cart style="width:100%" disabled>Checkout Securely <span class="arr">&rarr;</span></button>
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">30-day money-back guarantee</p>
+<div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
+</div></aside>
 <div class="toast" id="toast"></div>
 <script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>"""
 
@@ -245,33 +256,53 @@ def home():
 
 # ---------- STORE ----------
 def store():
-    cards = ""
-    for slug, p in PRODUCTS.items():
-        cards += f"""<article class="pcard">
-<div class="top"><img class="cover" src="{p['cover']}" alt="{p['title']} cover" loading="lazy">
-<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
-<h3>{p['title']}</h3><p class="blurb">{p['blurb']}</p></div></div>
-<div class="foot">{price_block(slug)}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
-    cards += """<article class="pcard coming" id="video">
-<div class="top"><div class="cover-ph">VIDEO<br>COURSE</div>
-<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>COMING SOON</span></div>
-<h3>The Video Courses</h3><p class="blurb">Watch me build it on screen, step by step. In production now, made with HeyGen and edited in Remotion. Join the waitlist and you are first in line.</p></div></div>
-<div class="foot"><span class="price"><span class="ph">In production</span></span><a class="btn ghost" href="/#waitlist">Join the waitlist <span class="arr">&rarr;</span></a></div></article>"""
-    return head("Store — Taylormade Academy", "Two plain-English ebooks ready to read now, plus video courses on the way. Build real things with AI.", "/store/") + header("Store") + f"""
+    p1, p2 = PRODUCTS["ai-agent-ebook"], PRODUCTS["boring-money"]
+    def ebook_card(slug, p):
+        return (f'<article class="pcard" data-cat="ebook">'
+                f'<a class="top" href="/store/{slug}/"><img class="cover" src="{p["cover"]}" alt="{p["title"]} cover" loading="lazy"></a>'
+                f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
+                f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:88]}…</p></div>'
+                f'<div class="foot">{price_block(slug)}<button class="btn gold sm" data-add-cart="{slug}" data-title="{p["title"]}">Add to cart</button></div></article>')
+    def soon_card(name, desc, key):
+        return (f'<article class="pcard" data-cat="soon"><div class="top"><div class="cover-ph">COURSE<br>COMING</div></div>'
+                f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
+                f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
+                f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'store-{key}\')" style="display:flex;gap:8px">'
+                f'<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:110px;padding:10px 12px;border:1.5px solid var(--hair);border-radius:9px;font-family:inherit;font-size:13px;background:#fff">'
+                f'<button class="btn gold sm" type="submit">Notify</button></form></div></article>')
+    grid = (ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2)
+            + soon_card("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "design")
+            + soon_card("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "video")
+            + soon_card("Photography That Sells", "Lighting, shooting, and editing images that stop the scroll.", "photo"))
+    return head("Store — Taylormade Academy", "Buy what you need: ebooks, PDFs, and courses for design, photo, video, and AI. Or join the membership for everything.", "/store/") + header("Courses") + f"""
 <main>
 <section class="section tight"><div class="wrap">
-<span class="kicker gold reveal">The catalog</span>
-<h1 class="display-l reveal" style="margin-top:12px;max-width:16ch">Everything to start building, in one place.</h1>
-<p class="reveal" style="margin-top:16px;color:var(--muted);max-width:52ch">Two ebooks you can read tonight. Video courses on the way. Pick one, or grab the bundle and save.</p>
-</div></section>
-<section class="section" style="padding-top:0"><div class="wrap"><div class="products reveal">{cards}</div>
-<div class="reveal" style="margin-top:36px;background:var(--ink);color:var(--paper);border-radius:var(--r);padding:clamp(24px,4vw,40px);display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between">
-<div><span class="tag gold" style="border-color:var(--gold)"><span class="dot"></span>BEST VALUE</span>
-<h2 class="display-m" style="color:var(--paper);margin-top:12px;max-width:20ch">Get both ebooks together and save.</h2>
-<p style="color:#D7D2C6;margin-top:10px;max-width:48ch">Build the agent, then build the business around it. The full playbook, one price.</p></div>
-<div style="text-align:right"><div class="price" style="font-size:30px;color:var(--paper)"><span class="ph">Bundle price coming</span></div>
-<a class="btn gold" style="margin-top:14px" href="/pricing/">See pricing <span class="arr">&rarr;</span></a></div>
+<div class="g-12" style="align-items:stretch;gap:clamp(20px,3vw,32px)">
+<div style="grid-column:1/7;display:flex;flex-direction:column;justify-content:center">
+<span class="kicker gold reveal">A la carte store</span>
+<h1 class="display-l reveal" style="margin-top:10px">Buy what you need.<br><span class="blue">Learn, create, earn.</span></h1>
+<p class="reveal" style="margin-top:14px;color:var(--muted);max-width:46ch">Ebooks, PDFs, and courses to help you master design, photo, video, and AI, and build real income. Yours to keep, or get everything with a membership.</p>
+</div>
+<div style="grid-column:7/13" class="reveal">
+<div style="background:var(--ink-panel);color:#cbd5e1;border-radius:var(--r-lg);padding:clamp(20px,3vw,28px);height:100%;display:flex;flex-direction:column;justify-content:center">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="tag" style="background:rgba(255,255,255,.08);border-color:transparent;color:#93c5fd">FEATURED BUNDLE</span><span class="tag" style="background:var(--emerald);border-color:var(--emerald);color:#fff">BEST VALUE</span></div>
+<h2 style="color:#fff;font-size:clamp(22px,3vw,27px);font-weight:800;margin-top:14px;letter-spacing:-.02em">The Complete Bundle</h2>
+<p style="margin-top:8px;font-size:14px;color:#cbd5e1">Both ebooks together, build the AI agent, then the recurring-income business. Lifetime access, instant download.</p>
+<div style="display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap"><div class="price big" data-price="bundle" style="color:#fff"><span class="ph" style="color:#93c5fd">Price coming</span></div>
+<button class="btn gold" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button>
+<a class="textlink" style="color:#93c5fd" href="/pricing/">What's inside &rarr;</a></div>
+</div></div>
 </div></div></section>
+
+<section class="section" style="padding-top:0"><div class="wrap">
+<div class="chips reveal" id="storeFilter" style="margin-bottom:22px">
+<button class="chip active" data-cat="all">All products</button>
+<button class="chip" data-cat="ebook">Ebooks</button>
+<button class="chip" data-cat="soon">Courses (soon)</button>
+</div>
+<div class="products reveal" id="storeGrid">{grid}</div>
+<p class="muted reveal" style="margin-top:26px;font-size:14px">Want everything in one price? <a class="textlink" href="/pricing/">See the membership &rarr;</a></p>
+</div></section>
 </main>""" + footer()
 
 # ---------- PRODUCT PAGE ----------
