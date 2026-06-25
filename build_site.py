@@ -301,7 +301,7 @@ def store():
 <button class="chip" data-cat="soon">Courses (soon)</button>
 </div>
 <div class="products reveal" id="storeGrid">{grid}</div>
-<p class="muted reveal" style="margin-top:26px;font-size:14px">Want everything in one price? <a class="textlink" href="/pricing/">See the membership &rarr;</a></p>
+<p class="muted reveal" style="margin-top:26px;font-size:14px">Want everything in one price? <a class="textlink" href="/pricing/">See the membership &rarr;</a> &nbsp;·&nbsp; <a class="textlink" href="/course/">Preview the course experience &rarr;</a></p>
 </div></section>
 </main>""" + footer()
 
