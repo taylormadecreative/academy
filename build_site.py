@@ -167,7 +167,7 @@ def render(path, html):
 PRODUCTS = {
     "ai-agent-ebook": {
         "title": "Build Your First AI Agent",
-        "tag": "EBOOK", "pages": "~12 pages", "cover": "/assets/cover-ai-agent.png",
+        "tag": "EBOOK", "pages": "~24 pages", "cover": "/assets/cover-ai-agent.png",
         "blurb": "Build a real, working AI agent this weekend, no code, no jargon. The same no-code approach I taught live to about 50 students. A short, do-it-with-me guide, not a textbook.",
         "for": "Beginners who have never written a line of code. Creatives and hustlers who want to build, not just read about AI. Students who want a head start. If you can write an email and follow directions, you can do this.",
         "what": ["What an AI agent actually is, in plain words", "How to pick a real problem worth solving",
@@ -175,11 +175,11 @@ PRODUCTS = {
                  "Building it step by step, with screenshots to follow", "Testing it, fixing it, and exporting your work",
                  "A short pitch framework so you can explain what you built"],
         "outcome": "You finish with a working AI agent you built yourself, and you understand how it works well enough to build the next one. No black box. No hand-holding forever. Just the foundation you need to keep going.",
-        "what_is": "A short, no-code, do-it-with-me guide to building your first working AI agent. About 12 pages with screenshots, so you finish it. I take you from \"I don't really know what an agent is\" to \"I built one and it does a real job.\"",
+        "what_is": "A short, no-code, do-it-with-me guide to building your first working AI agent. About 24 pages with screenshots, so you finish it. I take you from \"I don't really know what an agent is\" to \"I built one and it does a real job.\"",
     },
     "boring-money": {
         "title": "The AI Money Machine",
-        "tag": "EBOOK", "pages": "~12 pages", "cover": "/assets/cover-money-machine.png",
+        "tag": "EBOOK", "pages": "~24 pages", "cover": "/assets/cover-money-machine.png",
         "blurb": "Turn AI into recurring income by solving the unglamorous problems small businesses pay for every month. The flashy AI stuff gets likes. This gets you paid. A short, run-it-this-week playbook.",
         "for": "Hustlers who want recurring income, not a one-time gig. Freelancers and creatives who already have skills and want to package them. Beginners who would rather build a small, steady business than chase a viral moment. You do not need a big audience or startup money.",
         "what": ["Why the unglamorous problems are the ones that pay every month", "The three goldmines: communication, documents, research",
@@ -187,7 +187,7 @@ PRODUCTS = {
                  "Finding your first clients where they already gather", "A repeatable workflow you run in about thirty minutes",
                  "A 90-day ramp, plus 20 ready-to-sell services to start with"],
         "outcome": "You walk away with a clear, honest plan for a recurring-income AI service business, the prompts and templates to run it, and a first-week action list. Real service income, not a passive-income fantasy.",
-        "what_is": "A short, run-it-this-week playbook for building a recurring-income AI service business. About 12 pages with graphics. The dependable, gets-paid-monthly stuff, on purpose.",
+        "what_is": "A short, run-it-this-week playbook for building a recurring-income AI service business. About 24 pages with graphics. The dependable, gets-paid-monthly stuff, on purpose.",
     },
 }
 
@@ -457,14 +457,14 @@ def pricing():
 <div style="margin-top:22px">{btn}</div></div>"""
     cards = "".join([
         card('<span class="tag">EBOOK</span>', "Build Your First AI Agent",
-             "The no-code agent guide, on its own.", ["Short 12-page PDF, screenshots included", "Read on any device", "7-day refund"],
+             "The no-code agent guide, on its own.", ["Easy 24-page PDF, screenshots included", "Read on any device", "7-day refund"],
              "Get this ebook", "#", buy="ai-agent-ebook"),
         card('<span class="tag gold"><span class="dot"></span>BEST VALUE</span>', "The Bundle",
              "Both ebooks together. Build the agent, then the business.",
              ["Build Your First AI Agent", "The AI Money Machine", "Save vs buying separately", "First in line for the video courses"],
              "Get the bundle", "#", buy="bundle", featured=True),
         card('<span class="tag">EBOOK</span>', "The AI Money Machine",
-             "The recurring-income service playbook, on its own.", ["Short 12-page PDF, graphics included", "Prompts and templates included", "7-day refund"],
+             "The recurring-income service playbook, on its own.", ["Easy 24-page PDF, graphics included", "Prompts and templates included", "7-day refund"],
              "Get this ebook", "#", buy="boring-money"),
     ])
     video_cards = "".join([
