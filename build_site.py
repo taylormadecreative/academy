@@ -7,7 +7,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://academy.taylormadecreative.net"
 
-NAV = [("Tracks", "/#tracks"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("Community", "/community/"), ("About", "/about/")]
+NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -53,9 +53,9 @@ def header(active=""):
     return f"""<header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
 <nav class="nav">{links}</nav>
-<div class="nav-cta"><a class="btn gold sm" href="/store/">Get the ebooks</a>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/">Join free</a>
 <button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
-</div></div><div class="mobile-nav" id="mnav">{mlinks}<a class="btn gold" href="/store/">Get the ebooks</a></div></header>"""
+</div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign in</a><a class="btn gold" href="/login/">Join free</a></div></header>"""
 
 def footer():
     cols = {
@@ -164,17 +164,17 @@ def home():
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
-<div class="eyebrow-row"><span class="kicker gold">No hype. Just the craft.</span><hr class="rule gold" style="max-width:80px"></div>
+<div class="eyebrow-row"><span class="kicker gold">A free community for creatives</span><hr class="rule gold" style="max-width:80px"></div>
 <h1 class="display-xl">Learn to build<br>real things.</h1>
-<p class="sub">I'm Nelson Taylor, a working creative out of Dallas-Fort Worth with 14 years in the field. I teach the crafts I actually do, graphic design, photography, video, and AI, in plain English, on real projects, honest about the work it takes.</p>
-<div class="cta-row"><a class="btn gold" href="#tracks">See the tracks <span class="arr">&rarr;</span></a><a class="btn ghost" href="/community/">Join the community</a></div>
+<p class="sub">I'm Nelson Taylor, a Dallas-Fort Worth creative with 14 years in. This is a free community where you learn the crafts I actually do, graphic design, photography, video, and AI, share your work, get unstuck, and meet people to build with.</p>
+<div class="cta-row"><a class="btn gold" href="/login/">Join the community <span class="arr">&rarr;</span></a><a class="btn ghost" href="/login/">Sign in</a></div>
 {socials_row(style="margin-top:24px")}
 </div>
 <div class="hero-art reveal">
 <div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--hair);box-shadow:var(--shadow)">
 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3a352e;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(28px,4vw,40px);letter-spacing:.04em;text-align:center;line-height:1.05">NELSON<br>TAYLOR</div>
 <img src="/assets/nelson-hero.jpg" alt="Nelson Taylor, Taylormade Creative" style="position:relative;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-<span class="badge" style="position:absolute;left:16px;bottom:16px;margin:0"><span class="dot"></span>Taught by Nelson Taylor</span>
+<span class="badge" style="position:absolute;left:16px;bottom:16px;margin:0"><span class="dot"></span>Hosted by Nelson Taylor</span>
 </div></div>
 </div></div></section>
 
@@ -183,6 +183,18 @@ def home():
 <div class="item"><div class="n">14 years</div><div class="l">Working as a creative in Dallas-Fort Worth, design, video, and AI</div></div>
 <div class="item"><div class="n">Shipped</div><div class="l">A real iOS app on the App Store, not just slides and theory</div></div>
 </div></div></section>
+
+<section class="section tight"><div class="wrap">
+<div class="eyebrow-row reveal"><span class="kicker">What's inside</span><hr class="rule hair"></div>
+<div class="sec-head reveal" style="margin:18px 0 30px"><h2 class="display-m">A community, not just a course.</h2>
+<p style="color:var(--muted);margin-top:10px;max-width:54ch">Join free and you're in the room with everyone else building, plus the courses, the members, and me.</p></div>
+<div class="audience reveal">
+<div class="a"><div class="h">The feed</div><div class="d">Post your work, ask questions, drop wins, and get unstuck, sorted by craft.</div></div>
+<div class="a"><div class="h">The courses</div><div class="d">Four tracks: design, photo, video, and AI. Start free, go deeper when you're ready.</div></div>
+<div class="a"><div class="h">Members + DMs</div><div class="d">Meet people, message them directly, and find collaborators or business partners.</div></div>
+<div class="a"><div class="h">Access to Nelson</div><div class="d">Learn from a working creative who actually ships, not a faceless content farm.</div></div>
+</div>
+</div></section>
 
 <section class="section tight" id="tracks"><div class="wrap">
 <div class="eyebrow-row reveal"><span class="kicker">The tracks</span><hr class="rule hair"></div>
@@ -427,8 +439,7 @@ if __name__ == "__main__":
     render("/store/boring-money/", product_page("boring-money"))
     render("/pricing/", pricing())
     render("/about/", about())
-    render("/community/", community())
-    # NOTE: /login/, /dashboard/, and /library/ are the live member-area app pages.
+    # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.
     render("/refunds/", stub("Refunds", "Policy", "Refund policy",
