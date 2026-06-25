@@ -252,7 +252,7 @@ def feature_bar():
 
 COVER_DIMS = {"/assets/cover-ai-agent.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120)}
 
-def cover_pic(p, cls="cover", lazy=True, style=""):
+def cover_pic(p, cls="cover ebook-cover", lazy=True, style=""):
     """WebP <picture> with PNG fallback + intrinsic size (no CLS)."""
     png = p["cover"]
     webp = png.rsplit(".", 1)[0] + ".webp"
@@ -413,7 +413,7 @@ def product_page(slug):
 <a class="mono" href="/store/" style="font-size:12px;letter-spacing:.1em;color:var(--muted)">&larr; STORE</a>
 <div class="g-12" style="margin-top:22px;align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
-{cover_pic(p, cls="cover-lg", lazy=False, style="border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:360px")}
+<picture class="prod-cover"><source srcset="{p['cover'].rsplit('.',1)[0]}.webp" type="image/webp"><img src="{p['cover']}" width="840" height="1120" alt="{p['title']} cover" fetchpriority="high"></picture>
 <div style="background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--r);padding:20px;margin-top:22px">
 {price_block(slug, big=True)}
 <a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:14px">Get the ebook <span class="arr">&rarr;</span></a>

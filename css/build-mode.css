@@ -172,6 +172,10 @@ p{max-width:68ch;}
 .pcard .soon-badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);background:var(--gold);border-radius:100px;padding:5px 11px;box-shadow:0 2px 10px rgba(4,18,58,.3);}
 .pcard .top picture{display:block;position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;background:var(--ink-panel);}
 .pcard .cover{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.pcard .ebook-cover{object-position:center bottom;}
+/* product detail page cover */
+.prod-cover{display:block;width:100%;max-width:320px;margin:0;}
+.prod-cover img{display:block;width:100%;height:auto;border-radius:10px;box-shadow:var(--shadow);}
 .pcard .cover-ph{position:relative;width:100%;aspect-ratio:16/10;background:radial-gradient(120% 130% at 50% -10%,#12306c,var(--ink-panel));color:#c7d4f5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:12px;letter-spacing:.16em;text-align:center;overflow:hidden;}
 .pcard .cover-ph::before{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:radial-gradient(60% 100% at 50% 120%,rgba(253,201,33,.22),transparent 72%);pointer-events:none;}
 .pcard .cover-ph::after{content:"";position:relative;width:34px;height:4px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));}
