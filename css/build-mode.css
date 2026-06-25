@@ -6,8 +6,8 @@
    ============================================================ */
 :root{
   /* surfaces + text */
-  --bg:#ffffff;
-  --paper:#ffffff;          /* (compat) page bg */
+  --bg:#fcfdff;             /* page: a hair off pure white (impeccable) */
+  --paper:#ffffff;          /* (compat) cards */
   --paper-2:#f8fafc;        /* (compat) soft panel */
   --bg-soft:#f8fafc;
   --bg-soft2:#f1f5f9;
@@ -107,7 +107,7 @@ p{max-width:68ch;}
 .btn.ghost{background:#fff;border-color:var(--hair);color:var(--ink);box-shadow:none;}
 .btn.ghost:hover{border-color:var(--muted-ink);background:var(--bg-soft);}
 .btn.dark{background:var(--ink);border-color:var(--ink);color:#fff;}
-.btn:active{transform:translateY(1px);}
+.btn:active{transform:translateY(1px) scale(.985);}
 .arr{transition:transform .15s;}
 .btn:hover .arr{transform:translateX(3px);}
 .textlink{color:var(--blue);font-weight:600;}
@@ -220,7 +220,9 @@ p{max-width:68ch;}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:12px;font-size:14.5px;font-weight:500;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200;max-width:90vw;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast b{font-weight:700;}
-.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+/* reveal only hides when JS is on (progressive enhancement): content is always
+   visible without JS, and animates in when the observer runs. */
+.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
 .reveal.in{opacity:1;transform:none;}
 
 /* ---------- responsive ---------- */
@@ -293,3 +295,11 @@ p{max-width:68ch;}
 .pop input:focus{outline:none;border-color:var(--blue);}
 .pop .pop-no{background:none;border:0;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;margin-top:12px;}
 .pop .pop-no:hover{color:var(--ink);}
+
+/* ---------- accessibility + tactile (emil / impeccable) ---------- */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px;}
+:focus:not(:focus-visible){outline:none;}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+  .js .reveal{opacity:1!important;transform:none!important;}
+}
