@@ -31,6 +31,11 @@ def socials_row(style=""):
         for t, u in SOCIALS)
     return f'<div class="social-row" style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;{style}">{links}</div>'
 
+LOGO = ('<svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+        '<rect width="40" height="40" rx="11" fill="#2563EB"/>'
+        '<rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/>'
+        '<rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg>')
+
 def head(title, desc, path="/", og="assets/og.png"):
     canon = DOMAIN + path
     return f"""<!DOCTYPE html><html lang="en"><head>
@@ -42,7 +47,7 @@ def head(title, desc, path="/", og="assets/og.png"):
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{canon}">
 <meta property="og:image" content="{DOMAIN}/{og}"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css">
 </head><body>"""
 
@@ -51,28 +56,34 @@ def header(active=""):
         f'<a class="navlink{" active" if active==t else ""}" href="{u}">{t}</a>' for t, u in NAV)
     mlinks = "".join(f'<a href="{u}">{t}</a>' for t, u in NAV)
     return f"""<header class="site-header"><div class="wrap"><div class="bar">
-<a class="brand" href="/"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
+<a class="brand" href="/">{LOGO}<span class="mark">Taylormade Academy</span></a>
 <nav class="nav">{links}</nav>
-<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/">Join free</a>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign In</a><a class="btn gold sm" href="/login/">Join Community <span class="arr">&rarr;</span></a>
 <button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
-</div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign in</a><a class="btn gold" href="/login/">Join free</a></div></header>"""
+</div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign In</a><a class="btn gold" href="/login/">Join Community</a></div></header>"""
 
 def footer():
+    socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">{t}</a>' for t, u in SOCIALS)
     cols = {
-        "Tracks": [("Graphic Design", "/#tracks"), ("Photography", "/#tracks"), ("Video Production", "/#tracks"), ("AI for Creatives", "/store/")],
-        "Community": [("Join the community", "/community/"), ("About Nelson", "/about/"), ("Pricing", "/pricing/")],
-        "Follow Nelson": list(SOCIALS),
-        "More": [("Account", "/login/"), ("Refunds", "/refunds/"), ("Terms", "/terms/"), ("Privacy", "/privacy/")],
+        "Explore": [("Courses", "/store/"), ("Ebooks", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")],
+        "Community": [("The feed", "/community/"), ("Members", "/community/"), ("Messages", "/community/"), ("Join free", "/login/")],
     }
     colhtml = ""
     for h, items in cols.items():
         links = "".join(f'<a href="{u}">{t}</a>' for t, u in items)
         colhtml += f'<div class="foot-col"><h4>{h}</h4>{links}</div>'
     return f"""<footer class="site-footer"><div class="wrap">
-<div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
-<p>Learn the craft and build real things: graphic design, photography, video, and AI. Taught by Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p>
-{socials_row(style="margin-top:14px")}</div>
-{colhtml}</div>
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px">{LOGO}</div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
+<div style="display:flex;flex-wrap:wrap;margin-top:14px;font-size:14px;font-weight:600">{socials}</div></div>
+{colhtml}
+<div class="foot-col"><h4>Stay in the loop</h4>
+<p style="font-size:14px;color:var(--muted);margin-bottom:12px;max-width:30ch">New courses, ebooks, and community drops, to your inbox.</p>
+<form onsubmit="return BM.subscribe(event,'footer')" style="display:flex;gap:8px;flex-wrap:wrap">
+<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:150px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:10px;font-family:inherit;font-size:14px;background:#fff">
+<button class="btn gold sm" type="submit">Subscribe</button></form></div>
+</div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
@@ -139,113 +150,96 @@ def tracks_section():
 <p style="font-size:12px;color:var(--muted);margin:8px 0 0">First in line when the {name} track drops.</p></div></article>"""
     return cards
 
+def preview_panel():
+    return ('<div class="preview">'
+      '<div class="pv-top">'
+      '<div class="pv-side"><div class="pv-logo"></div>'
+      '<div class="pv-i on">Home</div><div class="pv-i">Courses</div><div class="pv-i">Ebooks</div>'
+      '<div class="pv-i">Community</div><div class="pv-i">Messages</div><div class="pv-i">Store</div></div>'
+      '<div class="pv-main"><div class="pv-h">Welcome back<b>Keep building.</b></div>'
+      '<div class="pv-cards"><div class="pv-card"><div class="t">Courses</div><div class="v">4</div></div>'
+      '<div class="pv-card"><div class="t">Ebooks</div><div class="v">2</div></div>'
+      '<div class="pv-card"><div class="t">Community</div><div class="v">Free</div></div></div>'
+      '<div class="pv-wide"><div class="thumb"></div><div style="flex:1;min-width:0">'
+      '<div class="b">Build Your First AI Agent</div><div class="s">Continue, chapter 2</div>'
+      '<div class="pv-bar"><i></i></div></div></div>'
+      '<div class="pv-wide"><div class="thumb"></div><div style="flex:1;min-width:0">'
+      '<div class="b">The community feed</div><div class="s">New posts from members</div></div></div>'
+      '</div></div></div>')
+
+def feature_bar():
+    IC = {
+      "play":'<svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>',
+      "doc":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4a1 1 0 0 1 1-1h7l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M13 3v5h5"/></svg>',
+      "ppl":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg>',
+      "chat":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3z"/></svg>',
+      "store":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>',
+    }
+    items = [("#2563eb","play","Video Courses","In-depth, practical courses that teach by doing."),
+             ("#10b981","doc","Ebooks &amp; PDFs","Actionable guides and resources you keep forever."),
+             ("#f97316","ppl","Community Feed","Share, ask, and grow with other creatives."),
+             ("#6366f1","chat","DMs &amp; Collaboration","Message members and build together."),
+             ("#f59e0b","store","A La Carte Store","Buy a single video or ebook, yours to keep.")]
+    return "".join(f'<div class="f"><div class="ic" style="background:{c}">{IC[k]}</div><div class="h">{h}</div><div class="d">{d}</div></div>' for c,k,h,d in items)
+
+def popular_cards():
+    out = ""
+    for slug in ("ai-agent-ebook", "boring-money"):
+        p = PRODUCTS[slug]
+        out += (f'<article class="pcard"><a class="top" href="/store/{slug}/"><img class="cover" src="{p["cover"]}" alt="{p["title"]} cover" loading="lazy"></a>'
+                f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
+                f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:92]}…</p></div>'
+                f'<div class="foot">{price_block(slug)}<a class="btn ghost sm" href="/store/{slug}/">Details <span class="arr">&rarr;</span></a></div></article>')
+    for name, desc in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools."),
+                       ("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.")):
+        out += (f'<article class="pcard"><div class="top"><div class="cover-ph">COURSE<br>COMING</div></div>'
+                f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
+                f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
+                f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'home-course\')" style="display:flex;gap:8px">'
+                f'<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:110px;padding:10px 12px;border:1.5px solid var(--hair);border-radius:9px;font-family:inherit;font-size:13px;background:#fff">'
+                f'<button class="btn gold sm" type="submit">Notify</button></form></div></article>')
+    return out
+
 # ---------- HOME ----------
 def home():
-    p1, p2 = PRODUCTS["ai-agent-ebook"], PRODUCTS["boring-money"]
-    pcards = ""
-    for slug, p in PRODUCTS.items():
-        feats = "".join(f"<li>{x}</li>" for x in p["what"][:4])
-        pcards += f"""<article class="pcard">
-<div class="top"><img class="cover" src="{p['cover']}" alt="{p['title']} cover" loading="lazy">
-<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
-<h3>{p['title']}</h3><p class="blurb">{p['blurb']}</p></div></div>
-<div class="foot">{price_block(slug)}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
-    # coming soon video card
-    pcards += """<article class="pcard coming">
-<div class="top"><div class="cover-ph">VIDEO<br>COURSE</div>
-<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>COMING SOON</span></div>
-<h3>The Video Courses</h3><p class="blurb">Step-by-step tutorial videos that walk you through the workshops on screen. In production now. Join the waitlist and you are first in line when they drop.</p></div></div>
-<div class="foot"><span class="price"><span class="ph">In production</span></span><a class="btn ghost" data-waitlist href="#waitlist">Join the waitlist <span class="arr">&rarr;</span></a></div></article>"""
-
     return head(
-        "Taylormade Academy — Learn design, photo, video & AI. Build real things.",
-        "Taylormade Academy by Nelson Taylor. Learn graphic design, photography, video, and AI, then build real things. Plain-English courses, ebooks, and a creative community out of Dallas-Fort Worth.",
-        "/") + header("") + f"""
+        "Taylormade Academy — Learn the craft. Build real things. Create real income.",
+        "Taylormade Academy by Nelson Taylor. Video courses, ebooks, and a private community to learn graphic design, photography, video, and AI, and build real things, out of Dallas-Fort Worth.",
+        "/") + header("Community") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
-<div class="eyebrow-row"><span class="kicker gold">A free community for creatives</span><hr class="rule gold" style="max-width:80px"></div>
-<h1 class="display-xl">Learn to build<br>real things.</h1>
-<p class="sub">I'm Nelson Taylor, a Dallas-Fort Worth creative with 14 years in. This is a free community where you learn the crafts I actually do, graphic design, photography, video, and AI, share your work, get unstuck, and meet people to build with.</p>
-<div class="cta-row"><a class="btn gold" href="/login/">Join the community <span class="arr">&rarr;</span></a><a class="btn ghost" href="/login/">Sign in</a></div>
-{socials_row(style="margin-top:24px")}
+<span class="hero-badge">The creative community for builders</span>
+<h1 class="display-xl" style="margin-top:18px">Learn the craft.<br>Build real things.<br><span class="blue">Create real income.</span></h1>
+<p class="sub">Step-by-step video courses, plain-English ebooks, and a private community, helping creators and hustlers use design, photo, video, and AI to build, ship, and earn. Hosted by Nelson Taylor.</p>
+<div class="cta-row"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Start Learning</a><a class="btn ghost" href="/store/">Browse Ebooks</a></div>
+<div class="statline"><div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div><div class="s"><div class="n">4</div><div class="l">creative tracks</div></div><div class="s"><div class="n">2</div><div class="l">ebooks ready now</div></div></div>
 </div>
-<div class="hero-art reveal">
-<div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--hair);box-shadow:var(--shadow)">
-<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3a352e;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(28px,4vw,40px);letter-spacing:.04em;text-align:center;line-height:1.05">NELSON<br>TAYLOR</div>
-<img src="/assets/nelson-hero.jpg" alt="Nelson Taylor, Taylormade Creative" style="position:relative;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
-<span class="badge" style="position:absolute;left:16px;bottom:16px;margin:0"><span class="dot"></span>Hosted by Nelson Taylor</span>
-</div></div>
+<div class="hero-art reveal">{preview_panel()}</div>
 </div></div></section>
 
-<section class="proof"><div class="wrap"><div class="row">
-<div class="item"><div class="n">~50 students</div><div class="l">Taught a live 3-night "Build Your First AI Agent" workshop with AUC's Data Science Institute and Johns Hopkins</div></div>
-<div class="item"><div class="n">14 years</div><div class="l">Working as a creative in Dallas-Fort Worth, design, video, and AI</div></div>
-<div class="item"><div class="n">Shipped</div><div class="l">A real iOS app on the App Store, not just slides and theory</div></div>
-</div></div></section>
+<section class="section tight" style="padding-top:0"><div class="wrap">
+<div class="featurebar reveal">{feature_bar()}</div>
+</div></section>
 
 <section class="section tight"><div class="wrap">
-<div class="eyebrow-row reveal"><span class="kicker">What's inside</span><hr class="rule hair"></div>
-<div class="sec-head reveal" style="margin:18px 0 30px"><h2 class="display-m">A community, not just a course.</h2>
-<p style="color:var(--muted);margin-top:10px;max-width:54ch">Join free and you're in the room with everyone else building, plus the courses, the members, and me.</p></div>
-<div class="audience reveal">
-<div class="a"><div class="h">The feed</div><div class="d">Post your work, ask questions, drop wins, and get unstuck, sorted by craft.</div></div>
-<div class="a"><div class="h">The courses</div><div class="d">Four tracks: design, photo, video, and AI. Start free, go deeper when you're ready.</div></div>
-<div class="a"><div class="h">Members + DMs</div><div class="d">Meet people, message them directly, and find collaborators or business partners.</div></div>
-<div class="a"><div class="h">Access to Nelson</div><div class="d">Learn from a working creative who actually ships, not a faceless content farm.</div></div>
-</div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:end;justify-content:space-between;margin-bottom:24px">
+<div><span class="kicker gold reveal">Popular right now</span><h2 class="display-m reveal" style="margin-top:8px">Start with these.</h2></div>
+<a class="textlink reveal" href="/store/">View all courses &rarr;</a></div>
+<div class="products reveal" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">{popular_cards()}</div>
 </div></section>
 
-<section class="section tight" id="tracks"><div class="wrap">
-<div class="eyebrow-row reveal"><span class="kicker">The tracks</span><hr class="rule hair"></div>
-<div class="sec-head reveal" style="margin:18px 0 36px"><h2 class="display-m">Four crafts. One place to learn them.</h2>
-<p style="color:var(--muted);margin-top:10px;max-width:56ch">Start with what you need. AI is live now with two ebooks. Graphic design, photography, and video courses are in production, drop your email and you are first in line.</p></div>
-<div class="products reveal" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">{tracks_section()}</div>
-</div></section>
-
-<section class="section"><div class="wrap"><div class="g-12" style="align-items:start">
-<div class="sec-head reveal" style="grid-column:1/7">
-<span class="kicker gold">The pitch</span>
-<h2 class="display-l">Most online courses are too boring to finish, or too hyped to trust.</h2></div>
-<div class="reveal" style="grid-column:8/13;padding-top:8px">
-<p style="font-size:18px">I do neither. I show you, step by step, how to make a real thing, a design, a photo, a video, an app, and come out the other side with something you built. No fancy degree. No pretending it is magic. Just the craft, broken down so a beginner can do it.</p>
-<p style="margin-top:16px"><a class="textlink" href="/about/">Why I teach this way &rarr;</a></p>
-</div></div></div></section>
-
-<section class="section tight" id="products"><div class="wrap">
-<div class="eyebrow-row reveal"><span class="kicker">The catalog</span><hr class="rule hair"></div>
-<div class="sec-head reveal" style="margin:18px 0 36px"><h2 class="display-m">Start with the ebooks. The video courses are next.</h2></div>
-<div class="products reveal">{pcards}</div>
-</div></section>
-
-<section class="section on-ink community" id="community-band"><div class="wrap">
-<div class="g-12" style="align-items:end">
-<div class="reveal" style="grid-column:1/8">
-<span class="kicker">The community</span>
-<h2 class="display-l" style="margin-top:14px">Building alone is hard. You don't have to.</h2>
-<p style="margin-top:18px;max-width:50ch">A free community of designers, photographers, video people, and AI builders. Ask questions, get unstuck, show your work, and meet people to create with, make friends, find collaborators, even business partners. Everybody from my classes ends up here.</p>
-<div class="cta-row" style="margin-top:26px"><a class="btn gold" href="/community/">Join the community <span class="arr">&rarr;</span></a></div>
-</div>
-<div class="reveal" style="grid-column:9/13">
-<div class="tag solid" style="margin-bottom:14px"><span class="dot"></span>WHO IS IN HERE</div>
-</div>
-</div>
-<div class="audience reveal">
-<div class="a"><div class="h">Beginners</div><div class="d">You keep hearing about AI and want to actually use it.</div></div>
-<div class="a"><div class="h">Hustlers</div><div class="d">You want side income that does not need a big audience or budget.</div></div>
-<div class="a"><div class="h">Creatives & students</div><div class="d">You learn by building, not by watching.</div></div>
-<div class="a"><div class="h">Small-business owners</div><div class="d">You want AI to do real work in your business.</div></div>
-</div>
-</div></section>
-
-<section class="section cta-band" id="waitlist"><div class="wrap">
-<span class="kicker gold reveal">The newsletter</span>
-<h2 class="display-l reveal">Get the good stuff first.</h2>
-<p class="reveal" style="margin:18px auto 0;max-width:50ch;color:var(--muted)">Real, no-hype tips on design, photo, video, and AI, plus first dibs on new courses and community drops. No spam, unsubscribe anytime.</p>
-<form class="cta-row reveal" onsubmit="return BM.subscribe(event,'home-cta')">
-<input type="email" name="email" placeholder="you@email.com" required style="padding:14px 20px;border:1.5px solid var(--hair);border-radius:100px;font-family:inherit;font-size:15px;min-width:240px;background:var(--paper)">
-<button class="btn gold" type="submit">Subscribe <span class="arr">&rarr;</span></button>
-</form>
+<section class="section"><div class="wrap">
+<div style="background:linear-gradient(180deg,var(--blue-soft),#fff);border:1px solid #dbeafe;border-radius:var(--r-lg);padding:clamp(26px,4vw,46px)">
+<div style="text-align:center;max-width:60ch;margin:0 auto 30px">
+<span class="kicker gold reveal">A community of builders, designers &amp; creators</span>
+<h2 class="display-l reveal" style="margin-top:12px">More than a platform. Your creative home.</h2>
+<p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p></div>
+<div class="tiers reveal">
+<div class="tier"><div class="pname">Free</div><div class="pprice">$0<span> / forever</span></div><div class="pdesc">For getting started.</div><ul class="flist" style="margin:16px 0"><li>Community feed + members</li><li>Direct messages</li><li>Free resources</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Join Free</a></div>
+<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>MOST POPULAR</span></div><div class="pname">Creator</div><div class="pprice">$19<span> / month</span></div><div class="pdesc">Everything in Free, plus the courses.</div><ul class="flist" style="margin:16px 0"><li>All ebooks + video courses</li><li>Everything in Free</li><li>New content every month</li></ul><a class="btn gold" style="margin-top:auto" href="/login/">Start Creator <span class="arr">&rarr;</span></a></div>
+<div class="tier"><div class="pname">Pro</div><div class="pprice">$49<span> / month</span></div><div class="pdesc">For going all in.</div><ul class="flist" style="margin:16px 0"><li>Everything in Creator</li><li>Live workshops</li><li>Priority access to Nelson</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Go Pro</a></div>
+</div></div>
 </div></section>
 </main>""" + footer()
 
