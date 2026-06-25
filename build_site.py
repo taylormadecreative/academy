@@ -110,6 +110,16 @@ def footer():
 <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">30-day money-back guarantee</p>
 <div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
 </div></aside>
+<div class="pop-back" id="popBack">
+<div class="pop" role="dialog" aria-label="Join the newsletter">
+<div class="pop-top"><button class="pop-x" data-pop-close aria-label="Close">&times;</button></div>
+<div class="pop-body"><div class="pop-ic">{LOGO}</div>
+<h3>Don't miss the good stuff</h3>
+<p>Free, no-hype tips on design, photo, video, and AI, plus first dibs on new courses and the community. No spam, unsubscribe anytime.</p>
+<form onsubmit="return BM.subscribe(event,'popup')"><input type="email" name="email" placeholder="you@email.com" required>
+<button class="btn gold" type="submit">Get free tips <span class="arr">&rarr;</span></button></form>
+<button class="pop-no" data-pop-close>No thanks</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 <script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>"""
 
@@ -260,8 +270,8 @@ def home():
 <p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p></div>
 <div class="tiers reveal">
 <div class="tier"><div class="pname">Free</div><div class="pprice">$0<span> / forever</span></div><div class="pdesc">For getting started.</div><ul class="flist" style="margin:16px 0"><li>Community feed + members</li><li>Direct messages</li><li>Free resources</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Join Free</a></div>
-<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>MOST POPULAR</span></div><div class="pname">Creator</div><div class="pprice">$19<span> / month</span></div><div class="pdesc">Everything in Free, plus the courses.</div><ul class="flist" style="margin:16px 0"><li>All ebooks + video courses</li><li>Everything in Free</li><li>New content every month</li></ul><a class="btn gold" style="margin-top:auto" href="/login/">Start Creator <span class="arr">&rarr;</span></a></div>
-<div class="tier"><div class="pname">Pro</div><div class="pprice">$49<span> / month</span></div><div class="pdesc">For going all in.</div><ul class="flist" style="margin:16px 0"><li>Everything in Creator</li><li>Live workshops</li><li>Priority access to Nelson</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Go Pro</a></div>
+<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>MOST POPULAR</span></div><div class="pname">Creator</div><div class="pprice">$15<span> / month</span></div><div class="pdesc">Everything in Free, plus the courses.</div><ul class="flist" style="margin:16px 0"><li>All ebooks + video courses</li><li>Everything in Free</li><li>New content every month</li></ul><a class="btn gold" style="margin-top:auto" href="/login/">Start Creator <span class="arr">&rarr;</span></a></div>
+<div class="tier"><div class="pname">Pro</div><div class="pprice">$25<span> / month</span></div><div class="pdesc">For going all in.</div><ul class="flist" style="margin:16px 0"><li>Everything in Creator</li><li>Live workshops</li><li>Priority access to Nelson</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Go Pro</a></div>
 </div></div>
 </div></section>
 </main>""" + footer()

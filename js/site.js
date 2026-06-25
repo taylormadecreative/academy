@@ -33,6 +33,12 @@
     removeFromCart: function (slug) { BM._cart = BM._cart.filter(function (i) { return i.slug !== slug; }); BM.cartSave(); BM.renderCart(); },
     openCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.add('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.add('open'); },
     closeCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.remove('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.remove('open'); },
+
+    /* ---------------- lead popup ---------------- */
+    popSeen: function () { try { var t = localStorage.getItem('ea_pop'); return !!(t && (Date.now() - parseInt(t, 10) < 6048e5)); } catch (_) { return false; } },
+    popMark: function () { try { localStorage.setItem('ea_pop', String(Date.now())); } catch (_) {} },
+    showPop: function () { if (BM.popSeen()) return; var b = document.getElementById('popBack'); if (!b) return; b.classList.add('open'); BM.popMark(); },
+    hidePop: function () { var b = document.getElementById('popBack'); if (b) b.classList.remove('open'); },
     renderCart: function () {
       var n = BM._cart.length;
       var badge = document.getElementById('cartCount'); if (badge) { badge.textContent = n; badge.style.display = n > 0 ? '' : 'none'; }
@@ -71,7 +77,7 @@
       var form = e.target;
       var email = (form.email && form.email.value || '').trim();
       if (!email) return false;
-      var done = function (msg) { BM.toast(msg || 'You’re in. <b>Check your inbox.</b>'); form.reset(); };
+      var done = function (msg) { BM.toast(msg || 'You’re in. <b>Check your inbox.</b>'); form.reset(); BM.popMark(); BM.hidePop(); };
       var soft = function () { BM.toast('Hmm, that didn’t go through. <b>Try again in a sec.</b>'); };
       if (!CFG.FUNCTIONS_BASE) { done('Got it. <b>You’re on the list.</b>'); return false; }
       fetch(CFG.FUNCTIONS_BASE + '/ea-subscribe', {
@@ -115,6 +121,8 @@
     var cl = ev.target.closest('[data-close-cart]'); if (cl) { ev.preventDefault(); BM.closeCart(); return; }
     var rm = ev.target.closest('[data-cart-remove]'); if (rm) { ev.preventDefault(); BM.removeFromCart(rm.getAttribute('data-cart-remove')); return; }
     var co = ev.target.closest('[data-checkout-cart]'); if (co) { ev.preventDefault(); BM.checkoutCart(); return; }
+    var pc = ev.target.closest('[data-pop-close]'); if (pc) { ev.preventDefault(); BM.hidePop(); return; }
+    if (ev.target.id === 'popBack') { BM.hidePop(); return; }
   });
 
   if ('IntersectionObserver' in window) {
@@ -160,5 +168,12 @@
       sf.querySelectorAll('.chip').forEach(function (x) { x.classList.toggle('active', x === b); });
       document.querySelectorAll('#storeGrid [data-cat]').forEach(function (c) { c.style.display = (cat === 'all' || c.getAttribute('data-cat') === cat) ? '' : 'none'; });
     });
+  }
+
+  // newsletter lead popup: timed + desktop exit-intent, once per visitor (7 days)
+  if (document.getElementById('popBack') && !BM.popSeen()) {
+    setTimeout(BM.showPop, 9000);
+    var exitPop = function (e) { if (e.clientY <= 0) { BM.showPop(); document.removeEventListener('mouseout', exitPop); } };
+    document.addEventListener('mouseout', exitPop);
   }
 })();
