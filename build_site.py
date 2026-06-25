@@ -42,12 +42,9 @@ HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidY
 
 def hero_photo():
     return ('<div class="hero-shot">'
-            '<span class="hero-glow" aria-hidden="true"></span>'
             '<picture><source srcset="/assets/hero-nelson.webp" type="image/webp">'
-            '<img class="hero-img" src="/assets/hero-nelson.png" width="960" height="1440" '
+            '<img class="hero-img" src="/assets/hero-nelson.png" width="942" height="941" '
             'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy, in a Taylormade Creative varsity jacket"></picture>'
-            '<span class="hero-chip"><span class="pulse"></span>Now enrolling</span>'
-            '<span class="hero-tracks" aria-hidden="true">AI &middot; Design &middot; Photo &middot; Video</span>'
             '</div>')
 
 def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
@@ -260,9 +257,7 @@ def popular_cards():
         out += (f'<article class="pcard">{course_top(thumb, name)}'
                 f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
                 f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
-                f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'home-course\')" style="display:flex;gap:8px">'
-                f'<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:110px;padding:10px 12px;border:1.5px solid var(--hair);border-radius:9px;font-family:inherit;font-size:13px;background:#fff">'
-                f'<button class="btn gold sm" type="submit">Notify</button></form></div></article>')
+                f'<div class="foot"><a class="btn ghost sm" href="/store/" style="width:100%">Notify me <span class="arr">&rarr;</span></a></div></article>')
     return out
 
 # ---------- HOME ----------
