@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUILD MODE — Facebook Group Starter Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E0E0E;
+    --paper:#F6F3EC;
+    --gold:#D4A84B;
+    --clay:#B5482F;
+    --ink-soft:#2a2926;
+    --line:rgba(14,14,14,.14);
+    --card:#fffdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+  /* ---------- gold rule ---------- */
+  .rule{height:2px;background:var(--gold);border:0;width:100%;margin:0}
+  .rule-thin{height:1px;background:var(--gold);border:0;width:64px;margin:18px 0}
+
+  /* ---------- header ---------- */
+  header{
+    background:var(--ink);
+    color:var(--paper);
+    padding:64px 0 56px;
+    text-align:left;
+  }
+  .eyebrow{
+    font-family:'Inter';
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:22px;
+  }
+  header h1{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:clamp(40px,7vw,68px);
+    line-height:1.02;
+    letter-spacing:-.01em;
+    margin-bottom:18px;
+  }
+  header h1 em{font-style:italic;color:var(--gold);font-weight:500}
+  .tagline{
+    font-family:'Fraunces';
+    font-style:italic;
+    font-weight:400;
+    font-size:clamp(18px,2.6vw,24px);
+    color:var(--paper);
+    opacity:.92;
+    margin-bottom:28px;
+  }
+  .header-meta{
+    font-size:14px;
+    color:rgba(246,243,236,.6);
+    border-top:1px solid rgba(212,168,75,.35);
+    padding-top:18px;
+    max-width:560px;
+  }
+
+  /* ---------- TOC ---------- */
+  .toc{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 30px;
+    margin:48px 0;
+  }
+  .toc h4{
+    font-family:'Inter';
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--clay);
+    font-weight:700;
+    margin-bottom:16px;
+  }
+  .toc ol{list-style:none;counter-reset:t;columns:2;column-gap:36px}
+  .toc li{counter-increment:t;margin-bottom:10px;break-inside:avoid;font-size:14.5px}
+  .toc li::before{
+    content:counter(t,decimal-leading-zero);
+    color:var(--gold);
+    font-weight:700;
+    margin-right:10px;
+    font-variant-numeric:tabular-nums;
+  }
+  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent;transition:.15s}
+  .toc a:hover{border-bottom-color:var(--gold)}
+
+  /* ---------- sections ---------- */
+  section{padding:38px 0}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:8px}
+  .sec-num{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:34px;
+    color:var(--gold);
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  h2{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:clamp(26px,4vw,36px);
+    letter-spacing:-.01em;
+    line-height:1.08;
+  }
+  .sec-sub{color:var(--ink-soft);font-size:15px;margin:14px 0 4px;max-width:680px}
+  h3{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:21px;
+    margin:30px 0 12px;
+  }
+  p{margin-bottom:14px;color:var(--ink-soft)}
+  p strong{color:var(--ink)}
+  a{color:var(--clay);font-weight:500}
+
+  /* ---------- copy block (paste-ready) ---------- */
+  .copy{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:3px solid var(--gold);
+    border-radius:8px;
+    padding:22px 26px;
+    margin:16px 0 24px;
+    font-size:15.5px;
+    color:var(--ink);
+  }
+  .copy p{color:var(--ink-soft)}
+  .copy p:last-child{margin-bottom:0}
+  .copy-label{
+    display:inline-block;
+    font-family:'Inter';
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--clay);
+    padding:4px 10px;
+    border-radius:3px;
+    margin-bottom:14px;
+  }
+  .copy-label.gold{background:var(--gold);color:var(--ink)}
+
+  /* ---------- name options ---------- */
+  .names{display:grid;gap:14px;margin:18px 0}
+  .name-card{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:18px;
+    align-items:start;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px 22px;
+  }
+  .name-card .n{
+    font-family:'Fraunces';
+    font-weight:700;
+    font-size:24px;
+    color:var(--gold);
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .name-card .title{font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);margin-bottom:4px}
+  .name-card .type{
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    color:var(--clay);margin-bottom:8px;display:inline-block;
+  }
+  .name-card .why{font-size:14px;color:var(--ink-soft);margin:0}
+  .name-card.pick{border:2px solid var(--gold);background:#fffbf0}
+  .pick-flag{
+    display:inline-block;background:var(--ink);color:var(--gold);
+    font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    padding:4px 10px;border-radius:3px;margin-bottom:10px;
+  }
+
+  /* ---------- rules / questions list ---------- */
+  ol.styled{list-style:none;counter-reset:r;margin:18px 0}
+  ol.styled li{
+    counter-increment:r;
+    position:relative;
+    padding:14px 0 14px 48px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink-soft);
+    font-size:15.5px;
+  }
+  ol.styled li:last-child{border-bottom:0}
+  ol.styled li::before{
+    content:counter(r);
+    position:absolute;left:0;top:13px;
+    width:30px;height:30px;
+    background:var(--ink);color:var(--gold);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;
+  }
+  ol.styled li strong{color:var(--ink)}
+
+  /* ---------- membership questions special ---------- */
+  .q-card{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:22px 24px;margin:16px 0;
+  }
+  .q-card.email{border:2px solid var(--clay);background:#fdf6f3}
+  .q-tag{
+    font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--clay);margin-bottom:10px;display:block;
+  }
+  .q-card.email .q-tag{color:var(--clay)}
+  .q-text{font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);margin-bottom:8px;line-height:1.3}
+  .q-note{font-size:13.5px;color:var(--ink-soft);margin:0;font-style:italic}
+
+  /* ---------- calendar ---------- */
+  .cal{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:20px 0}
+  .cal-row{display:grid;grid-template-columns:130px 1fr;border-bottom:1px solid var(--line)}
+  .cal-row:last-child{border-bottom:0}
+  .cal-day{
+    background:var(--ink);color:var(--paper);
+    padding:16px 18px;font-weight:600;font-size:14px;
+    display:flex;flex-direction:column;gap:4px;justify-content:center;
+  }
+  .cal-day .theme{color:var(--gold);font-family:'Fraunces';font-size:16px;font-weight:600}
+  .cal-day .label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7;font-weight:600}
+  .cal-body{padding:16px 20px;background:var(--card);font-size:14.5px;color:var(--ink-soft)}
+  .cal-body .ex{display:block;margin-top:6px;font-style:italic;color:var(--ink);font-size:13.5px}
+  .week-tag{
+    font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);
+    margin:30px 0 6px;display:flex;align-items:center;gap:12px;
+  }
+  .week-tag::before{content:"";width:24px;height:2px;background:var(--gold)}
+
+  /* ---------- checklist ---------- */
+  ul.check{list-style:none;margin:18px 0}
+  ul.check li{
+    position:relative;padding:12px 0 12px 38px;
+    border-bottom:1px dashed var(--line);font-size:15.5px;color:var(--ink-soft);
+  }
+  ul.check li:last-child{border-bottom:0}
+  ul.check li::before{
+    content:"";position:absolute;left:0;top:15px;
+    width:18px;height:18px;border:2px solid var(--gold);border-radius:4px;
+  }
+  ul.check li strong{color:var(--ink)}
+  .pill{
+    display:inline-block;background:var(--gold);color:var(--ink);
+    font-size:11px;font-weight:700;letter-spacing:.05em;
+    padding:2px 9px;border-radius:20px;margin-right:4px;
+  }
+  .pill.clay{background:var(--clay);color:#fff}
+  .pill.ink{background:var(--ink);color:var(--gold)}
+
+  /* ---------- callout ---------- */
+  .callout{
+    background:var(--ink);color:var(--paper);
+    border-radius:10px;padding:28px 30px;margin:28px 0;
+  }
+  .callout h4{font-family:'Fraunces';font-size:20px;color:var(--gold);margin-bottom:10px;font-weight:600}
+  .callout p{color:rgba(246,243,236,.85);margin-bottom:0;font-size:15px}
+
+  /* ---------- footer ---------- */
+  footer{
+    background:var(--ink);color:var(--paper);
+    padding:48px 0;margin-top:60px;text-align:center;
+  }
+  footer .bm{font-family:'Fraunces';font-weight:600;font-size:24px;letter-spacing:.02em}
+  footer .bm span{color:var(--gold)}
+  footer .ft-tag{font-family:'Fraunces';font-style:italic;color:rgba(246,243,236,.7);margin:8px 0 18px}
+  footer .ft-meta{font-size:13px;color:rgba(246,243,236,.5)}
+  footer a{color:var(--gold)}
+
+  /* ---------- print ---------- */
+  @media print{
+    body{background:#fff;font-size:12px}
+    header,footer,.callout,.cal-day,ol.styled li::before{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .toc{break-inside:avoid}
+    section{break-inside:avoid;padding:20px 0}
+    .copy,.name-card,.q-card,.cal{break-inside:avoid}
+    a{color:var(--ink)}
+  }
+  @media (max-width:620px){
+    .toc ol{columns:1}
+    .cal-row{grid-template-columns:1fr}
+    .name-card{grid-template-columns:1fr;gap:8px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">BUILD MODE · by Taylormade Creative</div>
+    <h1>Facebook Group<br><em>Starter Kit</em></h1>
+    <p class="tagline">No code. No hype. Just build the thing.</p>
+    <p class="header-meta">Everything you need to launch the BUILD MODE community group — names, description, rules, membership questions, pinned posts, a 4-week content calendar, and a launch checklist. All copy is paste-ready and on-brand. This group is the front door of the funnel: it brings in curious beginners, captures emails, and routes them to <strong style="color:var(--gold)">academy.taylormadecreative.net</strong>.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <h4>What's inside</h4>
+    <ol>
+      <li><a href="#names">Group name options</a></li>
+      <li><a href="#tagline">Tagline / public blurb</a></li>
+      <li><a href="#desc">Full group description</a></li>
+      <li><a href="#rules">Group rules</a></li>
+      <li><a href="#questions">Membership questions</a></li>
+      <li><a href="#welcome">Welcome post (pinned)</a></li>
+      <li><a href="#starters">Three starter posts</a></li>
+      <li><a href="#calendar">4-week content calendar</a></li>
+      <li><a href="#launch">How to launch it</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. NAMES -->
+  <section id="names">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Group name</h2></div>
+    <p class="sec-sub">Five options, mixing the brand name with beginner-magnet names a cold person instantly gets. A stranger scrolling Facebook should read the name and know "oh, that's for me."</p>
+
+    <div class="names">
+      <div class="name-card">
+        <div class="n">1</div>
+        <div>
+          <span class="type">Brand-led</span>
+          <div class="title">BUILD MODE</div>
+          <p class="why">Clean, ownable, matches the brand and the academy. Downside: a cold beginner doesn't instantly know it's about AI — it reads as a name, not a benefit.</p>
+        </div>
+      </div>
+
+      <div class="name-card">
+        <div class="n">2</div>
+        <div>
+          <span class="type">Brand + benefit</span>
+          <div class="title">BUILD MODE — Learn AI With No Code</div>
+          <p class="why">Keeps the brand but adds the promise. "No code" is the magic phrase that tells nervous beginners they're allowed in. Searchable and self-explaining.</p>
+        </div>
+      </div>
+
+      <div class="name-card pick">
+        <div class="n">3</div>
+        <div>
+          <span class="pick-flag">★ Recommended</span>
+          <span class="type">Brand + beginner magnet</span>
+          <div class="title">BUILD MODE — AI for Beginners (No Code, Free Tools)</div>
+          <p class="why"><strong>The pick.</strong> It carries the brand AND does the cold-traffic job in one line. "AI for Beginners" is exactly what a behind-feeling person types and clicks. "No Code, Free Tools" removes the two biggest fears — being too technical and having to pay. A stranger gets it in half a second, which is what a top-of-funnel growth group needs.</p>
+        </div>
+      </div>
+
+      <div class="name-card">
+        <div class="n">4</div>
+        <div>
+          <span class="type">Benefit-led</span>
+          <div class="title">Build Real Things With AI (Beginner-Friendly)</div>
+          <p class="why">Action-forward and warm. "Real things" sets us apart from prompt-trick groups. Slightly less brand equity, but a strong fallback if you want benefit over brand up top.</p>
+        </div>
+      </div>
+
+      <div class="name-card">
+        <div class="n">5</div>
+        <div>
+          <span class="type">Beginner magnet</span>
+          <div class="title">Beginner AI Builders (No Code · DFW &amp; Online)</div>
+          <p class="why">Names the exact person and the local angle, which helps early seeding from your DFW network. "Builders" creates identity — people want to call themselves that. Good for community feel, lighter on brand.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>Why option 3 wins</h4>
+      <p>For the front door of a funnel, clarity beats cleverness. Option 3 keeps BUILD MODE in front (so the group, the ebooks, and the academy all feel like one world) while the parenthetical does the recruiting. You can always shorten the public display later once people know the brand — but for cold growth, lead with the words a beginner is already searching.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 2. TAGLINE -->
+  <section id="tagline">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Tagline / public blurb</h2></div>
+    <p class="sec-sub">One line for the group's public summary — the bit people see before they join. Plain-spoken, no hype.</p>
+
+    <div class="copy">
+      <span class="copy-label gold">Public blurb</span>
+      <p style="font-size:18px;color:var(--ink);font-family:'Fraunces';font-weight:500;">A friendly room for beginners learning to build real things with AI — no code, no hype, free tools. Come make something this week.</p>
+    </div>
+
+    <div class="copy">
+      <span class="copy-label">Shorter variant</span>
+      <p style="margin:0;">Learn to build real things with AI — no code, no hype, beginner-friendly.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 3. DESCRIPTION -->
+  <section id="desc">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Full group description</h2></div>
+    <p class="sec-sub">Paste this into the group's "About" section. ~175 words, in Nelson's voice — what it is, who it's for, what you get, and the link out.</p>
+
+    <div class="copy">
+      <span class="copy-label gold">About this group</span>
+      <p>Hey, I'm Nelson — a designer out of Dallas-Fort Worth, and I built this room for everyday people who feel a little behind on AI and want a friendly place to catch up and actually make something.</p>
+      <p>Here's the deal: no code, no hype, no $2,000 courses. Just real builds you can do with free tools — your first AI agent, little automations that save you time, simple apps, and money ideas. If you've ever thought "I should learn this but I don't know where to start," you're exactly who I made this for.</p>
+      <p><strong>What you get inside:</strong> weekly build-alongs, quick AI wins you can try the same day, a place to ask any question with zero judgment, and a crew of beginners and creators figuring it out together. Some of y'all are gonna find business partners in here.</p>
+      <p>Free ebooks, video courses, and the full community live over at <strong>academy.taylormadecreative.net</strong> — start there.</p>
+      <p>Pull up. Let me put you on. 🛠️</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 4. RULES -->
+  <section id="rules">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Group rules</h2></div>
+    <p class="sec-sub">Six rules that keep the room valuable and safe without killing the vibe. Paste into Facebook's rules section (each rule has a title + the description below it).</p>
+
+    <ol class="styled">
+      <li><strong>Be kind — everyone here is a beginner at something.</strong> No talking down, no "you should already know this." We were all on day one once. Questions that feel basic to you might save someone else's whole week.</li>
+      <li><strong>No spam, no drops, no link dumps.</strong> Don't post your offer, affiliate link, or "DM me to make $5k" pitch. Posts like that get removed and repeat offenders get removed too. Share value, not promos.</li>
+      <li><strong>Do not DM members to pitch them.</strong> Sliding into people's inboxes to sell coaching, courses, or services is an instant removal. People came here to learn, not to get sold to in private.</li>
+      <li><strong>Keep it on-topic: building real things with AI.</strong> Agents, automations, simple apps, free tools, money ideas, wins, and questions all welcome. Off-topic, political, or unrelated content gets cleared out.</li>
+      <li><strong>Share what you build — wins big and small.</strong> Made your first automation? Built something that broke? Post it. Real attempts (even messy ones) teach more than perfect screenshots.</li>
+      <li><strong>No hate, harassment, or bigotry — full stop.</strong> Racism, sexism, homophobia, or any kind of harassment gets you removed with no warning. This is a welcoming room or it's nothing.</li>
+      <li><strong>Credit people, don't steal work.</strong> If you repost someone's idea, build, or prompt from in here, tag them. We grow by lifting each other.</li>
+    </ol>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 5. MEMBERSHIP QUESTIONS -->
+  <section id="questions">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Membership questions</h2></div>
+    <p class="sec-sub">Three questions new members answer when requesting to join. Q1 is the email capture with a real, friendly opt-in — phrased so people <em>want</em> to say yes. Turn on "require answers to join" in group settings.</p>
+
+    <div class="q-card email">
+      <span class="q-tag">★ Question 1 — Email capture + opt-in (most important)</span>
+      <p class="q-text">What's the best email to send your free "Build Your First AI Agent" starter to? (Drop it below and you'll get it + a short weekly note from me with the best beginner builds. No spam, unsubscribe anytime.)</p>
+      <p class="q-note">Why it works: people give the email because they're getting something real (the free starter), and the newsletter opt-in is stated plainly and honestly inside the same ask. Export these answers and add anyone who opts in to your list. Keep your promise — send the freebie and the note.</p>
+    </div>
+
+    <div class="q-card">
+      <span class="q-tag">Question 2 — Engagement + segmentation</span>
+      <p class="q-text">What's the one thing you want to build or automate with AI? (Even if you have no idea how — just tell me the dream.)</p>
+      <p class="q-note">Why it works: it tells you what your audience actually wants (so you can make content for it), gets people emotionally invested before they even join, and gives you a warm reason to welcome them by name.</p>
+    </div>
+
+    <div class="q-card">
+      <span class="q-tag">Question 3 — Connection + content fuel</span>
+      <p class="q-text">What's your biggest question or fear about AI right now? (No question is too basic here — promise.)</p>
+      <p class="q-note">Why it works: surfaces the exact objections and confusions to address in posts, makes nervous beginners feel safe, and hands you an endless supply of post and ebook topics straight from real people.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 6. WELCOME POST -->
+  <section id="welcome">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Welcome post <span style="font-size:14px;color:var(--clay);font-weight:600;letter-spacing:.05em;">— PIN THIS</span></h2></div>
+    <p class="sec-sub">The first thing every new member should see. Warm, tells them what to do first, links to the freebie + the site.</p>
+
+    <div class="copy">
+      <span class="copy-label">Pinned · Welcome</span>
+      <p style="font-family:'Fraunces';font-weight:600;font-size:20px;color:var(--ink);">Welcome to BUILD MODE. You're not behind — you just got here early. 🛠️</p>
+      <p>I'm Nelson, a designer out of Dallas-Fort Worth, and I made this room for one reason: too many regular people think AI isn't for them. It is. You don't need to code. You don't need to be "techy." You just need a friendly room and a few real builds to get your hands dirty.</p>
+      <p><strong>Here's the move — do these three things today:</strong></p>
+      <p>
+        <strong>1. Say hey.</strong> Drop a comment under the "Introduce yourself" post so we know who's in here.<br>
+        <strong>2. Grab the free starter.</strong> My free "Build Your First AI Agent" guide will walk you through your first real build, step by step, with free tools → <strong>academy.taylormadecreative.net</strong><br>
+        <strong>3. Tell me what you're stuck on.</strong> Comment on the "What are you stuck on?" post. I read every one and they fuel what I post.
+      </p>
+      <p>Everything I make — the free ebooks, the video courses, and the full community — lives at <strong>academy.taylormadecreative.net</strong>. This group is the front porch. The good stuff's inside the house. But hang out here, ask questions, share what you build, and meet people. Some of y'all are gonna walk out of here with a business partner.</p>
+      <p>Glad you're here. Let me put you on.</p>
+      <p style="margin-bottom:0;">— Nelson</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 7. STARTER POSTS -->
+  <section id="starters">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Three starter posts</h2></div>
+    <p class="sec-sub">Pin these alongside the welcome post. An intro thread, a "what are you stuck on" thread, and a genuine quick-win post. Useful, not salesy.</p>
+
+    <h3>A · Introduce-yourself thread</h3>
+    <div class="copy">
+      <span class="copy-label gold">Pinned · Intro thread</span>
+      <p style="font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);">👋 New here? Introduce yourself — let's meet the crew.</p>
+      <p>I love knowing who's in the room. Drop a quick intro so we can welcome you properly. Copy these and fill them in:</p>
+      <p>
+        <strong>· Name + where you're at</strong> (city, or "fully online")<br>
+        <strong>· What you do</strong> (job, hustle, or "still figuring it out")<br>
+        <strong>· One thing you want to build with AI</strong><br>
+        <strong>· Your current AI level:</strong> total beginner / dabbled a bit / getting comfy
+      </p>
+      <p style="margin-bottom:0;">I'll reply to as many as I can. And if you see someone with a similar goal — say hey to them too. This is how partnerships start.</p>
+    </div>
+
+    <h3>B · "What are you stuck on?" thread</h3>
+    <div class="copy">
+      <span class="copy-label gold">Pinned · Stuck thread</span>
+      <p style="font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);">🧱 What are you stuck on with AI right now? Ask it here — no question too basic.</p>
+      <p>Real talk: the stuff that feels obvious to one person is the exact wall someone else has been staring at for a month. So this is the no-judgment thread.</p>
+      <p>Tell me:<br>
+        <strong>· What are you trying to do?</strong><br>
+        <strong>· Where exactly does it break down for you?</strong>
+      </p>
+      <p>Could be "I don't even know what an AI agent is," could be "I have an idea but no clue where tools live." All of it's welcome. I read every comment, and the questions in here become my next posts, build-alongs, and guides — so you asking literally builds the room for everybody.</p>
+      <p style="margin-bottom:0;">Drop it below. 👇</p>
+    </div>
+
+    <h3>C · Quick AI win you can try today</h3>
+    <div class="copy">
+      <span class="copy-label gold">Pinned · Value post</span>
+      <p style="font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--ink);">⚡ A 5-minute AI win you can try right now (free, no code)</p>
+      <p>Before you build anything fancy, here's a tiny win to prove to yourself that this stuff actually works for <em>you</em>. Open any free AI chat tool (ChatGPT, Claude, Gemini — all have free versions) and paste this:</p>
+      <p style="background:#f1ede2;border-radius:6px;padding:14px 16px;font-style:italic;color:var(--ink);">"Act as my personal assistant. Ask me 5 questions about my work and my week, then build me a simple daily routine that saves me the most time. Keep it plain and beginner-friendly."</p>
+      <p>That's it. Answer its questions honestly and watch it hand you something genuinely useful in two minutes. That feeling — "oh, I can actually do this" — is the whole point. That's the door we walk through.</p>
+      <p><strong>Did it work for you? Drop a comment with what it gave you.</strong> And when you're ready to go from a chat trick to building your first real AI agent, the free step-by-step guide is waiting at <strong>academy.taylormadecreative.net</strong>.</p>
+      <p style="margin-bottom:0;">Go try it. Then come back and tell me. 🛠️</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 8. CONTENT CALENDAR -->
+  <section id="calendar">
+    <div class="sec-head"><span class="sec-num">08</span><h2>4-week content calendar</h2></div>
+    <p class="sec-sub">A sustainable rhythm for one person — five posts a week, same themes every week so it's easy to plan and members know what to expect. Below: the weekly skeleton, then four weeks of example prompts you can post almost as-is.</p>
+
+    <h3>The weekly skeleton</h3>
+    <div class="cal">
+      <div class="cal-row">
+        <div class="cal-day"><span class="label">Monday</span><span class="theme">Motivation Monday</span></div>
+        <div class="cal-body">A short, encouraging push for people who feel behind. One idea, one nudge to start.<span class="ex">Ex: "You don't need to understand AI before you use it. You learn it by building one small thing. Here's your one small thing this week ↓"</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-day"><span class="label">Tuesday</span><span class="theme">Build-Along</span></div>
+        <div class="cal-body">The anchor post. One real thing to build this week, broken into beginner steps. Free tools only.<span class="ex">Ex: "Let's build a tool that turns your messy notes into a clean to-do list. Step 1…"</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-day"><span class="label">Thursday</span><span class="theme">Win of the Week</span></div>
+        <div class="cal-body">Celebrate a member build, or post your own small win. Tag the person. Proof beginners can do this.<span class="ex">Ex: "Look what [member] built after one week in here 👏 Tell us what you've made — wins big and small."</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-day"><span class="label">Friday</span><span class="theme">Ask Me Anything</span></div>
+        <div class="cal-body">Open Q&amp;A. You answer in the comments live-ish. Pulls out objections + gives you next week's topics.<span class="ex">Ex: "Friday Q&amp;A is open. Drop your AI question — beginner ones especially. I'll answer all day."</span></div>
+      </div>
+      <div class="cal-row">
+        <div class="cal-day"><span class="label">Sunday</span><span class="theme">Spotlight + Recap</span></div>
+        <div class="cal-body">Spotlight a member, recap the week, and point to the freebie/site. Soft funnel touch.<span class="ex">Ex: "This week we built ___ and ___ shared a big win. New? Start free at academy.taylormadecreative.net ↓"</span></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>Solo-creator note</h4>
+      <p>Five posts a week is enough — don't burn out chasing daily. Tuesday's build-along is the only one that takes real effort; the rest are short. Batch all five on one sitting and schedule them. Until you have member wins to feature, run Win of the Week and Spotlight on your own builds and the questions coming through your three membership questions. Never fake a member win.</p>
+    </div>
+
+    <!-- WEEK 1 -->
+    <div class="week-tag">Week 1 — Get them building something</div>
+    <div class="cal">
+      <div class="cal-row"><div class="cal-day"><span class="label">Mon</span><span class="theme">Motivation</span></div><div class="cal-body">"Most people 'researching AI' have never actually built one thing with it. This week you're not gonna be most people. One build. Let's go."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Tue</span><span class="theme">Build-Along</span></div><div class="cal-body">Build #1: "Your first AI agent — a personal assistant that plans your day." Step-by-step in the post, free tool, screenshots. Link the free guide at the end.</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Thu</span><span class="theme">Win</span></div><div class="cal-body">"Who tried Tuesday's build? Post a screenshot of what it gave you — even if it came out weird. Messy first tries are the whole point."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Fri</span><span class="theme">AMA</span></div><div class="cal-body">"First Friday Q&amp;A. What's the AI thing you've been too embarrassed to ask? Ask it here. Zero judgment."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Sun</span><span class="theme">Spotlight</span></div><div class="cal-body">Recap week 1 + welcome everyone who joined. "New here? Grab the free starter → academy.taylormadecreative.net"</div></div>
+    </div>
+
+    <!-- WEEK 2 -->
+    <div class="week-tag">Week 2 — Save them time</div>
+    <div class="cal">
+      <div class="cal-row"><div class="cal-day"><span class="label">Mon</span><span class="theme">Motivation</span></div><div class="cal-body">"You don't need more hours. You need to stop doing the boring stuff by hand. This week we automate one of those things."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Tue</span><span class="theme">Build-Along</span></div><div class="cal-body">Build #2: "An automation that turns a voice note or messy text into a clean email/post." Beginner steps, free tools.</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Thu</span><span class="theme">Win</span></div><div class="cal-body">"Drop the time you saved this week with AI — even 10 minutes counts. Let's add it up as a group."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Fri</span><span class="theme">AMA</span></div><div class="cal-body">"Q&amp;A's open. Stuck on a tool? Confused by a step? Bring it here."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Sun</span><span class="theme">Spotlight</span></div><div class="cal-body">Feature a member build (or your own). "Want the deeper version of this stuff? It's all free to start at academy.taylormadecreative.net"</div></div>
+    </div>
+
+    <!-- WEEK 3 -->
+    <div class="week-tag">Week 3 — Make it about money</div>
+    <div class="cal">
+      <div class="cal-row"><div class="cal-day"><span class="label">Mon</span><span class="theme">Motivation</span></div><div class="cal-body">"The skill you build in here can pay you. Not someday — soon. This week, an AI build people will actually pay for."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Tue</span><span class="theme">Build-Along</span></div><div class="cal-body">Build #3: "A simple AI tool that solves a boring problem for a local business" (tie to the Boring Money idea — keep it free/beginner).</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Thu</span><span class="theme">Win</span></div><div class="cal-body">"What's one boring problem in your world you think AI could fix? Post it. We'll riff on which ones could make money."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Fri</span><span class="theme">AMA</span></div><div class="cal-body">"Money-focused Q&amp;A. Thinking about using AI to earn? Ask me anything about getting started."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Sun</span><span class="theme">Spotlight</span></div><div class="cal-body">Recap + soft point to the "Boring Money" ebook on the site. "Free to start, deeper guides at academy.taylormadecreative.net"</div></div>
+    </div>
+
+    <!-- WEEK 4 -->
+    <div class="week-tag">Week 4 — Build the community muscle</div>
+    <div class="cal">
+      <div class="cal-row"><div class="cal-day"><span class="label">Mon</span><span class="theme">Motivation</span></div><div class="cal-body">"You learn this faster with people than alone. This week, find one person in here building something similar to you and say hey."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Tue</span><span class="theme">Build-Along</span></div><div class="cal-body">Build #4: "A simple app/page you can build with AI and actually share a link to" — ends with everyone posting their link in comments.</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Thu</span><span class="theme">Win</span></div><div class="cal-body">"Month one wins thread. What did you build that you couldn't have a month ago? Brag a little — you earned it."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Fri</span><span class="theme">AMA</span></div><div class="cal-body">"Open Q&amp;A + tell me: what do you want to build next month? Your answers set the next 4 weeks of build-alongs."</div></div>
+      <div class="cal-row"><div class="cal-day"><span class="label">Sun</span><span class="theme">Spotlight</span></div><div class="cal-body">Month recap, thank the room, point to the full community + courses. "Ready for the next level? Everything's at academy.taylormadecreative.net"</div></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 9. LAUNCH CHECKLIST -->
+  <section id="launch">
+    <div class="sec-head"><span class="sec-num">09</span><h2>How to launch it</h2></div>
+    <p class="sec-sub">The literal steps to stand the group up and get the first members in. Do these in order.</p>
+
+    <h3>Set it up</h3>
+    <ul class="check">
+      <li><strong>Create the group.</strong> From your Facebook page or profile → menu (☰) → <em>Groups</em> → <em>Create new group</em>. Name it <span class="pill ink">BUILD MODE — AI for Beginners (No Code, Free Tools)</span></li>
+      <li><strong>Set privacy to Public.</strong> For a top-of-funnel growth group, choose <span class="pill">Public</span> — not Private. Here's why: Public groups are discoverable in search and feeds, posts can show up to friends-of-members, and strangers can read before they join. That's exactly the reach a front-door funnel needs. <em>(Private is better for paid/inner communities — that's what the on-site academy community is for. Keep this top layer open.)</em></li>
+      <li><strong>Add the public blurb + full About description.</strong> Paste the tagline (Section 2) as the short description and the full description (Section 3) into the About section.</li>
+      <li><strong>Upload brand visuals.</strong> Cover photo + group icon in BUILD MODE colors (ink/paper/gold) with the tagline "No code. No hype. Just build the thing." Keep the text big and readable on mobile.</li>
+    </ul>
+
+    <h3>Turn on the funnel mechanics</h3>
+    <ul class="check">
+      <li><strong>Add the three membership questions.</strong> Group settings → <em>Membership questions</em> → add the three from Section 5. Toggle <span class="pill clay">Require answers to request to join</span> ON. This is your email-capture engine — don't skip it.</li>
+      <li><strong>Set who can post / approval.</strong> Start with <em>posts require admin approval</em> ON for the first couple weeks to keep spammers out while the room is small. Loosen it once you have trusted members.</li>
+      <li><strong>Add the rules.</strong> Settings → <em>Rules</em> → paste the six from Section 4 (title + description each).</li>
+    </ul>
+
+    <h3>Seed the content</h3>
+    <ul class="check">
+      <li><strong>Post the Welcome post and pin it.</strong> Publish Section 6, then click the post's <em>···</em> menu → <em>Pin post</em>.</li>
+      <li><strong>Post the three starter threads.</strong> Publish the Intro thread, the Stuck thread, and the Quick-Win post (Section 7). Pin all three. <em>(Facebook lets you feature several pinned/announced posts — use Announcements for these.)</em></li>
+      <li><strong>Schedule week 1 of the calendar.</strong> Use Facebook's <em>Schedule post</em> option to load Monday–Sunday from Section 8 so the room never looks empty.</li>
+    </ul>
+
+    <h3>Seed the first members</h3>
+    <ul class="check">
+      <li><strong>Invite your warm circle first.</strong> Personally invite friends, family, and DFW network who'd genuinely be into this — even 10–20 real people make the room feel alive on day one. Don't mass-invite people who won't engage.</li>
+      <li><strong>Announce it everywhere you already post.</strong> Drop the join link on your Instagram (@taylormade_creative), in your stories, on Threads, and in the academy newsletter. Lead with the free starter as the hook, not "join my group."</li>
+      <li><strong>Link it from the academy.</strong> Add a "Join the free Facebook community" button on academy.taylormadecreative.net so site visitors funnel into the group, and group members funnel to the site. Two-way door.</li>
+      <li><strong>Respond fast for the first two weeks.</strong> Welcome every new member by name, reply to every intro and question. Early responsiveness is what turns a quiet group into a sticky one.</li>
+    </ul>
+
+    <div class="callout">
+      <h4>The whole loop, in one sentence</h4>
+      <p>Strangers find the Public group → they answer Q1 and join your email list → they get a real quick win and feel capable → you point them to academy.taylormadecreative.net for the free ebooks, courses, and deeper community. Front porch to front door. That's the move.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="bm">BUILD <span>MODE</span></div>
+    <p class="ft-tag">No code. No hype. Just build the thing.</p>
+    <p class="ft-meta">Facebook Group Starter Kit · by Taylormade Creative · academy.taylormadecreative.net</p>
+  </div>
+</footer>
+
+</body>
+</html>

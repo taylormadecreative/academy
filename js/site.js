@@ -24,6 +24,22 @@
         else if (d) { BM.toast('Could not start checkout. Try again in a minute.'); }
       }).catch(function () { BM.toast('Payments turn on soon. <b>Hang tight.</b>'); });
     },
+    subscribe: function (e, source) {
+      e.preventDefault();
+      var form = e.target;
+      var email = (form.email && form.email.value || '').trim();
+      if (!email) return false;
+      var done = function (msg) { BM.toast(msg || 'You’re in. <b>Check your inbox.</b>'); form.reset(); };
+      var soft = function () { BM.toast('Hmm, that didn’t go through. <b>Try again in a sec.</b>'); };
+      if (!CFG.FUNCTIONS_BASE) { done('Got it. <b>You’re on the list.</b>'); return false; }
+      fetch(CFG.FUNCTIONS_BASE + '/ea-subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, source: source || 'site' })
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { if (d && d.ok) { done(); } else { soft(); } })
+        .catch(soft);
+      return false;
+    },
     waitlist: function (e) {
       e.preventDefault();
       var email = (e.target.email && e.target.email.value || '').trim();

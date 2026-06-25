@@ -7,7 +7,29 @@ import pathlib
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://academy.taylormadecreative.net"
 
-NAV = [("Store", "/store/"), ("Pricing", "/pricing/"), ("Community", "/community/"), ("About", "/about/")]
+NAV = [("Tracks", "/#tracks"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("Community", "/community/"), ("About", "/about/")]
+
+# Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
+SOCIALS = [
+    ("Instagram", "https://instagram.com/taylormade_creative"),
+    ("LinkedIn", "https://linkedin.com/in/taylormademd"),
+    ("Portfolio", "https://taylormadecreative.net"),
+]
+
+# The four learning tracks. status: "live" (has a product) or "soon" (waitlist capture).
+TRACKS = [
+    ("Graphic Design", "Brand identity, layout, and type from 14 years of real client work. The eye, not just the tools.", "soon", "design"),
+    ("Photography", "Shooting, lighting, and editing images that stop the scroll, on real cameras.", "soon", "photo"),
+    ("Video Production", "Cinematic video on pro gear, the FX6 and A7RV. Shoot it, cut it, deliver it.", "soon", "video"),
+    ("AI for Creatives", "Point AI at real problems and ship agents, tools, and income. Two ebooks ready now.", "live", "ai"),
+]
+
+def socials_row(style=""):
+    links = "".join(
+        f'<a href="{u}" target="_blank" rel="noopener" style="font:600 13px/1 Inter,sans-serif;'
+        f'letter-spacing:.02em;color:inherit;text-decoration:none;opacity:.7;border-bottom:1.5px solid var(--gold);padding-bottom:2px">{t}</a>'
+        for t, u in SOCIALS)
+    return f'<div class="social-row" style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;{style}">{links}</div>'
 
 def head(title, desc, path="/", og="assets/og.png"):
     canon = DOMAIN + path
@@ -37,9 +59,9 @@ def header(active=""):
 
 def footer():
     cols = {
-        "Products": [("Build Your First AI Agent", "/store/ai-agent-ebook/"), ("Boring Money", "/store/boring-money/"),
-                     ("Video courses", "/store/#video"), ("Pricing", "/pricing/")],
-        "Community": [("Join the community", "/community/"), ("About Nelson", "/about/"), ("The workshops", "/about/#workshops")],
+        "Tracks": [("Graphic Design", "/#tracks"), ("Photography", "/#tracks"), ("Video Production", "/#tracks"), ("AI for Creatives", "/store/")],
+        "Community": [("Join the community", "/community/"), ("About Nelson", "/about/"), ("Pricing", "/pricing/")],
+        "Follow Nelson": list(SOCIALS),
         "More": [("Account", "/login/"), ("Refunds", "/refunds/"), ("Terms", "/terms/"), ("Privacy", "/privacy/")],
     }
     colhtml = ""
@@ -48,7 +70,8 @@ def footer():
         colhtml += f'<div class="foot-col"><h4>{h}</h4>{links}</div>'
     return f"""<footer class="site-footer"><div class="wrap">
 <div class="foot-top"><div class="foot-brand"><div class="mark">BUILD<b>MODE</b></div>
-<p>Learn to build real things with AI. No code, no hype. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. Taught by Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p>
+{socials_row(style="margin-top:14px")}</div>
 {colhtml}</div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">NO CODE / NO HYPE / JUST BUILD</span></div>
@@ -95,6 +118,27 @@ def price_block(slug="", big=False):
     cls = "price big" if big else "price"
     return f'<div class="{cls}" data-price="{slug}"><span class="ph">Price coming</span></div>'
 
+def tracks_section():
+    # The four learning tracks. AI is live (-> store); the rest capture emails to
+    # the newsletter (BM.subscribe) so interest is logged from day one.
+    cards = ""
+    for name, desc, status, key in TRACKS:
+        if status == "live":
+            cards += f"""<article class="pcard">
+<div class="top"><div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>READY NOW</span></div>
+<h3>{name}</h3><p class="blurb">{desc}</p></div></div>
+<div class="foot"><span class="price"><span class="ph">2 ebooks</span></span><a class="btn" href="/store/">Start here <span class="arr">&rarr;</span></a></div></article>"""
+        else:
+            cards += f"""<article class="pcard">
+<div class="top"><div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>COURSE COMING</span></div>
+<h3>{name}</h3><p class="blurb">{desc}</p></div></div>
+<div class="foot" style="display:block">
+<form onsubmit="return BM.subscribe(event,'track-{key}')" style="display:flex;gap:8px;flex-wrap:wrap">
+<input type="email" name="email" placeholder="you@email.com" required aria-label="Email for {name} track" style="flex:1;min-width:140px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:100px;font-family:inherit;font-size:14px;background:var(--paper)">
+<button class="btn sm" type="submit">Notify me</button></form>
+<p style="font-size:12px;color:var(--muted);margin:8px 0 0">First in line when the {name} track drops.</p></div></article>"""
+    return cards
+
 # ---------- HOME ----------
 def home():
     p1, p2 = PRODUCTS["ai-agent-ebook"], PRODUCTS["boring-money"]
@@ -120,15 +164,17 @@ def home():
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
-<div class="eyebrow-row"><span class="kicker gold">No code. No hype. Just build the thing.</span><hr class="rule gold" style="max-width:80px"></div>
-<h1 class="display-xl">Build real<br>things with AI.</h1>
-<p class="sub">I am a working creative out of Dallas-Fort Worth, and I teach beginners and hustlers how to use AI to build agents, tools, and small businesses that actually ship. Plain English, real projects, honest about the work it takes.</p>
-<div class="cta-row"><a class="btn gold" href="/store/">Get the ebooks <span class="arr">&rarr;</span></a><a class="btn ghost" href="/community/">Inside the community</a></div>
+<div class="eyebrow-row"><span class="kicker gold">No hype. Just the craft.</span><hr class="rule gold" style="max-width:80px"></div>
+<h1 class="display-xl">Learn to build<br>real things.</h1>
+<p class="sub">I'm Nelson Taylor, a working creative out of Dallas-Fort Worth with 14 years in the field. I teach the crafts I actually do, graphic design, photography, video, and AI, in plain English, on real projects, honest about the work it takes.</p>
+<div class="cta-row"><a class="btn gold" href="#tracks">See the tracks <span class="arr">&rarr;</span></a><a class="btn ghost" href="/community/">Join the community</a></div>
+{socials_row(style="margin-top:24px")}
 </div>
-<div class="hero-art reveal"><div class="hero-stack">
-<img class="c1" src="{p1['cover']}" alt="Build Your First AI Agent">
-<img class="c2" src="{p2['cover']}" alt="Boring Money">
-<span class="badge"><span class="dot"></span>2 ebooks, ready now</span>
+<div class="hero-art reveal">
+<div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--hair);box-shadow:var(--shadow)">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3a352e;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(28px,4vw,40px);letter-spacing:.04em;text-align:center;line-height:1.05">NELSON<br>TAYLOR</div>
+<img src="/assets/nelson-hero.jpg" alt="Nelson Taylor, Taylormade Creative" style="position:relative;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
+<span class="badge" style="position:absolute;left:16px;bottom:16px;margin:0"><span class="dot"></span>Taught by Nelson Taylor</span>
 </div></div>
 </div></div></section>
 
@@ -137,6 +183,13 @@ def home():
 <div class="item"><div class="n">14 years</div><div class="l">Working as a creative in Dallas-Fort Worth, design, video, and AI</div></div>
 <div class="item"><div class="n">Shipped</div><div class="l">A real iOS app on the App Store, not just slides and theory</div></div>
 </div></div></section>
+
+<section class="section tight" id="tracks"><div class="wrap">
+<div class="eyebrow-row reveal"><span class="kicker">The tracks</span><hr class="rule hair"></div>
+<div class="sec-head reveal" style="margin:18px 0 36px"><h2 class="display-m">Four crafts. One place to learn them.</h2>
+<p style="color:var(--muted);margin-top:10px;max-width:56ch">Start with what you need. AI is live now with two ebooks. Graphic design, photography, and video courses are in production, drop your email and you are first in line.</p></div>
+<div class="products reveal" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">{tracks_section()}</div>
+</div></section>
 
 <section class="section"><div class="wrap"><div class="g-12" style="align-items:start">
 <div class="sec-head reveal" style="grid-column:1/7">
@@ -157,8 +210,8 @@ def home():
 <div class="g-12" style="align-items:end">
 <div class="reveal" style="grid-column:1/8">
 <span class="kicker">The community</span>
-<h2 class="display-l" style="margin-top:14px">Building alone at 2am is hard. You do not have to.</h2>
-<p style="margin-top:18px;max-width:48ch">This is where everybody from my classes ends up: the AUC cohort, future students, and anyone who picks up the ebooks. Ask questions, get unstuck, and show what you built. The people in here are doing the same work you are.</p>
+<h2 class="display-l" style="margin-top:14px">Building alone is hard. You don't have to.</h2>
+<p style="margin-top:18px;max-width:50ch">A free community of designers, photographers, video people, and AI builders. Ask questions, get unstuck, show your work, and meet people to create with, make friends, find collaborators, even business partners. Everybody from my classes ends up here.</p>
 <div class="cta-row" style="margin-top:26px"><a class="btn gold" href="/community/">Join the community <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="reveal" style="grid-column:9/13">
@@ -174,13 +227,12 @@ def home():
 </div></section>
 
 <section class="section cta-band" id="waitlist"><div class="wrap">
-<span class="kicker gold reveal">Stop reading about it</span>
-<h2 class="display-l reveal">Build something this week.</h2>
-<p class="reveal" style="margin:18px auto 0;max-width:46ch;color:var(--muted)">Grab the ebooks and start tonight, or drop your email and I will tell you first when the video courses drop.</p>
-<form class="cta-row reveal" id="waitForm" onsubmit="return BM.waitlist(event)">
-<a class="btn gold" href="/store/">Get the ebooks <span class="arr">&rarr;</span></a>
+<span class="kicker gold reveal">The newsletter</span>
+<h2 class="display-l reveal">Get the good stuff first.</h2>
+<p class="reveal" style="margin:18px auto 0;max-width:50ch;color:var(--muted)">Real, no-hype tips on design, photo, video, and AI, plus first dibs on new courses and community drops. No spam, unsubscribe anytime.</p>
+<form class="cta-row reveal" onsubmit="return BM.subscribe(event,'home-cta')">
 <input type="email" name="email" placeholder="you@email.com" required style="padding:14px 20px;border:1.5px solid var(--hair);border-radius:100px;font-family:inherit;font-size:15px;min-width:240px;background:var(--paper)">
-<button class="btn" type="submit">Join the waitlist</button>
+<button class="btn gold" type="submit">Subscribe <span class="arr">&rarr;</span></button>
 </form>
 </div></section>
 </main>""" + footer()
@@ -319,11 +371,16 @@ def about():
 <div class="reveal" style="grid-column:1/7">
 <span class="kicker gold">About</span>
 <h1 class="display-l" style="margin-top:12px">I am Nelson Taylor, and I build things for a living.</h1>
-<p class="lead" style="margin-top:20px;max-width:48ch">Fourteen years as a creative in Dallas-Fort Worth: design, video, and now AI. I am not a computer scientist. I am a builder who learned to make AI do real work, and I teach it the way I wish someone had taught me. Plain English. Real projects. Honest about the effort.</p>
+<p class="lead" style="margin-top:20px;max-width:48ch">Fourteen years as a creative in Dallas-Fort Worth: graphic design, photography, video, and now AI. I am not a computer scientist. I am a builder who learned to make this stuff do real work, and I teach it the way I wish someone had taught me. Plain English. Real projects. Honest about the effort.</p>
+{socials_row(style="margin-top:24px")}
 </div>
 <div class="reveal" style="grid-column:8/13;padding-top:8px">
+<div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--hair);box-shadow:var(--shadow);margin-bottom:22px">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3a352e;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:32px;letter-spacing:.04em;text-align:center;line-height:1.05">NELSON<br>TAYLOR</div>
+<img src="/assets/nelson-hero.jpg" alt="Nelson Taylor, Taylormade Creative" style="position:relative;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
+</div>
 <div style="border-left:2px solid var(--gold);padding-left:20px">
-<p style="font-size:18px">Most AI teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
+<p style="font-size:18px">Most online teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
 </div></div></div></section>
 
 <section class="section on-ink" id="workshops"><div class="wrap">
@@ -357,8 +414,8 @@ def community():
 <main><section class="section"><div class="wrap" style="max-width:820px;text-align:center">
 <span class="tag live reveal"><span class="dot"></span>OPENING SOON</span>
 <h1 class="display-l reveal" style="margin-top:16px">The build crew.</h1>
-<p class="reveal" style="margin:18px auto 0;color:var(--muted);max-width:46ch">Everybody from my classes ends up here: the AUC cohort, future students, and anyone who picks up the ebooks. A place to ask questions, get unstuck, and show what you built. It opens the moment the first courses ship.</p>
-<form class="cta-row reveal" onsubmit="return BM.waitlist(event)" style="justify-content:center;margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+<p class="reveal" style="margin:18px auto 0;color:var(--muted);max-width:52ch">A free community of designers, photographers, video people, and AI builders. Ask questions, get unstuck, show your work, and meet people to create with, make friends, find collaborators, even business partners. Everybody from my classes ends up here.</p>
+<form class="cta-row reveal" onsubmit="return BM.subscribe(event,'community')" style="justify-content:center;margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
 <input type="email" name="email" placeholder="you@email.com" required style="padding:14px 20px;border:1.5px solid var(--hair);border-radius:100px;font-family:inherit;font-size:15px;min-width:240px;background:var(--paper)">
 <button class="btn gold" type="submit">Save my spot</button></form>
 </div></section></main>""" + footer()
