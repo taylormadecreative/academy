@@ -270,7 +270,7 @@ def home():
 <p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p></div>
 <div class="tiers reveal" style="grid-template-columns:repeat(2,minmax(0,1fr));max-width:720px;margin:0 auto">
 <div class="tier"><div class="pname">Free</div><div class="pprice">$0<span> / forever</span></div><div class="pdesc">A real taste, free forever.</div><ul class="flist" style="margin:16px 0"><li>The community + members + DMs</li><li>Free intro videos + sample ebooks</li><li>Free guides and resources</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Join Free</a></div>
-<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>ALL ACCESS</span></div><div class="pname">Membership</div><div class="pprice">$15<span> / month</span></div><div class="pdesc">Everything unlocked, about the price of a pizza.</div><ul class="flist" style="margin:16px 0"><li>Every ebook + video course</li><li>Everything in Free</li><li>New content every month</li><li>Cancel anytime</li></ul><a class="btn gold" style="margin-top:auto" href="/login/">Start learning <span class="arr">&rarr;</span></a></div>
+<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>ALL ACCESS</span></div><div class="pname">Membership</div><div class="pprice">$15<span> / month</span></div><div class="pdesc">Everything unlocked, about the price of a pizza.</div><ul class="flist" style="margin:16px 0"><li>Every ebook + video course</li><li>Everything in Free</li><li>New content every month</li><li>Cancel anytime</li></ul><a class="btn gold" style="margin-top:auto" data-buy="all-access" href="#">Start learning <span class="arr">&rarr;</span></a></div>
 </div></div>
 </div></section>
 </main>""" + footer()
@@ -322,7 +322,7 @@ def store():
 <button class="chip" data-cat="soon">Courses (soon)</button>
 </div>
 <div class="products reveal" id="storeGrid">{grid}</div>
-<p class="muted reveal" style="margin-top:26px;font-size:14px">Want everything in one price? <a class="textlink" href="/pricing/">See the membership &rarr;</a> &nbsp;·&nbsp; <a class="textlink" href="/course/">Preview the course experience &rarr;</a></p>
+<p class="muted reveal" style="margin-top:26px;font-size:14px"><b style="color:var(--ink)">Most people just get the membership</b> &mdash; $15/mo for everything, less than a single ebook. <a class="textlink" href="/pricing/">See the membership &rarr;</a> &nbsp;&middot;&nbsp; <a class="textlink" href="/course/">Preview a course &rarr;</a></p>
 </div></section>
 </main>""" + footer()
 
@@ -393,11 +393,11 @@ def pricing():
              "Get this ebook", "#", buy="boring-money"),
     ])
     video_cards = "".join([
-        card('<span class="tag gold"><span class="dot"></span>ALL-ACCESS</span> <span class="tag live"><span class="dot"></span>SOON</span>',
-             "The All-Access Pass",
-             "A monthly membership. Stream every video in the library, anytime, plus new releases as they drop, and the community.",
-             ["Watch every video, anytime", "New releases included", "The community included", "Cancel anytime"],
-             "Join the waitlist", "/#waitlist", featured=True, price_slug="all-access"),
+        card('<span class="tag gold"><span class="dot"></span>ALL ACCESS</span>',
+             "Membership",
+             "$15/mo and everything unlocks: all the ebooks, every video course as it drops, plus the community. Cancel anytime.",
+             ["Every ebook + video course", "New content every month", "The community + DMs", "Cancel anytime"],
+             "Start membership", "#", buy="all-access", featured=True, price_slug="all-access"),
         card('<span class="tag">PER VIDEO</span> <span class="tag live"><span class="dot"></span>SOON</span>',
              "Single Videos",
              "A la carte. Just need one thing? Buy that single video, watch it, and download it to keep.",
@@ -413,9 +413,9 @@ def pricing():
 </div></section>
 <section class="section" style="padding-top:0"><div class="wrap"><div class="products reveal" style="grid-template-columns:repeat(3,1fr)">{cards}</div>
 <div class="reveal" style="margin-top:60px">
-<div class="eyebrow-row"><span class="kicker gold">The video courses</span><span class="tag live"><span class="dot"></span>IN PRODUCTION</span><hr class="rule hair"></div>
-<div class="sec-head" style="margin:18px 0 26px"><h2 class="display-m">Watch me build it. Two ways in.</h2>
-<p style="color:var(--muted);margin-top:10px;max-width:58ch">The step-by-step tutorial videos are in production. When they drop, you choose how you watch: go All-Access and stream everything anytime, or buy the single video you need and keep it. Join the waitlist and you will hear the launch price first.</p></div>
+<div class="eyebrow-row"><span class="kicker gold">The membership</span><hr class="rule hair"></div>
+<div class="sec-head" style="margin:18px 0 26px"><h2 class="display-m">Get everything for $15/mo.</h2>
+<p style="color:var(--muted);margin-top:10px;max-width:58ch">The membership unlocks all the ebooks and every video course as it drops, plus the community. The video courses are in production now. Prefer to own just one thing? Single videos will be available a la carte too.</p></div>
 <div class="products" style="grid-template-columns:1fr 1fr">{video_cards}</div>
 </div>
 </div></section>
