@@ -89,9 +89,11 @@ PRODUCTS = {
     },
 }
 
-def price_block(big=False):
-    cls = "price" if not big else "price"
-    return f'<div class="{cls}"><span class="ph">Price coming</span></div>'
+def price_block(slug="", big=False):
+    # data-price is filled from the DB (ea_list_products) by site.js, so the shown
+    # price always matches what checkout charges. Falls back to "Price coming".
+    cls = "price big" if big else "price"
+    return f'<div class="{cls}" data-price="{slug}"><span class="ph">Price coming</span></div>'
 
 # ---------- HOME ----------
 def home():
@@ -103,7 +105,7 @@ def home():
 <div class="top"><img class="cover" src="{p['cover']}" alt="{p['title']} cover" loading="lazy">
 <div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
 <h3>{p['title']}</h3><p class="blurb">{p['blurb']}</p></div></div>
-<div class="foot">{price_block()}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
+<div class="foot">{price_block(slug)}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
     # coming soon video card
     pcards += """<article class="pcard coming">
 <div class="top"><div class="cover-ph">VIDEO<br>COURSE</div>
@@ -191,7 +193,7 @@ def store():
 <div class="top"><img class="cover" src="{p['cover']}" alt="{p['title']} cover" loading="lazy">
 <div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
 <h3>{p['title']}</h3><p class="blurb">{p['blurb']}</p></div></div>
-<div class="foot">{price_block()}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
+<div class="foot">{price_block(slug)}<a class="btn" href="/store/{slug}/">Read what's inside <span class="arr">&rarr;</span></a></div></article>"""
     cards += """<article class="pcard coming" id="video">
 <div class="top"><div class="cover-ph">VIDEO<br>COURSE</div>
 <div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>COMING SOON</span></div>
@@ -228,7 +230,7 @@ def product_page(slug):
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
 <img src="{p['cover']}" alt="{p['title']} cover" style="border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:360px">
 <div style="background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--r);padding:20px;margin-top:22px">
-<div class="price" style="font-size:26px">{price_block()}</div>
+{price_block(slug, big=True)}
 <a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:14px">Get the ebook <span class="arr">&rarr;</span></a>
 <p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Instant PDF download. Read on any device. 7-day refund.</p>
 </div></div>
@@ -255,15 +257,16 @@ def product_page(slug):
 
 # ---------- PRICING ----------
 def pricing():
-    def card(tag, title, desc, feats, cta_label, cta_href, buy=None, featured=False):
+    def card(tag, title, desc, feats, cta_label, cta_href, buy=None, featured=False, price_slug=None, price_text=None):
         fl = "".join(f"<li>{x}</li>" for x in feats)
         btn = f'<a class="btn {"gold" if featured else "ghost"}" {"data-buy="+chr(34)+buy+chr(34) if buy else "href="+chr(34)+cta_href+chr(34)} href="{cta_href}">{cta_label}</a>'
-        cls = "pcard" + (" " if not featured else "")
         style = "border-color:var(--gold);box-shadow:var(--shadow)" if featured else ""
+        pr = (f'<div class="price big" style="margin:12px 0 4px">{price_text}</div>' if price_text
+              else f'<div style="margin:12px 0 4px">{price_block(price_slug or buy or "", big=True)}</div>')
         return f"""<div class="pcard" style="padding:26px;{style}">
 <div class="tagrow">{tag}</div>
 <h3 style="margin-top:6px">{title}</h3>
-<div class="price" style="font-size:30px;margin:12px 0 4px">{price_block()}</div>
+{pr}
 <p class="blurb" style="margin-top:4px">{desc}</p>
 <ul class="flist" style="margin-top:16px">{fl}</ul>
 <div style="margin-top:22px">{btn}</div></div>"""
@@ -284,12 +287,12 @@ def pricing():
              "The All-Access Pass",
              "A monthly membership. Stream every video in the library, anytime, plus new releases as they drop, and the community.",
              ["Watch every video, anytime", "New releases included", "The community included", "Cancel anytime"],
-             "Join the waitlist", "/#waitlist", featured=True),
+             "Join the waitlist", "/#waitlist", featured=True, price_slug="all-access"),
         card('<span class="tag">PER VIDEO</span> <span class="tag live"><span class="dot"></span>SOON</span>',
              "Single Videos",
              "A la carte. Just need one thing? Buy that single video, watch it, and download it to keep.",
              ["Buy any one video", "Watch it and download it", "Yours forever, no subscription", "Upgrade to All-Access anytime"],
-             "Join the waitlist", "/#waitlist"),
+             "Join the waitlist", "/#waitlist", price_text="$19 each"),
     ])
     return head("Pricing — BUILD MODE", "Simple pricing. Ebooks one-time, and the video courses two ways: an all-access subscription or a single video to keep.", "/pricing/") + header("Pricing") + f"""
 <main>

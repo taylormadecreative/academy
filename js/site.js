@@ -62,4 +62,28 @@
   } else {
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
   }
+
+  // Fill prices from the database (single source of truth, always matches checkout).
+  function fillPrices() {
+    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) return;
+    var els = document.querySelectorAll('[data-price]');
+    if (!els.length) return;
+    fetch(CFG.SUPABASE_URL + '/rest/v1/rpc/ea_list_products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': CFG.SUPABASE_KEY, 'Authorization': 'Bearer ' + CFG.SUPABASE_KEY },
+      body: '{}'
+    }).then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
+      var map = {};
+      (list || []).forEach(function (p) { map[p.slug] = p; });
+      els.forEach(function (el) {
+        var slug = el.getAttribute('data-price'); if (!slug) return;
+        var p = map[slug]; if (!p || p.price_cents == null) return;
+        var d = p.price_cents / 100;
+        var s = (p.price_cents % 100 === 0) ? ('$' + d) : ('$' + d.toFixed(2));
+        if (p.billing === 'recurring') s += '/mo';
+        el.textContent = s;
+      });
+    }).catch(function () {});
+  }
+  fillPrices();
 })();

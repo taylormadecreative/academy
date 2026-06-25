@@ -153,8 +153,9 @@ p{max-width:68ch;}
 .pcard .blurb{font-size:14.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
 .pcard .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;
   padding:18px 24px;border-top:1px solid var(--hair-soft);background:var(--paper-2);}
-.pcard .price{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);font-weight:600;}
-.pcard .price .ph{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;font-weight:600;}
+.price{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);font-weight:600;line-height:1;}
+.price.big{font-size:30px;}
+.price .ph{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;font-weight:600;}
 .pcard.coming{background:var(--paper-2);}
 .pcard.coming .cover-ph{width:118px;flex:0 0 auto;aspect-ratio:8.5/11;border-radius:6px;border:1.5px dashed var(--hair);
   display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-align:center;}
