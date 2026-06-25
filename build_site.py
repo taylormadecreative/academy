@@ -12,6 +12,7 @@ NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/librar
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
     ("Instagram", "https://instagram.com/taylormade_creative"),
+    ("TikTok", "https://tiktok.com/@taylormadecreative"),
     ("LinkedIn", "https://linkedin.com/in/taylormademd"),
     ("Portfolio", "https://taylormadecreative.net"),
 ]
@@ -35,6 +36,17 @@ LOGO = ('<svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg
         '<rect width="40" height="40" rx="11" fill="#2563EB"/>'
         '<rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/>'
         '<rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg>')
+
+HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+    '<defs><linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="0.55" stop-color="#bfdbfe"/><stop offset="1" stop-color="#93c5fd"/></linearGradient></defs>'
+    '<path fill="url(#hb)" d="M455,95 C545,160 582,290 530,395 C485,490 375,548 263,533 C158,519 58,450 44,338 C31,233 96,118 211,81 C301,52 370,33 455,95 Z"/></svg>')
+
+def hero_photo():
+    star = '<path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z" fill="currentColor"/>'
+    return (f'<div class="hero-photo">{HERO_BLOB}'
+            f'<span class="spark s1" style="color:#3b82f6"><svg viewBox="0 0 24 24" width="20" height="20">{star}</svg></span>'
+            f'<span class="spark s2" style="color:#f59e0b"><svg viewBox="0 0 24 24" width="13" height="13">{star}</svg></span>'
+            f'<img class="hero-cut" src="/assets/nelson-hero.png" alt="Nelson Taylor, founder of Taylormade Academy"></div>')
 
 def head(title, desc, path="/", og="assets/og.png"):
     canon = DOMAIN + path
@@ -226,7 +238,7 @@ def home():
 <div class="cta-row"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Start Learning</a><a class="btn ghost" href="/store/">Browse Ebooks</a></div>
 <div class="statline"><div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div><div class="s"><div class="n">4</div><div class="l">creative tracks</div></div><div class="s"><div class="n">2</div><div class="l">ebooks ready now</div></div></div>
 </div>
-<div class="hero-art reveal">{preview_panel()}</div>
+<div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
 
 <section class="section tight" style="padding-top:0"><div class="wrap">
@@ -412,9 +424,8 @@ def about():
 {socials_row(style="margin-top:24px")}
 </div>
 <div class="reveal" style="grid-column:8/13;padding-top:8px">
-<div style="position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;background:var(--ink);border:1px solid var(--hair);box-shadow:var(--shadow);margin-bottom:22px">
-<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3a352e;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:32px;letter-spacing:.04em;text-align:center;line-height:1.05">NELSON<br>TAYLOR</div>
-<img src="/assets/nelson-hero.jpg" alt="Nelson Taylor, Taylormade Creative" style="position:relative;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">
+<div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;background:linear-gradient(160deg,#dbeafe,#93c5fd);border:1px solid #dbeafe;box-shadow:var(--shadow);margin-bottom:22px;display:flex;align-items:flex-end;justify-content:center">
+<img src="/assets/nelson-hero.png" alt="Nelson Taylor, Taylormade Creative" style="position:relative;max-height:97%;width:auto;max-width:100%;object-fit:contain;display:block">
 </div>
 <div style="border-left:2px solid var(--gold);padding-left:20px">
 <p style="font-size:18px">Most online teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
