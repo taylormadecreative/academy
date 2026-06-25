@@ -17,6 +17,8 @@ SOCIALS = [
     ("Portfolio", "https://taylormadecreative.net"),
 ]
 
+FB_GROUP = "https://www.facebook.com/groups/taylormadeacademy"
+
 # The four learning tracks. status: "live" (has a product) or "soon" (waitlist capture).
 TRACKS = [
     ("Graphic Design", "Brand identity, layout, and type from 14 years of real client work. The eye, not just the tools.", "soon", "design"),
@@ -39,17 +41,18 @@ HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidY
     '<path fill="url(#hb)" d="M455,95 C545,160 582,290 530,395 C485,490 375,548 263,533 C158,519 58,450 44,338 C31,233 96,118 211,81 C301,52 370,33 455,95 Z"/></svg>')
 
 def hero_photo():
-    star = '<path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z" fill="currentColor"/>'
-    return (f'<div class="hero-photo">{HERO_BLOB}'
-            f'<span class="spark s1" style="color:var(--blue)"><svg viewBox="0 0 24 24" width="20" height="20">{star}</svg></span>'
-            f'<span class="spark s2" style="color:var(--gold-deep)"><svg viewBox="0 0 24 24" width="14" height="14">{star}</svg></span>'
-            f'<picture><source srcset="/assets/nelson-hero.webp" type="image/webp">'
-            f'<img class="hero-cut" src="/assets/nelson-hero.png" width="736" height="1108" '
-            f'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy"></picture></div>')
+    return ('<div class="hero-shot">'
+            '<span class="hero-glow" aria-hidden="true"></span>'
+            '<picture><source srcset="/assets/hero-nelson.webp" type="image/webp">'
+            '<img class="hero-img" src="/assets/hero-nelson.png" width="960" height="1440" '
+            'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy, in a Taylormade Creative varsity jacket"></picture>'
+            '<span class="hero-chip"><span class="pulse"></span>Now enrolling</span>'
+            '<span class="hero-tracks" aria-hidden="true">AI &middot; Design &middot; Photo &middot; Video</span>'
+            '</div>')
 
 def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
     canon = DOMAIN + path
-    hero_preload = ('<link rel="preload" as="image" href="/assets/nelson-hero.webp" '
+    hero_preload = ('<link rel="preload" as="image" href="/assets/hero-nelson.webp" '
                     'type="image/webp" fetchpriority="high">') if preload_hero else ""
     return f"""<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -88,11 +91,13 @@ def footer():
     socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">{t}</a>' for t, u in SOCIALS)
     cols = {
         "Explore": [("Courses", "/store/"), ("Ebooks", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")],
-        "Community": [("The feed", "/community/"), ("Members", "/community/"), ("Messages", "/community/"), ("Join free", "/login/")],
+        "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Messages", "/community/"), ("Join free", "/login/")],
     }
     colhtml = ""
     for h, items in cols.items():
-        links = "".join(f'<a href="{u}">{t}</a>' for t, u in items)
+        links = "".join(
+            f'<a href="{u}"{" target=\"_blank\" rel=\"noopener\"" if u.startswith("http") else ""}>{t}</a>'
+            for t, u in items)
         colhtml += f'<div class="foot-col"><h4>{h}</h4>{links}</div>'
     return f"""<footer class="site-footer"><div class="wrap">
 <div class="foot-top">
@@ -305,7 +310,8 @@ def home():
 <div style="text-align:center;max-width:60ch;margin:0 auto 30px">
 <span class="kicker gold reveal">A community of builders, designers &amp; creators</span>
 <h2 class="display-l reveal" style="margin-top:12px">More than a platform. Your creative home.</h2>
-<p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p></div>
+<p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p>
+<div class="reveal" style="margin-top:18px"><a class="btn ghost sm" href="{FB_GROUP}" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z"/></svg> Join the free Facebook group <span class="arr">&rarr;</span></a></div></div>
 <div class="tiers reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));max-width:720px;margin:0 auto">
 <div class="tier"><div class="pname">Free</div><div class="pprice">$0<span> / forever</span></div><div class="pdesc">A real taste, free forever.</div><ul class="flist" style="margin:16px 0"><li>The community + members + DMs</li><li>Free intro videos + sample ebooks</li><li>Free guides and resources</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Join Free</a></div>
 <div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>ALL ACCESS</span></div><div class="pname">Membership</div><div class="pprice">$15<span> / month</span></div><div class="pdesc">Everything unlocked, about the price of a pizza.</div><ul class="flist" style="margin:16px 0"><li>Every ebook + video course</li><li>Everything in Free</li><li>New content every month</li><li>Cancel anytime</li></ul><a class="btn gold" style="margin-top:auto" data-buy="all-access" href="#">Start learning <span class="arr">&rarr;</span></a></div>

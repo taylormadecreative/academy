@@ -278,11 +278,23 @@ p{max-width:68ch;}
 .chip.active{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
 
 /* ---------- hero photo (cutout on blob) ---------- */
-.hero-photo{position:relative;display:flex;align-items:flex-end;justify-content:center;min-height:clamp(360px,42vw,520px);}
-.hero-photo .blob{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
-.hero-photo .hero-cut{position:relative;z-index:2;max-height:clamp(360px,42vw,540px);width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 24px 44px rgba(4,18,58,.22));}
-.hero-photo .spark{position:absolute;z-index:1;line-height:0;}
-.hero-photo .spark.s1{top:8%;left:5%;} .hero-photo .spark.s2{top:26%;right:3%;}
+.hero-shot{position:relative;display:flex;justify-content:center;align-items:flex-start;}
+.hero-shot .hero-glow{position:absolute;inset:-6% -4%;z-index:0;border-radius:50%;
+  background:radial-gradient(45% 45% at 35% 28%,rgba(11,64,224,.42),transparent 70%),
+             radial-gradient(45% 45% at 70% 72%,rgba(253,201,33,.34),transparent 72%);
+  filter:blur(34px);}
+.hero-shot .hero-img{position:relative;z-index:1;width:100%;max-width:480px;height:auto;border-radius:22px;
+  box-shadow:0 30px 70px -28px rgba(4,18,58,.55),0 0 0 1px rgba(4,18,58,.06);
+  background:var(--ink-panel);}
+.hero-shot .hero-chip{position:absolute;z-index:2;left:14px;bottom:16px;display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;color:#fff;background:rgba(4,18,58,.62);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:8px 14px;box-shadow:var(--shadow-sm);}
+.hero-shot .hero-chip .pulse{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(253,201,33,.7);animation:pulse 2s var(--ease) infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(253,201,33,.6);}70%{box-shadow:0 0 0 10px rgba(253,201,33,0);}100%{box-shadow:0 0 0 0 rgba(253,201,33,0);}}
+.hero-shot .hero-tracks{position:absolute;z-index:2;right:14px;top:16px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:rgba(4,18,58,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:7px 13px;}
+@media(max-width:920px){.hero-shot .hero-img{max-width:300px;}}
+@media(max-width:560px){.hero-shot .hero-img{max-width:268px;}.hero-shot .hero-tracks{display:none;}}
 
 /* ---------- newsletter lead popup ---------- */
 .pop-back{position:fixed;inset:0;background:rgba(15,23,42,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;}

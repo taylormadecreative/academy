@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 supabase/.env
 *.local
+assets/hero-v2.png
+assets/hero-v3.png
+assets/nelson-src.jpeg
+.openai_env
