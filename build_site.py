@@ -7,7 +7,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://academy.taylormadecreative.net"
 
-NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/library/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [

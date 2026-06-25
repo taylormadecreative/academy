@@ -1,154 +1,212 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reader - Taylormade Academy</title>
-<meta name="description" content="Read your Taylormade Academy ebook.">
+<title>Ebook library - Taylormade Academy</title>
+<meta name="description" content="Your Taylormade Academy ebook library and reader.">
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://academy.taylormadecreative.net/library/">
-<meta property="og:type" content="website"><meta property="og:title" content="Reader - Taylormade Academy">
-<meta property="og:description" content="Read your Taylormade Academy ebook."><meta property="og:url" content="https://academy.taylormadecreative.net/library/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css">
 <style>
-  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
-    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
-  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;}
-  .appbar .acts{display:flex;align-items:center;gap:12px;}
-  .readwrap{max-width:980px;}
-  .reader{margin-top:24px;border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;background:var(--paper-2);box-shadow:var(--shadow);}
-  .reader iframe{display:block;width:100%;height:80vh;min-height:520px;border:0;background:#fff;}
-  .panel{border:1.5px dashed var(--hair);border-radius:var(--r);background:var(--paper-2);padding:clamp(28px,5vw,48px);text-align:center;margin-top:24px;}
-  .skelbar{height:80vh;min-height:520px;border-radius:var(--r);border:1px solid var(--hair);
-    background:linear-gradient(100deg,var(--paper-2) 30%,#e7e2d6 50%,var(--paper-2) 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;margin-top:24px;}
+  body{background:var(--bg-soft);}
+  .appbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--hair);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:66px;}
+  .appbar .who{display:flex;align-items:center;gap:12px;}
+  .appbar .email{font-size:13px;color:var(--muted);max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lib{max-width:1320px;margin:0 auto;padding:20px var(--gut) 56px;}
+  .lib3{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:18px;align-items:start;}
+  .col-stick{position:sticky;top:88px;}
+  .card{background:#fff;border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);}
+  .card.pad{padding:16px;}
+  .side-h{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:2px 4px 10px;}
+  .liblist{display:flex;flex-direction:column;gap:2px;}
+  .liblist button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 10px;border-radius:9px;cursor:pointer;}
+  .liblist button:hover{background:var(--bg-soft);} .liblist button.active{background:var(--blue-soft);color:var(--blue-deep);}
+  .liblist .d{width:10px;height:13px;border-radius:2px;background:var(--blue);flex:0 0 auto;opacity:.7;}
+  .bookgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;}
+  .book{cursor:pointer;border:1px solid var(--hair);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s;}
+  .book:hover{transform:translateY(-3px);box-shadow:var(--shadow-card);}
+  .book .cv{aspect-ratio:3/4;object-fit:cover;width:100%;background:var(--ink-panel);display:block;}
+  .book .cvph{aspect-ratio:3/4;background:linear-gradient(135deg,#1e293b,var(--ink-panel));color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
+  .book .t{padding:10px 12px;font-size:13.5px;font-weight:700;line-height:1.3;}
+  .reader-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .reader-head h1{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+  .reader-frame{border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);}
+  .reader-frame iframe{display:block;width:100%;height:78vh;min-height:520px;border:0;background:#fff;}
+  .skelbar{height:78vh;min-height:520px;border-radius:var(--r);border:1px solid var(--hair);background:linear-gradient(100deg,#fff 30%,var(--bg-soft2) 50%,#fff 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;}
   @keyframes sh{to{background-position:-200% 0;}}
-  .hide{display:none !important;}
-  @media(max-width:600px){ .appbar .acts .label{display:none;} .reader iframe,.skelbar{height:72vh;} }
+  .panel{border:1.5px dashed var(--hair);border-radius:var(--r);background:#fff;padding:clamp(26px,5vw,44px);text-align:center;}
+  .note{background:var(--bg-soft);border:1px solid var(--hair);border-radius:12px;padding:11px 13px;margin-bottom:10px;}
+  .note .b{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .note .m{display:flex;justify-content:space-between;align-items:center;margin-top:7px;}
+  .note .m span{font-size:11.5px;color:var(--muted);}
+  .note .del{appearance:none;border:0;background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
+  .note .del:hover{color:var(--clay);}
+  .notes-form textarea{width:100%;border:1.5px solid var(--hair);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;background:#fff;resize:vertical;min-height:64px;}
+  .notes-form textarea:focus{outline:none;border-color:var(--blue);}
+  .muted{color:var(--muted);} .hide{display:none !important;}
+  @media(max-width:1080px){ .lib3{grid-template-columns:1fr;} .col-stick{position:static;} .lib-left{order:1;} .lib-center{order:2;} .lib-right{order:3;} .liblist{flex-direction:row;flex-wrap:wrap;} }
+  @media(max-width:600px){ .appbar .email{display:none;} .reader-frame iframe,.skelbar{height:70vh;} }
 </style>
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
-<a class="brand" href="/dashboard/"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
-<div class="acts">
-  <a class="navlink label" href="/dashboard/">Back to library</a>
-  <a class="btn gold sm hide" id="dlBtn" target="_blank" rel="noopener">Download PDF</a>
-</div>
+<a class="brand" href="/"><svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#2563EB"/><rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/><rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg><span class="mark">Taylormade Academy</span></a>
+<div class="who"><a class="navlink" href="/dashboard/">Dashboard</a><a class="navlink" href="/community/">Community</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button></div>
 </div></div></header>
 
-<main><section class="section tight"><div class="wrap readwrap">
+<main class="lib"><div class="lib3">
 
-<a class="kicker" href="/dashboard/" style="display:inline-block">&larr; Library</a>
-<h1 class="display-m" id="title" style="margin-top:10px">Opening your ebook...</h1>
-<p id="sub" style="margin-top:10px;color:var(--muted)">One moment while I check your access and load the file.</p>
+  <!-- LEFT: library list -->
+  <aside class="lib-left col-stick">
+    <div class="card pad">
+      <div class="side-h">Ebook Library</div>
+      <div id="libCount" class="muted" style="font-size:13px;padding:0 4px 10px"></div>
+      <div class="liblist" id="libList"></div>
+      <hr class="rule hair" style="margin:12px 0">
+      <a class="btn ghost sm" href="/store/" style="width:100%">Get more in the store</a>
+    </div>
+  </aside>
 
-<!-- loading -->
-<div id="loading" class="skelbar"></div>
+  <!-- CENTER: grid or reader -->
+  <section class="lib-center">
+    <!-- pick state: the grid -->
+    <div id="pickState">
+      <h1 style="font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px">Your library</h1>
+      <p class="muted" style="margin-bottom:20px">Open a book to read it in your browser or download the PDF.</p>
+      <div id="gridLoading" class="bookgrid"><div class="book"><div class="cvph">…</div></div><div class="book"><div class="cvph">…</div></div></div>
+      <div id="bookGrid" class="bookgrid hide"></div>
+      <div id="emptyState" class="panel hide"><h3 style="font-size:20px">Your library is empty.</h3><p class="muted" style="margin-top:8px;max-width:42ch;margin-inline:auto">Grab an ebook and it lands here, ready to read and take notes.</p><p style="margin-top:18px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p></div>
+    </div>
+    <!-- read state: the reader -->
+    <div id="readState" class="hide">
+      <div class="reader-head">
+        <div><button class="textlink" id="backBtn" style="font-size:13px;background:none;border:0;cursor:pointer;padding:0">&larr; Library</button><h1 id="readTitle" style="margin-top:4px">Opening…</h1></div>
+        <div style="display:flex;gap:10px"><a class="btn gold sm hide" id="dlBtn" target="_blank" rel="noopener">Download PDF</a></div>
+      </div>
+      <div id="readLoading" class="skelbar"></div>
+      <div id="readFrame" class="reader-frame hide"><iframe id="frame" title="Ebook reader" referrerpolicy="no-referrer"></iframe></div>
+      <div id="readErr" class="panel hide"><h3 style="font-size:19px">Could not open this book.</h3><p class="muted" style="margin-top:8px">Refresh and try again. If it keeps happening, reach out and I will sort it.</p></div>
+    </div>
+  </section>
 
-<!-- the reader -->
-<div id="reader" class="reader hide"><iframe id="frame" title="Ebook reader" referrerpolicy="no-referrer"></iframe></div>
+  <!-- RIGHT: notes -->
+  <aside class="lib-right col-stick">
+    <div class="card pad">
+      <div class="side-h">Your notes</div>
+      <div id="notesEmpty" class="muted" style="font-size:13.5px;padding:4px">Open a book to take notes while you read. Your notes are private and saved to your account.</div>
+      <div id="notesWrap" class="hide">
+        <form class="notes-form" id="noteForm" style="margin-bottom:14px"><textarea id="noteBody" maxlength="5000" placeholder="Jot a note, an idea, a to-do..."></textarea><button class="btn gold sm" type="submit" style="width:100%;margin-top:8px">Add note</button></form>
+        <div id="notesList"></div>
+      </div>
+    </div>
+  </aside>
 
-<!-- not owned (404) -->
-<div id="notOwned" class="panel hide">
-  <h3 style="font-size:24px">You do not own this yet.</h3>
-  <p style="margin-top:12px;color:var(--muted);max-width:46ch;margin-inline:auto">This ebook is not in your library. Grab it from the store and it unlocks here right away.</p>
-  <p style="margin-top:22px"><a class="btn gold" href="/store/">Go to the store <span class="arr">&rarr;</span></a> <a class="btn ghost" href="/dashboard/">My library</a></p>
-</div>
-
-<!-- missing / bad slug -->
-<div id="noSlug" class="panel hide">
-  <h3 style="font-size:24px">Nothing to open here.</h3>
-  <p style="margin-top:12px;color:var(--muted);max-width:46ch;margin-inline:auto">Pick an item from your library to read or download it.</p>
-  <p style="margin-top:22px"><a class="btn gold" href="/dashboard/">Go to my library <span class="arr">&rarr;</span></a></p>
-</div>
-
-<!-- generic error -->
-<div id="errState" class="panel hide">
-  <h3 style="font-size:22px">Could not open the file.</h3>
-  <p style="margin-top:12px;color:var(--muted)">Refresh the page and try again. If it keeps happening, reach out and I will sort it.</p>
-  <p style="margin-top:22px"><a class="btn ghost" href="/dashboard/">Back to library</a></p>
-</div>
-
-</div></section></main>
-
-<footer class="site-footer"><div class="wrap">
-<div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
-<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
-<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
-<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
-<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
-</div></footer>
+</div></main>
 
 <div class="toast" id="toast"></div>
 <script src="/js/config.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(m){ const t=$("toast"); if(!t) return; t.innerHTML=m; t.classList.add("show"); clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.classList.remove("show"),3200); }
+function when(iso){ const d=new Date(iso); return isNaN(d)?"":d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
 
-function showOnly(id){
-  ["loading","reader","notOwned","noSlug","errState"].forEach(function (k){
-    const el = $(k); if (!el) return;
-    if (k === id) el.classList.remove("hide"); else el.classList.add("hide");
-  });
-}
-
-function prettyTitle(slug){
-  return slug.split("-").map(function (w){ return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }).join(" ");
-}
-
-const slug = (new URLSearchParams(location.search).get("p") || "").trim();
-
-if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
-  location.replace("/login/");
-} else if (!slug) {
-  $("title").textContent = "Nothing to open here.";
-  $("sub").textContent = "";
-  showOnly("noSlug");
-} else {
+if(!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY){ location.replace("/login/"); }
+else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  const { data:{ session } } = await supabase.auth.getSession();
+  if(!session){ location.replace("/login/"); }
+  else {
+    const me = session.user;
+    $("ue").textContent = me.email || "";
+    $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/login/"); });
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    location.replace("/login/");
-  } else {
-    $("title").textContent = prettyTitle(slug);
+    let owned = [];   // [{slug,title,type,cover_url}]
+    let curSlug = null;
 
-    try {
-      const res = await fetch(CFG.FUNCTIONS_BASE + "/ea-issue-media", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + session.access_token,
-          "apikey": CFG.SUPABASE_KEY
-        },
-        body: JSON.stringify({ product_id: slug })
-      });
+    function typeLabel(t){ return t==="course"?"VIDEO":t==="bundle"?"BUNDLE":"EBOOK"; }
 
-      if (res.status === 404 || res.status === 403) {
-        $("title").textContent = "You do not own this yet.";
-        $("sub").textContent = "";
-        showOnly("notOwned");
-      } else if (!res.ok) {
-        $("sub").textContent = "";
-        showOnly("errState");
-      } else {
-        const data = await res.json().catch(function (){ return null; });
-        const url = data && data.url;
-        if (!url) { $("sub").textContent = ""; showOnly("errState"); }
-        else {
-          $("sub").textContent = "Read it below, or download the PDF to keep.";
-          const dl = $("dlBtn");
-          dl.setAttribute("href", url);
-          dl.classList.remove("hide");
-          // Embed the PDF inline. #toolbar=1 keeps the viewer's own controls.
-          $("frame").src = url + (url.indexOf("#") === -1 ? "#view=FitH" : "");
-          showOnly("reader");
-        }
-      }
-    } catch (err) {
-      $("sub").textContent = "";
-      showOnly("errState");
+    async function loadLibrary(){
+      try{
+        const { data, error } = await supabase.rpc("ea_my_library");
+        if(error) throw error;
+        owned = Array.isArray(data) ? data : [];
+        $("gridLoading").classList.add("hide");
+        $("libCount").textContent = owned.length + (owned.length===1?" book":" books");
+        if(!owned.length){ $("emptyState").classList.remove("hide"); $("libList").innerHTML='<p class="muted" style="font-size:13px;padding:4px">No books yet.</p>'; return; }
+        $("libList").innerHTML = owned.map(it=>`<button data-open="${esc(it.slug)}"><span class="d"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.title)}</span></button>`).join("");
+        $("bookGrid").innerHTML = owned.map(it=>{
+          const cv = it.cover_url ? `<img class="cv" src="${esc(it.cover_url)}" alt="${esc(it.title)} cover">` : `<div class="cvph">${esc(typeLabel(it.type))}</div>`;
+          return `<div class="book" data-open="${esc(it.slug)}">${cv}<div class="t">${esc(it.title)}</div></div>`;
+        }).join("");
+        $("bookGrid").classList.remove("hide");
+        // deep link ?p=slug
+        const want=(new URLSearchParams(location.search).get("p")||"").trim();
+        if(want && owned.some(o=>o.slug===want)) openBook(want);
+      }catch(_){ $("gridLoading").classList.add("hide"); $("emptyState").classList.remove("hide"); }
     }
+
+    async function openBook(slug){
+      const item = owned.find(o=>o.slug===slug); if(!item) return;
+      curSlug = slug;
+      history.replaceState(null,"","/library/?p="+encodeURIComponent(slug));
+      $("pickState").classList.add("hide"); $("readState").classList.remove("hide");
+      $("readTitle").textContent = item.title;
+      $("readFrame").classList.add("hide"); $("readErr").classList.add("hide"); $("readLoading").classList.remove("hide");
+      $("dlBtn").classList.add("hide");
+      document.querySelectorAll("#libList button").forEach(b=>b.classList.toggle("active", b.dataset.open===slug));
+      loadNotes(slug);
+      try{
+        const res = await fetch(CFG.FUNCTIONS_BASE + "/ea-issue-media", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+session.access_token, "apikey":CFG.SUPABASE_KEY },
+          body: JSON.stringify({ product_id: slug })
+        });
+        if(!res.ok) throw new Error("issue "+res.status);
+        const data = await res.json().catch(()=>null);
+        const url = data && data.url;
+        if(!url) throw new Error("no url");
+        $("readLoading").classList.add("hide");
+        $("dlBtn").setAttribute("href", url); $("dlBtn").classList.remove("hide");
+        $("frame").src = url + (url.indexOf("#")===-1 ? "#view=FitH" : "");
+        $("readFrame").classList.remove("hide");
+      }catch(_){ $("readLoading").classList.add("hide"); $("readErr").classList.remove("hide"); }
+    }
+    function backToLibrary(){
+      curSlug=null; history.replaceState(null,"","/library/");
+      $("readState").classList.add("hide"); $("pickState").classList.remove("hide");
+      $("frame").src="about:blank";
+      document.querySelectorAll("#libList button").forEach(b=>b.classList.remove("active"));
+      $("notesWrap").classList.add("hide"); $("notesEmpty").classList.remove("hide");
+    }
+
+    async function loadNotes(slug){
+      $("notesEmpty").classList.add("hide"); $("notesWrap").classList.remove("hide");
+      const { data } = await supabase.from("ea_notes").select("*").eq("product_slug",slug).order("created_at",{ascending:false});
+      const list = data || [];
+      $("notesList").innerHTML = list.length
+        ? list.map(n=>`<div class="note"><div class="b">${esc(n.body)}</div><div class="m"><span>${when(n.created_at)}</span><button class="del" data-del="${n.id}">Delete</button></div></div>`).join("")
+        : '<p class="muted" style="font-size:13px;padding:2px 2px 4px">No notes yet for this book.</p>';
+    }
+    async function addNote(e){
+      e.preventDefault(); if(!curSlug) return;
+      const body=$("noteBody").value.trim(); if(!body) return;
+      const { error } = await supabase.from("ea_notes").insert({ user_id:me.id, product_slug:curSlug, body });
+      if(error){ toast("Could not save note."); return; }
+      $("noteBody").value=""; loadNotes(curSlug);
+    }
+    async function delNote(id){ await supabase.from("ea_notes").delete().eq("id",id); if(curSlug) loadNotes(curSlug); }
+
+    document.addEventListener("click", e=>{
+      const o=e.target.closest("[data-open]"); if(o){ openBook(o.dataset.open); return; }
+      const d=e.target.closest("[data-del]"); if(d){ delNote(d.dataset.del); return; }
+    });
+    $("backBtn").addEventListener("click", backToLibrary);
+    $("noteForm").addEventListener("submit", addNote);
+
+    loadLibrary();
   }
 }
 </script>
