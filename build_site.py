@@ -32,10 +32,7 @@ def socials_row(style=""):
         for t, u in SOCIALS)
     return f'<div class="social-row" style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;{style}">{links}</div>'
 
-LOGO = ('<svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-        '<rect width="40" height="40" rx="11" fill="#2563EB"/>'
-        '<rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/>'
-        '<rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg>')
+LOGO = ('<img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async">')
 
 HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
     '<defs><linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="0.55" stop-color="#bfdbfe"/><stop offset="1" stop-color="#93c5fd"/></linearGradient></defs>'
@@ -44,22 +41,33 @@ HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidY
 def hero_photo():
     star = '<path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10Z" fill="currentColor"/>'
     return (f'<div class="hero-photo">{HERO_BLOB}'
-            f'<span class="spark s1" style="color:#3b82f6"><svg viewBox="0 0 24 24" width="20" height="20">{star}</svg></span>'
-            f'<span class="spark s2" style="color:#f59e0b"><svg viewBox="0 0 24 24" width="13" height="13">{star}</svg></span>'
-            f'<img class="hero-cut" src="/assets/nelson-hero.png" alt="Nelson Taylor, founder of Taylormade Academy"></div>')
+            f'<span class="spark s1" style="color:var(--blue)"><svg viewBox="0 0 24 24" width="20" height="20">{star}</svg></span>'
+            f'<span class="spark s2" style="color:var(--gold-deep)"><svg viewBox="0 0 24 24" width="14" height="14">{star}</svg></span>'
+            f'<picture><source srcset="/assets/nelson-hero.webp" type="image/webp">'
+            f'<img class="hero-cut" src="/assets/nelson-hero.png" width="736" height="1108" '
+            f'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy"></picture></div>')
 
-def head(title, desc, path="/", og="assets/og.png"):
+def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
     canon = DOMAIN + path
+    hero_preload = ('<link rel="preload" as="image" href="/assets/nelson-hero.webp" '
+                    'type="image/webp" fetchpriority="high">') if preload_hero else ""
     return f"""<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{canon}">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#04123a">
 <meta property="og:type" content="website"><meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{canon}">
 <meta property="og:image" content="{DOMAIN}/{og}"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
+{hero_preload}
 <link rel="stylesheet" href="/css/build-mode.css">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>"""
@@ -73,7 +81,7 @@ def header(active=""):
 <nav class="nav">{links}</nav>
 <div class="nav-cta"><a class="navlink" href="/login/">Sign In</a><a class="btn gold sm" href="/login/">Join Community <span class="arr">&rarr;</span></a>
 <button class="btn ghost sm cart-btn" data-open-cart aria-label="Cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="cc" id="cartCount" style="display:none">0</span></button>
-<button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
 </div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign In</a><a class="btn gold" href="/login/">Join Community</a></div></header>"""
 
 def footer():
@@ -102,7 +110,7 @@ def footer():
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 <div class="cart-backdrop" id="cartBackdrop" data-close-cart></div>
-<aside class="cart-drawer" id="cartDrawer" aria-label="Your cart">
+<aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your cart" aria-hidden="true">
 <div class="cart-head"><span>Your cart</span><button class="ci-x" data-close-cart aria-label="Close">&times;</button></div>
 <div class="cart-items" id="cartItems"></div>
 <div class="cart-foot">
@@ -111,8 +119,8 @@ def footer():
 <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">30-day money-back guarantee</p>
 <div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
 </div></aside>
-<div class="pop-back" id="popBack">
-<div class="pop" role="dialog" aria-label="Join the newsletter">
+<div class="pop-back" id="popBack" aria-hidden="true">
+<div class="pop" role="dialog" aria-modal="true" aria-label="Join the newsletter">
 <div class="pop-top"><button class="pop-x" data-pop-close aria-label="Close">&times;</button></div>
 <div class="pop-body"><div class="pop-ic">{LOGO}</div>
 <h3>Don't miss the good stuff</h3>
@@ -121,7 +129,7 @@ def footer():
 <button class="btn gold" type="submit">Get free tips <span class="arr">&rarr;</span></button></form>
 <button class="pop-no" data-pop-close>No thanks</button></div>
 </div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>"""
 
 def render(path, html):
@@ -216,11 +224,23 @@ def feature_bar():
              ("#f59e0b","store","A La Carte Store","Buy a single video or ebook, yours to keep.")]
     return "".join(f'<div class="f"><div class="ic" style="background:{c}">{IC[k]}</div><div class="h">{h}</div><div class="d">{d}</div></div>' for c,k,h,d in items)
 
+COVER_DIMS = {"/assets/cover-ai-agent.png": (720, 1080), "/assets/cover-boring-money.png": (720, 931)}
+
+def cover_pic(p, cls="cover", lazy=True, style=""):
+    """WebP <picture> with PNG fallback + intrinsic size (no CLS)."""
+    png = p["cover"]
+    webp = png.rsplit(".", 1)[0] + ".webp"
+    w, h = COVER_DIMS.get(png, (720, 1000))
+    lz = ' loading="lazy" decoding="async"' if lazy else ' fetchpriority="high"'
+    st = f' style="{style}"' if style else ''
+    return (f'<picture><source srcset="{webp}" type="image/webp">'
+            f'<img class="{cls}" src="{png}" alt="{p["title"]} cover" width="{w}" height="{h}"{lz}{st}></picture>')
+
 def popular_cards():
     out = ""
     for slug in ("ai-agent-ebook", "boring-money"):
         p = PRODUCTS[slug]
-        out += (f'<article class="pcard"><a class="top" href="/store/{slug}/"><img class="cover" src="{p["cover"]}" alt="{p["title"]} cover" loading="lazy"></a>'
+        out += (f'<article class="pcard"><a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
                 f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
                 f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:92]}…</p></div>'
                 f'<div class="foot">{price_block(slug)}<a class="btn ghost sm" href="/store/{slug}/">Details <span class="arr">&rarr;</span></a></div></article>')
@@ -239,12 +259,12 @@ def home():
     return head(
         "Taylormade Academy — Learn the craft. Build real things. Create real income.",
         "Taylormade Academy by Nelson Taylor. Video courses, ebooks, and a private community to learn graphic design, photography, video, and AI, and build real things, out of Dallas-Fort Worth.",
-        "/") + header("Community") + f"""
+        "/", preload_hero=True) + header("Community") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
 <span class="hero-badge">The creative community for builders</span>
-<h1 class="display-xl" style="margin-top:18px">Learn the craft.<br>Build real things.<br><span class="blue">Create real income.</span></h1>
+<h1 class="display-xl" style="margin-top:18px">Learn the craft.<br>Build real things.<br><span class="blue u-gold">Create real income.</span></h1>
 <p class="sub">Step-by-step video courses, plain-English ebooks, and a private community, helping creators and hustlers use design, photo, video, and AI to build, ship, and earn. Hosted by Nelson Taylor.</p>
 <div class="cta-row"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Start Learning</a><a class="btn ghost" href="/store/">Browse Ebooks</a></div>
 <div class="statline"><div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div><div class="s"><div class="n">4</div><div class="l">creative tracks</div></div><div class="s"><div class="n">2</div><div class="l">ebooks ready now</div></div></div>
@@ -252,7 +272,18 @@ def home():
 <div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
 
-<section class="section tight" style="padding-top:0"><div class="wrap">
+<section class="section tight" style="padding-top:4px;padding-bottom:0"><div class="wrap">
+<div class="cred reveal">
+<div class="cred-l"><span class="goldbar"></span><span>Taught by <b>Nelson Taylor</b> &mdash; 14 years a working Dallas-Fort Worth creative, not a content farm.</span></div>
+<div class="cred-chips">
+<span class="cred-chip">Shipped iOS app on the App Store</span>
+<span class="cred-chip">Design, photo &amp; video</span>
+<span class="cred-chip">BFA, Art Institute of Dallas</span>
+<span class="cred-chip">Ran a live AI build sprint</span>
+</div></div>
+</div></section>
+
+<section class="section tight" style="padding-top:18px"><div class="wrap">
 <div class="featurebar reveal">{feature_bar()}</div>
 </div></section>
 
@@ -281,7 +312,7 @@ def store():
     p1, p2 = PRODUCTS["ai-agent-ebook"], PRODUCTS["boring-money"]
     def ebook_card(slug, p):
         return (f'<article class="pcard" data-cat="ebook">'
-                f'<a class="top" href="/store/{slug}/"><img class="cover" src="{p["cover"]}" alt="{p["title"]} cover" loading="lazy"></a>'
+                f'<a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
                 f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
                 f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:88]}…</p></div>'
                 f'<div class="foot">{price_block(slug)}<button class="btn gold sm" data-add-cart="{slug}" data-title="{p["title"]}">Add to cart</button></div></article>')
@@ -339,7 +370,7 @@ def product_page(slug):
 <a class="mono" href="/store/" style="font-size:12px;letter-spacing:.1em;color:var(--muted)">&larr; STORE</a>
 <div class="g-12" style="margin-top:22px;align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
-<img src="{p['cover']}" alt="{p['title']} cover" style="border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:360px">
+{cover_pic(p, cls="cover-lg", lazy=False, style="border-radius:8px;box-shadow:var(--shadow);width:100%;max-width:360px")}
 <div style="background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--r);padding:20px;margin-top:22px">
 {price_block(slug, big=True)}
 <a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:14px">Get the ebook <span class="arr">&rarr;</span></a>
@@ -434,9 +465,10 @@ def about():
 {socials_row(style="margin-top:24px")}
 </div>
 <div class="reveal" style="grid-column:8/13;padding-top:8px">
-<div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;background:linear-gradient(160deg,#dbeafe,#93c5fd);border:1px solid #dbeafe;box-shadow:var(--shadow);margin-bottom:22px;display:flex;align-items:flex-end;justify-content:center">
-<img src="/assets/nelson-hero.png" alt="Nelson Taylor, Taylormade Creative" style="position:relative;max-height:97%;width:auto;max-width:100%;object-fit:contain;display:block">
-</div>
+<div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;background:linear-gradient(160deg,#dbe5ff,#9db8ff);border:1px solid #cdd9ff;box-shadow:var(--shadow);margin-bottom:22px;display:flex;align-items:flex-end;justify-content:center">
+<picture><source srcset="/assets/nelson-hero.webp" type="image/webp">
+<img src="/assets/nelson-hero.png" width="736" height="1108" alt="Nelson Taylor, Taylormade Creative" loading="lazy" decoding="async" style="position:relative;max-height:97%;width:auto;max-width:100%;object-fit:contain;display:block">
+</picture></div>
 <div style="background:var(--bg-soft);border:1px solid var(--hair);border-radius:14px;padding:18px 20px">
 <p style="font-size:18px">Most online teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
 </div></div></div></section>
@@ -478,6 +510,30 @@ def community():
 <button class="btn gold" type="submit">Save my spot</button></form>
 </div></section></main>""" + footer()
 
+def not_found():
+    return head("Page not found — Taylormade Academy",
+                "That page moved or never existed. Head back to Taylormade Academy.", "/404") + header() + """
+<main><section class="section" style="text-align:center"><div class="wrap" style="max-width:620px">
+<span class="kicker gold" style="justify-content:center">Error 404</span>
+<h1 class="display-l" style="margin-top:14px">This page took a different path.</h1>
+<p style="margin:16px auto 0;color:var(--muted);max-width:46ch">The link is broken or the page moved. Let's get you back to building.</p>
+<div class="cta-row" style="justify-content:center;margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+<a class="btn gold" href="/">Back home <span class="arr">&rarr;</span></a>
+<a class="btn ghost" href="/store/">Browse the store</a></div>
+</div></section></main>""" + footer()
+
+SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/",
+                 "/pricing/", "/about/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
+
+def write_meta():
+    (ROOT / "404.html").write_text(not_found())
+    (ROOT / "robots.txt").write_text(
+        "User-agent: *\nAllow: /\n\nSitemap: " + DOMAIN + "/sitemap.xml\n")
+    urls = "".join(f"  <url><loc>{DOMAIN}{p}</loc><changefreq>weekly</changefreq></url>\n" for p in SITEMAP_PATHS)
+    (ROOT / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + '</urlset>\n')
+
 if __name__ == "__main__":
     render("/", home())
     render("/store/", store())
@@ -496,5 +552,7 @@ if __name__ == "__main__":
         "<p>I collect only what is needed to run your account and deliver what you bought: your email, your purchases, and your activity on the site. Payments are handled by Stripe; I never see your card. I do not sell your information. A full privacy policy will be posted here before payments go live.</p>"))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
+    write_meta()
     print("built: home, store, 2 product pages, pricing, about, community, + 4 stubs")
+    print("built: 404.html, robots.txt, sitemap.xml")
     print("note: login/dashboard/library are hand-maintained app pages and are left untouched")

@@ -5,9 +5,14 @@
 <link rel="canonical" href="https://academy.taylormadecreative.net/community/">
 <meta property="og:type" content="website"><meta property="og:title" content="Community — Taylormade Academy">
 <meta property="og:description" content="Connect with designers, photographers, video people, and AI builders. Post, message, and find collaborators."><meta property="og:url" content="https://academy.taylormadecreative.net/community/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#04123a">
 <link rel="stylesheet" href="/css/build-mode.css">
 <style>
   body{background:var(--bg-soft);}
@@ -96,7 +101,7 @@
 </style>
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
-<a class="brand" href="/"><svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#2563EB"/><rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/><rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg><span class="mark">Taylormade Academy</span></a>
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
 <div class="who" id="abRight"></div>
 </div></div></header>
 
@@ -222,7 +227,7 @@
 </div></div>
 </main>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -230,6 +235,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function safeUrl(u){ u=String(u==null?"":u).trim(); return /^https?:\/\//i.test(u) ? u : ""; } // block javascript:/data: schemes
 function initials(n){ const p=String(n||"M").trim().split(/\s+/); return ((p[0]||"M")[0]+(p[1]?p[1][0]:"")).toUpperCase(); }
 function toast(m){ const t=$("toast"); if(!t) return; t.innerHTML=m; t.classList.add("show"); clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.classList.remove("show"),3400); }
 function timeAgo(iso){ const d=new Date(iso), s=Math.floor((Date.now()-d.getTime())/1000);
@@ -325,9 +331,15 @@ async function createPost(){
 async function toggleLike(btn){
   const id=btn.dataset.like, on=btn.classList.contains("on");
   const lc=btn.querySelector("[data-lc]"), lt=btn.querySelector("[data-lt]"); let n=parseInt(lc.textContent,10)||0;
+  // optimistic
   btn.classList.toggle("on",!on); lt.textContent=!on?"Liked":"Like"; lc.textContent=on?Math.max(0,n-1):n+1;
-  if(on){ await supabase.from("ea_post_likes").delete().eq("post_id",id).eq("user_id",me.id); }
-  else { await supabase.from("ea_post_likes").insert({ post_id:id, user_id:me.id }); }
+  const { error } = on
+    ? await supabase.from("ea_post_likes").delete().eq("post_id",id).eq("user_id",me.id)
+    : await supabase.from("ea_post_likes").insert({ post_id:id, user_id:me.id });
+  if(error){ // reconcile: revert the optimistic change
+    btn.classList.toggle("on",on); lt.textContent=on?"Liked":"Like"; lc.textContent=String(n);
+    toast("Could not save that like. Try again.");
+  }
 }
 async function toggleComments(btn){
   const id=btn.dataset.cmt, box=$("cm-"+id);
@@ -355,7 +367,8 @@ async function loadMembers(){
   $("membersEmpty").classList.toggle("hide", list.length>0);
   $("memberGrid").innerHTML = list.map(p=>{
     const tags=(p.open_to||[]).map(o=>`<span class="otag">${esc(o)}</span>`).join("");
-    const link=p.link_url?`<a href="${esc(p.link_url)}" target="_blank" rel="noopener" class="textlink" style="font-size:13px;margin-top:8px;display:inline-block">${esc((p.link_url||"").replace(/^https?:\/\//,""))}</a>`:"";
+    const su=safeUrl(p.link_url);
+    const link=su?`<a href="${esc(su)}" target="_blank" rel="noopener nofollow ugc" class="textlink" style="font-size:13px;margin-top:8px;display:inline-block">${esc(su.replace(/^https?:\/\//,""))}</a>`:"";
     return `<div class="mcard"><div style="display:flex;align-items:center;gap:11px"><div class="avatar">${esc(initials(p.display_name))}</div><div class="name" style="font-weight:700">${esc(p.display_name||"Member")}</div></div>
       <div class="bio">${esc(p.bio||"")}</div>${link}${tags?`<div class="opentags">${tags}</div>`:""}
       <div class="mbtns"><button class="btn gold sm" data-dm="${p.user_id}">Message</button><button class="btn ghost sm" data-block="${p.user_id}">Block</button></div></div>`;

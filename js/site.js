@@ -31,14 +31,19 @@
       BM._cart.push({ slug: slug, title: title || slug }); BM.cartSave(); BM.renderCart(); BM.openCart(); BM.toast('Added to cart.');
     },
     removeFromCart: function (slug) { BM._cart = BM._cart.filter(function (i) { return i.slug !== slug; }); BM.cartSave(); BM.renderCart(); },
-    openCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.add('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.add('open'); },
-    closeCart: function () { var d = document.getElementById('cartDrawer'); if (!d) return; d.classList.remove('open'); var b = document.getElementById('cartBackdrop'); if (b) b.classList.remove('open'); },
+    /* overlay focus management — shared by the cart drawer + lead popup */
+    _lastFocus: null,
+    _focusable: function (c) { return Array.prototype.slice.call(c.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(function (el) { return el.offsetParent !== null; }); },
+    _openOverlay: function (el, backdropId) { if (!el || el.classList.contains('open')) return; BM._lastFocus = document.activeElement; el.classList.add('open'); el.setAttribute('aria-hidden', 'false'); if (backdropId) { var b = document.getElementById(backdropId); if (b) b.classList.add('open'); } var f = BM._focusable(el); setTimeout(function () { (f[0] || el).focus(); }, 30); },
+    _closeOverlay: function (el, backdropId) { if (!el) return; var was = el.classList.contains('open'); el.classList.remove('open'); el.setAttribute('aria-hidden', 'true'); if (backdropId) { var b = document.getElementById(backdropId); if (b) b.classList.remove('open'); } if (was && BM._lastFocus && BM._lastFocus.focus) { try { BM._lastFocus.focus(); } catch (_) {} } },
+    openCart: function () { BM._openOverlay(document.getElementById('cartDrawer'), 'cartBackdrop'); },
+    closeCart: function () { BM._closeOverlay(document.getElementById('cartDrawer'), 'cartBackdrop'); },
 
     /* ---------------- lead popup ---------------- */
     popSeen: function () { try { var t = localStorage.getItem('ea_pop'); return !!(t && (Date.now() - parseInt(t, 10) < 6048e5)); } catch (_) { return false; } },
     popMark: function () { try { localStorage.setItem('ea_pop', String(Date.now())); } catch (_) {} },
-    showPop: function () { if (BM.popSeen()) return; var b = document.getElementById('popBack'); if (!b) return; b.classList.add('open'); BM.popMark(); },
-    hidePop: function () { var b = document.getElementById('popBack'); if (b) b.classList.remove('open'); },
+    showPop: function () { if (BM.popSeen()) return; var b = document.getElementById('popBack'); if (!b) return; BM._openOverlay(b, null); BM.popMark(); },
+    hidePop: function () { BM._closeOverlay(document.getElementById('popBack'), null); },
     renderCart: function () {
       var n = BM._cart.length;
       var badge = document.getElementById('cartCount'); if (badge) { badge.textContent = n; badge.style.display = n > 0 ? '' : 'none'; }
@@ -123,6 +128,20 @@
     var co = ev.target.closest('[data-checkout-cart]'); if (co) { ev.preventDefault(); BM.checkoutCart(); return; }
     var pc = ev.target.closest('[data-pop-close]'); if (pc) { ev.preventDefault(); BM.hidePop(); return; }
     if (ev.target.id === 'popBack') { BM.hidePop(); return; }
+  });
+
+  // Escape closes the open overlay; Tab is trapped inside it.
+  document.addEventListener('keydown', function (e) {
+    var pop = document.getElementById('popBack'), cart = document.getElementById('cartDrawer');
+    var open = (pop && pop.classList.contains('open')) ? pop : ((cart && cart.classList.contains('open')) ? cart : null);
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); if (open === pop) { BM.hidePop(); } else { BM.closeCart(); } return; }
+    if (e.key === 'Tab') {
+      var f = BM._focusable(open); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 
   if ('IntersectionObserver' in window) {
