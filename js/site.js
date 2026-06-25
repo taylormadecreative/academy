@@ -93,6 +93,29 @@
         .catch(soft);
       return false;
     },
+    getEbook: function (e) {
+      e.preventDefault();
+      var form = e.target;
+      var email = (form.email && form.email.value || '').trim();
+      if (!email) return false;
+      var EBOOK = '/free/ai-for-beginners/the-creators-ai-playbook.pdf';
+      var deliver = function () {
+        var a = document.createElement('a');
+        a.href = EBOOK; a.download = 'The-Creators-AI-Playbook.pdf'; a.target = '_blank';
+        document.body.appendChild(a); a.click(); a.remove();
+        BM.toast('Your e-book is downloading. <b>Welcome in!</b>');
+        try { form.reset(); } catch (_) {}
+        BM.popMark(); BM.hidePop();
+      };
+      // capture the lead, but never block the freebie if the call fails
+      if (CFG.FUNCTIONS_BASE) {
+        fetch(CFG.FUNCTIONS_BASE + '/ea-subscribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, source: 'ebook-popup' })
+        }).then(deliver, deliver);
+      } else { deliver(); }
+      return false;
+    },
     waitlist: function (e) {
       e.preventDefault();
       var email = (e.target.email && e.target.email.value || '').trim();
@@ -127,6 +150,7 @@
     var rm = ev.target.closest('[data-cart-remove]'); if (rm) { ev.preventDefault(); BM.removeFromCart(rm.getAttribute('data-cart-remove')); return; }
     var co = ev.target.closest('[data-checkout-cart]'); if (co) { ev.preventDefault(); BM.checkoutCart(); return; }
     var pc = ev.target.closest('[data-pop-close]'); if (pc) { ev.preventDefault(); BM.hidePop(); return; }
+    var ge = ev.target.closest('[data-get-ebook]'); if (ge) { ev.preventDefault(); BM._openOverlay(document.getElementById('popBack'), null); return; }
     if (ev.target.id === 'popBack') { BM.hidePop(); return; }
   });
 
