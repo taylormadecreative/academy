@@ -11,7 +11,7 @@ data.json schema:
   "run_title": "BUILD YOUR FIRST AI AGENT",  # footer running title
   "intro": {"heading": "...", "dek": "...", "body_html": "...", "callout": "..."},
   "chapters": [ {"n":1,"heading":"...","dek":"...","body_html":"...","callout":"...","graphic_html":"<...>"} ],
-  "cta": {"heading":"...","body_html":"...","signoff":"Nelson"}
+  "cta": {"heading":"...","body_html":"...","signoff":"John Doe"}
 }
 graphic_html is optional per chapter (a diagram/illustration block).
 """
@@ -23,31 +23,33 @@ CSS = """
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--display:'Space Grotesk','Inter',sans-serif;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-body{font-family:var(--font);color:var(--ink-2);line-height:1.6;font-size:11.2pt;}
+body{font-family:var(--font);color:var(--ink-2);line-height:1.5;font-size:10.4pt;}
 @page{size:Letter;margin:0;}
-.page{width:8.5in;height:11in;padding:0.7in 0.8in;position:relative;overflow:hidden;page-break-after:always;background:#fff;}
+.page{width:8.5in;min-height:11in;padding:0.58in 0.8in 0.6in;position:relative;page-break-after:always;background:#fff;}
 .page:last-child{page-break-after:auto;}
+.page.cover{height:11in;min-height:0;overflow:hidden;padding:0.7in 0.8in;}
 h1,h2,h3,.display{font-family:var(--display);color:var(--ink);letter-spacing:-.02em;line-height:1.08;font-weight:700;}
-h2{font-size:26pt;margin-bottom:5pt;}
-h3{font-size:13.5pt;margin:12pt 0 4pt;}
-p{margin-bottom:9pt;max-width:62ch;}
+h2{font-size:21pt;margin-bottom:2pt;}
+h3{font-size:11.5pt;margin:7pt 0 2pt;}
+p{margin-bottom:6pt;max-width:66ch;}
 .blue{color:var(--blue);}.gold{color:var(--gold-deep);}
 .kicker{font-family:var(--font);font-size:8.5pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:9px;margin-bottom:10pt;}
 .kicker::before{content:"";width:20px;height:3px;border-radius:2px;background:var(--gold-deep);}
 .dek{font-size:13pt;color:var(--ink-2);margin:2pt 0 0;font-weight:600;}
-.divider{height:3px;width:54px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));margin:11pt 0 13pt;}
-.lead{font-size:13pt;color:var(--ink-2);line-height:1.5;}
+.divider{height:3px;width:50px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));margin:7pt 0 9pt;}
+.lead{font-size:11.5pt;color:var(--ink-2);line-height:1.45;}
 .pagenum{position:absolute;bottom:0.42in;right:0.8in;font-size:8.5pt;color:var(--muted);font-weight:600;}
 .foot-brand{position:absolute;bottom:0.42in;left:0.8in;font-size:8.5pt;color:var(--muted);font-weight:600;}
 ul.flist{list-style:none;margin:4pt 0 9pt;}
-ul.flist li{margin-bottom:6pt;padding-left:21px;position:relative;font-size:10.8pt;}
+ul.flist li{margin-bottom:3.5pt;padding-left:20px;position:relative;font-size:9.8pt;}
 ul.flist li::before{content:"";position:absolute;left:0;top:6px;width:8px;height:8px;border-radius:50%;background:var(--gold-deep);}
 ol.steps{list-style:none;margin:6pt 0 9pt;counter-reset:s;}
-ol.steps li{display:flex;gap:11px;margin-bottom:8pt;align-items:flex-start;}
+ol.steps li{display:flex;gap:10px;margin-bottom:5pt;align-items:flex-start;}
 ol.steps .snum{flex:0 0 auto;width:23px;height:23px;border-radius:50%;background:var(--blue);color:#fff;font-family:var(--display);font-weight:700;font-size:10.5pt;display:flex;align-items:center;justify-content:center;margin-top:1px;}
-ol.steps li div{font-size:10.8pt;line-height:1.5;}
+ol.steps li div{font-size:9.8pt;line-height:1.45;}
 strong{color:var(--ink);font-weight:700;}
-.callout{background:var(--navy);color:#cdd8f0;border-radius:14px;padding:15px 19px;margin-top:13pt;font-size:11pt;line-height:1.5;}
+.callout{background:var(--navy);color:#cdd8f0;border-radius:14px;padding:11px 15px;margin-top:8pt;font-size:9.6pt;line-height:1.45;break-inside:avoid;}
+ol.steps li,ul.flist li,.three,.flow{break-inside:avoid;}
 .callout strong{color:#fff;}
 .callout .lbl{display:block;font-family:var(--display);font-weight:700;color:var(--gold);font-size:9pt;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
 /* cover */
@@ -64,13 +66,13 @@ strong{color:var(--ink);font-weight:700;}
 .cover .auth .n{font-family:var(--display);font-weight:700;font-size:15pt;letter-spacing:.12em;color:#fff;}
 .cover .auth .p{font-size:9pt;color:#aebbd8;font-weight:600;margin-top:2px;}
 /* graphic blocks */
-.gfx{margin:8pt 0 4pt;}
+.gfx{margin:6pt 0 3pt;}
 .gfx img{width:100%;border-radius:12px;}
-.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:8pt 0;}
-.three .c{background:var(--bg-soft);border:1px solid var(--hair);border-radius:12px;padding:13px;}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:6pt 0;}
+.three .c{background:var(--bg-soft);border:1px solid var(--hair);border-radius:11px;padding:10px 11px;}
 .three .c .ic{width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;margin-bottom:7px;}
-.three .c h4{font-family:var(--display);font-size:11pt;color:var(--ink);margin-bottom:3px;}
-.three .c p{font-size:9pt;margin:0;color:var(--ink-2);}
+.three .c h4{font-family:var(--display);font-size:10pt;color:var(--ink);margin-bottom:2px;}
+.three .c p{font-size:8.3pt;margin:0;color:var(--ink-2);}
 .flow{display:flex;align-items:center;gap:8px;margin:9pt 0;flex-wrap:wrap;}
 .flow .node{flex:1;min-width:90px;background:var(--bg-soft);border:1px solid var(--hair);border-radius:11px;padding:11px 10px;text-align:center;}
 .flow .node .t{font-family:var(--display);font-weight:700;font-size:10.5pt;color:var(--ink);}
