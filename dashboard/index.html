@@ -1,235 +1,207 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Your library - Taylormade Academy</title>
-<meta name="description" content="Your Taylormade Academy library.">
+<title>Your dashboard - Taylormade Academy</title>
+<meta name="description" content="Your Taylormade Academy home: your library, your community rank, and what to do next.">
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://academy.taylormadecreative.net/dashboard/">
-<meta property="og:type" content="website"><meta property="og:title" content="Your library - Taylormade Academy">
-<meta property="og:description" content="Your Taylormade Academy library."><meta property="og:url" content="https://academy.taylormadecreative.net/dashboard/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css">
 <style>
-  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
-    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
-  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
-  .appbar .who{display:flex;align-items:center;gap:16px;}
-  .appbar .email{font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lib{display:grid;gap:clamp(16px,2.2vw,24px);grid-template-columns:1fr 1fr;margin-top:30px;}
-  .lib .pcard .top{align-items:center;}
-  .lib .pcard .foot{justify-content:flex-end;}
-  .empty{border:1.5px dashed var(--hair);border-radius:var(--r);background:var(--paper-2);padding:clamp(28px,5vw,48px);text-align:center;margin-top:24px;}
-  .statusrow{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
-    background:var(--ink);color:var(--paper);border-radius:var(--r);padding:22px clamp(18px,3vw,28px);margin-top:30px;}
-  .statusrow h3{color:var(--paper);font-size:20px;}
-  .statusrow p{color:#D7D2C6;font-size:14px;margin-top:6px;}
-  .skel{height:150px;border-radius:var(--r);background:linear-gradient(100deg,var(--paper-2) 30%,#e7e2d6 50%,var(--paper-2) 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;border:1px solid var(--hair);}
+  body{background:var(--bg-soft);}
+  .appbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--hair);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:66px;}
+  .appbar .who{display:flex;align-items:center;gap:12px;}
+  .appbar .email{font-size:13px;color:var(--muted);max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dash{max-width:1280px;margin:0 auto;padding:22px var(--gut) 60px;}
+  .dash-grid{display:grid;grid-template-columns:218px minmax(0,1fr) 300px;gap:20px;align-items:start;}
+  .col-stick{position:sticky;top:88px;display:flex;flex-direction:column;gap:16px;}
+  .card{background:#fff;border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);}
+  .card.pad{padding:18px;}
+  .side-h{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:2px 4px 8px;}
+  .lnav{display:flex;flex-direction:column;gap:2px;}
+  .lnav a{display:flex;align-items:center;gap:11px;font-size:15px;font-weight:600;color:var(--ink-2);padding:10px 12px;border-radius:10px;}
+  .lnav a:hover{background:var(--bg-soft);} .lnav a.active{background:var(--blue-soft);color:var(--blue-deep);}
+  .lnav .ico{width:18px;height:18px;flex:0 0 auto;}
+  .avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--blue-2),var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:21px;flex:0 0 auto;text-transform:uppercase;}
+  .avatar.sm{width:34px;height:34px;font-size:13px;}
+  .welcome{padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+  .welcome h1{font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:-.02em;}
+  .welcome .sub{color:var(--muted);font-size:14.5px;margin-top:2px;}
+  .statchips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:2px;}
+  .chipstat{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);}
+  .chipstat .t{font-size:12px;color:var(--muted);font-weight:600;}
+  .chipstat .v{font-size:22px;font-weight:800;color:var(--ink);margin-top:3px;letter-spacing:-.02em;}
+  .sec-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px;}
+  .sec-title h2{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .libcard{background:#fff;border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;}
+  .libcard .cv{aspect-ratio:16/10;object-fit:cover;width:100%;background:var(--ink-panel);}
+  .libcard .cvph{aspect-ratio:16/10;background:linear-gradient(135deg,#1e293b,var(--ink-panel));color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;letter-spacing:.08em;}
+  .libcard .m{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1;}
+  .libcard h3{font-size:15.5px;font-weight:700;}
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .qtile{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);}
+  .qtile .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .qtile .h{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .qtile .d{font-size:12.5px;color:var(--muted);}
+  .lead-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--hair-soft);}
+  .lead-row:last-child{border-bottom:0;}
+  .lead-rank{width:20px;font-weight:800;color:var(--muted);text-align:center;font-size:13px;}
+  .lead-name{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lead-pts{font-size:13px;font-weight:800;color:var(--blue);}
+  .feedmini{display:block;padding:10px 0;border-bottom:1px solid var(--hair-soft);}
+  .feedmini:last-child{border-bottom:0;}
+  .feedmini .n{font-weight:700;font-size:13px;}
+  .feedmini .x{font-size:13px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .upsell{background:linear-gradient(160deg,var(--blue),var(--blue-deep));color:#fff;}
+  .upsell h3{color:#fff;font-size:17px;} .upsell p{color:#dbeafe;font-size:13.5px;margin-top:6px;}
+  .empty2{border:1.5px dashed var(--hair);border-radius:var(--r);background:#fff;padding:clamp(24px,4vw,38px);text-align:center;}
+  .muted{color:var(--muted);} .hide{display:none !important;}
+  .skel{height:150px;border-radius:var(--r);background:linear-gradient(100deg,#fff 30%,var(--bg-soft2) 50%,#fff 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;border:1px solid var(--hair);}
   @keyframes sh{to{background-position:-200% 0;}}
-  .hide{display:none !important;}
-  @media(max-width:880px){.lib{grid-template-columns:1fr;}.appbar .email{max-width:42vw;}}
+  @media(max-width:1080px){ .dash-grid{grid-template-columns:1fr;} .col-stick{position:static;} .dash-left{order:2;} .dash-right{order:3;} .lnav{flex-direction:row;flex-wrap:wrap;} }
+  @media(max-width:620px){ .statchips,.quick{grid-template-columns:1fr 1fr;} .appbar .email{display:none;} }
 </style>
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
-<a class="brand" href="/"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
-<div class="who">
-  <span class="email" id="userEmail"></span>
-  <button class="btn ghost sm" id="signOut">Sign out</button>
-</div>
+<a class="brand" href="/"><svg class="logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#2563EB"/><rect x="9.5" y="11.5" width="21" height="4" rx="2" fill="#fff"/><rect x="18" y="11.5" width="4" height="17" rx="2" fill="#fff"/></svg><span class="mark">Taylormade Academy</span></a>
+<div class="who"><a class="navlink" href="/community/">Community</a><a class="navlink" href="/store/">Courses</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button></div>
 </div></div></header>
 
-<main><section class="section"><div class="wrap">
+<main class="dash"><div class="dash-grid">
 
-<span class="kicker gold">Your library</span>
-<h1 class="display-m" style="margin-top:12px">Everything you own, in one place.</h1>
-<p style="margin-top:14px;color:var(--muted);max-width:50ch">Open any ebook to read it in the browser or download the PDF. Your access is tied to this account.</p>
+  <!-- LEFT -->
+  <aside class="dash-left col-stick">
+    <div class="card pad">
+      <div class="side-h">Menu</div>
+      <nav class="lnav">
+        <a class="active" href="/dashboard/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+        <a href="#library"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 0 1 1-1h6v16H5a1 1 0 0 1-1-1z"/><path d="M13 4h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-6"/></svg>My Library</a>
+        <a href="/store/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 10.5 12 9v6"/></svg>Courses</a>
+        <a href="/community/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2"/><path d="M16.5 13.5A4.5 4.5 0 0 1 21 18"/></svg>Community</a>
+        <a href="/community/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3z"/></svg>Messages</a>
+        <a href="/pricing/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v12H3z"/><path d="M3 11h18"/></svg>Pricing</a>
+      </nav>
+    </div>
+    <div class="card pad upsell">
+      <h3>Go all-in</h3><p>Unlock every course, the ebooks, and live workshops with a membership.</p>
+      <a class="btn" style="background:#fff;color:var(--blue-deep);width:100%;margin-top:14px" href="/pricing/">See plans</a>
+    </div>
+  </aside>
 
-<!-- membership / waitlist status (only shown when present) -->
-<div id="statusRow" class="statusrow hide">
-  <div>
-    <h3 id="statusTitle">Membership</h3>
-    <p id="statusBody"></p>
-  </div>
-  <a class="btn gold" id="statusCta" href="/community/">Open community <span class="arr">&rarr;</span></a>
-</div>
+  <!-- MAIN -->
+  <section>
+    <div class="card welcome">
+      <div class="avatar" id="ava">M</div>
+      <div style="flex:1;min-width:200px"><h1 id="hi">Welcome back.</h1><div class="sub">Keep learning, stay consistent, and build your next thing.</div></div>
+    </div>
 
-<!-- loading -->
-<div id="loading" class="lib"><div class="skel"></div><div class="skel"></div></div>
+    <div class="statchips" style="margin-top:16px">
+      <div class="chipstat"><div class="t">Member since</div><div class="v" id="stSince">—</div></div>
+      <div class="chipstat"><div class="t">Community points</div><div class="v" id="stPts">0</div></div>
+      <div class="chipstat"><div class="t">Community rank</div><div class="v" id="stRank">—</div></div>
+      <div class="chipstat"><div class="t">In your library</div><div class="v" id="stLib">0</div></div>
+    </div>
 
-<!-- library list -->
-<div id="lib" class="lib hide"></div>
+    <div class="sec-title" id="library"><h2>Your library</h2><a class="textlink" href="/store/">Browse the store &rarr;</a></div>
+    <div id="libLoading" class="libgrid"><div class="skel"></div><div class="skel"></div></div>
+    <div id="libGrid" class="libgrid hide"></div>
+    <div id="libEmpty" class="empty2 hide"><h3 style="font-size:19px">Your library is empty.</h3><p class="muted" style="margin-top:8px;max-width:42ch;margin-inline:auto">Grab an ebook and it lands here right away, ready to read and download.</p><p style="margin-top:18px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p></div>
 
-<!-- empty -->
-<div id="empty" class="empty hide">
-  <h3 style="font-size:24px">Your library is empty for now.</h3>
-  <p style="margin-top:12px;color:var(--muted);max-width:46ch;margin-inline:auto">Grab an ebook and it lands here right away, ready to read and download.</p>
-  <p style="margin-top:22px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p>
-</div>
+    <div class="sec-title"><h2>Quick access</h2></div>
+    <div class="quick">
+      <a class="qtile" href="/community/"><div class="ic" style="background:#f97316"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/></svg></div><div class="h">Community</div><div class="d">Post and connect</div></a>
+      <a class="qtile" href="/store/"><div class="ic" style="background:#2563eb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></div><div class="h">Store</div><div class="d">Courses & ebooks</div></a>
+      <a class="qtile" href="/community/"><div class="ic" style="background:#6366f1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3z"/></svg></div><div class="h">Messages</div><div class="d">Your DMs</div></a>
+      <a class="qtile" href="/community/"><div class="ic" style="background:#10b981"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></div><div class="h">Profile</div><div class="d">Edit your profile</div></a>
+    </div>
+  </section>
 
-<!-- could-not-load fallback -->
-<div id="errState" class="empty hide">
-  <h3 style="font-size:22px">Could not load your library.</h3>
-  <p style="margin-top:12px;color:var(--muted)">Refresh the page. If it keeps happening, reach out and I will sort it.</p>
-  <p style="margin-top:22px"><a class="btn ghost" href="/store/">Go to the store</a></p>
-</div>
+  <!-- RIGHT -->
+  <aside class="dash-right col-stick">
+    <div class="card pad">
+      <div class="side-h">Leaderboard</div>
+      <div id="leaderboard"><p class="muted" style="font-size:13px;padding:4px">Loading...</p></div>
+    </div>
+    <div class="card pad">
+      <div class="side-h" style="display:flex;justify-content:space-between"><span>Latest in the community</span></div>
+      <div id="recent"><p class="muted" style="font-size:13px;padding:4px">Loading...</p></div>
+      <a class="textlink" style="font-size:13px;display:inline-block;margin-top:6px" href="/community/">Open the community &rarr;</a>
+    </div>
+  </aside>
 
-</div></section>
-
-<section class="section tight" style="padding-top:0"><div class="wrap">
-<hr class="rule hair" style="margin-bottom:34px">
-<span class="kicker gold">Video courses</span>
-<h2 class="display-m" style="margin-top:10px">Your videos.</h2>
-<p style="margin-top:12px;color:var(--muted);max-width:54ch">With the All-Access pass you watch every video here, anytime. Buy a single video and it shows up here to watch and download. The courses are in production now.</p>
-<div id="vidLoading" class="lib" style="margin-top:26px"><div class="skel"></div><div class="skel"></div></div>
-<div id="vidLib" class="lib hide" style="margin-top:26px"></div>
-<div id="vidEmpty" class="empty hide" style="margin-top:26px">
-  <span class="tag live"><span class="dot"></span>IN PRODUCTION</span>
-  <h3 style="font-size:22px;margin-top:14px">The video courses are on the way.</h3>
-  <p style="margin-top:12px;color:var(--muted);max-width:48ch;margin-inline:auto">When they drop, your All-Access pass unlocks all of them right here, and any single video you buy lands here too.</p>
-  <p style="margin-top:20px"><a class="btn ghost" href="/pricing/">See video pricing <span class="arr">&rarr;</span></a></p>
-</div>
-</div></section></main>
-
-<footer class="site-footer"><div class="wrap">
-<div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
-<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
-<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
-<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
-<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
-</div></footer>
+</div></main>
 
 <div class="toast" id="toast"></div>
 <script src="/js/config.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function initials(n){ const p=String(n||"M").trim().split(/\s+/); return ((p[0]||"M")[0]+(p[1]?p[1][0]:"")).toUpperCase(); }
+function timeAgo(iso){ const d=new Date(iso), s=Math.floor((Date.now()-d.getTime())/1000); if(s<60)return"just now"; const m=Math.floor(s/60); if(m<60)return m+"m"; const h=Math.floor(m/60); if(h<24)return h+"h"; const dd=Math.floor(h/24); if(dd<7)return dd+"d"; return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+const CH = { general:"General", design:"Design", photo:"Photo", video:"Video", ai:"AI" };
 
-// No keys -> the dashboard cannot exist yet; send to login, which explains it.
-if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
-  location.replace("/login/");
-} else {
+if(!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY){ location.replace("/login/"); }
+else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  const { data:{ session } } = await supabase.auth.getSession();
+  if(!session){ location.replace("/login/"); }
+  else {
+    const me = session.user;
+    $("ue").textContent = me.email || "";
+    $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/login/"); });
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    location.replace("/login/");
-  } else {
-    const user = session.user;
-    $("userEmail").textContent = user.email || "";
+    // name + member since
+    const { data: prof } = await supabase.from("ea_profiles").select("display_name").eq("user_id", me.id).maybeSingle();
+    const name = (prof && prof.display_name) || (me.email||"").split("@")[0] || "there";
+    $("hi").textContent = "Welcome back, " + name + ".";
+    $("ava").textContent = initials(name);
+    if(me.created_at){ const d=new Date(me.created_at); if(!isNaN(d)) $("stSince").textContent = d.toLocaleDateString(undefined,{month:"short",year:"numeric"}); }
 
-    $("signOut").addEventListener("click", async () => {
-      $("signOut").disabled = true;
-      try { await supabase.auth.signOut(); } catch (_) {}
-      location.replace("/login/");
-    });
-
-    function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-
-    function typeLabel(t){
-      if (t === "course") return "VIDEO COURSE";
-      if (t === "membership") return "MEMBERSHIP";
-      if (t === "bundle") return "BUNDLE";
-      return "EBOOK";
-    }
-
-    function coverBlock(item){
-      if (item.cover_url) {
-        return '<img class="cover" src="' + esc(item.cover_url) + '" alt="' + esc(item.title) + ' cover" loading="lazy">';
-      }
-      return '<div class="cover-ph">' + esc(typeLabel(item.type)) + '</div>';
-    }
-
-    function renderLibrary(items){
-      const lib = $("lib");
-      lib.innerHTML = items.map(function (item){
-        const open = "/library/?p=" + encodeURIComponent(item.slug);
-        return '<article class="pcard"><div class="top">' +
-          coverBlock(item) +
-          '<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>' + esc(typeLabel(item.type)) + '</span><span class="tag">Owned</span></div>' +
-          '<h3>' + esc(item.title) + '</h3></div></div>' +
-          '<div class="foot"><a class="btn" href="' + open + '">Read / Download <span class="arr">&rarr;</span></a></div></article>';
-      }).join("");
-      lib.classList.remove("hide");
-    }
-
-    // Membership / waitlist status block.
-    async function loadStatus(){
-      try {
-        const { data, error } = await supabase.rpc("ea_my_membership");
-        if (error) return; // table/RPC may not exist in earlier states; just skip
-        const m = Array.isArray(data) ? data[0] : data;
-        if (!m || !m.status || m.status === "inactive") return;
-        const row = $("statusRow");
-        if (m.status === "active") {
-          $("statusTitle").textContent = "Membership active";
-          let body = "You are a member. The community and member perks are open to you.";
-          if (m.current_period_end) {
-            const d = new Date(m.current_period_end);
-            if (!isNaN(d)) body += " Renews " + d.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" }) + ".";
-          }
-          $("statusBody").textContent = body;
-          $("statusCta").classList.remove("hide");
-        } else if (m.status === "past_due") {
-          $("statusTitle").textContent = "Payment needs attention";
-          $("statusBody").textContent = "Your last membership payment did not go through. Update it to keep your access.";
-          $("statusCta").textContent = "Manage billing"; $("statusCta").setAttribute("href", "/dashboard/#billing");
-        } else if (m.status === "canceled") {
-          $("statusTitle").textContent = "Membership canceled";
-          $("statusBody").textContent = "Your membership is canceled. Anything you bought outright is still yours below.";
-          $("statusCta").textContent = "See membership"; $("statusCta").setAttribute("href", "/pricing/");
-        }
-        row.classList.remove("hide");
-      } catch (_) { /* status is optional, never block the page */ }
-    }
-
-    // The library itself.
-    async function loadLibrary(){
-      try {
+    // library
+    (async()=>{
+      try{
         const { data, error } = await supabase.rpc("ea_my_library");
-        if (error) throw error;
-        $("loading").classList.add("hide");
-        const items = Array.isArray(data) ? data : [];
-        if (items.length === 0) { $("empty").classList.remove("hide"); return; }
-        renderLibrary(items);
-      } catch (err) {
-        $("loading").classList.add("hide");
-        $("errState").classList.remove("hide");
-      }
-    }
-
-    // All videos, with lock state: unlocked by an active All-Access membership OR a single-video purchase.
-    async function loadVideos(){
-      try {
-        const [pr, mr, lr] = await Promise.all([
-          supabase.rpc("ea_list_products"),
-          supabase.rpc("ea_my_membership"),
-          supabase.rpc("ea_my_library"),
-        ]);
-        $("vidLoading").classList.add("hide");
-        const courses = (pr.data || []).filter(p => p.type === "course" && p.status === "published");
-        if (!courses.length) { $("vidEmpty").classList.remove("hide"); return; }
-        const m = Array.isArray(mr.data) ? mr.data[0] : mr.data;
-        const isMember = !!(m && m.status === "active");
-        const owned = new Set((lr.data || []).map(x => x.slug));
-        $("vidLib").innerHTML = courses.map(function (c) {
-          const unlocked = isMember || owned.has(c.slug);
-          const open = "/library/?p=" + encodeURIComponent(c.slug);
-          const cover = c.cover_url ? '<img class="cover" src="' + esc(c.cover_url) + '" alt="">' : '<div class="cover-ph">VIDEO</div>';
-          const cta = unlocked
-            ? '<a class="btn" href="' + open + '">Watch / Download <span class="arr">&rarr;</span></a>'
-            : '<a class="btn ghost" href="/pricing/">Subscribe or buy <span class="arr">&rarr;</span></a>';
-          const badge = unlocked ? '<span class="tag gold"><span class="dot"></span>UNLOCKED</span>' : '<span class="tag">LOCKED</span>';
-          return '<article class="pcard"><div class="top">' + cover + '<div class="meta"><div class="tagrow"><span class="tag">VIDEO</span>' + badge + '</div><h3>' + esc(c.title) + '</h3></div></div><div class="foot">' + cta + '</div></article>';
+        if(error) throw error;
+        const items = Array.isArray(data)? data : [];
+        $("libLoading").classList.add("hide");
+        $("stLib").textContent = items.length;
+        if(!items.length){ $("libEmpty").classList.remove("hide"); return; }
+        $("libGrid").innerHTML = items.map(it=>{
+          const cv = it.cover_url ? `<img class="cv" src="${esc(it.cover_url)}" alt="">` : `<div class="cvph">${esc((it.type||"EBOOK").toUpperCase())}</div>`;
+          return `<div class="libcard">${cv}<div class="m"><h3>${esc(it.title)}</h3><a class="btn gold sm" href="/library/?p=${encodeURIComponent(it.slug)}" style="margin-top:auto">Read / Download <span class="arr">&rarr;</span></a></div></div>`;
         }).join("");
-        $("vidLib").classList.remove("hide");
-      } catch (_) { $("vidLoading").classList.add("hide"); $("vidEmpty").classList.remove("hide"); }
-    }
+        $("libGrid").classList.remove("hide");
+      }catch(_){ $("libLoading").classList.add("hide"); $("libEmpty").classList.remove("hide"); }
+    })();
 
-    loadStatus();
-    loadLibrary();
-    loadVideos();
+    // leaderboard + my points/rank
+    (async()=>{
+      try{
+        const { data } = await supabase.rpc("ea_leaderboard", { p_limit: 500 });
+        const rows = data || [];
+        const mine = rows.findIndex(r=>r.user_id===me.id);
+        if(mine>=0){ $("stPts").textContent = rows[mine].score; $("stRank").textContent = "#"+(mine+1); }
+        const top = rows.slice(0,8);
+        $("leaderboard").innerHTML = top.length
+          ? top.map((r,i)=>`<div class="lead-row"><div class="lead-rank">${i+1}</div><div class="avatar sm">${esc(initials(r.name))}</div><div class="lead-name">${esc(r.name)}${r.user_id===me.id?' (you)':''}</div><div class="lead-pts">${r.score}</div></div>`).join("")
+          : '<p class="muted" style="font-size:13px;padding:4px">Post in the community to get on the board.</p>';
+      }catch(_){ $("leaderboard").innerHTML='<p class="muted" style="font-size:13px;padding:4px">Unavailable.</p>'; }
+    })();
+
+    // recent community
+    (async()=>{
+      try{
+        const { data } = await supabase.rpc("ea_community_feed", { p_channel:null, p_limit:4, p_offset:0 });
+        const list = data || [];
+        $("recent").innerHTML = list.length
+          ? list.map(p=>`<a class="feedmini" href="/community/"><div class="n">${esc(p.author_name)} <span class="muted" style="font-weight:500">&middot; ${esc(CH[p.channel]||p.channel)} &middot; ${timeAgo(p.created_at)}</span></div><div class="x">${esc(p.body)}</div></a>`).join("")
+          : '<p class="muted" style="font-size:13px;padding:4px">No posts yet. Be the first in the community.</p>';
+      }catch(_){ $("recent").innerHTML='<p class="muted" style="font-size:13px;padding:4px">Unavailable.</p>'; }
+    })();
   }
 }
 </script>
