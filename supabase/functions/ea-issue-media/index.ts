@@ -39,10 +39,10 @@ const CORS: Record<string, string> = {
 // non-privileged client (token-scoped getUser), never for DB or storage reads.
 const ANON_KEY = "sb_publishable_fyYqa9QkEeA5LD_0hYLTTA_F8Gxw1oz";
 
-// NOTE: rate limiting. This endpoint mints signed download URLs and can be
-// brute-forced across product slugs. Supabase cannot durably rate-limit on its
-// own; per-IP throttling MUST be added at the Cloudflare / WAF layer in front
-// of this function. (H-4)
+// Rate limiting (H-4): this endpoint mints signed download URLs and could be
+// brute-forced across product slugs. A durable, DB-backed per-user limiter (the
+// ea_rate_check RPC, migration 0004) now guards it below — 40 requests / 60s /
+// authenticated user, fail-open.
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -117,6 +117,13 @@ Deno.serve(async (req: Request) => {
     // 1. Authenticate the buyer (token validated on the anon client). (H-1)
     const userId = await resolveUserId(req);
     if (!userId) return json({ error: "unauthorized" }, 401);
+
+    // 1.5 per-user rate limit (durable, DB-backed; fail-open). Blunts
+    //     slug-probing of the gated download gateway. (H-4)
+    const { data: allowed } = await db.rpc("ea_rate_check", {
+      p_key: "media:" + userId, p_max: 40, p_window_secs: 60,
+    });
+    if (allowed === false) return json({ error: "rate_limited" }, 429);
 
     // 2. Resolve the product by slug. Select only what we need; the
     //    storage_path stays server-side and is never returned to the client.

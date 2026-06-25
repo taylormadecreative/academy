@@ -28,12 +28,11 @@ const CORS: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// NOTE: rate limiting. This function is unauthenticated (verify_jwt = false) and
-// calls Stripe on every request. Supabase Edge Functions cannot durably
-// rate-limit on their own, so per-IP throttling MUST be added at the
-// Cloudflare / WAF layer in front of this endpoint to blunt abuse and protect
-// the Stripe API budget. The email-enumeration surface (the old open-session
-// reuse path) has been removed below. (H-4)
+// Rate limiting (H-4): this function is unauthenticated (verify_jwt = false) and
+// calls Stripe on every request. A durable, DB-backed per-IP limiter (the
+// ea_rate_check RPC, migration 0004) now guards it below — 12 requests / 60s /
+// IP, fail-open so a limiter outage never blocks a real buyer. The
+// email-enumeration surface (the old open-session reuse path) has been removed.
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -86,6 +85,13 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // ---- per-IP rate limit (durable, DB-backed; fail-open) ----------------
+    const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+    const { data: allowed } = await sb.rpc("ea_rate_check", {
+      p_key: "checkout:" + ip, p_max: 12, p_window_secs: 60,
+    });
+    if (allowed === false) return json({ error: "rate_limited" }, 429);
 
     // ---- load the product server-side -------------------------------------
     const { data: product, error: prodErr } = await sb
