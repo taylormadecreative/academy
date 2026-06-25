@@ -1,4 +1,4 @@
-/* BUILD MODE site behaviors. Vanilla JS, no build step. */
+/* Taylormade Academy site behaviors. Vanilla JS, no build step. */
 (function () {
   var CFG = window.BM_CONFIG || {};
   var BM = {
@@ -48,7 +48,7 @@
       var fallback = function () {
         if (CFG.WAITLIST_FALLBACK) {
           fetch(CFG.WAITLIST_FALLBACK, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, _subject: 'BUILD MODE waitlist signup' }) }).then(done, done);
+            body: JSON.stringify({ email: email, _subject: 'Taylormade Academy waitlist signup' }) }).then(done, done);
         } else { done(); }
       };
       try {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BUILD MODE static site generator. Shared chrome + page bodies -> route/index.html.
+"""Taylormade Academy static site generator. Shared chrome + page bodies -> route/index.html.
 Marketing storefront builds fully with NO keys; Buy buttons degrade to a 503 notice
 until Supabase/Stripe are wired."""
 import pathlib
@@ -51,7 +51,7 @@ def header(active=""):
         f'<a class="navlink{" active" if active==t else ""}" href="{u}">{t}</a>' for t, u in NAV)
     mlinks = "".join(f'<a href="{u}">{t}</a>' for t, u in NAV)
     return f"""<header class="site-header"><div class="wrap"><div class="bar">
-<a class="brand" href="/"><span class="mark">BUILD<b>MODE</b></span><span class="by">by Taylormade Creative</span></a>
+<a class="brand" href="/"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
 <nav class="nav">{links}</nav>
 <div class="nav-cta"><a class="btn gold sm" href="/store/">Get the ebooks</a>
 <button class="burger" aria-label="Menu" onclick="document.getElementById('mnav').classList.toggle('open')"><span></span><span></span><span></span></button></div>
@@ -69,12 +69,12 @@ def footer():
         links = "".join(f'<a href="{u}">{t}</a>' for t, u in items)
         colhtml += f'<div class="foot-col"><h4>{h}</h4>{links}</div>'
     return f"""<footer class="site-footer"><div class="wrap">
-<div class="foot-top"><div class="foot-brand"><div class="mark">BUILD<b>MODE</b></div>
+<div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. Taught by Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p>
 {socials_row(style="margin-top:14px")}</div>
 {colhtml}</div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
-<span class="mono">NO CODE / NO HYPE / JUST BUILD</span></div>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 <div class="toast" id="toast"></div>
 <script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>"""
@@ -158,8 +158,8 @@ def home():
 <div class="foot"><span class="price"><span class="ph">In production</span></span><a class="btn ghost" data-waitlist href="#waitlist">Join the waitlist <span class="arr">&rarr;</span></a></div></article>"""
 
     return head(
-        "BUILD MODE — Build real things with AI. No code, no hype.",
-        "Learn to build AI agents, tools, and small businesses that actually ship. Plain-English ebooks, video courses, and a community, by Nelson Taylor of Taylormade Creative.",
+        "Taylormade Academy — Learn design, photo, video & AI. Build real things.",
+        "Taylormade Academy by Nelson Taylor. Learn graphic design, photography, video, and AI, then build real things. Plain-English courses, ebooks, and a creative community out of Dallas-Fort Worth.",
         "/") + header("") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
@@ -194,9 +194,9 @@ def home():
 <section class="section"><div class="wrap"><div class="g-12" style="align-items:start">
 <div class="sec-head reveal" style="grid-column:1/7">
 <span class="kicker gold">The pitch</span>
-<h2 class="display-l">Most AI advice is too technical to follow or too hyped to trust.</h2></div>
+<h2 class="display-l">Most online courses are too boring to finish, or too hyped to trust.</h2></div>
 <div class="reveal" style="grid-column:8/13;padding-top:8px">
-<p style="font-size:18px">I do neither. I show you, step by step, how to point AI at a real problem and come out the other side with something you built. No computer science degree. No pretending it is magic. Just the work, broken down so a beginner can do it.</p>
+<p style="font-size:18px">I do neither. I show you, step by step, how to make a real thing, a design, a photo, a video, an app, and come out the other side with something you built. No fancy degree. No pretending it is magic. Just the craft, broken down so a beginner can do it.</p>
 <p style="margin-top:16px"><a class="textlink" href="/about/">Why I teach this way &rarr;</a></p>
 </div></div></div></section>
 
@@ -251,7 +251,7 @@ def store():
 <div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>COMING SOON</span></div>
 <h3>The Video Courses</h3><p class="blurb">Watch me build it on screen, step by step. In production now, made with HeyGen and edited in Remotion. Join the waitlist and you are first in line.</p></div></div>
 <div class="foot"><span class="price"><span class="ph">In production</span></span><a class="btn ghost" href="/#waitlist">Join the waitlist <span class="arr">&rarr;</span></a></div></article>"""
-    return head("Store — BUILD MODE", "Two plain-English ebooks ready to read now, plus video courses on the way. Build real things with AI.", "/store/") + header("Store") + f"""
+    return head("Store — Taylormade Academy", "Two plain-English ebooks ready to read now, plus video courses on the way. Build real things with AI.", "/store/") + header("Store") + f"""
 <main>
 <section class="section tight"><div class="wrap">
 <span class="kicker gold reveal">The catalog</span>
@@ -274,7 +274,7 @@ def product_page(slug):
     other = "boring-money" if slug == "ai-agent-ebook" else "ai-agent-ebook"
     op = PRODUCTS[other]
     feats = "".join(f"<li>{x}</li>" for x in p["what"])
-    return head(f"{p['title']} — BUILD MODE", p["blurb"], f"/store/{slug}/", og=p['cover'].lstrip('/')) + header("Store") + f"""
+    return head(f"{p['title']} — Taylormade Academy", p["blurb"], f"/store/{slug}/", og=p['cover'].lstrip('/')) + header("Store") + f"""
 <main>
 <section class="section tight"><div class="wrap">
 <a class="mono" href="/store/" style="font-size:12px;letter-spacing:.1em;color:var(--muted)">&larr; STORE</a>
@@ -346,7 +346,7 @@ def pricing():
              ["Buy any one video", "Watch it and download it", "Yours forever, no subscription", "Upgrade to All-Access anytime"],
              "Join the waitlist", "/#waitlist", price_text="$19 each"),
     ])
-    return head("Pricing — BUILD MODE", "Simple pricing. Ebooks one-time, and the video courses two ways: an all-access subscription or a single video to keep.", "/pricing/") + header("Pricing") + f"""
+    return head("Pricing — Taylormade Academy", "Simple pricing. Ebooks one-time, and the video courses two ways: an all-access subscription or a single video to keep.", "/pricing/") + header("Pricing") + f"""
 <main>
 <section class="section tight"><div class="wrap" style="text-align:center">
 <span class="kicker gold reveal">Pricing</span>
@@ -365,7 +365,7 @@ def pricing():
 
 # ---------- ABOUT ----------
 def about():
-    return head("About Nelson — BUILD MODE", "Nelson Taylor is a Dallas-Fort Worth creative who teaches beginners and hustlers to build real things with AI.", "/about/") + header("About") + f"""
+    return head("About Nelson — Taylormade Academy", "Nelson Taylor is a Dallas-Fort Worth creative who teaches graphic design, photography, video, and AI.", "/about/") + header("About") + f"""
 <main>
 <section class="section tight"><div class="wrap"><div class="g-12" style="align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/7">
@@ -402,7 +402,7 @@ def about():
 
 # ---------- simple stubs (footer links, no-404) ----------
 def stub(title, kicker, heading, body_html, active=""):
-    return head(f"{title} — BUILD MODE", heading, "/") + header(active) + f"""
+    return head(f"{title} — Taylormade Academy", heading, "/") + header(active) + f"""
 <main><section class="section"><div class="wrap" style="max-width:760px">
 <span class="kicker gold">{kicker}</span><h1 class="display-m" style="margin-top:12px">{heading}</h1>
 <div style="margin-top:20px">{body_html}</div>
@@ -410,7 +410,7 @@ def stub(title, kicker, heading, body_html, active=""):
 </div></section></main>""" + footer()
 
 def community():
-    return head("Community — BUILD MODE", "A community for everyone from the classes plus future builders. Coming soon.", "/community/") + header("Community") + """
+    return head("Community — Taylormade Academy", "A community for everyone from the classes plus future builders. Coming soon.", "/community/") + header("Community") + """
 <main><section class="section"><div class="wrap" style="max-width:820px;text-align:center">
 <span class="tag live reveal"><span class="dot"></span>OPENING SOON</span>
 <h1 class="display-l reveal" style="margin-top:16px">The build crew.</h1>
@@ -434,7 +434,7 @@ if __name__ == "__main__":
     render("/refunds/", stub("Refunds", "Policy", "Refund policy",
         "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>"))
     render("/terms/", stub("Terms", "Legal", "Terms of use",
-        "<p>BUILD MODE is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>"))
+        "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>"))
     render("/privacy/", stub("Privacy", "Legal", "Privacy",
         "<p>I collect only what is needed to run your account and deliver what you bought: your email, your purchases, and your activity on the site. Payments are handled by Stripe; I never see your card. I do not sell your information. A full privacy policy will be posted here before payments go live.</p>"))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
