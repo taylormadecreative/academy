@@ -1,0 +1,46 @@
+<!-- ============================================================
+     Taylormade Academy — branded sign-in (Magic Link) email
+     PASTE THIS into Supabase: Authentication -> Emails -> "Magic Link" template.
+     Subject line to use:  Your sign-in link — Taylormade Academy
+     Keep the {{ .ConfirmationURL }} variable exactly as-is (that's the link).
+     ============================================================ -->
+<div style="background:#eef2f9;padding:28px 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:18px;border:1px solid #e4e9f1;overflow:hidden;">
+
+    <!-- header -->
+    <div style="background:#04123a;padding:22px 30px;">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="vertical-align:middle;">
+          <img src="https://academy.taylormadecreative.net/assets/logo-mark.png" width="34" height="34" alt="" style="display:block;border:0;">
+        </td>
+        <td style="vertical-align:middle;padding-left:11px;">
+          <span style="font-size:17px;font-weight:700;letter-spacing:.01em;color:#ffffff;">Taylormade <span style="color:#5b8bff;">Academy</span></span>
+        </td>
+      </tr></table>
+    </div>
+
+    <!-- body -->
+    <div style="padding:30px 30px 14px;color:#33415b;">
+      <h1 style="font-size:24px;line-height:1.2;color:#0a1733;margin:0 0 12px;font-weight:800;">Your sign-in link</h1>
+      <p style="font-size:16px;line-height:1.6;margin:0 0 22px;">Tap the button below to sign in to the community. This link expires shortly and only works once, just for you.</p>
+
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr><td style="border-radius:12px;background:#0b40e0;">
+        <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 30px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">Sign in &rarr;</a>
+      </td></tr></table>
+
+      <p style="font-size:13px;line-height:1.6;color:#64748b;margin:0 0 22px;">If the button doesn't work, copy and paste this link into your browser:<br>
+        <span style="color:#0b40e0;word-break:break-all;">{{ .ConfirmationURL }}</span></p>
+
+      <p style="font-size:16px;line-height:1.6;margin:0 0 4px;">Glad to have you in. See you inside.</p>
+      <p style="font-size:16px;font-weight:700;color:#0a1733;margin:0;">&mdash; Nelson</p>
+    </div>
+
+    <!-- footer -->
+    <div style="padding:18px 30px;border-top:1px solid #eef2f7;font-size:12px;line-height:1.6;color:#94a3b8;">
+      You're getting this because someone (hopefully you) asked to sign in at
+      <a href="https://academy.taylormadecreative.net" style="color:#94a3b8;">academy.taylormadecreative.net</a>.
+      If it wasn't you, you can safely ignore this email.
+    </div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#aab4c7;margin-top:14px;">Taylormade Academy &middot; by Nelson Taylor &middot; Dallas&ndash;Fort Worth</div>
+</div>
