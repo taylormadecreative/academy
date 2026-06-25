@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;}
+  body{width:1200px;height:630px;font-family:'Inter',sans-serif;overflow:hidden;}
+  .card{width:1200px;height:630px;background:linear-gradient(125deg,#ffffff 52%,#dfe8ff 100%);display:flex;position:relative;overflow:hidden;}
+  .blob{position:absolute;right:-80px;top:-120px;width:760px;height:860px;background:radial-gradient(circle at 60% 40%,#3a63f0,#0b40e0);border-radius:46% 54% 50% 50%/52% 48% 52% 48%;opacity:.14;}
+  .left{flex:1;padding:64px 0 64px 70px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2;max-width:660px;}
+  .brand{display:flex;align-items:center;gap:13px;margin-bottom:30px;}
+  .brand img{width:52px;height:52px;}
+  .brand span{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:25px;letter-spacing:.01em;color:#0a1733;}
+  .eyebrow{font-size:15px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0b40e0;display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+  .eyebrow::before{content:"";width:26px;height:4px;border-radius:2px;background:#f2b705;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:58px;line-height:1.0;letter-spacing:-.025em;color:#0a1733;}
+  h1 .b{color:#0b40e0;}
+  .sub{font-size:23px;color:#33415b;margin-top:22px;font-weight:500;line-height:1.4;max-width:20ch;}
+  .tracks{display:flex;gap:10px;margin-top:30px;flex-wrap:wrap;}
+  .tr{font-size:15px;font-weight:700;color:#0a1733;background:#fff;border:1.5px solid #e4e9f1;border-radius:100px;padding:9px 17px;box-shadow:0 4px 14px -8px rgba(4,18,58,.3);}
+  .cta{display:inline-flex;align-items:center;gap:10px;margin-top:34px;align-self:flex-start;background:#0b40e0;color:#fff;font-weight:700;font-size:18px;border-radius:12px;padding:15px 26px;box-shadow:0 12px 28px -10px rgba(11,64,224,.6);}
+  .cta .free{background:#fdc921;color:#04123a;font-size:13px;font-weight:800;border-radius:100px;padding:3px 10px;letter-spacing:.03em;}
+  .right{position:relative;z-index:2;width:430px;display:flex;align-items:flex-end;justify-content:center;}
+  .right img{width:430px;object-fit:contain;align-self:flex-end;}
+  .url{position:absolute;bottom:34px;left:70px;font-size:16px;font-weight:600;color:#64748b;z-index:3;}
+</style></head>
+<body>
+  <div class="card">
+    <span class="blob"></span>
+    <div class="left">
+      <div class="brand"><img src="../assets/logo-mark.png"><span>Taylormade Academy</span></div>
+      <div class="eyebrow">The creative community for builders</div>
+      <h1>Learn the craft.<br>Build real things.<br><span class="b">Create real income.</span></h1>
+      <div class="sub">AI, design, photography &amp; video, taught by Nelson Taylor.</div>
+      <div class="tracks"><span class="tr">AI</span><span class="tr">Graphic Design</span><span class="tr">Photography</span><span class="tr">Video</span></div>
+      <span class="cta"><span class="free">FREE</span> Join the community &rarr;</span>
+    </div>
+    <div class="right"><img src="../assets/hero-nelson.png"></div>
+  </div>
+</body></html>
