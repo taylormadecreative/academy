@@ -115,7 +115,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
   // Already signed in -> straight to the dashboard.
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
-    location.replace("/dashboard/");
+    location.replace("/community/");
   } else {
     show(emailForm);
 
@@ -131,7 +131,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       try {
         const { error } = await supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: location.origin + "/dashboard/", shouldCreateUser: true }
+          options: { emailRedirectTo: location.origin + "/community/", shouldCreateUser: true }
         });
         if (error) throw error;
         pendingEmail = email;
@@ -157,7 +157,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       try {
         const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
         if (error) throw error;
-        location.replace("/dashboard/");
+        location.replace("/community/");
       } catch (err) {
         setErr($("codeErr"), (err && err.message) ? err.message : "That code did not work. Check it, or use the link in the email.");
         btn.disabled = false; btn.textContent = "Verify and sign in";

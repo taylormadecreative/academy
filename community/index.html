@@ -220,7 +220,7 @@ function showGate(loggedOut){
 }
 
 async function boot(){
-  $("abRight").innerHTML = '<span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
+  $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Library</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
   $("ue").textContent = me.email || "";
   $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/community/"); });
   $("subnav").classList.remove("hide");
