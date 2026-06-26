@@ -1,0 +1,173 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome — Taylormade Academy</title>
+<meta name="description" content="Set up your Taylormade Academy profile.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://academy.taylormadecreative.net/welcome/">
+<meta property="og:type" content="website"><meta property="og:title" content="Welcome — Taylormade Academy">
+<meta property="og:description" content="Set up your Taylormade Academy profile."><meta property="og:url" content="https://academy.taylormadecreative.net/welcome/">
+<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#04123a">
+<link rel="stylesheet" href="/css/build-mode.css">
+<style>
+  /* app pages: simple top bar + centered card, all from the existing system */
+  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
+  .authwrap{max-width:520px;}
+  .authcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:clamp(24px,4vw,40px);box-shadow:var(--shadow);}
+  .field{margin-top:18px;}
+  .field label{display:block;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;}
+  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:var(--paper-2);
+    border:1.5px solid var(--hair);border-radius:10px;padding:13px 15px;transition:border-color .15s;}
+  .field input:focus{outline:none;border-color:var(--gold);}
+  .btn.block{width:100%;}
+  .formnote{font-size:13.5px;color:var(--muted);margin-top:14px;}
+  .formerr{font-size:14px;color:var(--clay);margin-top:14px;font-weight:500;}
+  .hide{display:none !important;}
+  /* avatar */
+  .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue-2),var(--blue));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;
+    flex:0 0 auto;text-transform:uppercase;overflow:hidden;}
+  .ava-prev{display:inline-block;width:64px;height:64px;border-radius:50%;
+    background:var(--paper-2);border:2px dashed var(--hair);overflow:hidden;}
+  .ava-prev .avatar{width:64px;height:64px;font-size:24px;}
+  /* chip selected state (build-mode.css uses .chip.active; onboarding uses .chip.on) */
+  .chip.on{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
+</style>
+</head><body>
+<header class="appbar"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
+<a class="navlink" href="/store/">Back to store</a>
+</div></div></header>
+<main><section class="section"><div class="wrap authwrap">
+
+<span class="kicker gold">Almost there</span>
+<h1 class="display-m" style="margin-top:12px">Welcome — set up your profile.</h1>
+<p style="margin-top:14px;color:var(--muted);max-width:42ch">Just a few quick things, then you are in. You can update all of this later.</p>
+
+<form id="obForm" class="authcard" style="margin-top:24px">
+  <div style="display:flex;align-items:center;gap:16px">
+    <label id="avaLabel" for="avaInput" style="cursor:pointer" title="Click to upload a photo">
+      <span id="avaPreview" class="ava-prev"></span>
+    </label>
+    <div>
+      <div style="font-weight:700">Profile photo</div>
+      <div class="muted" style="font-size:13px">Optional. PNG/JPG/WebP, under 3 MB.</div>
+    </div>
+    <input id="avaInput" type="file" accept="image/png,image/jpeg,image/webp" class="hide">
+  </div>
+  <div class="field"><label for="dn">Display name</label>
+    <input id="dn" type="text" maxlength="40" placeholder="Your name" required></div>
+  <div class="field"><label>What are you here for?</label>
+    <div id="interests" class="chips">
+      <button type="button" class="chip" data-tag="design">Graphic Design</button>
+      <button type="button" class="chip" data-tag="photo">Photography</button>
+      <button type="button" class="chip" data-tag="video">Video</button>
+      <button type="button" class="chip" data-tag="ai">AI</button>
+    </div></div>
+  <button class="btn gold block" type="submit" id="obSave" style="margin-top:20px">Enter the community <span class="arr">&rarr;</span></button>
+  <p class="formerr hide" id="obErr"></p>
+</form>
+
+</div></section></main>
+
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
+<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
+</div></footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="/js/config.js"></script>
+<script src="/js/site.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+
+if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { location.replace('/login/'); }
+else {
+  const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { location.replace('/login/'); }
+  else {
+    const me = session.user;
+    const { data: prof } = await supabase.from('ea_profiles')
+      .select('display_name,avatar_url,open_to,onboarded_at').eq('user_id', me.id).maybeSingle();
+
+    if (prof && prof.onboarded_at) { location.replace('/community/'); }
+    else {
+      let avatarUrl = (prof && prof.avatar_url) || '';
+      const tags = new Set((prof && prof.open_to) || []);
+      let currentName = (prof && prof.display_name) || (me.email || '').split('@')[0] || '';
+
+      $('dn').value = currentName;
+
+      // Initial avatar preview — wrapper+innerHTML approach (no .replace duplicate-style hack)
+      $('avaPreview').innerHTML = BM.avatarHtml(currentName, avatarUrl, '');
+
+      // Update initials chip when name changes
+      $('dn').addEventListener('input', () => {
+        currentName = $('dn').value;
+        $('avaPreview').innerHTML = BM.avatarHtml(currentName, avatarUrl, '');
+      });
+
+      // interests toggle
+      document.querySelectorAll('#interests .chip').forEach(b => {
+        if (tags.has(b.dataset.tag)) b.classList.add('on');
+        b.addEventListener('click', () => {
+          b.classList.toggle('on');
+          b.classList.contains('on') ? tags.add(b.dataset.tag) : tags.delete(b.dataset.tag);
+        });
+      });
+
+      // photo upload
+      $('avaInput').addEventListener('change', async (e) => {
+        const f = e.target.files[0]; if (!f) return;
+        try {
+          avatarUrl = await BM.uploadAvatar(supabase, me.id, f);
+          $('avaPreview').innerHTML = BM.avatarHtml($('dn').value, avatarUrl, '');
+        } catch (err) { BM.toast(err.message || 'Upload failed.'); }
+      });
+
+      // save
+      $('obForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = $('dn').value.trim();
+        if (name.length < 2) {
+          $('obErr').textContent = 'Please enter your name.';
+          $('obErr').classList.remove('hide');
+          return;
+        }
+        $('obSave').disabled = true;
+        const row = {
+          user_id: me.id,
+          display_name: name,
+          avatar_url: avatarUrl,
+          open_to: Array.from(tags),
+          onboarded_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabase.from('ea_profiles').upsert(row, { onConflict: 'user_id' });
+        if (error) {
+          $('obSave').disabled = false;
+          $('obErr').textContent = error.message;
+          $('obErr').classList.remove('hide');
+          return;
+        }
+        location.replace('/community/');
+      });
+    }
+  }
+}
+</script>
+</body></html>
