@@ -302,6 +302,15 @@ def home():
 <div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
 
+<section class="section tight" style="padding-top:26px"><div class="wrap">
+<div class="reveal" style="max-width:880px;margin:0 auto;text-align:center">
+<span class="kicker gold">Watch the intro</span>
+<h2 class="display-m" style="margin-top:8px">See what we're building.</h2></div>
+<div class="reveal" style="max-width:880px;margin:18px auto 0;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);background:#04123a;border:1px solid var(--hair)">
+<video style="display:block;width:100%;aspect-ratio:16/9;background:#04123a" src="/assets/home-hero-nelson.mp4" poster="/assets/home-hero-poster.jpg" controls playsinline preload="none"></video></div>
+<div class="reveal" style="text-align:center;margin-top:20px"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a></div>
+</div></section>
+
 <section class="section tight" style="padding-top:4px;padding-bottom:0"><div class="wrap">
 <div class="cred reveal">
 <div class="cred-l"><span class="goldbar"></span><span>Taught by <b>Nelson Taylor</b> &mdash; 14 years a working Dallas-Fort Worth creative, not a content farm.</span></div>
