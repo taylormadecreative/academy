@@ -33,7 +33,7 @@
   --amber:#f59e0b;
   --clay:#ef4444;           /* destructive / unread / live */
   --ink-panel:#04123a;      /* dark thumbnails + bands (crest navy) */
-  --maxw:1200px;
+  --maxw:1340px;
   --gut:clamp(20px,5vw,48px);
   --r:16px; --r-lg:22px; --r-sm:10px;
   --ease:cubic-bezier(.23,1,.32,1);
