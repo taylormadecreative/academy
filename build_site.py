@@ -12,7 +12,7 @@ def _asset_ver():
     browsers (and the GitHub Pages CDN) fetch a fresh copy the instant the file changes,
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
-    for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js"):
+    for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -35,7 +35,8 @@ PWA_TAGS = (
     '<meta name="apple-mobile-web-app-title" content="Academy">\n'
     '<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n'
     + _splash_tags() + "\n"
-    f'<script src="/js/pwa.js?v={ASSET_VER}" defer></script>'
+    f'<script src="/js/pwa.js?v={ASSET_VER}" defer></script>\n'
+    f'<script src="/js/native.js?v={ASSET_VER}" defer></script>'
 )
 
 NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/library/"), ("Pricing", "/pricing/"), ("About", "/about/")]
