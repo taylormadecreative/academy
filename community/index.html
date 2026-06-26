@@ -96,6 +96,7 @@
   .lead-pts{font-size:13px;font-weight:800;color:var(--blue);}
   .empty2{border:1.5px dashed var(--hair);border-radius:var(--r);background:#fff;padding:clamp(26px,5vw,42px);text-align:center;}
   .muted{color:var(--muted);} .hide{display:none !important;}
+  #pfAvaPrev .avatar{width:56px;height:56px;font-size:18px;}
   @media(max-width:1080px){ .comm-grid{grid-template-columns:1fr;} .col-stick{position:static;} .comm-right{order:3;} .comm-left{order:2;} .comm-center{order:1;} .lnav{flex-direction:row;flex-wrap:wrap;} }
   @media(max-width:680px){ .dm{grid-template-columns:1fr;} .threadlist{max-height:240px;} .appbar .navlink,.appbar .email{display:none;} }
 </style>
@@ -144,7 +145,7 @@
     <!-- FEED -->
     <div class="view active" id="viewFeed">
       <div class="card composer">
-        <div class="top"><div class="avatar" id="meAva">M</div>
+        <div class="top"><span id="meAva"></span>
         <textarea id="postBody" maxlength="4000" placeholder="What's on your mind? Share a win, ask a question, or drop a resource..."></textarea></div>
         <div class="row">
           <select class="sel" id="postChannel" aria-label="Channel">
@@ -188,6 +189,12 @@
     <div class="view" id="viewProfile">
       <h2 class="display-m" style="margin-bottom:16px;font-size:26px">My profile</h2>
       <form class="pf" id="profileForm">
+        <div class="field" style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+          <label for="pfAva" style="cursor:pointer"><span id="pfAvaPrev"></span></label>
+          <div><div style="font-weight:700;font-size:14px">Profile photo</div>
+            <div class="muted" style="font-size:12.5px">PNG/JPG/WebP, under 3 MB</div></div>
+          <input id="pfAva" type="file" accept="image/png,image/jpeg,image/webp" class="hide">
+        </div>
         <div class="field"><label for="pfName">Display name</label><input id="pfName" maxlength="60" placeholder="Your name"></div>
         <div class="field"><label for="pfBio">Bio</label><textarea id="pfBio" maxlength="500" placeholder="What you do, what you are building, what you want to learn"></textarea></div>
         <div class="field"><label for="pfLink">Link (portfolio, IG, site)</label><input id="pfLink" maxlength="200" placeholder="https://"></div>
@@ -230,6 +237,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js"></script>
+<script src="/js/site.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -247,6 +255,8 @@ const CH = { general:"General", design:"Graphic Design", photo:"Photography", vi
 
 let supabase=null, me=null, myProfile=null;
 const names = {};
+const avatars = {};
+let pfAvatarUrl = "";
 const myBlocks = new Set();
 let curChannel = "", curOther = null;
 
@@ -262,7 +272,8 @@ async function boot(){
   $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/community/"); });
   $("app").classList.remove("hide");
   await ensureProfile();
-  $("meAva").textContent = initials(myProfile.display_name);
+  if(!myProfile.onboarded_at){ location.replace("/welcome/"); return; }
+  $("meAva").innerHTML = BM.avatarHtml(myProfile.display_name, myProfile.avatar_url, '');
   await Promise.all([loadNames(), loadBlocks()]);
   renderChannels();
   bindUI();
@@ -280,8 +291,8 @@ async function ensureProfile(){
   }
   names[me.id] = myProfile.display_name || "Member";
 }
-async function loadNames(){ const { data } = await supabase.from("ea_profiles").select("user_id,display_name");
-  (data||[]).forEach(p=>{ names[p.user_id]=p.display_name||"Member"; }); }
+async function loadNames(){ const { data } = await supabase.from("ea_profiles").select("user_id,display_name,avatar_url");
+  (data||[]).forEach(p=>{ names[p.user_id]=p.display_name||"Member"; avatars[p.user_id]=p.avatar_url; }); }
 async function loadBlocks(){ myBlocks.clear(); const { data } = await supabase.from("ea_blocks").select("blocked_id").eq("blocker_id",me.id);
   (data||[]).forEach(b=>myBlocks.add(b.blocked_id)); }
 
@@ -304,7 +315,7 @@ function postHTML(p){
   const liked = p.liked_by_me;
   const dm = p.author_id!==me.id ? `<button class="act" data-dm="${p.author_id}">Message</button>` : "";
   return `<div class="post" data-post="${p.id}">
-    <div class="ph"><div class="avatar sm">${esc(initials(p.author_name))}</div>
+    <div class="ph">${BM.avatarHtml(p.author_name, p.author_avatar_url, 'sm')}
       <div><div class="name">${esc(p.author_name)}</div><div class="meta">${esc(CH[p.channel]||p.channel)} &middot; ${timeAgo(p.created_at)}</div></div></div>
     <div class="body">${esc(p.body)}</div>
     <div class="acts">
@@ -347,7 +358,7 @@ async function toggleComments(btn){
   if(box.classList.contains("open")){ box.classList.remove("open"); return; }
   box.classList.add("open"); box.innerHTML='<p class="muted" style="font-size:13px">Loading...</p>';
   const { data } = await supabase.from("ea_comments").select("*").eq("post_id",id).order("created_at",{ascending:true});
-  const rows=(data||[]).filter(c=>!myBlocks.has(c.author_id)).map(c=>`<div class="comment"><div class="avatar sm">${esc(initials(names[c.author_id]||"M"))}</div><div><span class="cn">${esc(names[c.author_id]||"Member")}</span><div class="cb">${esc(c.body)}</div></div></div>`).join("");
+  const rows=(data||[]).filter(c=>!myBlocks.has(c.author_id)).map(c=>`<div class="comment">${BM.avatarHtml(names[c.author_id]||'M', avatars[c.author_id], 'sm')}<div><span class="cn">${esc(names[c.author_id]||"Member")}</span><div class="cb">${esc(c.body)}</div></div></div>`).join("");
   box.innerHTML = rows + `<form class="cform" data-cform="${id}"><input maxlength="2000" placeholder="Write a comment..." autocomplete="off"><button class="btn sm" type="submit">Send</button></form>`;
 }
 async function addComment(form){
@@ -370,7 +381,7 @@ async function loadMembers(){
     const tags=(p.open_to||[]).map(o=>`<span class="otag">${esc(o)}</span>`).join("");
     const su=safeUrl(p.link_url);
     const link=su?`<a href="${esc(su)}" target="_blank" rel="noopener nofollow ugc" class="textlink" style="font-size:13px;margin-top:8px;display:inline-block">${esc(su.replace(/^https?:\/\//,""))}</a>`:"";
-    return `<div class="mcard"><div style="display:flex;align-items:center;gap:11px"><div class="avatar">${esc(initials(p.display_name))}</div><div class="name" style="font-weight:700">${esc(p.display_name||"Member")}</div></div>
+    return `<div class="mcard"><div style="display:flex;align-items:center;gap:11px">${BM.avatarHtml(p.display_name, p.avatar_url, '')}<div class="name" style="font-weight:700">${esc(p.display_name||"Member")}</div></div>
       <div class="bio">${esc(p.bio||"")}</div>${link}${tags?`<div class="opentags">${tags}</div>`:""}
       <div class="mbtns"><button class="btn gold sm" data-dm="${p.user_id}">Message</button><button class="btn ghost sm" data-block="${p.user_id}">Block</button></div></div>`;
   }).join("");
@@ -392,7 +403,7 @@ async function loadThreads(){
   const box=$("threadList");
   if(!list.length){ box.innerHTML='<p class="muted" style="padding:18px;font-size:14px">No messages yet. Start one from Members.</p>'; }
   else box.innerHTML = list.map(t=>`<button class="trow${t.other_id===curOther?" active":""}" data-thread="${t.other_id}" data-name="${esc(t.other_name)}">
-    <div class="avatar sm">${esc(initials(t.other_name))}</div>
+    ${BM.avatarHtml(t.other_name, avatars[t.other_id]||'', 'sm')}
     <div class="tmeta"><div class="tn"><span>${esc(t.other_name)}</span>${t.unread>0?`<span class="b2">${t.unread}</span>`:""}</div><div class="tb">${esc(t.last_body||"")}</div></div></button>`).join("");
 }
 async function openThread(other, name){
@@ -433,10 +444,12 @@ async function loadLeaderboard(){
   if(error){ box.innerHTML='<p class="muted" style="font-size:13px;padding:4px">Leaderboard unavailable.</p>'; return; }
   const list=(data||[]).filter(r=>!myBlocks.has(r.user_id));
   if(!list.length){ box.innerHTML='<p class="muted" style="font-size:13px;padding:4px 4px 2px">Be the first to post. The leaderboard fills up as people share and get likes.</p>'; return; }
-  box.innerHTML = list.map((r,i)=>`<div class="lead-row"><div class="lead-rank">${i+1}</div><div class="avatar sm">${esc(initials(r.name))}</div><div class="lead-name">${esc(r.name)}</div><div class="lead-pts">${r.score}</div></div>`).join("");
+  box.innerHTML = list.map((r,i)=>`<div class="lead-row"><div class="lead-rank">${i+1}</div>${BM.avatarHtml(r.name, r.avatar_url, 'sm')}<div class="lead-name">${esc(r.name)}</div><div class="lead-pts">${r.score}</div></div>`).join("");
 }
 
 function fillProfile(){
+  pfAvatarUrl = myProfile.avatar_url || "";
+  document.getElementById("pfAvaPrev").innerHTML = BM.avatarHtml(myProfile.display_name, pfAvatarUrl, '');
   $("pfName").value=myProfile.display_name||""; $("pfBio").value=myProfile.bio||""; $("pfLink").value=myProfile.link_url||"";
   const open=new Set(myProfile.open_to||[]);
   $("pfOpen").querySelectorAll(".check").forEach(l=>{ const cb=l.querySelector("input"); cb.checked=open.has(cb.value); l.classList.toggle("on",cb.checked); });
@@ -446,10 +459,10 @@ function fillProfile(){
 async function saveProfile(e){
   e.preventDefault();
   const open=[...$("pfOpen").querySelectorAll("input:checked")].map(c=>c.value);
-  const row={ user_id:me.id, display_name:$("pfName").value.trim()||"Member", bio:$("pfBio").value.trim(), link_url:$("pfLink").value.trim(), open_to:open, updated_at:new Date().toISOString() };
+  const row={ user_id:me.id, display_name:$("pfName").value.trim()||"Member", bio:$("pfBio").value.trim(), link_url:$("pfLink").value.trim(), open_to:open, avatar_url:pfAvatarUrl, updated_at:new Date().toISOString() };
   const { data, error } = await supabase.from("ea_profiles").upsert(row,{onConflict:"user_id"}).select("*").single();
   if(error){ toast("Could not save."); return; }
-  myProfile=data||row; names[me.id]=myProfile.display_name; $("meAva").textContent=initials(myProfile.display_name); toast("Profile saved.");
+  myProfile=data||row; myProfile.avatar_url=pfAvatarUrl; names[me.id]=myProfile.display_name; $("meAva").innerHTML=BM.avatarHtml(myProfile.display_name, pfAvatarUrl, ''); toast("Profile saved.");
 }
 
 function bindUI(){
@@ -475,6 +488,11 @@ function bindUI(){
   $("threadList").addEventListener("click", e=>{ const r=e.target.closest("[data-thread]"); if(r) openThread(r.dataset.thread, r.dataset.name); });
   $("dmForm").addEventListener("submit", sendDM);
   $("profileForm").addEventListener("submit", saveProfile);
+  $("pfAva").addEventListener("change", async e=>{
+    const file=e.target.files[0]; if(!file) return;
+    try{ pfAvatarUrl = await BM.uploadAvatar(supabase, me.id, file); document.getElementById("pfAvaPrev").innerHTML = BM.avatarHtml(myProfile.display_name||'', pfAvatarUrl, ''); }
+    catch(err){ toast(err.message||"Upload failed."); }
+  });
   $("pfOpen").addEventListener("change", e=>{ const l=e.target.closest(".check"); if(l) l.classList.toggle("on", e.target.checked); });
   $("blockedList").addEventListener("click", e=>{ const u=e.target.closest("[data-unblock]"); if(u) unblockUser(u.dataset.unblock); });
   $("inviteBtn").addEventListener("click", ()=>{ const url="https://academy.taylormadecreative.net/community/";
