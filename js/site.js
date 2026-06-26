@@ -12,8 +12,8 @@
       cls = cls ? (' ' + cls) : '';
       var safe = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g,
         function (c) { return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]; }); };
-      if (url) return '<span class="avatar' + cls + '" style="background-image:url(' +
-        safe(url) + ');background-size:cover;background-position:center;color:transparent"></span>';
+      if (url) return '<img class="avatar' + cls + '" src="' + safe(url) +
+        '" alt="" style="object-fit:cover" referrerpolicy="no-referrer">';
       return '<span class="avatar' + cls + '">' + safe(BM.initials(name)) + '</span>';
     },
     uploadAvatar: async function (supabase, userId, file) {
