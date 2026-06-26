@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Offline — Taylormade Academy</title>
+<meta name="robots" content="noindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#04123a">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{font-family:'Space Grotesk',Inter,system-ui,-apple-system,sans-serif;
+    background:radial-gradient(120% 70% at 50% -8%,#0a205c 0%,#04123a 46%,#020a1f 100%);
+    color:#f7f9ff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px;gap:8px;-webkit-font-smoothing:antialiased;}
+  .badge{width:96px;height:96px;border-radius:22px;background:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 24px 60px -18px rgba(0,0,0,.6);margin-bottom:26px;}
+  .badge img{width:78px;height:78px;}
+  h1{font-size:27px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;}
+  p{font-size:15px;color:#bcc8e6;max-width:30ch;line-height:1.55;}
+  button{margin-top:28px;background:linear-gradient(180deg,#fdc921,#f2b705);color:#04123a;border:0;
+    font-family:inherit;font-weight:700;font-size:16px;padding:14px 28px;border-radius:100px;cursor:pointer;
+    box-shadow:0 16px 38px -12px rgba(253,201,33,.5);}
+  button:active{transform:scale(.97);}
+  .bar{width:46px;height:4px;border-radius:3px;background:linear-gradient(90deg,#fdc921,#f2b705);margin-top:30px;}
+</style>
+</head><body>
+  <div class="badge"><img src="/assets/icon-512.png" alt="Taylormade Academy"></div>
+  <h1>You're offline</h1>
+  <p>No connection right now. Anything you've already opened is still here — reconnect to load the rest.</p>
+  <button onclick="location.reload()">Try again</button>
+  <div class="bar"></div>
+</body></html>

@@ -12,13 +12,31 @@ def _asset_ver():
     browsers (and the GitHub Pages CDN) fetch a fresh copy the instant the file changes,
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
-    for rel in ("css/build-mode.css", "js/site.js", "js/config.js"):
+    for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
     return h.hexdigest()[:10]
 
 ASSET_VER = _asset_ver()
+
+def _splash_tags():
+    """iOS launch-image <link> tags, generated alongside the splash PNGs."""
+    f = ROOT / "assets" / "splash" / "_tags.html"
+    return f.read_text().strip() if f.exists() else ""
+
+# PWA <head> block: makes the site installable to the iPhone/Android home screen as a
+# standalone app (manifest + Apple meta + launch screens + service-worker boot).
+PWA_TAGS = (
+    '<link rel="manifest" href="/manifest.webmanifest">\n'
+    '<meta name="apple-mobile-web-app-capable" content="yes">\n'
+    '<meta name="mobile-web-app-capable" content="yes">\n'
+    '<meta name="apple-mobile-web-app-status-bar-style" content="default">\n'
+    '<meta name="apple-mobile-web-app-title" content="Academy">\n'
+    '<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n'
+    + _splash_tags() + "\n"
+    f'<script src="/js/pwa.js?v={ASSET_VER}" defer></script>'
+)
 
 NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/library/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
@@ -72,7 +90,6 @@ def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
 <meta property="og:type" content="website"><meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{canon}">
@@ -82,6 +99,7 @@ def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 {hero_preload}
 <link rel="stylesheet" href="/css/build-mode.css?v={ASSET_VER}">
+{PWA_TAGS}
 <script>document.documentElement.classList.add('js')</script>
 </head><body>"""
 
@@ -182,6 +200,16 @@ def render(path, html):
 APP_PAGES = ("community", "login", "dashboard", "library", "welcome")
 _ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
 
+def _ensure_pwa_head(html):
+    """Insert (or refresh) the PWA <head> block in a hand-maintained app page, guarded by a
+    marker comment so it stays idempotent. Body of the page is left untouched."""
+    block = "<!--PWA:start-->\n" + PWA_TAGS + "\n<!--PWA:end-->"
+    if "<!--PWA:start-->" in html:
+        return re.sub(r"<!--PWA:start-->.*?<!--PWA:end-->", lambda m: block, html, flags=re.S)
+    if "</head>" in html:
+        return html.replace("</head>", block + "\n</head>", 1)
+    return html
+
 def stamp_app_pages(ver):
     stamped = []
     for name in APP_PAGES:
@@ -189,7 +217,7 @@ def stamp_app_pages(ver):
         if not f.exists():
             continue
         html = f.read_text()
-        new = _ASSET_RX.sub(rf'\1?v={ver}', html)
+        new = _ensure_pwa_head(_ASSET_RX.sub(rf'\1?v={ver}', html))
         if new != html:
             f.write_text(new)
             stamped.append(name)
