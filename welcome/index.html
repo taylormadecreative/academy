@@ -48,6 +48,7 @@
 </div></div></header>
 <main><section class="section"><div class="wrap authwrap">
 
+<div id="obStep">
 <span class="kicker gold">Almost there</span>
 <h1 class="display-m" style="margin-top:12px">Welcome — set up your profile.</h1>
 <p style="margin-top:14px;color:var(--muted);max-width:42ch">Just a few quick things, then you are in. You can update all of this later.</p>
@@ -75,6 +76,18 @@
   <button class="btn gold block" type="submit" id="obSave" style="margin-top:20px">Enter the community <span class="arr">&rarr;</span></button>
   <p class="formerr hide" id="obErr"></p>
 </form>
+</div>
+
+<div id="welcomeDone" class="hide">
+<span class="kicker gold">You're in</span>
+<h1 class="display-m" style="margin-top:12px">Welcome to the crew.</h1>
+<p style="margin-top:14px;color:var(--muted);max-width:44ch">A quick hello from Nelson &mdash; then jump into the community and say hey.</p>
+<div class="authcard" style="margin-top:24px;padding:6px;overflow:hidden">
+<video id="welcomeVid" style="display:block;width:100%;aspect-ratio:16/9;border-radius:calc(var(--r) - 8px);background:#04123a"
+  src="/assets/welcome-nelson.mp4" poster="/assets/welcome-nelson-poster.jpg" controls playsinline preload="none"></video>
+</div>
+<button class="btn gold block" id="enterBtn" style="margin-top:20px">Enter the community <span class="arr">&rarr;</span></button>
+</div>
 
 </div></section></main>
 
@@ -164,7 +177,17 @@ else {
           $('obErr').classList.remove('hide');
           return;
         }
-        location.replace('/community/');
+        // Subscribed! Greet them with Nelson's welcome video, then into the community.
+        $('obStep').classList.add('hide');
+        $('welcomeDone').classList.remove('hide');
+        window.scrollTo(0, 0);
+        const v = $('welcomeVid');
+        try {
+          v.muted = false;
+          const pr = v.play();
+          if (pr && pr.catch) pr.catch(() => { v.muted = true; v.play().catch(() => {}); });
+        } catch (_) {}
+        $('enterBtn').addEventListener('click', () => location.replace('/community/'));
       });
     }
   }
