@@ -120,7 +120,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
   // Already signed in -> straight to the dashboard.
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
-    location.replace("/community/");
+    location.replace("/welcome/");
   } else {
     show(emailForm);
 
@@ -136,7 +136,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       try {
         const { error } = await supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: location.origin + "/community/", shouldCreateUser: true }
+          options: { emailRedirectTo: location.origin + "/welcome/", shouldCreateUser: true }
         });
         if (error) throw error;
         pendingEmail = email;
@@ -152,6 +152,15 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       }
     });
 
+    // Prefill + auto-send from ?email= query param (ebook popup hand-off).
+    const qp = new URLSearchParams(location.search);
+    const pre = (qp.get('email') || '').trim().toLowerCase();
+    if (pre && pre.indexOf('@') > 0) {
+      $('email').value = pre;
+      // auto-send the link so the popup hand-off is one tap
+      emailForm.requestSubmit ? emailForm.requestSubmit() : emailForm.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+
     $("codeForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       setErr($("codeErr"), "");
@@ -162,7 +171,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       try {
         const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
         if (error) throw error;
-        location.replace("/community/");
+        location.replace("/welcome/");
       } catch (err) {
         setErr($("codeErr"), (err && err.message) ? err.message : "That code did not work. Check it, or use the link in the email.");
         btn.disabled = false; btn.textContent = "Verify and sign in";
