@@ -2,10 +2,23 @@
 """Taylormade Academy static site generator. Shared chrome + page bodies -> route/index.html.
 Marketing storefront builds fully with NO keys; Buy buttons degrade to a 503 notice
 until Supabase/Stripe are wired."""
-import pathlib
+import pathlib, hashlib, re
 
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://academy.taylormadecreative.net"
+
+def _asset_ver():
+    """Short content hash of the shared CSS/JS. Appended as ?v= to every asset link so
+    browsers (and the GitHub Pages CDN) fetch a fresh copy the instant the file changes,
+    instead of serving a stale cached version. Changes only when the bytes change."""
+    h = hashlib.sha256()
+    for rel in ("css/build-mode.css", "js/site.js", "js/config.js"):
+        f = ROOT / rel
+        if f.exists():
+            h.update(f.read_bytes())
+    return h.hexdigest()[:10]
+
+ASSET_VER = _asset_ver()
 
 NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/library/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
@@ -68,7 +81,7 @@ def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 {hero_preload}
-<link rel="stylesheet" href="/css/build-mode.css">
+<link rel="stylesheet" href="/css/build-mode.css?v={ASSET_VER}">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>"""
 
@@ -156,12 +169,31 @@ def footer():
 </div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js"></script><script src="/js/site.js"></script></body></html>"""
+<script src="/js/config.js?v={ASSET_VER}"></script><script src="/js/site.js?v={ASSET_VER}"></script></body></html>"""
 
 def render(path, html):
     out = ROOT / path.strip("/") / "index.html" if path != "/" else ROOT / "index.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html)
+
+# Hand-maintained member-area pages the generator must NOT overwrite, but whose shared
+# CSS/JS links still need the cache-busting ?v= stamp. We only rewrite the version query
+# string on the asset links, leaving the rest of each file untouched.
+APP_PAGES = ("community", "login", "dashboard", "library", "welcome")
+_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
+
+def stamp_app_pages(ver):
+    stamped = []
+    for name in APP_PAGES:
+        f = ROOT / name / "index.html"
+        if not f.exists():
+            continue
+        html = f.read_text()
+        new = _ASSET_RX.sub(rf'\1?v={ver}', html)
+        if new != html:
+            f.write_text(new)
+            stamped.append(name)
+    return stamped
 
 # ---------- product data ----------
 PRODUCTS = {
@@ -605,6 +637,8 @@ if __name__ == "__main__":
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
     write_meta()
+    stamped = stamp_app_pages(ASSET_VER)
     print("built: home, store, 2 product pages, pricing, about, community, + 4 stubs")
     print("built: 404.html, robots.txt, sitemap.xml")
-    print("note: login/dashboard/library are hand-maintained app pages and are left untouched")
+    print(f"asset cache-bust version: {ASSET_VER}")
+    print(f"stamped app pages (asset ?v= only, bodies untouched): {', '.join(stamped) or 'none'}")
