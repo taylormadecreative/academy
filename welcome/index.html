@@ -102,12 +102,12 @@ else {
   else {
     const me = session.user;
     const { data: prof } = await supabase.from('ea_profiles')
-      .select('display_name,avatar_url,open_to,onboarded_at').eq('user_id', me.id).maybeSingle();
+      .select('display_name,avatar_url,interests,onboarded_at').eq('user_id', me.id).maybeSingle();
 
     if (prof && prof.onboarded_at) { location.replace('/community/'); }
     else {
       let avatarUrl = (prof && prof.avatar_url) || '';
-      const tags = new Set((prof && prof.open_to) || []);
+      const tags = new Set((prof && prof.interests) || []);
       let currentName = (prof && prof.display_name) || (me.email || '').split('@')[0] || '';
 
       $('dn').value = currentName;
@@ -153,7 +153,7 @@ else {
           user_id: me.id,
           display_name: name,
           avatar_url: avatarUrl,
-          open_to: Array.from(tags),
+          interests: Array.from(tags),
           onboarded_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
