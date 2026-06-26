@@ -98,7 +98,7 @@
   <!-- MAIN -->
   <section>
     <div class="card welcome">
-      <div class="avatar" id="ava">M</div>
+      <span id="ava"></span>
       <div style="flex:1;min-width:200px"><h1 id="hi">Welcome back.</h1><div class="sub">Keep learning, stay consistent, and build your next thing.</div></div>
     </div>
 
@@ -140,6 +140,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js"></script>
+<script src="/js/site.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
@@ -159,17 +160,29 @@ else {
     $("ue").textContent = me.email || "";
     $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/login/"); });
 
+    // admin check + preview toggle
+    const { data: isAdmin } = await supabase.rpc("ea_is_admin").catch(()=>({data:false}));
+    const asFree = () => !!isAdmin && localStorage.getItem("ea_preview_free") === "1";
+    if (isAdmin) {
+      const t = document.createElement("button");
+      t.className = "btn ghost sm"; t.style.cssText = "width:100%;margin-top:10px";
+      t.textContent = asFree() ? "Previewing as FREE — exit" : "Preview as free member";
+      t.onclick = () => { localStorage.setItem("ea_preview_free", asFree() ? "0" : "1"); location.reload(); };
+      document.querySelector(".dash-left").appendChild(t);
+    }
+
     // name + member since
-    const { data: prof } = await supabase.from("ea_profiles").select("display_name").eq("user_id", me.id).maybeSingle();
+    const { data: prof } = await supabase.from("ea_profiles").select("display_name,avatar_url,onboarded_at").eq("user_id", me.id).maybeSingle();
+    if (!prof || !prof.onboarded_at) { location.replace("/welcome/"); }
     const name = (prof && prof.display_name) || (me.email||"").split("@")[0] || "there";
     $("hi").textContent = "Welcome back, " + name + ".";
-    $("ava").textContent = initials(name);
+    document.getElementById("ava").innerHTML = BM.avatarHtml(name, prof && prof.avatar_url, '');
     if(me.created_at){ const d=new Date(me.created_at); if(!isNaN(d)) $("stSince").textContent = d.toLocaleDateString(undefined,{month:"short",year:"numeric"}); }
 
     // library
     (async()=>{
       try{
-        const { data, error } = await supabase.rpc("ea_my_library");
+        const { data, error } = await supabase.rpc("ea_my_library", { p_as_free: asFree() });
         if(error) throw error;
         const items = Array.isArray(data)? data : [];
         $("libLoading").classList.add("hide");
@@ -192,7 +205,7 @@ else {
         if(mine>=0){ $("stPts").textContent = rows[mine].score; $("stRank").textContent = "#"+(mine+1); }
         const top = rows.slice(0,8);
         $("leaderboard").innerHTML = top.length
-          ? top.map((r,i)=>`<div class="lead-row"><div class="lead-rank">${i+1}</div><div class="avatar sm">${esc(initials(r.name))}</div><div class="lead-name">${esc(r.name)}${r.user_id===me.id?' (you)':''}</div><div class="lead-pts">${r.score}</div></div>`).join("")
+          ? top.map((r,i)=>`<div class="lead-row"><div class="lead-rank">${i+1}</div>${BM.avatarHtml(r.name, r.avatar_url, 'sm')}<div class="lead-name">${esc(r.name)}${r.user_id===me.id?' (you)':''}</div><div class="lead-pts">${r.score}</div></div>`).join("")
           : '<p class="muted" style="font-size:13px;padding:4px">Post in the community to get on the board.</p>';
       }catch(_){ $("leaderboard").innerHTML='<p class="muted" style="font-size:13px;padding:4px">Unavailable.</p>'; }
     })();
