@@ -130,9 +130,9 @@ Deno.serve(async (req: Request) => {
     //    type drives the all-access-membership unlock for courses.
     const { data: product, error: prodErr } = await db
       .from("ea_products")
-      .select("id, type, storage_path")
+      .select("id, type, storage_path, is_free")
       .eq("slug", slug)
-      .maybeSingle<{ id: string; type: string; storage_path: string | null }>();
+      .maybeSingle<{ id: string; type: string; storage_path: string | null; is_free: boolean }>();
 
     // Treat unknown products exactly like "not entitled" so we never reveal
     // whether a given slug exists.
@@ -166,6 +166,9 @@ Deno.serve(async (req: Request) => {
     }
 
     let unlocked = !!ent;
+
+    // Free products are unlocked for any authenticated user.
+    if (!unlocked && product.is_free === true) unlocked = true;
 
     // All-access subscription unlocks courses (only). Check only if not already
     // unlocked by a direct entitlement.
