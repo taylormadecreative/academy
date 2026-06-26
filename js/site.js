@@ -6,6 +6,28 @@
     _cart: [],
     _prods: {},
     esc: function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); },
+    initials: function (n) { var p = String(n || 'M').trim().split(/\s+/);
+      return ((p[0] || 'M')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); },
+    avatarHtml: function (name, url, cls) {
+      cls = cls ? (' ' + cls) : '';
+      var safe = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g,
+        function (c) { return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]; }); };
+      if (url) return '<span class="avatar' + cls + '" style="background-image:url(' +
+        safe(url) + ');background-size:cover;background-position:center;color:transparent"></span>';
+      return '<span class="avatar' + cls + '">' + safe(BM.initials(name)) + '</span>';
+    },
+    uploadAvatar: async function (supabase, userId, file) {
+      if (!file) throw new Error('No file');
+      if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new Error('Use a PNG, JPG, or WebP image.');
+      if (file.size > 3 * 1024 * 1024) throw new Error('Image must be under 3 MB.');
+      var ext = (file.type === 'image/png') ? 'png' : (file.type === 'image/webp') ? 'webp' : 'jpg';
+      var path = userId + '/avatar.' + ext;
+      var up = await supabase.storage.from('ea-avatars').upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      var pub = supabase.storage.from('ea-avatars').getPublicUrl(path);
+      // cache-bust so a re-upload to the same path refreshes immediately
+      return pub.data.publicUrl + '?t=' + Date.now();
+    },
     fmt: function (c) { var d = c / 100; return (c % 100 === 0) ? ('$' + d) : ('$' + d.toFixed(2)); },
     toast: function (msg, ms) {
       var t = document.getElementById('toast'); if (!t) return;
@@ -96,33 +118,19 @@
     getEbook: function (e) {
       e.preventDefault();
       var form = e.target;
-      var email = (form.email && form.email.value || '').trim();
-      if (!email) return false;
-      var EBOOK = '/free/ai-for-beginners/the-creators-ai-playbook.pdf';
-      var deliver = function () {
-        var a = document.createElement('a');
-        a.href = EBOOK; a.download = 'The-Creators-AI-Playbook.pdf'; a.target = '_blank';
-        document.body.appendChild(a); a.click(); a.remove();
-        BM.toast('Your e-book is downloading. <b>Welcome in!</b>');
-        try { form.reset(); } catch (_) {}
-        BM.popMark(); BM.hidePop();
-      };
-      // collect lead data for building ad audiences (UTM, referrer, landing page)
-      var q = {};
-      try { (location.search || '').replace(/^\?/, '').split('&').forEach(function (p) { var kv = p.split('='); if (kv[0]) q[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || ''); }); } catch (_) {}
-      var payload = {
-        email: email, source: 'ebook-popup', lead_magnet: 'ai-playbook',
-        landing_page: location.pathname + location.search, referrer: document.referrer || '',
-        utm_source: q.utm_source || '', utm_medium: q.utm_medium || '', utm_campaign: q.utm_campaign || '',
-        utm_content: q.utm_content || '', utm_term: q.utm_term || ''
-      };
-      // capture the lead + email the ebook, but never block the freebie if it fails
-      if (CFG.FUNCTIONS_BASE) {
-        fetch(CFG.FUNCTIONS_BASE + '/ea-get-ebook', {
+      var email = (form.querySelector('input[type=email]') || {}).value;
+      email = (email || '').trim().toLowerCase();
+      if (!email || email.indexOf('@') < 1) { BM.toast('Enter a valid email.'); return false; }
+      // capture the lead so it is never lost, even if signup is not completed
+      try {
+        fetch(CFG.FUNCTIONS_BASE + '/ea-subscribe', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).then(deliver, deliver);
-      } else { deliver(); }
+          body: JSON.stringify({ email: email, source: 'ebook-popup', lead_magnet: 'ai-playbook' })
+        }).catch(function () {});
+      } catch (_) {}
+      BM.popMark(); BM.hidePop();
+      // hand off to the real signup flow; the Playbook is waiting in their library
+      location.href = '/login/?email=' + encodeURIComponent(email);
       return false;
     },
     waitlist: function (e) {
