@@ -127,9 +127,9 @@ def footer():
 <div class="pop-top">
 <div class="pop-left">
 <div class="pop-brand">{LOGO}<span>Taylormade Academy</span></div>
-<div class="pop-eyebrow">Get my free e-book</div>
+<div class="pop-eyebrow">Join free</div>
 <h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="gold">Playbook</span></h2>
-<p class="pop-sub">Discover how to use AI to create amazing content, save time, and build real income online, even if you've never typed a prompt.</p>
+<p class="pop-sub">Create your free account and the Playbook is waiting inside — plus the community, members, and DMs. 100% free.</p>
 <ul class="pop-bullets">
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M21 9v5"/><path d="M7 11v4c0 1 2.2 2.2 5 2.2s5-1.2 5-2.2v-4"/></svg></span> Learn AI skills</li>
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 4l6 6L9 21H3v-6z"/><path d="M12.5 6.5l5 5"/></svg></span> Create amazing content</li>
@@ -148,7 +148,7 @@ def footer():
 <p>Get instant access to the e-book and weekly <span class="gold">exclusive tips!</span></p>
 <form class="pop-form" onsubmit="return BM.getEbook(event)">
 <span class="pf-input"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><input type="email" name="email" placeholder="Enter your email address" required></span>
-<button class="btn gold" type="submit">Get my free e-book</button>
+<button class="btn gold" type="submit">Create my free account</button>
 </form>
 <div class="pob-fine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> No spam. Unsubscribe anytime.</div>
 </div>
@@ -167,7 +167,7 @@ def render(path, html):
 PRODUCTS = {
     "ai-agent-ebook": {
         "title": "Build Your First AI Agent",
-        "tag": "EBOOK", "pages": "~24 pages", "cover": "/assets/cover-ai-agent.png",
+        "tag": "EBOOK", "pages": "~24 pages", "cover": "/assets/cover-ai-agent-v2.png",
         "blurb": "Build a real, working AI agent this weekend, no code, no jargon. The same no-code approach I taught live to about 50 students. A short, do-it-with-me guide, not a textbook.",
         "for": "Beginners who have never written a line of code. Creatives and hustlers who want to build, not just read about AI. Students who want a head start. If you can write an email and follow directions, you can do this.",
         "what": ["What an AI agent actually is, in plain words", "How to pick a real problem worth solving",
@@ -250,7 +250,7 @@ def feature_bar():
              ("#f59e0b","store","A La Carte Store","Buy a single video or ebook, yours to keep.")]
     return "".join(f'<div class="f"><div class="ic" style="background:{c}">{IC[k]}</div><div class="h">{h}</div><div class="d">{d}</div></div>' for c,k,h,d in items)
 
-COVER_DIMS = {"/assets/cover-ai-agent.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120)}
+COVER_DIMS = {"/assets/cover-ai-agent-v2.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120)}
 
 def cover_pic(p, cls="cover ebook-cover", lazy=True, style=""):
     """WebP <picture> with PNG fallback + intrinsic size (no CLS)."""
@@ -331,7 +331,7 @@ def home():
 <span class="kicker gold" style="color:var(--blue-2)">Free starter guide</span>
 <h2 class="display-m" style="margin-top:8px;color:#fff">Start with the free AI Playbook.</h2>
 <p style="color:#aebbd8;margin-top:10px;max-width:50ch">The 3 tools, where to click, every beginner term, and the prompt formula, in a quick 11-page read. Drop your email and it's yours, free.</p>
-<button class="btn gold" data-get-ebook style="margin-top:18px">Get my free e-book <span class="arr">&rarr;</span></button>
+<button class="btn gold" data-get-ebook style="margin-top:18px">Join free for the Playbook <span class="arr">&rarr;</span></button>
 </div>
 </div>
 </div></section>
