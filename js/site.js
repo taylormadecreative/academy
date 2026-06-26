@@ -62,8 +62,8 @@
     closeCart: function () { BM._closeOverlay(document.getElementById('cartDrawer'), 'cartBackdrop'); },
 
     /* ---------------- lead popup ---------------- */
-    popSeen: function () { try { var t = localStorage.getItem('ea_pop'); return !!(t && (Date.now() - parseInt(t, 10) < 6048e5)); } catch (_) { return false; } },
-    popMark: function () { try { localStorage.setItem('ea_pop', String(Date.now())); } catch (_) {} },
+    popSeen: function () { try { return !!sessionStorage.getItem('ea_pop'); } catch (_) { return false; } },
+    popMark: function () { try { sessionStorage.setItem('ea_pop', '1'); } catch (_) {} },
     showPop: function () { if (BM.popSeen()) return; var b = document.getElementById('popBack'); if (!b) return; BM._openOverlay(b, null); BM.popMark(); },
     hidePop: function () { BM._closeOverlay(document.getElementById('popBack'), null); },
     renderCart: function () {
@@ -232,7 +232,7 @@
 
   // newsletter lead popup: timed + desktop exit-intent, once per visitor (7 days)
   if (document.getElementById('popBack') && !BM.popSeen()) {
-    setTimeout(BM.showPop, 9000);
+    setTimeout(BM.showPop, 5000);
     var exitPop = function (e) { if (e.clientY <= 0) { BM.showPop(); document.removeEventListener('mouseout', exitPop); } };
     document.addEventListener('mouseout', exitPop);
   }
