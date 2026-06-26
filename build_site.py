@@ -149,7 +149,7 @@ def footer():
 <div class="cart-foot">
 <div class="cart-sub"><span>Subtotal</span><span id="cartSubtotal">$0</span></div>
 <button class="btn gold" id="cartCheckout" data-checkout-cart style="width:100%" disabled>Checkout Securely <span class="arr">&rarr;</span></button>
-<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">30-day money-back guarantee</p>
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">7-day refund guarantee</p>
 <div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
 </div></aside>
 <div class="pop-back" id="popBack" aria-hidden="true">
@@ -646,6 +646,75 @@ def write_meta():
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + '</urlset>\n')
 
+PRIVACY_BODY = """
+<p style="color:var(--muted);font-size:14px;margin-top:-6px">Last updated: June 26, 2026</p>
+<p>This is the real, plain-English version. I'm Nelson Taylor, and Taylormade Academy is my education and community platform (Taylormade Creative, Dallas-Fort Worth, Texas). This policy covers the website at academy.taylormadecreative.net and the Taylormade Academy mobile app, which both use the same account and the same backend.</p>
+<p>The short version: I collect only what I need to run your account, deliver what you signed up for or bought, and keep the community working. I do not sell your data. I do not run ads, and I do not track you across other apps or websites for advertising. That's it.</p>
+
+<h2>Who I am</h2>
+<p>Taylormade Academy is operated by Nelson Taylor / Taylormade Creative, based in the Dallas-Fort Worth area, Texas, USA. If you have any privacy question or request, email me directly: <strong>taylormademd@gmail.com</strong>.</p>
+
+<h2>What I collect</h2>
+<p>I only collect a few things, and only because the product needs them to work:</p>
+<ul>
+<li><strong>Your email address</strong> &mdash; used to sign you in (I use "magic link" sign-in, so you log in by clicking a link I email you instead of using a password) and to send you account and product emails.</li>
+<li><strong>Your display name</strong> &mdash; so the community and your account have a name to show.</li>
+<li><strong>Your profile photo</strong> &mdash; optional. Only if you choose to upload one.</li>
+<li><strong>Your interests / bio</strong> &mdash; optional. Only if you choose to fill them in.</li>
+<li><strong>Your purchase history</strong> &mdash; which ebooks or membership you've bought, so I can give you access to what you paid for. <strong>I never see or store your card number.</strong> All card payments are handled by Stripe.</li>
+<li><strong>Basic usage information</strong> &mdash; basic activity in the app or on the site, like which courses, ebooks, or pages you open, so the product works and I can see what's useful and what's broken.</li>
+</ul>
+<p>If you post in the community &mdash; posts, comments, or direct messages to other members &mdash; that content is stored so the community can function and so the people you're talking to can see it.</p>
+<p><strong>What I do NOT collect:</strong> I don't collect your location, your contacts, your card numbers, health data, or anything for advertising. There are no ads and no third-party advertising trackers in this product.</p>
+
+<h2>How I use what I collect</h2>
+<p>I use your information to create and run your account and sign you in; give you access to the free Playbook, any ebooks or membership you buy, and the community; show your name (and photo, if you added one) in the community and member directory; send you emails you'd expect (sign-in links, purchase confirmations, account notices, and the occasional product update or newsletter you opted into); understand basic usage so I can improve the platform; and handle payments, refunds, and support.</p>
+<p>I do <strong>not</strong> use your data to build advertising profiles, and I do <strong>not</strong> sell or rent your information to anyone. Ever.</p>
+
+<h2>The companies that help me run this (processors)</h2>
+<p>I'm a small operation, so I use a few trusted services to run the product. They only process your data to provide their service to me, under their own privacy and security commitments:</p>
+<ul>
+<li><strong>Supabase</strong> &mdash; stores your account, your profile, your community content, and handles sign-in. (<a href="https://supabase.com/privacy" target="_blank" rel="noopener">supabase.com/privacy</a>)</li>
+<li><strong>Stripe</strong> &mdash; processes payments. When you pay, you enter your card details with Stripe, not with me. I receive a record that you paid and what you bought, but never your card number. (<a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>)</li>
+<li><strong>Resend</strong> &mdash; sends the emails I send you (sign-in links, receipts, updates). (<a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">resend.com/legal/privacy-policy</a>)</li>
+</ul>
+<p>These providers act on my instructions. I don't share your data with anyone else for their own marketing or advertising. I may also disclose information if the law requires it, or to protect the safety, rights, or property of members or the platform.</p>
+
+<h2>Cookies and similar technology</h2>
+<p>The site and app use basic cookies and local storage to keep you signed in and remember things like your cart. These are functional &mdash; they're needed for the product to work. I don't use advertising cookies or cross-site ad trackers.</p>
+
+<h2>How your data is protected</h2>
+<p>All traffic between your device, the website, and the services above is encrypted in transit (HTTPS/TLS). Your account data is stored with Supabase, and payment data is handled by Stripe, both of which maintain their own security practices. No system is perfectly secure, but I keep the footprint small and only collect what's needed.</p>
+
+<h2>How long I keep your data</h2>
+<p>I keep your account information for as long as you have an account. Purchase records are kept as long as I need them for tax, accounting, and refund purposes. When you ask me to delete your account, I remove your personal profile data, though some records (like a basic record that a purchase happened) may be retained where I'm legally required to keep them.</p>
+
+<h2>Deleting your account and your data</h2>
+<p>You can delete your account and your data at any time. Just email me at <strong>taylormademd@gmail.com</strong> from the address on your account, or tell me the email you signed up with, and ask me to delete your account. I'll remove your profile, your community content, and your personal data, except for any records I'm legally required to keep (such as basic transaction records for tax purposes). I'll confirm when it's done. You can also email me at the same address to see what data I have about you, or to correct it.</p>
+
+<h2>Refunds</h2>
+<p>Taylormade Academy has a 7-day refund policy on purchases. Refund requests are handled through Stripe and processed back to your original payment method. Email <strong>taylormademd@gmail.com</strong> to request a refund.</p>
+
+<h2>Children</h2>
+<p>Taylormade Academy is built for adults and creatives learning their craft. It is <strong>not directed at children under 13</strong>, and I don't knowingly collect personal information from anyone under 13. If you believe a child under 13 has created an account, email me at <strong>taylormademd@gmail.com</strong> and I'll delete it.</p>
+
+<h2>Your choices</h2>
+<ul>
+<li>You can update your display name, photo, and interests in your account.</li>
+<li>You can unsubscribe from newsletters/product emails using the link in any of those emails. (I'll still need to send you essential account emails, like sign-in links and receipts, while you have an account.)</li>
+<li>You can ask me to delete your account and data at any time.</li>
+</ul>
+
+<h2>Changes to this policy</h2>
+<p>If I change this policy, I'll update the date at the top and post the new version here. If it's a meaningful change, I'll do my best to let account holders know.</p>
+
+<h2>Contact</h2>
+<p>Questions, requests, or anything privacy-related:<br>
+<strong>Nelson Taylor &mdash; Taylormade Creative</strong><br>
+Email: <strong>taylormademd@gmail.com</strong><br>
+Dallas-Fort Worth, Texas, USA</p>
+"""
+
 if __name__ == "__main__":
     render("/", home())
     render("/store/", store())
@@ -660,8 +729,7 @@ if __name__ == "__main__":
         "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>"))
     render("/terms/", stub("Terms", "Legal", "Terms of use",
         "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>"))
-    render("/privacy/", stub("Privacy", "Legal", "Privacy",
-        "<p>I collect only what is needed to run your account and deliver what you bought: your email, your purchases, and your activity on the site. Payments are handled by Stripe; I never see your card. I do not sell your information. A full privacy policy will be posted here before payments go live.</p>"))
+    render("/privacy/", stub("Privacy", "Legal", "Privacy", PRIVACY_BODY))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
     write_meta()

@@ -13,10 +13,12 @@
   }
 
   // ---- 2. Install affordance ----
+  var isCapacitor = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   var standalone =
     window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-  if (standalone) return; // already installed as an app
+    window.navigator.standalone === true ||
+    isCapacitor;
+  if (standalone) return; // already installed as an app (home-screen PWA or native Capacitor app)
 
   var ua = window.navigator.userAgent || '';
   var isIOS = /iphone|ipad|ipod/i.test(ua) && !window.MSStream;
@@ -110,4 +112,22 @@
     '.tma-a2hs-x{flex:0 0 auto;background:none;border:0;color:#94a3b8;font-size:23px;line-height:1;cursor:pointer;padding:2px 6px;}' +
     '@media (display-mode: standalone){.tma-a2hs{display:none!important;}}';
   document.head.appendChild(style);
+})();
+
+/* Native-app (Capacitor) polish: when the site runs inside the Taylormade Academy native
+   app, strip the "it's a web page" tells (overscroll bounce, long-press callouts, tap
+   highlight) and tag <html> so the app can adapt. Browser visitors are never affected. */
+(function () {
+  'use strict';
+  var cap = window.Capacitor;
+  if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+  document.documentElement.classList.add('cap-native');
+  var s = document.createElement('style');
+  s.textContent =
+    'html.cap-native,html.cap-native body{overscroll-behavior:none;}' +
+    'html.cap-native *{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}' +
+    /* keep real content selectable (ebook text, posts), kill it only on chrome */
+    'html.cap-native .site-header,html.cap-native .appbar,html.cap-native button,html.cap-native .btn,' +
+    'html.cap-native nav,html.cap-native .nav,html.cap-native .navlink{-webkit-user-select:none;user-select:none;}';
+  document.head.appendChild(s);
 })();
