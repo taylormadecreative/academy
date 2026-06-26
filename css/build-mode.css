@@ -33,7 +33,7 @@
   --amber:#f59e0b;
   --clay:#ef4444;           /* destructive / unread / live */
   --ink-panel:#04123a;      /* dark thumbnails + bands (crest navy) */
-  --maxw:1340px;
+  --maxw:1680px;
   --gut:clamp(20px,5vw,48px);
   --r:16px; --r-lg:22px; --r-sm:10px;
   --ease:cubic-bezier(.23,1,.32,1);
@@ -284,7 +284,7 @@ p{max-width:68ch;}
 
 /* ---------- hero photo (cutout on blob) ---------- */
 .hero-shot{position:relative;display:flex;justify-content:center;align-items:center;}
-.hero-shot .hero-img{width:100%;max-width:560px;height:auto;}
+.hero-shot .hero-img{width:100%;max-width:640px;height:auto;}
 @media(max-width:920px){.hero-shot .hero-img{max-width:440px;}}
 @media(max-width:560px){.hero-shot .hero-img{max-width:360px;}}
 
