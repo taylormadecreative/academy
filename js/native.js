@@ -193,6 +193,25 @@
     try { window.BM && typeof BM.popMark === 'function' && BM.popMark(); } catch (_) {}
   }
 
+  /* ---------- in-app login: steer to the 6-digit code, not the magic link ----------
+     A bundled app can't open the magic link in-place, so we tell members to type the
+     code from their email (the login page already supports code sign-in). */
+  function adaptLogin() {
+    if (location.pathname.indexOf('/login') !== 0) return;
+    function apply() {
+      var sent = document.getElementById('sentState');
+      if (sent) {
+        var p = sent.querySelector('p');
+        if (p && p.getAttribute('data-cap') !== '1') {
+          p.setAttribute('data-cap', '1');
+          p.innerHTML = 'I emailed a 6-digit code to <b id="sentTo" style="color:var(--ink)"></b>. Enter it below to sign in — you don’t need to tap the link in the email.';
+        }
+      }
+    }
+    apply();
+    setTimeout(apply, 1500);
+  }
+
   /* ---------- init (runs after all the above are defined) ---------- */
   function main() {
     suppressPopup();
@@ -201,6 +220,7 @@
     buildShareButton();
     setupOffline();
     setupPush();
+    adaptLogin();
     setTimeout(function () { try { P.SplashScreen && P.SplashScreen.hide(); } catch (_) {} }, 250);
   }
   ready(main);
