@@ -6,4 +6,7 @@ window.BM_CONFIG = {
   SUPABASE_KEY: "sb_publishable_fyYqa9QkEeA5LD_0hYLTTA_F8Gxw1oz", // publishable / anon key
   FUNCTIONS_BASE: "https://pgqdmnmessbbzyszjfvr.functions.supabase.co",
   WAITLIST_FALLBACK: "https://formsubmit.co/ajax/taylormademd@gmail.com",
+  // Meta (Facebook) Pixel for ad audience tracking + retargeting + lookalikes.
+  // Paste your Pixel ID here (Meta Events Manager > Data Sources). Empty = pixel off.
+  META_PIXEL_ID: "",
 };

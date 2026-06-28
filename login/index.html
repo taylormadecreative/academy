@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=2cc8e013f8">
+<link rel="stylesheet" href="/css/build-mode.css?v=1548efe7b7">
 <style>
   /* app pages: simple top bar + centered card, all from the existing system */
   .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
@@ -52,8 +52,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=2cc8e013f8" defer></script>
-<script src="/js/native.js?v=2cc8e013f8" defer></script>
+<script src="/js/pwa.js?v=1548efe7b7" defer></script>
+<script src="/js/native.js?v=1548efe7b7" defer></script>
+<script src="/js/meta-pixel.js?v=1548efe7b7" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -115,7 +116,7 @@
 </div></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=2cc8e013f8"></script>
+<script src="/js/config.js?v=1548efe7b7"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -162,6 +163,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
           options: { emailRedirectTo: "https://academy.taylormadecreative.net/welcome/", shouldCreateUser: true }
         });
         if (error) throw error;
+        try { window.fbq && fbq('track', 'Lead'); } catch (_) {}
         pendingEmail = email;
         $("sentTo").textContent = email;
         $("head").textContent = "Check your email.";
