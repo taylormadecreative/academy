@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Send newsletter — Taylormade Academy</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+    font-family:'Inter',system-ui,sans-serif;
+    background:radial-gradient(120% 80% at 50% -10%,#0a205c 0%,#04123a 46%,#020a1f 100%);color:#0a1733;}
+  .card{max-width:460px;width:100%;background:#fff;border-radius:20px;padding:34px 30px;
+    box-shadow:0 30px 70px -24px rgba(0,0,0,.6);text-align:center;}
+  .crest{width:54px;height:54px;border-radius:13px;margin:0 auto 16px;display:block;}
+  .eyb{font-family:'Space Grotesk';font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#b07d00;}
+  h1{font-family:'Space Grotesk';font-size:26px;letter-spacing:-.02em;margin:8px 0 12px;color:#0a1733;}
+  p{font-size:16px;line-height:1.55;color:#475569;}
+  .subj{display:block;background:#f4f7ff;border:1px solid #e2e9fb;border-radius:12px;padding:12px 14px;margin:16px 0;
+    font-weight:600;color:#0a1733;font-size:15px;}
+  .n{color:#0b40e0;font-weight:700;}
+  button{margin-top:20px;width:100%;background:linear-gradient(180deg,#fdc921,#f2b705);color:#04123a;border:0;
+    font-family:'Space Grotesk';font-weight:700;font-size:17px;padding:15px;border-radius:100px;cursor:pointer;}
+  button:active{transform:scale(.98);}
+  button:disabled{opacity:.6;cursor:default;}
+  .hide{display:none;}
+  .spin{width:34px;height:34px;border:3px solid #e2e9fb;border-top-color:#0b40e0;border-radius:50%;margin:8px auto;animation:s .8s linear infinite;}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .bar{width:46px;height:4px;border-radius:3px;background:linear-gradient(90deg,#fdc921,#f2b705);margin:22px auto 0;}
+</style>
+</head><body>
+<div class="card">
+  <img class="crest" src="/assets/icon-192.png" alt="">
+
+  <div id="loading">
+    <div class="spin"></div>
+    <p>Loading your newsletter&hellip;</p>
+  </div>
+
+  <div id="confirm" class="hide">
+    <div class="eyb">Ready to send</div>
+    <h1>Send this newsletter?</h1>
+    <span class="subj" id="subj"></span>
+    <p>It&rsquo;ll go out to <span class="n" id="cnt">0</span> subscribers right now.</p>
+    <button id="go" type="button">Send it now &rarr;</button>
+  </div>
+
+  <div id="done" class="hide">
+    <div class="eyb">Done</div>
+    <h1 id="doneH">Sent! 🎉</h1>
+    <p id="doneP"></p>
+    <div class="bar"></div>
+  </div>
+
+  <div id="err" class="hide">
+    <h1 id="errH">Hmm.</h1>
+    <p id="errP"></p>
+  </div>
+</div>
+
+<script>
+  var FN = 'https://pgqdmnmessbbzyszjfvr.functions.supabase.co/ea-newsletter-approve';
+  var token = new URLSearchParams(location.search).get('token') || '';
+  var $ = function(id){ return document.getElementById(id); };
+  function show(id){ ['loading','confirm','done','err'].forEach(function(x){ $(x).classList.toggle('hide', x!==id); }); }
+  function fail(h, p){ $('errH').textContent=h; $('errP').textContent=p; show('err'); }
+  function reason(r){ return r==='already_sent' ? 'This newsletter was already sent.' :
+    r==='resend_not_configured' ? 'Email isn’t switched on yet.' : 'This link is invalid or expired.'; }
+
+  if (!token) { fail('Missing link', 'No newsletter token in the link.'); }
+  else {
+    fetch(FN + '?token=' + encodeURIComponent(token)).then(function(r){ return r.json(); }).then(function(d){
+      if (!d.ok) { fail(d.reason==='already_sent'?'Already sent':'Nothing to send', reason(d.reason)); return; }
+      $('subj').textContent = '“' + d.subject + '”';
+      $('cnt').textContent = d.count;
+      show('confirm');
+    }).catch(function(){ fail('Connection problem', 'Could not reach the server. Try again in a minute.'); });
+
+    $('go').addEventListener('click', function(){
+      var b = $('go'); b.disabled = true; b.textContent = 'Sending…';
+      fetch(FN, { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ token: token }) })
+        .then(function(r){ return r.json(); }).then(function(d){
+          if (d.ok) { $('doneP').textContent = 'Your newsletter just went out to ' + d.sent + ' subscriber' + (d.sent===1?'':'s') + '. Nice work.'; show('done'); }
+          else { fail('Could not send', reason(d.reason)); }
+        }).catch(function(){ b.disabled=false; b.textContent='Send it now →'; fail('Send failed', 'Something went wrong. Try again.'); });
+    });
+  }
+</script>
+</body></html>
