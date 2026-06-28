@@ -2,7 +2,7 @@
 """Taylormade Academy static site generator. Shared chrome + page bodies -> route/index.html.
 Marketing storefront builds fully with NO keys; Buy buttons degrade to a 503 notice
 until Supabase/Stripe are wired."""
-import pathlib, hashlib, re
+import pathlib, hashlib, re, urllib.parse
 
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://academy.taylormadecreative.net"
@@ -346,6 +346,42 @@ def popular_cards():
                 f'<div class="foot"><a class="btn ghost sm" href="/store/" style="width:100%">Notify me <span class="arr">&rarr;</span></a></div></article>')
     return out
 
+# ---------- AI Quick Launch (real feature: opens ChatGPT/Claude with a prompt loaded) ----------
+AI_PROMPT = ("You're my executive assistant. Here are my to-dos for today: [list them]. "
+             "Put them in priority order, tell me which to do first and why, and write the first email I need to send.")
+_AIQ = urllib.parse.quote(AI_PROMPT)
+CHATGPT_URL = "https://chatgpt.com/?q=" + _AIQ
+CLAUDE_URL = "https://claude.ai/new?q=" + _AIQ
+_SPARK = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>'
+
+def ai_launch():
+    def btn(url, color, name):
+        return (f'<a class="ai-btn" href="{url}" target="_blank" rel="noopener">'
+                f'<span class="aiic" style="background:{color}">{_SPARK}</span>'
+                f'<span><b>Ask {name}</b><span class="aism">Prompt pre-loaded</span></span>'
+                f'<span class="aiar">&rarr;</span></a>')
+    return ("""<style>
+.ailaunch{background:radial-gradient(120% 100% at 50% -20%,#0a205c,#04123a);border-radius:var(--r-lg);padding:clamp(26px,4vw,44px);display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(22px,3vw,44px);align-items:center;}
+.ailaunch .eyb{font:700 12px/1 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#fdc921;}
+.ailaunch h2{font-family:var(--display);color:#fff;font-size:clamp(26px,3.4vw,38px);line-height:1.05;letter-spacing:-.02em;margin:12px 0 0;}
+.ailaunch p{color:#bcc8e6;font-size:16px;line-height:1.6;margin:12px 0 0;max-width:44ch;}
+.ailaunch .btns{display:flex;flex-direction:column;gap:12px;}
+.ai-btn{display:flex;align-items:center;gap:13px;background:#fff;border-radius:14px;padding:15px 16px;text-decoration:none;box-shadow:0 12px 26px -16px rgba(0,0,0,.6);transition:transform .14s;}
+.ai-btn:active{transform:scale(.98);}
+.ai-btn .aiic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.ai-btn b{display:block;font-family:var(--display);font-size:16px;color:#0a1733;}
+.ai-btn .aism{font-size:12px;color:#8493ad;}
+.ai-btn .aiar{font-family:var(--display);font-weight:700;color:#0b40e0;font-size:18px;margin-left:auto;}
+@media(max-width:760px){.ailaunch{grid-template-columns:1fr;}}
+</style>
+<section class="section tight" style="padding-top:30px;padding-bottom:6px"><div class="wrap">
+<div class="ailaunch reveal">
+<div><span class="eyb">AI Quick Launch</span>
+<h2>Talk to your AI. One tap.</h2>
+<p>Jump straight into ChatGPT or Claude with a prompt already loaded &mdash; the fastest way to put AI to work on your day, your studies, or your hustle.</p></div>
+<div class="btns">""" + btn(CHATGPT_URL, "#10a37f", "ChatGPT") + btn(CLAUDE_URL, "#d97757", "Claude") + """</div>
+</div></div></section>""")
+
 # ---------- HOME ----------
 def home():
     return head(
@@ -363,6 +399,8 @@ def home():
 </div>
 <div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
+
+{ai_launch()}
 
 <section class="section tight" style="padding-top:26px"><div class="wrap">
 <div class="reveal" style="max-width:880px;margin:0 auto;text-align:center">
