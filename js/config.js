@@ -8,5 +8,5 @@ window.BM_CONFIG = {
   WAITLIST_FALLBACK: "https://formsubmit.co/ajax/taylormademd@gmail.com",
   // Meta (Facebook) Pixel for ad audience tracking + retargeting + lookalikes.
   // Paste your Pixel ID here (Meta Events Manager > Data Sources). Empty = pixel off.
-  META_PIXEL_ID: "",
+  META_PIXEL_ID: "250707859411649",
 };
