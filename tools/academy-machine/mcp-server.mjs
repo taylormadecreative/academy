@@ -78,7 +78,7 @@ server.registerTool(
       format: z.enum(Object.keys(FORMATS)).optional().describe("post 4:5 (default) | reel/story 9:16 | square | wide"),
       size: z.string().optional().describe("Exact custom output size in pixels, e.g. '1080x1080', '1200x628', '1080x1920'. ANY size; overrides format."),
       variants: z.number().int().min(1).max(4).optional().describe("Variants per engine (default 2)."),
-      engine: z.enum(["both", "gemini", "openai"]).optional().describe("Default both for graphics; person recipes default to gemini."),
+      engine: z.enum(["both", "gemini", "openai"]).optional().describe("Default is ChatGPT (openai, gpt-image-2) — Nelson prefers that look. Use 'gemini' (Nano Banana, faster + native 9:16) or 'both' to compare."),
       outfit: z.string().optional().describe("Override the founder's outfit, e.g. 'a royal-blue bomber over a white tee'. On-brand navy/gold/royal-blue/cream that POPS; changes every post; never dull gray/black, never the ref's white tank."),
       brands: z.array(z.string()).optional().describe(`Real third-party logos to stamp on the post (REAL files — the AI cannot render these without garbling them). Available: ${availableBrands().join(", ") || "none"}. Use when the post is about those platforms, e.g. ["tiktok","claude"].`),
       slides: z.number().int().min(2).max(8).optional().describe("Slide count for the carousel recipe."),

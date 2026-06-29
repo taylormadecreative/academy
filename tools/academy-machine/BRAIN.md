@@ -41,9 +41,9 @@ Output lands in `out/<date>-<label>/` with all variants + an `index.html` contac
 | `carousel` | multi-slide: `"Title \| point 1 \| point 2 \| point 3"` (pipe-separated) |
 
 ## Which engine wins
-- **Nano Banana 2 (gemini):** true 4:5 & 9:16 framing, reference photos, fast. Default workhorse for social.
-- **ChatGPT (openai):** crispest typographic posters / heavy clean text. Limited aspect ratios (we letterbox/crop).
-- Default `--engine both` and let the contact sheet decide.
+- **ChatGPT (openai, `gpt-image-2`) — DEFAULT.** Nelson prefers this look: crispest typography, cleanest faces/jackets, most polished. Every output is cropped to the exact format pixels, so its 3 native sizes still frame as 4:5 / 9:16 / etc.
+- **Nano Banana 2 (gemini)** — available via `--engine gemini`: faster + cheaper, native 9:16/4:5. Good for quick drafts or true vertical framing.
+- `--engine both` to compare on the contact sheet.
 
 ## Nelson's face + outfit (read this for any post with him in it)
 - His real reference portraits live in **`refs/nelson-*.jpg`** (front, 3/4, profile, smiling + neutral).

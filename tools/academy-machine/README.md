@@ -88,6 +88,11 @@ to corner it. Rebuild the badge from the logo with ImageMagick if you want it bi
 - Deps: `@modelcontextprotocol/sdk` + `zod` (installed here via `npm install`).
 - After editing `mcp-server.mjs`, fully quit + reopen Desktop to reload it.
 
+## Engines
+**Default = ChatGPT** (`gpt-image-2`) — the preferred look; every output is cropped to the
+exact format pixels. `--engine gemini` for Nano Banana 2 (faster, native 9:16), `--engine both`
+to compare.
+
 ## Keys
 Reads `GOOGLE_API_KEY` + `OPENAI_API_KEY` from your shell, falling back to a
 gitignored `.env` (auto-loaded by `env.mjs`) — so it runs even when Claude Desktop

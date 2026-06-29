@@ -41,7 +41,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 // ---- tiny arg parser ----
 const argv = process.argv.slice(2);
-const opts = { format: "post", engine: "both", n: 2, slides: 4, refs: [], vars: {} };
+const opts = { format: "post", engine: "openai", n: 2, slides: 4, refs: [], vars: {} };
 const pos = [];
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -129,9 +129,8 @@ if (spec.person && !opts.noRef && opts.refs.length === 0) {
 }
 const outfit = spec.person && !opts.keepOutfit ? pickOutfit(topic, opts.outfit) : null;
 
-// Person + ref shots come out best on Nano Banana 2 (keeps the face, changes the
-// outfit from the prompt). Default person recipes to gemini unless --engine was set.
-if (spec.person && !opts.engineSet && opts.engine === "both") opts.engine = "gemini";
+// Default engine is ChatGPT (gpt-image-2) — Nelson prefers that look. Nano Banana 2
+// stays available via `--engine gemini` (faster, native 9:16). `--engine both` compares.
 
 // --size <WxH> wins over named formats and snaps to the nearest engine ratio,
 // then each image is cropped to the exact pixels after generation.
@@ -182,7 +181,7 @@ for (const frame of frames) {
       if (r.ok) {
         const savePath = path.join(outDir, base);
         fs.writeFileSync(savePath, r.buffer);
-        if (f.custom) fitTo(savePath, f.w, f.h); // crop/scale to the exact requested size
+        fitTo(savePath, f.w, f.h); // crop/scale to the exact target pixels (any engine)
         let branded = false;
         if (!opts.noLogo && !spec.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || spec.logoPos || "south" });
         let stickers = 0;

@@ -93,7 +93,9 @@ export const FORMATS = {
 };
 
 export function resolveFormat(name = "post") {
-  return FORMATS[name] || FORMATS.post;
+  const f = FORMATS[name] || FORMATS.post;
+  const [w, h] = f.px.split("x").map(Number);
+  return { ...f, w, h }; // attach exact pixel dims so every output crops to them
 }
 
 // Aspect ratios Nano Banana 2 (Gemini) accepts — we snap a custom size to the nearest.

@@ -1,6 +1,6 @@
 # BUILD MODE edge functions — deploy + secrets
 
-Six functions, one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
+Seven functions, one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
 own auth with the service role, so JWT verification is turned OFF for all of them.
 
 ## verify_jwt = false (set this per function)
@@ -31,7 +31,13 @@ supabase functions deploy ea-issue-media      --no-verify-jwt --project-ref pgqd
 supabase functions deploy ea-billing-portal   --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 supabase functions deploy ea-delete-account   --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 supabase functions deploy ea-demo-login       --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+supabase functions deploy ea-community-bot     --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 ```
+
+`ea-community-bot` is called only by the scheduled cloud routines that run the community
+(twice-daily engage + daily post, as Nelson). Auth = a baked `x-bot-secret` header
+(rotate by editing the constant + redeploying). Actions: `recent` (read unhandled
+activity, deduped), `post`, `comment`.
 
 `ea-demo-login` is the App Store reviewer sign-in (one fixed email + code → a session
 for a throwaway non-admin demo account). Turn it off after approval with
