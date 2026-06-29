@@ -13,6 +13,15 @@
   var platform = (Cap.getPlatform && Cap.getPlatform()) || 'ios';
   document.documentElement.classList.add('cap-native', 'cap-' + platform);
 
+  /* ---------- App Store 3.1.1: the native app sells nothing ----------
+     Bounce off any sales surface (the pricing page, the store, and every product
+     detail page) to the member's library BEFORE a price or buy button can render.
+     Members buy/manage their membership on the web; the app is read-only access. */
+  if (/^\/(pricing|store)(\/|$)/.test(location.pathname)) {
+    location.replace('/library/');
+    return;
+  }
+
   /* ---------- helpers ---------- */
   function ready(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
@@ -31,7 +40,7 @@
   };
   var TABS = [
     { key: 'home', label: 'Home', href: '/', match: ['/'] },
-    { key: 'learn', label: 'Learn', href: '/store/', match: ['/store', '/library', '/course', '/pricing'] },
+    { key: 'learn', label: 'Library', href: '/library/', match: ['/library', '/course', '/store', '/pricing'] },
     { key: 'community', label: 'Community', href: '/community/', match: ['/community'] },
     { key: 'account', label: 'Account', href: '/dashboard/', match: ['/dashboard', '/login', '/welcome', '/about'] },
   ];
@@ -40,9 +49,13 @@
   function injectStyles() {
     var css = document.createElement('style');
     css.textContent =
-      // App Store reader model: no in-app purchase UI. Subs/ebooks are bought on the web.
+      // App Store reader model (3.1.1): the native app shows NO prices, purchase,
+      // upgrade, or "see plans" CTAs anywhere. Subs/ebooks are bought on the web.
       'html.cap-native [data-buy],html.cap-native [data-add-cart],html.cap-native [data-checkout],' +
-      'html.cap-native [data-open-cart],html.cap-native .cart-btn,html.cap-native .cart-drawer{display:none!important;}' +
+      'html.cap-native [data-checkout-cart],html.cap-native [data-open-cart],html.cap-native [data-price],' +
+      'html.cap-native .cart-btn,html.cap-native .cart-drawer,html.cap-native .cart-backdrop,' +
+      'html.cap-native .cart-up,html.cap-native .price,html.cap-native .tiers,html.cap-native .tier,' +
+      'html.cap-native .upsell,html.cap-native a[href="/pricing/"],html.cap-native a[href^="/pricing"]{display:none!important;}' +
       // suppress the marketing popup inside the app (cleaner native feel)
       'html.cap-native .pop-back{display:none!important;}' +
       // strip the "it's a web page" tells

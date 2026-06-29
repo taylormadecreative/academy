@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=971b0dd46a">
+<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
 <style>
   /* app pages: simple top bar + centered card, all from the existing system */
   .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
@@ -52,9 +52,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=971b0dd46a" defer></script>
-<script src="/js/native.js?v=971b0dd46a" defer></script>
-<script src="/js/meta-pixel.js?v=971b0dd46a" defer></script>
+<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
+<script src="/js/native.js?v=8fd3a8ab23" defer></script>
+<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -116,12 +116,17 @@
 </div></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=971b0dd46a"></script>
+<script src="/js/config.js?v=8fd3a8ab23"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
+
+// App Store reviewer demo account (passwordless). This one email + code mints a
+// session via the locked-down ea-demo-login function. Throwaway non-admin account.
+const DEMO_EMAIL = "appreview@taylormadecreative.net";
+const DEMO_CODE = "424242";
 
 const offState  = $("offState");
 const emailForm = $("emailForm");
@@ -154,6 +159,16 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       if (!email || email.indexOf("@") < 1) { setErr($("emailErr"), "Enter a valid email address."); return; }
       const btn = $("sendBtn");
       btn.disabled = true; btn.textContent = "Sending...";
+      // Reviewer demo account: skip the email round-trip and go straight to the code.
+      if (email === DEMO_EMAIL) {
+        pendingEmail = email;
+        $("sentTo").textContent = email;
+        $("head").textContent = "Enter your code.";
+        $("sub").textContent = "Type your 6-digit code to sign in.";
+        hide(emailForm); show(sentState); $("code").focus();
+        btn.disabled = false; btn.innerHTML = 'Send my sign-in link <span class="arr">&rarr;</span>';
+        return;
+      }
       try {
         const { error } = await supabase.auth.signInWithOtp({
           email,
@@ -194,6 +209,20 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       const btn = $("verifyBtn");
       btn.disabled = true; btn.textContent = "Verifying...";
       try {
+        // Reviewer demo account: mint a session through the locked-down function.
+        if (pendingEmail === DEMO_EMAIL && token === DEMO_CODE) {
+          const res = await fetch(CFG.FUNCTIONS_BASE + "/ea-demo-login", {
+            method: "POST",
+            headers: { "content-type": "application/json", "apikey": CFG.SUPABASE_KEY || "" },
+            body: JSON.stringify({ email: pendingEmail, code: token }),
+          });
+          if (!res.ok) throw new Error("That code did not work.");
+          const j = await res.json();
+          const { error: sErr } = await supabase.auth.setSession({ access_token: j.access_token, refresh_token: j.refresh_token });
+          if (sErr) throw sErr;
+          location.replace("/welcome/");
+          return;
+        }
         const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token, type: "email" });
         if (error) throw error;
         location.replace("/welcome/");

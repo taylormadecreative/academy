@@ -11,7 +11,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=971b0dd46a">
+<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
 <style>
   body{background:var(--bg-soft);}
   .appbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--hair);}
@@ -65,6 +65,17 @@
   .muted{color:var(--muted);} .hide{display:none !important;}
   .skel{height:150px;border-radius:var(--r);background:linear-gradient(100deg,#fff 30%,var(--bg-soft2) 50%,#fff 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;border:1px solid var(--hair);}
   @keyframes sh{to{background-position:-200% 0;}}
+  .btn-danger{width:100%;color:#b91c1c;border:1px solid #fecaca;background:#fff;}
+  .btn-danger:hover{background:#fef2f2;}
+  .modal-back{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(4,18,58,.5);backdrop-filter:blur(3px);}
+  .modal-back.show{display:flex;}
+  .modal-card{background:#fff;border-radius:var(--r);box-shadow:0 30px 70px -20px rgba(4,18,58,.5);max-width:430px;width:100%;padding:24px;}
+  .modal-card h3{font-size:19px;font-weight:800;letter-spacing:-.01em;}
+  .modal-card p{color:var(--muted);font-size:14px;line-height:1.55;margin-top:10px;}
+  .modal-actions{display:flex;gap:10px;margin-top:22px;}
+  .modal-actions .btn{flex:1;}
+  .btn-danger-solid{background:#dc2626;color:#fff;border:0;}
+  .btn-danger-solid:hover{background:#b91c1c;} .btn-danger-solid:disabled{opacity:.6;}
   @media(max-width:1080px){ .dash-grid{grid-template-columns:1fr;} .col-stick{position:static;} .dash-left{order:2;} .dash-right{order:3;} .lnav{flex-direction:row;flex-wrap:wrap;} }
   @media(max-width:620px){ .statchips,.quick{grid-template-columns:1fr 1fr;} .appbar .navlink,.appbar .email{display:none;} }
 </style>
@@ -85,9 +96,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=971b0dd46a" defer></script>
-<script src="/js/native.js?v=971b0dd46a" defer></script>
-<script src="/js/meta-pixel.js?v=971b0dd46a" defer></script>
+<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
+<script src="/js/native.js?v=8fd3a8ab23" defer></script>
+<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -113,6 +124,10 @@
     <div class="card pad upsell">
       <h3>Go all-in</h3><p>Unlock every course, the ebooks, and live workshops with a membership.</p>
       <a class="btn" style="background:#fff;color:var(--blue-deep);width:100%;margin-top:14px" href="/pricing/">See plans</a>
+    </div>
+    <div class="card pad">
+      <div class="side-h">Account</div>
+      <button class="btn ghost sm btn-danger" id="deleteAcct" type="button">Delete account</button>
     </div>
   </aside>
 
@@ -159,9 +174,19 @@
 
 </div></main>
 
+<div class="modal-back" id="delModal" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+  <div class="modal-card">
+    <h3 id="delTitle">Delete your account?</h3>
+    <p>This permanently deletes your account, your library access, and everything you've posted in the community — your posts, comments, and direct messages. This <b>can't be undone</b>. If you have an active membership, it will be canceled.</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="delCancel" type="button">Cancel</button>
+      <button class="btn btn-danger-solid" id="delConfirm" type="button">Delete my account</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=971b0dd46a"></script>
-<script src="/js/site.js?v=971b0dd46a"></script>
+<script src="/js/config.js?v=8fd3a8ab23"></script>
+<script src="/js/site.js?v=8fd3a8ab23"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
@@ -180,6 +205,35 @@ else {
     const me = session.user;
     $("ue").textContent = me.email || "";
     $("so").addEventListener("click", async()=>{ try{await supabase.auth.signOut();}catch(_){} location.replace("/login/"); });
+
+    // delete account (App Store 5.1.1(v) — must be initiated in-app)
+    (function(){
+      const open=$("deleteAcct"), modal=$("delModal"), cancel=$("delCancel"), confirm=$("delConfirm");
+      if(!open||!modal) return;
+      const close=()=>modal.classList.remove("show");
+      open.addEventListener("click",()=>modal.classList.add("show"));
+      cancel.addEventListener("click",close);
+      modal.addEventListener("click",e=>{ if(e.target===modal) close(); });
+      confirm.addEventListener("click",async()=>{
+        confirm.disabled=true; const label=confirm.textContent; confirm.textContent="Deleting…";
+        try{
+          const { data:{ session: s } } = await supabase.auth.getSession();
+          const token = s && s.access_token;
+          if(!token) throw new Error("no session");
+          const res = await fetch(CFG.FUNCTIONS_BASE + "/ea-delete-account", {
+            method:"POST",
+            headers:{ "content-type":"application/json", "authorization":"Bearer "+token, "apikey": CFG.SUPABASE_KEY || "" },
+          });
+          if(!res.ok) throw new Error("delete failed " + res.status);
+          try{ await supabase.auth.signOut(); }catch(_){}
+          location.replace("/?deleted=1");
+        }catch(err){
+          confirm.disabled=false; confirm.textContent=label; close();
+          const msg="Couldn't delete your account right now. Email taylormademd@gmail.com and I'll remove it.";
+          try{ (window.BM&&BM.toast)?BM.toast(msg):alert(msg); }catch(_){ alert(msg); }
+        }
+      });
+    })();
 
     // admin check + preview toggle
     const { data: isAdmin } = await supabase.rpc("ea_is_admin").catch(()=>({data:false}));

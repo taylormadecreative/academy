@@ -1,6 +1,6 @@
 # BUILD MODE edge functions — deploy + secrets
 
-Four functions, one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
+Six functions, one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
 own auth with the service role, so JWT verification is turned OFF for all of them.
 
 ## verify_jwt = false (set this per function)
@@ -29,7 +29,14 @@ supabase functions deploy ea-create-checkout  --no-verify-jwt --project-ref pgqd
 supabase functions deploy ea-stripe-webhook   --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 supabase functions deploy ea-issue-media      --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 supabase functions deploy ea-billing-portal   --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+supabase functions deploy ea-delete-account   --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+supabase functions deploy ea-demo-login       --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 ```
+
+`ea-demo-login` is the App Store reviewer sign-in (one fixed email + code → a session
+for a throwaway non-admin demo account). Turn it off after approval with
+`supabase secrets set DEMO_LOGIN_DISABLED=1 --project-ref pgqdmnmessbbzyszjfvr`, or
+delete the function.
 
 ## Secrets (function env)
 
@@ -49,6 +56,8 @@ supabase secrets set \
 | `ea-stripe-webhook` | false | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
 | `ea-issue-media` | false | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
 | `ea-billing-portal` | false | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` |
+| `ea-delete-account` | false | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (optional) |
+| `ea-demo-login` | false | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DEMO_LOGIN_DISABLED` (optional kill switch) |
 
 The service role key never reaches the browser. When `STRIPE_SECRET_KEY` is absent,
 the payment functions return `503 {"error":"payments_not_configured"}`, which the

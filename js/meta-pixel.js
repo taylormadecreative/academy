@@ -3,6 +3,10 @@
    Lookalikes, and retarget. Conversion events (Lead on sign-in, CompleteRegistration on
    onboarding) are fired from the login + welcome pages. No-op until you paste your Pixel ID. */
 (function () {
+  // No third-party ad tracking inside the native app (App Store privacy / ATT).
+  // The Meta Pixel runs on the website only; in the Capacitor app it's a no-op.
+  var Cap = window.Capacitor;
+  if (Cap && Cap.isNativePlatform && Cap.isNativePlatform()) return;
   var id = (window.BM_CONFIG || {}).META_PIXEL_ID;
   if (!id) return;
   if (window.fbq) { try { fbq('track', 'PageView'); } catch (_) {} return; }
