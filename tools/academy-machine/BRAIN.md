@@ -30,6 +30,7 @@ Output lands in `out/<date>-<label>/` with all variants + an `index.html` contac
 ## Recipes (social-first)
 | recipe | use it for |
 |---|---|
+| `web-hero` | WIDE website-hero banner (letterman + Claude/TikTok app icons + pill chips + Join free/Explore buttons). Routes to ChatGPT for clean text; renders its own wordmark. |
 | `hero-post` | founder-as-hero motivational post (you as the hero) |
 | `quote-card` | bold typographic quote (navy bg, gold highlight) |
 | `lesson-card` | a teach-a-thing / creator tip |
@@ -46,8 +47,9 @@ Output lands in `out/<date>-<label>/` with all variants + an `index.html` contac
 
 ## Nelson's face + outfit (read this for any post with him in it)
 - His real reference portraits live in **`refs/nelson-*.jpg`** (front, 3/4, profile, smiling + neutral).
-- Person recipes (`hero-post`, `lifestyle`, `behind-the-build`) **auto-lock his face from those refs** — you don't have to pass `--ref` (you can, to use a specific shot). They also **default to Nano Banana 2**, which keeps the face while changing the outfit.
-- **The outfit ALWAYS changes per post and must POP + be on-brand** (navy / royal-blue / gold / cream / white — never dull gray/black, never the ref's white tank). The machine auto-picks one that varies by topic; pass `--outfit "a royal-blue bomber over a white tee"` to control it.
+- **DEFAULT hero look** = his real navy/gold **"Taylormade Creative" letterman jacket** photo (`refs/nelson-letterman.jpg`). Person recipes use it by default and **keep that exact jacket** (patches and all) — Nelson likes this look for Academy posts.
+- Person recipes (`hero-post`, `lifestyle`, `behind-the-build`) **auto-lock his face** from the refs and **default to Nano Banana 2**.
+- **Want a different outfit?** Pass `--outfit "a royal-blue bomber over a white tee"` — that switches to the portrait refs and swaps to an on-brand look that POPS (navy/royal-blue/gold/cream/white — never dull gray/black, white/cream tee always). `--keep-outfit` forces keeping the reference's outfit.
 - **Freeform art direction:** pass `--note "..."` for pose/setting/action — e.g. `--note "pointing at the headline"`, `--note "lifestyle coffee-shop setting, laughing"`, `--note "sitting at a laptop"`. The `lifestyle` recipe is built for real-world scenes.
 - **Don't auto-append "Let me put you on" (or any CTA).** Keep `topic` to just the hook; only add a CTA if Nelson asks.
 - Use `--no-ref` only if you deliberately want a generic (not-Nelson) person, text-to-image.

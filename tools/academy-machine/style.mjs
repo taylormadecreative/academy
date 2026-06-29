@@ -58,10 +58,19 @@ export function pickOutfit(seed = "", override) {
 }
 
 // Build the identity + outfit clause for person-featuring recipes.
-export function identityClause({ outfit, hasRefs }) {
+export function identityClause({ outfit, hasRefs, keepOutfit }) {
   const teeRule =
     " Any tee or shirt visible under the outfit must be WHITE or cream — never black, " +
     "never dark gray. Keep the look bright and on-brand.";
+  if (keepOutfit && hasRefs) {
+    return (
+      `The person is the SAME REAL MAN in the attached reference photo — preserve his EXACT ` +
+      `face, twists/locs, beard, AND his exact outfit: the navy-and-gold "Taylormade Creative" ` +
+      `varsity letterman jacket (with the AI / Design / Photography / Video patches on the sleeve) ` +
+      `over a white tee. Do NOT change his face or clothing; only the background scene and graphics ` +
+      `change around him. Natural, flattering, true-to-life.`
+    );
+  }
   if (hasRefs) {
     return (
       `The person is the SAME REAL MAN in the attached reference photo(s) — preserve his ` +
@@ -87,9 +96,44 @@ export function resolveFormat(name = "post") {
   return FORMATS[name] || FORMATS.post;
 }
 
+// Aspect ratios Nano Banana 2 (Gemini) accepts — we snap a custom size to the nearest.
+const GEMINI_ARS = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "9:21"];
+function nearestGeminiAR(ratio) {
+  let best = "1:1", diff = Infinity;
+  for (const ar of GEMINI_ARS) {
+    const [a, b] = ar.split(":").map(Number);
+    const d = Math.abs(a / b - ratio);
+    if (d < diff) { diff = d; best = ar; }
+  }
+  return best;
+}
+function nearestOpenAISize(ratio) {
+  if (ratio > 1.2) return "1536x1024";   // landscape
+  if (ratio < 0.84) return "1024x1536";  // portrait
+  return "1024x1024";                     // square-ish
+}
+
+// Parse "1080x1350" / "1080×1350" / "1080,1350" into clamped {w,h}, or null.
+export function parseSize(s) {
+  const m = String(s).trim().match(/^(\d{2,5})\s*[x×,]\s*(\d{2,5})$/i);
+  if (!m) return null;
+  const clamp = (n) => Math.max(256, Math.min(4096, parseInt(n, 10)));
+  return { w: clamp(m[1]), h: clamp(m[2]) };
+}
+
+// A format object for an arbitrary pixel size: generate at the nearest ratio per
+// engine, then crop/scale to exactly w×h afterward (see brand.fitTo).
+export function customFormat({ w, h }) {
+  const ratio = w / h;
+  return {
+    label: `${w}×${h}`, ar: nearestGeminiAR(ratio), oaiSize: nearestOpenAISize(ratio),
+    px: `${w}x${h}`, w, h, custom: true,
+  };
+}
+
 // Wrap a recipe's creative direction with the locked style + format guidance,
 // and (for person-featuring recipes) the identity + per-post outfit clause.
-export function composePrompt({ direction, format, withText, person, outfit, hasRefs, note, brandCorner }) {
+export function composePrompt({ direction, format, withText, person, outfit, hasRefs, keepOutfit, note, brandCorner }) {
   const f = resolveFormat(format);
   const textRule = withText
     ? "Render the on-image text EXACTLY as written, spelled perfectly, in the " +
@@ -105,7 +149,7 @@ export function composePrompt({ direction, format, withText, person, outfit, has
     "reserved for the brand logo. " + cornerRule;
   const blocks = [direction.trim()];
   if (note) blocks.push(`ART DIRECTION (follow this closely): ${note.trim()}`);
-  if (person) blocks.push(identityClause({ outfit, hasRefs }));
+  if (person) blocks.push(identityClause({ outfit, hasRefs, keepOutfit }));
   blocks.push(textRule + footerRule + `Composition framed for a ${f.label} (${f.ar}) social post with safe margins.`);
   blocks.push(STYLE);
   return blocks.join("\n\n");

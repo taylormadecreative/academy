@@ -36,6 +36,7 @@ open out/<date>-<label>/index.html
 ```
 
 ## Recipes
+`web-hero` (wide website-hero banner — Claude/TikTok icons, chips, CTAs; routes to ChatGPT) ·
 `hero-post` · `lifestyle` (founder in a real-world scene) · `quote-card` · `lesson-card` ·
 `stat-flex` (`--stat 82K`) · `behind-the-build` · `launch` · `story-frame` · `carousel`
 
@@ -49,14 +50,16 @@ They composite from `assets/brands/<name>-badge.png` top-right. Add a brand by d
 transparent PNG into `assets/brands/` and building a white-chip `-badge.png` for it.
 Available: **tiktok, claude**.
 
-## Formats
-`post` 4:5 · `reel`/`story` 9:16 · `square` 1:1 · `wide` 16:9
+## Formats & any custom size
+Named: `post` 4:5 · `reel`/`story` 9:16 · `square` 1:1 · `wide` 16:9.
+**Any exact size:** `--size 1200x628` (or 1080x1080, 1080x1920, 2000x500 …). It generates at
+the closest ratio the engine supports, then crops/scales to your exact pixels.
 
 ## Options
 `--format` · `--engine both|gemini|openai` · `--n <k>` · `--slides <n>` ·
-`--ref <photo>` (repeatable) · `--no-ref` · `--outfit "<desc>"` · `--note "<desc>"` ·
-`--no-logo` · `--logo-pos <p>` · `--stat <v>` · `--label <slug>` · `--out <dir>` ·
-`--dry-run` · `--list`
+`--size <WxH>` · `--ref <photo>` (repeatable) · `--no-ref` · `--keep-outfit` ·
+`--outfit "<desc>"` · `--note "<desc>"` · `--brands a,b` · `--no-logo` · `--logo-pos <p>` ·
+`--stat <v>` · `--label <slug>` · `--out <dir>` · `--dry-run` · `--list`
 
 ## You as the hero
 `hero-post` and `behind-the-build` auto-lock your face from `refs/nelson-*.jpg` and

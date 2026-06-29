@@ -7,6 +7,7 @@
 //
 // Options:
 //   --format post|reel|story|square|wide   (default post)
+//   --size <WxH>       exact custom output size in px (e.g. 1200x628); any size
 //   --engine both|gemini|openai            (default both)
 //   --n <k>            variants per engine per frame (default 2)
 //   --slides <n>       slides for the carousel recipe (default 4)
@@ -31,10 +32,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { recipes, recipeNames } from "./recipes.mjs";
-import { resolveFormat, composePrompt, pickOutfit, FORMATS } from "./style.mjs";
+import { resolveFormat, composePrompt, pickOutfit, parseSize, customFormat, FORMATS } from "./style.mjs";
 import { genGemini, genOpenAI, editOpenAI, haveKeys } from "./engines.mjs";
 import { writeContactSheet } from "./contact-sheet.mjs";
-import { brandImage, brandStickers, haveBrand } from "./brand.mjs";
+import { brandImage, brandStickers, fitTo, haveBrand } from "./brand.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -49,12 +50,14 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--list") opts.list = true;
   else if (a === "--ref") opts.refs.push(argv[++i]);
   else if (a === "--no-ref") opts.noRef = true;
+  else if (a === "--keep-outfit") opts.keepOutfit = true;
   else if (a === "--no-logo") opts.noLogo = true;
   else if (a === "--logo-pos") opts.logoPos = argv[++i];
   else if (a === "--outfit") opts.outfit = argv[++i];
   else if (a === "--note") opts.note = argv[++i];
   else if (a === "--brands") opts.brands = argv[++i].split(",").map((s) => s.trim()).filter(Boolean);
-  else if (a === "--format") opts.format = argv[++i];
+  else if (a === "--format") { opts.format = argv[++i]; opts.formatSet = true; }
+  else if (a === "--size") opts.size = parseSize(argv[++i]);
   else if (a === "--engine") { opts.engine = argv[++i]; opts.engineSet = true; }
   else if (a === "--n") opts.n = Math.max(1, parseInt(argv[++i], 10) || 1);
   else if (a === "--slides") opts.slides = Math.max(1, parseInt(argv[++i], 10) || 1);
@@ -104,25 +107,41 @@ const frames = spec.slides
   ? spec.slides.map((direction, i) => ({ direction, slide: i, tag: i === 0 ? "cover" : `s${i}` }))
   : [{ direction: spec.direction, slide: null, tag: "" }];
 
-// For person-featuring recipes, auto-lock Nelson's face from the default refs
-// (unless --ref given or --no-ref forced) and choose an on-brand per-post outfit.
+// Let a recipe set its own default format / engine / keep-outfit (user flags win).
+if (!opts.formatSet && spec.format) opts.format = spec.format;
+if (!opts.engineSet && spec.engine) opts.engine = spec.engine;
+if (spec.keepOutfit) opts.keepOutfit = true;
+
+// For person-featuring recipes, auto-lock Nelson from the reference photos.
+// DEFAULT = his real navy/gold "Taylormade Creative" letterman shot, outfit kept as-is.
+// If an outfit is explicitly requested (--outfit), switch to the portrait refs and
+// swap the outfit instead. --keep-outfit forces keeping the ref's outfit.
+const letterman = path.join(HERE, "refs/nelson-letterman.jpg");
 if (spec.person && !opts.noRef && opts.refs.length === 0) {
-  opts.refs = ["refs/nelson-front.jpg", "refs/nelson-profile-r.jpg"]
-    .map((p) => path.join(HERE, p))
-    .filter((p) => fs.existsSync(p));
+  if (!opts.outfit && fs.existsSync(letterman)) {
+    opts.refs = [letterman];
+    opts.keepOutfit = true;
+  } else {
+    opts.refs = ["refs/nelson-front.jpg", "refs/nelson-profile-r.jpg"]
+      .map((p) => path.join(HERE, p))
+      .filter((p) => fs.existsSync(p));
+  }
 }
-const outfit = spec.person ? pickOutfit(topic, opts.outfit) : null;
+const outfit = spec.person && !opts.keepOutfit ? pickOutfit(topic, opts.outfit) : null;
 
 // Person + ref shots come out best on Nano Banana 2 (keeps the face, changes the
 // outfit from the prompt). Default person recipes to gemini unless --engine was set.
 if (spec.person && !opts.engineSet && opts.engine === "both") opts.engine = "gemini";
 
-const f = resolveFormat(opts.format);
+// --size <WxH> wins over named formats and snaps to the nearest engine ratio,
+// then each image is cropped to the exact pixels after generation.
+const f = opts.size ? customFormat(opts.size) : resolveFormat(opts.format);
 const engines = opts.engine === "both" ? ["gemini", "openai"] : [opts.engine];
 
 console.log(`\n▸ Academy Machine — ${recipeName} · ${f.label} · ${frames.length} frame(s) · ${opts.n} variant(s)/engine`);
 console.log(`  out: ${outDir}`);
 if (outfit) console.log(`  outfit (this post): ${outfit}`);
+else if (opts.keepOutfit) console.log(`  outfit: keeping the real letterman jacket from the reference`);
 if (opts.refs.length) console.log(`  refs (face locked, fresh-from-photo): ${opts.refs.map((p) => path.basename(p)).join(", ")}`);
 if (!haveKeys.gemini) console.log("  ⚠ no GOOGLE_API_KEY — gemini will be skipped");
 if (!haveKeys.openai) console.log("  ⚠ no OPENAI_API_KEY — openai will be skipped");
@@ -132,8 +151,8 @@ const results = [];
 for (const frame of frames) {
   const prompt = composePrompt({
     direction: frame.direction, format: opts.format, withText: spec.withText,
-    person: spec.person, outfit, hasRefs: opts.refs.length > 0, note: opts.note,
-    brandCorner: opts.brands?.length > 0,
+    person: spec.person, outfit, hasRefs: opts.refs.length > 0, keepOutfit: opts.keepOutfit,
+    note: opts.note, brandCorner: opts.brands?.length > 0,
   });
 
   if (opts.dry) {
@@ -163,8 +182,9 @@ for (const frame of frames) {
       if (r.ok) {
         const savePath = path.join(outDir, base);
         fs.writeFileSync(savePath, r.buffer);
+        if (f.custom) fitTo(savePath, f.w, f.h); // crop/scale to the exact requested size
         let branded = false;
-        if (!opts.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || "south" });
+        if (!opts.noLogo && !spec.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || spec.logoPos || "south" });
         let stickers = 0;
         if (opts.brands?.length) stickers = brandStickers(savePath, opts.brands);
         console.log(`ok (${(r.buffer.length / 1024).toFixed(0)}kb)${branded ? " +logo" : ""}${stickers ? ` +${stickers}brand` : ""}`);

@@ -107,7 +107,8 @@ export async function editOpenAI({ prompt, refPath, size = "1024x1536", model, q
     fd.append("prompt", prompt);
     fd.append("size", size);
     fd.append("quality", quality);
-    if (fidelity && fidelity !== "off") fd.append("input_fidelity", fidelity);
+    // input_fidelity is only supported on some models (e.g. gpt-image-1), not gpt-image-2
+    if (fidelity && fidelity !== "off" && !/gpt-image-2/.test(MODEL)) fd.append("input_fidelity", fidelity);
     return fetch("https://api.openai.com/v1/images/edits", {
       method: "POST",
       headers: { Authorization: `Bearer ${OKEY}` },

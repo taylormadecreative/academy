@@ -50,6 +50,33 @@ export const recipes = {
       `Blue blob and gold sparkles. Confident, punchy, screenshot-worthy.`,
   }),
 
+  // Wide WEBSITE HERO banner (like the academy homepage). Founder + Claude/TikTok
+  // app icons + pill chips + CTA buttons. Routes to ChatGPT (renders the text cleanly).
+  "web-hero": ({ topic, vars }) => ({
+    withText: true,
+    person: true,
+    keepOutfit: true,
+    noLogo: true,
+    format: "wide",
+    engine: "openai",
+    direction:
+      `A polished WIDE website hero banner for an online creator academy (16:9), on a clean ` +
+      `cream / off-white background with a faint concentric-circle motif. ` +
+      `LEFT SIDE (text column): at the very top-left a clean "TAYLORMADE ACADEMY" wordmark (navy, ` +
+      `with a small graduation-cap-over-open-book logo mark); under it a small ` +
+      `eyebrow "A free community for creatives" with a tiny people icon; then a large bold display ` +
+      `headline reading ${q(topic)} with a solid gold highlight bar under the key phrase; then a ` +
+      `one-line subheading "${vars?.subhead || "Use Claude + TikTok to create content, build systems, and grow income."}" ` +
+      `with "Claude" and "TikTok" emphasized; then a small line "Taught by Nelson Taylor"; then a row of ` +
+      `four rounded outline pill chips labeled DESIGN, PHOTO, VIDEO, AI each with a tiny line icon; then ` +
+      `two call-to-action buttons side by side — a solid gold pill "Join free →" and a white outline pill ` +
+      `"Explore courses →". ` +
+      `RIGHT SIDE: the founder (from the reference) smiling confidently in his letterman jacket, and to ` +
+      `his right two rounded-square app-icon tiles stacked with a small "+" between them — the Claude app ` +
+      `icon (terracotta sunburst on white) on top and the TikTok app icon (black tile with the music note) ` +
+      `below, each labeled. Premium, modern, generous negative space, crisp perfectly-spelled typography.`,
+  }),
+
   // Lifestyle scene featuring the founder (photoreal). Steer the setting/pose with --note.
   "lifestyle": ({ topic }) => ({
     withText: true,

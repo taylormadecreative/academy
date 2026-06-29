@@ -29,6 +29,16 @@ function imgDims(p) {
   return { w: w || 1, h: h || 1 };
 }
 
+// Scale + center-crop an image to EXACTLY w×h (crop-to-fill). Lets us hit any
+// custom size even though the engines only generate a few aspect ratios.
+export function fitTo(pngPath, w, h) {
+  if (!fs.existsSync(pngPath)) return false;
+  const r = spawnSync(CONVERT, [
+    pngPath, "-resize", `${w}x${h}^`, "-gravity", "center", "-extent", `${w}x${h}`, pngPath,
+  ], { stdio: "ignore" });
+  return r.status === 0;
+}
+
 const BRANDS_DIR = path.join(HERE, "assets", "brands");
 
 // Which brand logos do we actually have a chip badge for?
