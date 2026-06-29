@@ -1,0 +1,14 @@
+{
+  "name": "academy-content-machine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Taylormade Academy on-brand social content machine + MCP server",
+  "bin": {
+    "academy-machine": "make.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  }
+}

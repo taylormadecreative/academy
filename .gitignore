@@ -14,3 +14,8 @@ free/_paid_the-ai-money-machine/
 node_modules/
 supabase/.env
 _ebook-src/
+
+# Academy Content Machine — generated output, real reference photos, secrets
+tools/academy-machine/out/
+tools/academy-machine/refs/
+tools/academy-machine/.env
