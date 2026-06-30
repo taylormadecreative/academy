@@ -1,0 +1,53 @@
+name: Daily Facebook post
+
+# Publishes the next queued Taylormade Academy image to the Academy Facebook PAGE
+# via Blotato, once a day, fully automated. Pre-generated images live in fb/queue/
+# (served publicly by GitHub Pages); fb/queue.json tracks captions + posted state.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   BLOTATO_API_KEY   your Blotato API key
+#   FB_ACCOUNT_ID     Blotato account id for the Facebook page (from list_accounts)
+#   FB_PAGE_ID        the Facebook Page id (Blotato subaccount id)
+#
+# Refill the queue locally with: node tools/academy-machine/fb-fill-queue.mjs
+
+on:
+  schedule:
+    - cron: "0 15 * * *" # 15:00 UTC = 10am CT
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Log what would post without publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # to commit the updated fb/queue.json back
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Post next queued image to Facebook
+        run: node tools/academy-machine/fb-post-next.mjs
+        env:
+          BLOTATO_API_KEY: ${{ secrets.BLOTATO_API_KEY }}
+          FB_ACCOUNT_ID: ${{ secrets.FB_ACCOUNT_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+      - name: Commit updated queue state
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [[ -n "$(git status --porcelain fb/queue.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add fb/queue.json
+            git commit -m "fb: mark daily post published [skip ci]"
+            git push
+          else
+            echo "queue.json unchanged (nothing posted) — no commit."
+          fi

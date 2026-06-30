@@ -75,6 +75,16 @@ The **real Taylormade Academy logo** (`assets/academy-logo.png`) is stamped on e
 8. **One idea per frame.** Scroll-stoppers say one thing loud.
 9. **Academy aesthetic only** while we master social. Don't drift into other brand looks.
 
+## Daily Facebook auto-posting (Blotato)
+The Academy posts one image to a Facebook **Page** every day, hands-off. Pre-generated
+images live in `fb/queue/` (public via GitHub Pages); `fb/queue.json` holds captions +
+posted state. `.github/workflows/fb-daily.yml` runs daily (10am CT), and
+`fb-post-next.mjs` re-hosts the next image on Blotato (`POST /v2/media`) and publishes it
+to the Page (`POST /v2/posts`, `targetType: facebook` + `pageId`). Refill with
+`node fb-fill-queue.mjs` (reads `fb-topics.json`, generates locally, appends as JPGs).
+**Facebook's API only posts to Pages, never personal profiles.** Needs repo secrets
+`BLOTATO_API_KEY`, `FB_ACCOUNT_ID`, `FB_PAGE_ID`. Full one-time setup: `FACEBOOK-SETUP.md`.
+
 ## Workflow you should follow every time
 1. Restate the topic in one punchy line (that line often becomes the on-image text).
 2. Pick the recipe + format. For people/products, find or ask for a real `--ref` photo.
