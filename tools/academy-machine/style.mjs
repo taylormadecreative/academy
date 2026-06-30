@@ -20,7 +20,7 @@ export const STYLE = [
   "uncluttered, photoreal where photoreal, flat-vector-clean where graphic.",
   "Mood: aspirational, motivational, Black creative excellence — build, ship, create.",
   "IMPORTANT: do NOT draw any logo, wordmark, or 'Taylormade' / 'Academy' text —",
-  "leave the bottom-center area clear; the real logo is composited in afterward.",
+  "the real logo is composited in afterward into a quiet corner.",
   "Avoid: stock-photo cheese, clutter, watermarks, gibberish text, extra fingers,",
   "distorted faces.",
 ].join(" ");
@@ -135,7 +135,7 @@ export function customFormat({ w, h }) {
 
 // Wrap a recipe's creative direction with the locked style + format guidance,
 // and (for person-featuring recipes) the identity + per-post outfit clause.
-export function composePrompt({ direction, format, withText, person, outfit, hasRefs, keepOutfit, note, brandCorner, reserveBottom }) {
+export function composePrompt({ direction, format, withText, person, outfit, hasRefs, keepOutfit, note, brandCorner, logoMargins }) {
   const f = resolveFormat(format);
   const textRule = withText
     ? "Render the on-image text EXACTLY as written, spelled perfectly, in the " +
@@ -145,9 +145,13 @@ export function composePrompt({ direction, format, withText, person, outfit, has
     ? "Keep the TOP-RIGHT corner clear (empty margin) for small platform logos — " +
       "place the headline on the left. "
     : "";
-  const footerRule = reserveBottom
-    ? "Keep ALL text, the subject, and key graphics within the top 86% of the frame; " +
-      "leave the bottom ~14% as clean EMPTY margin for the brand logo. "
+  // A small logo is composited afterward into the quietest corner — so leave the
+  // composition breathing room at the edges and at least one calm, uncluttered
+  // corner of plain background. Do NOT center everything edge-to-edge.
+  const footerRule = logoMargins
+    ? "Keep the subject and all text comfortably inside the frame with clean margins; " +
+      "leave at least one quiet, uncluttered corner of plain background empty so a small " +
+      "logo can rest there naturally. "
     : "";
   const blocks = [direction.trim()];
   if (note) blocks.push(`ART DIRECTION (follow this closely): ${note.trim()}`);

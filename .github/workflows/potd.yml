@@ -1,0 +1,35 @@
+name: Prompt of the Day
+
+# Renders the daily Cowork "Prompt of the Day" video and stages it as a HIDDEN
+# community post for Nelson to approve at academy.taylormadecreative.net/review/.
+# Requires one repo secret: BOT_SECRET (the ea-community-bot x-bot-secret).
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # 13:00 UTC = 8am CT (renders in the morning; you approve later)
+  workflow_dispatch: {} # lets you run it on-demand from the Actions tab
+
+jobs:
+  render-and-stage:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/potd-video
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Chromium dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+            libgbm1 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+            libpango-1.0-0 libcairo2 fonts-liberation libasound2t64 || true
+      - name: Install dependencies
+        run: npm install
+      - name: Render + stage for approval
+        run: node potd-publish.mjs
+        env:
+          BOT_SECRET: ${{ secrets.BOT_SECRET }}

@@ -1,0 +1,86 @@
+[
+  {
+    "category": "Corporate Efficiency",
+    "task": "Go through my unread inbox, group everything by urgency, draft replies to the urgent ones, and flag anything I'm about to drop.",
+    "steps": ["Reading your unread inbox — 47 emails", "Sorting into Urgent · This Week · Delegate", "Drafting replies to the 6 urgent ones", "Flagging what you're about to drop"],
+    "result": "Done — 6 replies drafted and ready to send, 1 at-risk item flagged."
+  },
+  {
+    "category": "Make Income",
+    "task": "Find 10 local businesses that clearly need my service, then write a personalized first-message to each one in my voice.",
+    "steps": ["Scanning local businesses in your niche", "Spotting the ones with a real gap", "Matching each to what you offer", "Drafting 10 personalized openers"],
+    "result": "Done — 10 warm leads + 10 ready-to-send messages."
+  },
+  {
+    "category": "Be a Better Student",
+    "task": "Turn my lecture notes into a study guide with flashcards and a 10-question quiz, then explain the 3 things I clearly don't get yet.",
+    "steps": ["Reading your lecture notes", "Building the study guide + 20 flashcards", "Writing a 10-question quiz", "Re-teaching your 3 weak spots simply"],
+    "result": "Done — study guide, flashcards, quiz, and 3 concepts re-explained."
+  },
+  {
+    "category": "Corporate Efficiency",
+    "task": "Take this meeting transcript, pull out every decision, list action items with owners, and write a 5-line recap to send the team.",
+    "steps": ["Reading the 40-minute transcript", "Pulling out decisions made", "Assigning action items to owners", "Writing the 5-line team recap"],
+    "result": "Done — decisions, owned action items, and a recap ready to paste."
+  },
+  {
+    "category": "Grow Your Brand",
+    "task": "Look at my last 10 posts, tell me what's actually working, and plan next week's 5 posts with hooks and captions.",
+    "steps": ["Reviewing your last 10 posts", "Finding the patterns that landed", "Mapping 5 posts for next week", "Writing the hooks + captions"],
+    "result": "Done — a week of posts with hooks + captions, built on what works."
+  },
+  {
+    "category": "Make Income",
+    "task": "Audit my rates against the market, then rewrite my services page so it justifies charging 20% more.",
+    "steps": ["Benchmarking your rates vs the market", "Finding where you're underpricing", "Rewriting the offer + proof", "Polishing the services page copy"],
+    "result": "Done — market-backed rates and a page that earns the increase."
+  },
+  {
+    "category": "Be a Better Student",
+    "task": "Build me a 2-week study plan for my exam that fits around my schedule, with daily 45-minute sessions and review days built in.",
+    "steps": ["Mapping the syllabus to exam weight", "Fitting sessions around your calendar", "Spacing topics so they stick", "Adding review + practice-test days"],
+    "result": "Done — a 14-day plan, 45 min/day, with built-in review."
+  },
+  {
+    "category": "Corporate Efficiency",
+    "task": "Draft the 3 emails I keep putting off — the follow-up, the polite no, and the ask for a raise — in my voice.",
+    "steps": ["Reading the threads for context", "Writing the follow-up", "Writing the graceful no", "Writing the raise ask with your wins"],
+    "result": "Done — 3 hard emails written and ready to send."
+  },
+  {
+    "category": "Grow Your Brand",
+    "task": "Brief and storyboard a 30-second promo for my product — the hook, 3 shots, and the on-screen text for each.",
+    "steps": ["Clarifying the one promise to make", "Writing a scroll-stopping hook", "Storyboarding 3 shots", "Writing on-screen text + CTA"],
+    "result": "Done — a 30-sec promo storyboard you can shoot today."
+  },
+  {
+    "category": "Make Income",
+    "task": "Build a simple one-page offer for a $500 service I could sell this week — who it's for, what they get, and the exact DM to send.",
+    "steps": ["Picking a service you can deliver fast", "Defining the buyer + the outcome", "Packaging it into a $500 offer", "Writing the DM to send 10 people"],
+    "result": "Done — a $500 offer + the DM to start selling it today."
+  },
+  {
+    "category": "Corporate Efficiency",
+    "task": "Turn this messy spreadsheet into a clean weekly report with the 3 numbers leadership cares about and what changed.",
+    "steps": ["Reading and cleaning the data", "Finding the 3 metrics that matter", "Calculating week-over-week change", "Writing the one-screen summary"],
+    "result": "Done — a clean weekly report leadership will actually read."
+  },
+  {
+    "category": "Be a Better Student",
+    "task": "Read this research paper and give me the plain-English summary, the method, the limitations, and 3 smart questions to ask in class.",
+    "steps": ["Reading the full paper", "Summarizing it in plain English", "Explaining the method + limits", "Writing 3 questions that sound sharp"],
+    "result": "Done — paper decoded, plus 3 questions to raise your hand with."
+  },
+  {
+    "category": "Grow Your Brand",
+    "task": "Generate 20 content ideas for my niche, then rank them by how likely they are to actually get saved and shared.",
+    "steps": ["Studying what your audience saves", "Generating 20 specific ideas", "Scoring each for save + share value", "Ranking the top 10 to make first"],
+    "result": "Done — 20 ideas, ranked, with your next 3 picked for you."
+  },
+  {
+    "category": "Make Income",
+    "task": "Go through my calendar and inbox and find every hour I'm giving away for free, then draft a polite boundary for each.",
+    "steps": ["Scanning your week for free labor", "Tallying the hours you're losing", "Drafting a kind boundary for each", "Suggesting what to charge instead"],
+    "result": "Done — your free hours found, with boundaries ready to send."
+  }
+]

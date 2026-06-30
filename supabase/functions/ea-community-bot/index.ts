@@ -94,6 +94,17 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // signed upload URL so the daily render pipeline (CI) can push an mp4 without
+    // ever holding Supabase credentials — only the anon key + the returned token.
+    if (action === "media_upload_url") {
+      const safe = String(body.filename ?? "potd.mp4").replace(/[^a-zA-Z0-9._-]/g, "");
+      const path = `potd/${Date.now()}-${safe}`;
+      const { data, error } = await sb.storage.from("community-media").createSignedUploadUrl(path);
+      if (error) return json({ error: error.message }, 500);
+      const pub = sb.storage.from("community-media").getPublicUrl(path).data.publicUrl;
+      return json({ ok: true, path, token: data.token, public_url: pub });
+    }
+
     if (action === "post") {
       const channel = String(body.channel ?? "general");
       const text = String(body.body ?? "").trim();
@@ -103,6 +114,7 @@ Deno.serve(async (req: Request) => {
         row.media_url = String(body.media_url);
         row.media_type = String(body.media_type ?? "video");
       }
+      if (body.hidden) row.hidden = true; // staged for Nelson's approval
       const { data, error } = await sb.from("ea_posts").insert(row).select("id").single();
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true, id: data.id });

@@ -14,8 +14,9 @@
 //   --ref <path>       real reference photo (repeatable) -> "fresh from refs"
 //                      (person recipes auto-use refs/nelson-*.jpg if none given)
 //   --no-ref           force text-to-image (don't use the reference photos)
-//   --logo             ADD the academy logo (OFF by default)
-//   --logo-pos <p>     logo position (implies --logo): south | southeast | southwest
+//   --no-logo          omit the academy logo (logo is ON by default, smart-placed)
+//   --logo-pos <p>     force a fixed logo corner: south | southeast | southwest |
+//                      northeast | northwest  (default = auto: quietest corner)
 //   --outfit "<desc>"  override the per-post outfit (default rotates by topic)
 //   --note "<desc>"    freeform art direction: pose/setting/action/mood
 //                      (e.g. "pointing at the headline", "lifestyle coffee-shop")
@@ -35,13 +36,13 @@ import { recipes, recipeNames } from "./recipes.mjs";
 import { resolveFormat, composePrompt, pickOutfit, parseSize, customFormat, FORMATS } from "./style.mjs";
 import { genGemini, genOpenAI, editOpenAI, haveKeys } from "./engines.mjs";
 import { writeContactSheet } from "./contact-sheet.mjs";
-import { brandImage, brandStickers, fitTo, haveBrand } from "./brand.mjs";
+import { brandImage, brandStickers, placeLogoSmart, fitTo, haveBrand } from "./brand.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 // ---- tiny arg parser ----
 const argv = process.argv.slice(2);
-const opts = { format: "post", engine: "openai", n: 2, slides: 4, refs: [], vars: {} };
+const opts = { format: "post", engine: "openai", n: 2, slides: 4, refs: [], vars: {}, logo: true };
 const pos = [];
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
@@ -52,6 +53,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--no-ref") opts.noRef = true;
   else if (a === "--keep-outfit") opts.keepOutfit = true;
   else if (a === "--logo") opts.logo = true;
+  else if (a === "--no-logo") opts.logo = false;
   else if (a === "--logo-pos") { opts.logoPos = argv[++i]; opts.logo = true; }
   else if (a === "--outfit") opts.outfit = argv[++i];
   else if (a === "--note") opts.note = argv[++i];
@@ -153,7 +155,8 @@ for (const frame of frames) {
   const prompt = composePrompt({
     direction: frame.direction, format: opts.format, withText: spec.withText,
     person: spec.person, outfit, hasRefs: opts.refs.length > 0, keepOutfit: opts.keepOutfit,
-    note: opts.note, brandCorner: opts.brands?.length > 0, reserveBottom: opts.logo,
+    note: opts.note, brandCorner: opts.brands?.length > 0,
+    logoMargins: opts.logo && !spec.noLogo && !opts.logoPos,
   });
 
   if (opts.dry) {
@@ -185,7 +188,12 @@ for (const frame of frames) {
         fs.writeFileSync(savePath, r.buffer);
         fitTo(savePath, f.w, f.h); // crop/scale to the exact target pixels (any engine)
         let branded = false;
-        if (opts.logo && !spec.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || spec.logoPos || "south" });
+        if (opts.logo && !spec.noLogo && haveBrand) {
+          const pos = opts.logoPos || spec.logoPos;
+          // Explicit --logo-pos -> fixed corner; otherwise place it like a
+          // designer: small, in the quietest corner of THIS image, reversed on dark.
+          branded = pos ? brandImage(savePath, { position: pos }) : placeLogoSmart(savePath, { brands: opts.brands });
+        }
         let stickers = 0;
         if (opts.brands?.length) stickers = brandStickers(savePath, opts.brands);
         console.log(`ok (${(r.buffer.length / 1024).toFixed(0)}kb)${branded ? " +logo" : ""}${stickers ? ` +${stickers}brand` : ""}`);

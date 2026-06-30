@@ -1,0 +1,21 @@
+{
+  "name": "potd-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Renders the daily Prompt-of-the-Day (Claude Cowork) video and stages it for approval.",
+  "type": "module",
+  "scripts": {
+    "render": "remotion render src/index.ts PromptOfTheDay out/potd.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "studio": "remotion studio src/index.ts",
+    "publish": "node potd-publish.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.392",
+    "@remotion/cli": "4.0.392",
+    "@remotion/google-fonts": "4.0.392",
+    "@supabase/supabase-js": "^2.45.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.392"
+  }
+}

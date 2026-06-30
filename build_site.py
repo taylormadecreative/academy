@@ -199,7 +199,7 @@ def render(path, html):
 # Hand-maintained member-area pages the generator must NOT overwrite, but whose shared
 # CSS/JS links still need the cache-busting ?v= stamp. We only rewrite the version query
 # string on the asset links, leaving the rest of each file untouched.
-APP_PAGES = ("community", "login", "dashboard", "library", "welcome")
+APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review")
 _ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):

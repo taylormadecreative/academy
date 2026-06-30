@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review — Prompt of the Day</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
+<style>
+  body{background:var(--bg-soft);}
+  .wrap{max-width:560px;margin:0 auto;padding:26px var(--gut) 80px;}
+  .rh{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:6px;}
+  .rh h1{font-size:24px;font-weight:800;letter-spacing:-.02em;}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:22px;}
+  .rcard{background:#fff;border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:20px;}
+  .rcard video{width:100%;display:block;background:#000;max-height:70vh;}
+  .rcard .cap{padding:16px 18px;font-size:14.5px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;}
+  .rcard .meta{padding:0 18px 12px;font-size:12.5px;color:var(--muted);}
+  .ract{display:flex;gap:10px;padding:0 18px 18px;}
+  .ract .btn{flex:1;}
+  .btn-go{background:#16a34a;color:#fff;border:0;}
+  .btn-go:hover{background:#15803d;} .btn-go:disabled{opacity:.6;}
+  .btn-no{background:#fff;color:#b91c1c;border:1px solid #fecaca;}
+  .btn-no:hover{background:#fef2f2;}
+  .empty{border:1.5px dashed var(--hair);border-radius:var(--r);background:#fff;padding:40px 24px;text-align:center;}
+  .empty h3{font-size:18px;font-weight:700;} .empty p{color:var(--muted);margin-top:8px;font-size:14px;}
+  .muted{color:var(--muted);}
+</style>
+<!--PWA:start-->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Academy">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width:360px) and (device-height:780px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1080x2340.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
+<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
+<script src="/js/native.js?v=8fd3a8ab23" defer></script>
+<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
+<!--PWA:end-->
+</head><body>
+<main class="wrap">
+  <div class="rh"><h1>Prompt of the Day · Review</h1><a class="navlink" href="/community/">Community →</a></div>
+  <div class="sub">Approve to publish to the community feed, or reject to discard. Nothing here is public yet.</div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="/js/config.js?v=8fd3a8ab23"></script>
+<script src="/js/site.js?v=8fd3a8ab23"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+const esc = (s)=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toast = (m)=>{ try{ (window.BM&&BM.toast)?BM.toast(m):0; }catch(_){ } const t=$("toast"); if(t){t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);} };
+function when(iso){ const d=new Date(iso); return isNaN(d)?"":d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}); }
+
+if(!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY){ location.replace("/login/"); }
+else {
+  const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  const { data:{ session } } = await supabase.auth.getSession();
+  if(!session){ location.replace("/login/"); }
+  else {
+    const me = session.user;
+    async function load(){
+      const { data, error } = await supabase.from("ea_posts")
+        .select("id, body, media_url, media_type, created_at, channel")
+        .eq("author_id", me.id).eq("hidden", true).not("media_url","is",null)
+        .order("created_at",{ ascending:false });
+      const list = $("list");
+      if(error){ list.innerHTML = `<div class="empty"><h3>Couldn't load</h3><p>${esc(error.message)}</p></div>`; return; }
+      if(!data || !data.length){ list.innerHTML = `<div class="empty"><h3>Nothing to review 🎉</h3><p>When the daily Prompt-of-the-Day video renders, it shows up here for your approval.</p></div>`; return; }
+      list.innerHTML = data.map(p=>`
+        <div class="rcard" data-card="${p.id}">
+          <video src="${esc(p.media_url)}" playsinline controls preload="metadata"></video>
+          <div class="cap">${esc(p.body)}</div>
+          <div class="meta">Staged ${esc(when(p.created_at))} · #${esc(p.channel)}</div>
+          <div class="ract">
+            <button class="btn btn-no" data-no="${p.id}">Reject</button>
+            <button class="btn btn-go" data-go="${p.id}">Approve & publish</button>
+          </div>
+        </div>`).join("");
+    }
+    await load();
+
+    document.addEventListener("click", async (e)=>{
+      const go = e.target.closest("[data-go]"); const no = e.target.closest("[data-no]");
+      if(go){
+        go.disabled = true; go.textContent = "Publishing…";
+        const id = go.getAttribute("data-go");
+        const { error } = await supabase.from("ea_posts").update({ hidden:false }).eq("id", id);
+        if(error){ go.disabled=false; go.textContent="Approve & publish"; toast("Couldn't publish: "+error.message); return; }
+        const card = document.querySelector(`[data-card="${id}"]`); if(card) card.remove();
+        toast("Published to the community ✅"); if(!document.querySelector(".rcard")) await load();
+      }
+      if(no){
+        const id = no.getAttribute("data-no");
+        if(!confirm("Discard this video? This can't be undone.")) return;
+        no.disabled = true;
+        const { error } = await supabase.from("ea_posts").delete().eq("id", id);
+        if(error){ no.disabled=false; toast("Couldn't reject: "+error.message); return; }
+        const card = document.querySelector(`[data-card="${id}"]`); if(card) card.remove();
+        toast("Discarded."); if(!document.querySelector(".rcard")) await load();
+      }
+    });
+  }
+}
+</script>
+</body></html>
