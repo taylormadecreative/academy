@@ -12,10 +12,10 @@ export const STYLE = [
   "Typography feel: bold, tight, confident display lettering (Space Grotesk energy)",
   "with ONE key word underlined by a hand-laid solid gold highlight bar; clean,",
   "even body text (Inter energy). Type is crisp, perfectly spelled, well-kerned.",
-  "Graphic language: soft organic blue blob shapes behind the subject, small",
-  "4-point sparkle stars in gold and blue as light accents, rounded pill buttons",
-  "and rounded cards with soft realistic drop shadows, generous negative space,",
-  "balanced editorial composition.",
+  "Graphic language: clean editorial layout with generous negative space; rounded",
+  "pill buttons and rounded cards with soft realistic drop shadows; at most a few",
+  "small 4-point gold/blue sparkle accents, used sparingly. Do NOT place a large",
+  "blue blob / colored blob shape behind the subject — keep the background clean.",
   "Lighting + finish: crisp optimistic studio lighting, modern, high-end,",
   "uncluttered, photoreal where photoreal, flat-vector-clean where graphic.",
   "Mood: aspirational, motivational, Black creative excellence — build, ship, create.",
@@ -135,24 +135,24 @@ export function customFormat({ w, h }) {
 
 // Wrap a recipe's creative direction with the locked style + format guidance,
 // and (for person-featuring recipes) the identity + per-post outfit clause.
-export function composePrompt({ direction, format, withText, person, outfit, hasRefs, keepOutfit, note, brandCorner }) {
+export function composePrompt({ direction, format, withText, person, outfit, hasRefs, keepOutfit, note, brandCorner, reserveBottom }) {
   const f = resolveFormat(format);
   const textRule = withText
     ? "Render the on-image text EXACTLY as written, spelled perfectly, in the " +
       "bold display style described, with the gold highlight bar under the key word. "
     : "Keep the frame clean; no paragraphs of text. ";
   const cornerRule = brandCorner
-    ? "Also keep the TOP-RIGHT corner clear (empty margin) for small platform logos — " +
+    ? "Keep the TOP-RIGHT corner clear (empty margin) for small platform logos — " +
       "place the headline on the left. "
     : "";
-  const footerRule =
-    "Keep ALL text, the subject, and key graphics within the top 86% of the frame. " +
-    "Leave the bottom ~14% as clean EMPTY margin (no text, no subject, no graphics) " +
-    "reserved for the brand logo. " + cornerRule;
+  const footerRule = reserveBottom
+    ? "Keep ALL text, the subject, and key graphics within the top 86% of the frame; " +
+      "leave the bottom ~14% as clean EMPTY margin for the brand logo. "
+    : "";
   const blocks = [direction.trim()];
   if (note) blocks.push(`ART DIRECTION (follow this closely): ${note.trim()}`);
   if (person) blocks.push(identityClause({ outfit, hasRefs, keepOutfit }));
-  blocks.push(textRule + footerRule + `Composition framed for a ${f.label} (${f.ar}) social post with safe margins.`);
+  blocks.push(textRule + footerRule + cornerRule + `Composition framed for a ${f.label} (${f.ar}) social post with safe margins.`);
   blocks.push(STYLE);
   return blocks.join("\n\n");
 }

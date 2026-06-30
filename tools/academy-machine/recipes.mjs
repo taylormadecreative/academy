@@ -16,8 +16,8 @@ export const recipes = {
     person: true,
     direction:
       `A motivational social post. The founder is positioned to one side as the hero, ` +
-      `mid-shot, against a clean paper-white scene with a soft royal-blue blob and a few ` +
-      `gold sparkle stars. Large bold display headline reading ${q(topic)} with the most ` +
+      `mid-shot, against a clean paper-white scene with a few small gold sparkle accents ` +
+      `(no blue blob). Large bold display headline reading ${q(topic)} with the most ` +
       `important word sitting on a solid gold highlight bar. Confident, premium, aspirational.`,
   }),
 
@@ -47,7 +47,7 @@ export const recipes = {
     direction:
       `A bold stat card. An oversized gold number "${vars?.stat || "10x"}" dominates the frame ` +
       `on a deep navy background, with supporting line ${q(topic)} in clean white display type. ` +
-      `Blue blob and gold sparkles. Confident, punchy, screenshot-worthy.`,
+      `A few gold sparkle accents (no blue blob). Confident, punchy, screenshot-worthy.`,
   }),
 
   // Wide WEBSITE HERO banner (like the academy homepage). Founder + Claude/TikTok
@@ -105,7 +105,7 @@ export const recipes = {
     withText: true,
     direction:
       `A launch announcement post. A glowing rounded card floating on a deep navy scene with ` +
-      `gold sparkles and a blue blob, headline ${q(topic)} with key word on a gold highlight ` +
+      `a few gold sparkles, headline ${q(topic)} with key word on a gold highlight ` +
       `bar, and a rounded gold pill button reading "JOIN FREE". Premium, exciting, high-energy.`,
   }),
 
@@ -127,7 +127,7 @@ export const recipes = {
     const cover = {
       direction:
         `Carousel COVER slide. Bold display headline ${q(title)} on a paper-white scene with a ` +
-        `royal-blue blob, gold sparkles, the key word on a gold highlight bar, and a small ` +
+        `a few gold sparkles, the key word on a gold highlight bar, and a small ` +
         `"SWIPE →" gold pill. Premium creator-academy cover that demands the swipe.`,
     };
     const body = [];

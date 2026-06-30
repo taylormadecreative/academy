@@ -14,8 +14,8 @@
 //   --ref <path>       real reference photo (repeatable) -> "fresh from refs"
 //                      (person recipes auto-use refs/nelson-*.jpg if none given)
 //   --no-ref           force text-to-image (don't use the reference photos)
-//   --no-logo          skip stamping the academy logo (on by default)
-//   --logo-pos <p>     logo position: south (default) | southeast | southwest
+//   --logo             ADD the academy logo (OFF by default)
+//   --logo-pos <p>     logo position (implies --logo): south | southeast | southwest
 //   --outfit "<desc>"  override the per-post outfit (default rotates by topic)
 //   --note "<desc>"    freeform art direction: pose/setting/action/mood
 //                      (e.g. "pointing at the headline", "lifestyle coffee-shop")
@@ -51,8 +51,8 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--ref") opts.refs.push(argv[++i]);
   else if (a === "--no-ref") opts.noRef = true;
   else if (a === "--keep-outfit") opts.keepOutfit = true;
-  else if (a === "--no-logo") opts.noLogo = true;
-  else if (a === "--logo-pos") opts.logoPos = argv[++i];
+  else if (a === "--logo") opts.logo = true;
+  else if (a === "--logo-pos") { opts.logoPos = argv[++i]; opts.logo = true; }
   else if (a === "--outfit") opts.outfit = argv[++i];
   else if (a === "--note") opts.note = argv[++i];
   else if (a === "--brands") opts.brands = argv[++i].split(",").map((s) => s.trim()).filter(Boolean);
@@ -111,6 +111,8 @@ const frames = spec.slides
 if (!opts.formatSet && spec.format) opts.format = spec.format;
 if (!opts.engineSet && spec.engine) opts.engine = spec.engine;
 if (spec.keepOutfit) opts.keepOutfit = true;
+// Any image that references Nelson MUST use ChatGPT (never Nano Banana) — his rule.
+if (spec.person) opts.engine = "openai";
 
 // For person-featuring recipes, auto-lock Nelson from the reference photos.
 // DEFAULT = his real navy/gold "Taylormade Creative" letterman shot, outfit kept as-is.
@@ -151,7 +153,7 @@ for (const frame of frames) {
   const prompt = composePrompt({
     direction: frame.direction, format: opts.format, withText: spec.withText,
     person: spec.person, outfit, hasRefs: opts.refs.length > 0, keepOutfit: opts.keepOutfit,
-    note: opts.note, brandCorner: opts.brands?.length > 0,
+    note: opts.note, brandCorner: opts.brands?.length > 0, reserveBottom: opts.logo,
   });
 
   if (opts.dry) {
@@ -183,7 +185,7 @@ for (const frame of frames) {
         fs.writeFileSync(savePath, r.buffer);
         fitTo(savePath, f.w, f.h); // crop/scale to the exact target pixels (any engine)
         let branded = false;
-        if (!opts.noLogo && !spec.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || spec.logoPos || "south" });
+        if (opts.logo && !spec.noLogo && haveBrand) branded = brandImage(savePath, { position: opts.logoPos || spec.logoPos || "south" });
         let stickers = 0;
         if (opts.brands?.length) stickers = brandStickers(savePath, opts.brands);
         console.log(`ok (${(r.buffer.length / 1024).toFixed(0)}kb)${branded ? " +logo" : ""}${stickers ? ` +${stickers}brand` : ""}`);
