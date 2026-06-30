@@ -98,9 +98,12 @@ Deno.serve(async (req: Request) => {
       const channel = String(body.channel ?? "general");
       const text = String(body.body ?? "").trim();
       if (!text) return json({ error: "empty_body" }, 400);
-      const { data, error } = await sb.from("ea_posts")
-        .insert({ author_id: NELSON_ID, channel, body: text, pinned: !!body.pinned })
-        .select("id").single();
+      const row: Record<string, unknown> = { author_id: NELSON_ID, channel, body: text, pinned: !!body.pinned };
+      if (body.media_url) {
+        row.media_url = String(body.media_url);
+        row.media_type = String(body.media_type ?? "video");
+      }
+      const { data, error } = await sb.from("ea_posts").insert(row).select("id").single();
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true, id: data.id });
     }

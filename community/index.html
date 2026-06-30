@@ -50,6 +50,7 @@
   .post .name{font-weight:700;font-size:15px;color:var(--ink);}
   .post .meta{font-size:12px;color:var(--muted);margin-top:1px;}
   .post .body{margin-top:12px;font-size:15px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;}
+  .post .pmedia{margin-top:12px;width:100%;max-width:300px;border-radius:14px;display:block;background:#000;border:1px solid var(--hair);}
   .acts{display:flex;gap:18px;margin-top:14px;align-items:center;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--hair-soft);}
   .act{appearance:none;border:0;background:none;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px;}
   .act:hover{color:var(--ink);} .act.on{color:var(--clay);}
@@ -339,6 +340,9 @@ function postHTML(p){
     <div class="ph">${BM.avatarHtml(p.author_name, p.author_avatar_url, 'sm')}
       <div><div class="name">${esc(p.author_name)}</div><div class="meta">${esc(CH[p.channel]||p.channel)} &middot; ${timeAgo(p.created_at)}</div></div></div>
     <div class="body">${esc(p.body)}</div>
+    ${p.media_url ? (p.media_type==='video'
+      ? `<video class="pmedia" src="${esc(p.media_url)}" playsinline controls preload="metadata"></video>`
+      : `<img class="pmedia" src="${esc(p.media_url)}" alt="" loading="lazy">`) : ""}
     <div class="acts">
       <button class="act${liked?" on":""}" data-like="${p.id}"><span data-lt>${liked?"Liked":"Like"}</span> &middot; <span data-lc>${p.like_count}</span></button>
       <button class="act" data-cmt="${p.id}">Comments &middot; <span data-cc>${p.comment_count}</span></button>${dm}
