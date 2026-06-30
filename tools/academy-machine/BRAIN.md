@@ -57,13 +57,17 @@ Output lands in `out/<date>-<label>/` with all variants + an `index.html` contac
 ## Real brand logos (TikTok, Claude, …) — never AI-drawn
 The AI **cannot** render third-party logos without garbling them (e.g. "TikTok" → "TikkollkTTok"). So for any post about a platform, stamp the REAL logo: `--brands tiktok,claude` (MCP `brands: ["tiktok","claude"]`). They composite from `assets/brands/<name>-badge.png` in the top-right (the headline is auto-pushed left). To add a brand, drop a transparent PNG in `assets/brands/` and build its `-badge.png`. Available now: **tiktok, claude**. For "making money" energy, add cash via `--note` (e.g. "floating dollar-bill accents").
 
-## The logo (OFF by default — opt-in only)
-Nelson does **not** want the logo locked center-bottom on every post. The logo is **off by default**. To add the **real Taylormade Academy logo** (`assets/academy-logo.png`, grad cap + open book + blue "T"), pass `--logo` (MCP `logo: true`), or `--logo-pos south|southeast|southwest` to place it. It composites on a subtle white chip (`assets/academy-logo-badge.png`) and the machine only reserves the bottom margin when the logo is on. The AI is always told NOT to draw a wordmark — if a logo is wanted, the machine stamps the real file. To resize/restyle the badge, rebuild it from `academy-logo.png` with ImageMagick.
+## The logo (ON by default — placed like a designer)
+The **real Taylormade Academy logo** (`assets/academy-logo.png`) is stamped on every post by default — but **not** dead-center-bottom on a chip every time (Nelson's complaint: "a real graphic designer wouldn't do that"). Instead `placeLogoSmart` (in `brand.mjs`) reads THIS image, finds the **quietest corner** (lowest grayscale std-dev, bottom corners mildly preferred, center-bottom de-preferred), drops a **small** mark (~14% width) there with a clean margin, **no chip**, and **reverses it to paper-white** when that corner is dark/navy. So placement varies per generation and always sits in real negative space. The AI is told to leave one quiet, uncluttered corner empty for it.
+- `--no-logo` (MCP `logo: false`) → omit the logo entirely for a post.
+- `--logo-pos south|southeast|southwest|northeast|northwest` → force a fixed corner (skips auto).
+- Cached working art lives in `assets/.cache/` (`logo-dark.png` trimmed, `logo-light.png` reversed) — rebuilt automatically when `academy-logo.png` changes.
+- The AI never draws a wordmark; the machine always stamps the real file.
 
 ## Non-negotiable rules (from Nelson)
 1. **Fresh from real refs.** Anything featuring Nelson uses the `refs/` photos (auto for person recipes). **Never** image-to-image on an already-AI-generated slide — it garbles faces and text.
 2. **Any post with Nelson = ChatGPT, always.** Person posts are force-routed to `gpt-image-2`; Nano Banana is never used on his face.
-3. **Logo is OFF by default.** Only stamp it on `--logo`; never an AI-drawn wordmark. Don't put it on every post.
+3. **Logo is ON but placed naturally.** Smart-placed small in the quietest corner of each image (varies per post), reversed white on dark, never a center-bottom chip. `--no-logo` to omit; `--logo-pos` to force a corner. Never an AI-drawn wordmark.
 4. **No big blue blob.** Keep backgrounds clean; sparkles only, used sparingly.
 5. **Outfit changes every post.** Vary it; never reuse the ref's white tank.
 6. **Generate 2–4 variants, pick the cleanest.** Never ship the first render blind. Use `--n 3` and choose from the contact sheet.
