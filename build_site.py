@@ -276,6 +276,63 @@ PRODUCTS = {
         "pairs": "boring-money",
         "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
     },
+    "fully-booked-trainer": {
+        "title": "The Fully Booked Trainer",
+        "tag": "EBOOK", "pages": "42 pages", "cover": "/assets/cover-fully-booked-trainer.png",
+        "tags_extra": ["+ Prompt Pack"],
+        "blurb": "Hands-on automations for personal trainers who would rather coach than do admin. Full calendars, follow-ups that run on their own, and more leads, all with the AI you already pay for. No tech skills.",
+        "for": "Personal trainers and coaches who are great on the floor and buried in admin. Independent trainers, small studio owners, online coaches. If you can write a text and follow a numbered list, you can run everything in here. No code, no new software.",
+        "what": ["How AI automation actually works for a training business, in plain words",
+                 "The Client Check-In Machine: a personal check-in for every client, every week, drafted for you",
+                 "The No-Show Killer: every session confirmed the night before, in your voice",
+                 "The Program Builder: next week's programs drafted from your notes",
+                 "The Lead Follow-Up Machine: every inquiry gets a warm reply and a follow-up plan",
+                 "Content on Autopilot and a Money Tracker for renewals and balances",
+                 "A library of 15 more automations to steal, plus a Prompt Pack to copy them in one click"],
+        "outcome": "You finish with at least one automation running your admin without you, so your evenings are yours again and no lead or check-in slips. You coach more, chase less, and the business grows while you are on the floor.",
+        "what_is": "A short, no-code, do-it-with-me playbook that hands a trainer's admin, follow-ups, and check-ins to the AI you already pay for. Forty-two pages of real screenshots and copy-paste prompts, tuned for a training business, so you actually finish it.",
+        "note": "<b>What you need:</b> a paid Claude plan (Pro, about $20/mo, or higher) and the Claude desktop app for Mac or Windows. That is it. No other tools, no phone-only. If you do not have a plan yet, grab one first so you can follow along.",
+        "pairs": "steal-your-week-back",
+        "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
+    },
+    "always-on-agent": {
+        "title": "The Always-On Agent",
+        "tag": "EBOOK", "pages": "43 pages", "cover": "/assets/cover-always-on-agent.png",
+        "tags_extra": ["+ Prompt Pack"],
+        "blurb": "Hands-on automations for real estate agents: answer every lead in five minutes, nurture follow-ups on their own, and close more deals with less busywork. All with the AI you already pay for. No code.",
+        "for": "Real estate agents who lose deals to slow follow-up and drown in admin. Solo agents, small teams, and new agents building a pipeline. If you can write an email and follow a numbered list, you can run all of it. No tech background needed.",
+        "what": ["How AI automation actually works for a real estate business, in plain words",
+                 "The Five-Minute Lead Reply: every lead gets a warm, personal reply while you sleep",
+                 "The Listing Machine: MLS description, portal blurb, and social copy from your walkthrough notes",
+                 "The Open House Follow-Up: every sign-in name gets a personal note the same day",
+                 "The Morning Market Brief: new listings, price cuts, and pendings in your farm, read for you",
+                 "Content on Autopilot and a Transaction Tracker that watches every deadline",
+                 "A library of 15 more automations to steal, plus a Prompt Pack to copy them in one click"],
+        "outcome": "You finish with your lead response, follow-up, and deadlines handled automatically, so you become the agent who always replies first and never drops a client. More deals close, and your nights and weekends come back.",
+        "what_is": "A short, no-code, do-it-with-me playbook that puts an agent's lead response, follow-up, and transaction admin on autopilot with the AI you already pay for. Forty-three pages of real screenshots and copy-paste prompts, tuned for real estate.",
+        "note": "<b>What you need:</b> a paid Claude plan (Pro, about $20/mo, or higher) and the Claude desktop app for Mac or Windows. That is it. No other tools, no phone-only. If you do not have a plan yet, grab one first so you can follow along.",
+        "pairs": "steal-your-week-back",
+        "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
+    },
+    "busy-season-handled": {
+        "title": "Busy Season, Handled",
+        "tag": "EBOOK", "pages": "45 pages", "cover": "/assets/cover-busy-season-handled.png",
+        "tags_extra": ["+ Prompt Pack"],
+        "blurb": "Hands-on automations for tax preparers and accountants: chase the missing documents, quiet the inbox, and keep every client updated on their own, so busy season stops eating your life. No code.",
+        "for": "Tax preparers, bookkeepers, and accountants slammed every busy season. Solo preparers and small firms. If you can write an email and follow a numbered list, you can run all of it. No tech skills, no new software to learn.",
+        "what": ["How AI automation actually works for a tax and accounting practice, in plain words",
+                 "The Document Chaser: who owes you what, in one grid, with the chaser emails written",
+                 "The Intake Organizer: a client's pile of photos and PDFs becomes a clean, named file set",
+                 "The Morning Docket: your 7am inbox sorted into four buckets and a two-minute plan",
+                 "The Status Update Machine: every open client hears from you before they think to ask",
+                 "The Appointment Prep Brief and a Practice Dashboard for your whole season on one page",
+                 "A library of 15 more automations to steal, plus a Prompt Pack to copy them in one click"],
+        "outcome": "You finish with the document chasing, inbox triage, and client updates running without you, so busy season stops running your life. Fewer late nights, fewer dropped balls, and clients who feel looked after.",
+        "what_is": "A short, no-code, do-it-with-me playbook that hands a tax practice's document chasing, inbox, and client updates to the AI you already pay for. Forty-five pages of real screenshots and copy-paste prompts, tuned for tax season.",
+        "note": "<b>What you need:</b> a paid Claude plan (Pro, about $20/mo, or higher) and the Claude desktop app for Mac or Windows. That is it. No other tools, no phone-only. If you do not have a plan yet, grab one first so you can follow along.",
+        "pairs": "steal-your-week-back",
+        "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
+    },
 }
 
 def price_block(slug="", big=False):
@@ -398,7 +455,10 @@ def trim_blurb(text, n):
     return text[:n].rsplit(" ", 1)[0].rstrip(",.;") + "&hellip;"
 
 COVER_DIMS = {"/assets/cover-ai-agent-v2.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120),
-              "/assets/cover-steal-your-week-back.png": (1103, 1426)}
+              "/assets/cover-steal-your-week-back.png": (1103, 1426),
+              "/assets/cover-fully-booked-trainer.png": (1055, 1491),
+              "/assets/cover-always-on-agent.png": (1055, 1491),
+              "/assets/cover-busy-season-handled.png": (1055, 1491)}
 
 def cover_pic(p, cls="cover ebook-cover", lazy=True, style=""):
     """WebP <picture> with PNG fallback + intrinsic size (no CLS)."""
@@ -568,7 +628,11 @@ def store():
                 '<h3>The Complete Bundle</h3><p class="blurb">Both ebooks together: build the AI agent, then the recurring-income business.</p></div>'
                 '<div class="foot">' + price_block("bundle") + '<button class="btn gold sm" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button></div></article>')
     grid = (ebook_card("steal-your-week-back", p0, '<span class="tag gold"><span class="dot"></span>NEW &middot; LAUNCH FLASH</span>')
-            + ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2) + bundle_tile()
+            + ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2)
+            + ebook_card("fully-booked-trainer", PRODUCTS["fully-booked-trainer"], '<span class="tag gold"><span class="dot"></span>FOR TRAINERS</span>')
+            + ebook_card("always-on-agent", PRODUCTS["always-on-agent"], '<span class="tag gold"><span class="dot"></span>FOR AGENTS</span>')
+            + ebook_card("busy-season-handled", PRODUCTS["busy-season-handled"], '<span class="tag gold"><span class="dot"></span>FOR TAX PROS</span>')
+            + bundle_tile()
             + soon_card("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "design")
             + soon_card("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "video")
             + soon_card("Photography That Sells", "Lighting, shooting, and editing images that stop the scroll.", "photo"))
@@ -856,6 +920,7 @@ def not_found():
 </div></section></main>""" + footer()
 
 SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
+                 "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
                  "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
 def write_meta():
@@ -942,6 +1007,9 @@ if __name__ == "__main__":
     render("/store/ai-agent-ebook/", product_page("ai-agent-ebook"))
     render("/store/boring-money/", product_page("boring-money"))
     render("/store/steal-your-week-back/", product_page("steal-your-week-back"))
+    render("/store/fully-booked-trainer/", product_page("fully-booked-trainer"))
+    render("/store/always-on-agent/", product_page("always-on-agent"))
+    render("/store/busy-season-handled/", product_page("busy-season-handled"))
     render("/pricing/", pricing())
     render("/about/", about())
     render("/join/", community_landing())

@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prompt Pack — The Always-On Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#04123a;--ink:#0a1733;--ink-2:#33415b;--muted:#64748b;--blue:#0b40e0;--gold:#fdc921;--gold-deep:#f2b705;--hair:#e4e9f1;--soft:#f6f8fc;--paper:#fcfdff;
+--body:'Inter',system-ui,sans-serif;--disp:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink-2);line-height:1.55;}
+.hero{background:linear-gradient(165deg,#04102e,#020a1f);color:#fff;padding:44px 24px 40px;}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:-.02em;margin:12px 0 8px;}
+.hero p{color:#c7d4f5;max-width:52ch;font-size:15px;}
+.hero .brand{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.03em;margin-bottom:26px;}
+.dot{width:9px;height:9px;border-radius:2px;background:var(--gold);}
+main{padding:34px 0 70px;}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:32px 0 14px;display:flex;align-items:center;gap:9px;}
+.sec-h::before{content:"";width:18px;height:3px;border-radius:2px;background:var(--gold-deep);}
+.grp{font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+.card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(10,23,51,.04);}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px;}
+.lbl{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--ink);}
+.sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.copy{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:12.5px;color:#fff;background:var(--blue);border:none;border-radius:9px;padding:8px 15px;cursor:pointer;transition:background .15s;}
+.copy:hover{background:#0935bd;}
+.copy.done{background:var(--gold-deep);color:#1a1400;}
+.ptext{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;word-wrap:break-word;background:var(--soft);border-radius:10px;padding:13px 15px;border:1px solid var(--hair);}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;border-top:1px solid var(--hair);margin-top:40px;}
+.foot a{color:var(--blue);text-decoration:none;}
+.gate{position:fixed;inset:0;background:linear-gradient(165deg,#04102e,#020a1f);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gate-card{max-width:430px;text-align:center;color:#fff}
+.glogo{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.06em;margin-bottom:20px}
+.gmsg{font-size:16px;color:#c7d4f5;line-height:1.5}
+.gact{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.gbtn{background:var(--gold);color:#1a1400;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;text-decoration:none}
+.gbtn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}
+</style>
+<script src="/js/config.js?v=8fd3a8ab23"></script></head>
+<body>
+<div class="hero"><div class="wrap">
+  <div class="brand"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+  <div class="eyebrow">Companion Prompt Pack</div>
+  <h1>The Always-On Agent</h1>
+  <p>Every prompt from the book, ready to copy. Point Cowork at the right folder or connect the right app, hit Copy, paste, and go. Change anything in [brackets] to fit your world.</p>
+</div></div>
+<div id="gate" class="gate"><div class="gate-card">
+<div class="glogo"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+<div id="gmsg" class="gmsg">Checking your access&hellip;</div>
+<div id="gact" class="gact" style="display:none">
+<a class="gbtn" href="/store/always-on-agent/">Get the book</a>
+<a class="gbtn ghost" href="/login/">Sign in</a>
+</div></div></div>
+<main id="pk" style="display:none"><div class="wrap">
+  <div class="sec-h">The 6 Recipes</div>
+  <div class="card"><div class="chead"><div><div class="lbl">Recipe 01 — The Five-Minute Lead Reply</div></div><button class="copy" data-text="Check my connected email for new lead alerts from [the portal sites you use] and from my website contact form, going back to the last time you checked.
+
+For each new lead, draft a warm, personal reply in my voice. Mention exactly what they asked about, the address or the neighborhood, so it reads like I wrote it just for them. Never write a reply that could have gone to anyone.
+
+In every draft, offer two specific showing windows from my connected calendar over the next three days, and ask one friendly qualifying question, like their timeline or whether they have talked to a lender yet.
+
+Add every new lead to my leads sheet at [your leads spreadsheet]: name, phone and email, what they asked about, where the lead came from, and the date and time it arrived. Keep a Status column for each lead (new, contacted, touring, or quiet) and record how long each lead waited for its first reply, so I can see my response time.
+
+Do not send anything. Leave every reply as a draft in my email for me to review, and give me a one-line list of who came in and what is waiting for my yes.">Copy</button></div><pre class="ptext">Check my connected email for new lead alerts from [the portal sites you use] and from my website contact form, going back to the last time you checked.
+
+For each new lead, draft a warm, personal reply in my voice. Mention exactly what they asked about, the address or the neighborhood, so it reads like I wrote it just for them. Never write a reply that could have gone to anyone.
+
+In every draft, offer two specific showing windows from my connected calendar over the next three days, and ask one friendly qualifying question, like their timeline or whether they have talked to a lender yet.
+
+Add every new lead to my leads sheet at [your leads spreadsheet]: name, phone and email, what they asked about, where the lead came from, and the date and time it arrived. Keep a Status column for each lead (new, contacted, touring, or quiet) and record how long each lead waited for its first reply, so I can see my response time.
+
+Do not send anything. Leave every reply as a draft in my email for me to review, and give me a one-line list of who came in and what is waiting for my yes.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 02 — The Listing Machine</div></div><button class="copy" data-text="Read everything in my [4127 Bluff Creek Ct] listing folder: the walkthrough notes, the photo notes, and the fact sheet with beds, baths, square footage, year built, and upgrades.
+
+Write four pieces from it. One: an MLS-ready description under [1,000] characters that leads with the two strongest features and works in every upgrade from my notes.
+
+Two: a portal blurb of about fifty words. Three: an Instagram caption in my voice with one call to action and five hashtags at most. Four: flyer copy with a headline, three bullet highlights, and a closing line with [your name and phone number].
+
+Keep every word fair-housing safe. Describe the property, never people: nothing about who lives nearby, who the home would be &#x27;perfect for,&#x27; safety, school quality, or the makeup of the neighborhood. If my notes include anything like that, leave it out and flag it for me.
+
+Match my voice to the past listing descriptions I put in the folder. If you are unsure about a fact, flag it instead of filling it in.
+
+Do not post or publish anything anywhere. Save all four drafts as one document in this folder and leave them for me to review. Every word waits for my approval.">Copy</button></div><pre class="ptext">Read everything in my [4127 Bluff Creek Ct] listing folder: the walkthrough notes, the photo notes, and the fact sheet with beds, baths, square footage, year built, and upgrades.
+
+Write four pieces from it. One: an MLS-ready description under [1,000] characters that leads with the two strongest features and works in every upgrade from my notes.
+
+Two: a portal blurb of about fifty words. Three: an Instagram caption in my voice with one call to action and five hashtags at most. Four: flyer copy with a headline, three bullet highlights, and a closing line with [your name and phone number].
+
+Keep every word fair-housing safe. Describe the property, never people: nothing about who lives nearby, who the home would be &#x27;perfect for,&#x27; safety, school quality, or the makeup of the neighborhood. If my notes include anything like that, leave it out and flag it for me.
+
+Match my voice to the past listing descriptions I put in the folder. If you are unsure about a fact, flag it instead of filling it in.
+
+Do not post or publish anything anywhere. Save all four drafts as one document in this folder and leave them for me to review. Every word waits for my approval.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 03 — The Open House Follow-Up</div></div><button class="copy" data-text="Here is a photo of the sign-in sheet from today&#x27;s open house at [4127 Bluff Creek Ct], plus my notes on who said what. Read every row, even the rough handwriting, and list any name or number you cannot read with confidence instead of guessing.
+
+Sort the visitors into three groups: Hot (pre-approved, buying in the next few months, or asked about offers), Warm (early in the search but left real contact info), and Cool (neighbors, other agents, just curious).
+
+Draft a short, personal follow-up for each visitor in my voice, mentioning the specific thing they asked about or liked. Hot gets an offer to talk this week with two showing windows, [Tuesday 5:30pm and Saturday 10am]. Warm gets [my buyer guide] and a no-pressure check-in. Cool gets a warm thank-you and an easy way to reach me later.
+
+Add every visitor as a new row in [my leads sheet] in this folder: name, contact info, group, what they mentioned, and a follow-up date.
+
+Do not send anything. Leave every draft for me to review, and flag anyone you were not sure how to group.">Copy</button></div><pre class="ptext">Here is a photo of the sign-in sheet from today&#x27;s open house at [4127 Bluff Creek Ct], plus my notes on who said what. Read every row, even the rough handwriting, and list any name or number you cannot read with confidence instead of guessing.
+
+Sort the visitors into three groups: Hot (pre-approved, buying in the next few months, or asked about offers), Warm (early in the search but left real contact info), and Cool (neighbors, other agents, just curious).
+
+Draft a short, personal follow-up for each visitor in my voice, mentioning the specific thing they asked about or liked. Hot gets an offer to talk this week with two showing windows, [Tuesday 5:30pm and Saturday 10am]. Warm gets [my buyer guide] and a no-pressure check-in. Cool gets a warm thank-you and an easy way to reach me later.
+
+Add every visitor as a new row in [my leads sheet] in this folder: name, contact info, group, what they mentioned, and a follow-up date.
+
+Do not send anything. Leave every draft for me to review, and flag anyone you were not sure how to group.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 04 — The Morning Market Brief</div></div><button class="copy" data-text="Every weekday morning, read the MLS and portal alert emails that arrived in my inbox in the last 24 hours: saved-search alerts, new-listing notices, price-change emails, and status updates.
+
+Pull out everything in [your farm area, e.g. Cedar Ridge and the two zip codes around it] and sort it into three buckets: New listings, Price cuts, and Gone pending. For each one, list the address, the price, what changed, and days on market if the alert shows it.
+
+Then compare every listing against my buyers file at [your buyers file] and flag any that fit a buyer&#x27;s area, beds, baths, and price ceiling, by name, like this one fits the Hendersons.
+
+Write it as a brief I can read in two minutes: one line at the top on what kind of night it was, then the three buckets, with buyer matches pinned first.
+
+Work only from what is in the alert emails. If a detail is missing, write not in the alert instead of guessing. Do not reply to, forward, or send anything. Leave the brief for me to read.">Copy</button></div><pre class="ptext">Every weekday morning, read the MLS and portal alert emails that arrived in my inbox in the last 24 hours: saved-search alerts, new-listing notices, price-change emails, and status updates.
+
+Pull out everything in [your farm area, e.g. Cedar Ridge and the two zip codes around it] and sort it into three buckets: New listings, Price cuts, and Gone pending. For each one, list the address, the price, what changed, and days on market if the alert shows it.
+
+Then compare every listing against my buyers file at [your buyers file] and flag any that fit a buyer&#x27;s area, beds, baths, and price ceiling, by name, like this one fits the Hendersons.
+
+Write it as a brief I can read in two minutes: one line at the top on what kind of night it was, then the three buckets, with buyer matches pinned first.
+
+Work only from what is in the alert emails. If a detail is missing, write not in the alert instead of guessing. Do not reply to, forward, or send anything. Leave the brief for me to read.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 05 — Content on Autopilot</div></div><button class="copy" data-text="Every Monday morning, draft my three social posts for the week, working from this week&#x27;s market briefs in [your briefs folder] and the writing samples in my [voice folder].
+
+Post one: a neighborhood spotlight on [your farm area], built on the most interesting true thing in this week&#x27;s brief, like a new listing, a price cut, or how fast something went under contract. Post two: a just-listed or just-sold post from my own business, using my notes on [your active listing or latest closing]. Post three: a plain-English answer to one question buyers and sellers actually ask me, rotating through this list without repeating anything from the last month: [your five most-asked questions].
+
+Write in my voice: first person, short sentences, no agent cliches like &#x27;dream home&#x27; or &#x27;act fast&#x27;. Describe homes, streets, and prices, never the people who live nearby and never the kind of buyer a place is &#x27;perfect for&#x27;.
+
+For each post, give me an Instagram caption with five hashtags at most, plus a shorter Facebook version. Label the three posts Tuesday, Thursday, and Saturday, and queue them in my [content drafts doc], each with a one-line note on where the idea came from.
+
+Do not post anything, anywhere, ever. Leave the drafts for me to review, and flag any fact you are not certain of instead of guessing.">Copy</button></div><pre class="ptext">Every Monday morning, draft my three social posts for the week, working from this week&#x27;s market briefs in [your briefs folder] and the writing samples in my [voice folder].
+
+Post one: a neighborhood spotlight on [your farm area], built on the most interesting true thing in this week&#x27;s brief, like a new listing, a price cut, or how fast something went under contract. Post two: a just-listed or just-sold post from my own business, using my notes on [your active listing or latest closing]. Post three: a plain-English answer to one question buyers and sellers actually ask me, rotating through this list without repeating anything from the last month: [your five most-asked questions].
+
+Write in my voice: first person, short sentences, no agent cliches like &#x27;dream home&#x27; or &#x27;act fast&#x27;. Describe homes, streets, and prices, never the people who live nearby and never the kind of buyer a place is &#x27;perfect for&#x27;.
+
+For each post, give me an Instagram caption with five hashtags at most, plus a shorter Facebook version. Label the three posts Tuesday, Thursday, and Saturday, and queue them in my [content drafts doc], each with a one-line note on where the idea came from.
+
+Do not post anything, anywhere, ever. Leave the drafts for me to review, and flag any fact you are not certain of instead of guessing.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 06 — The Transaction Tracker</div></div><button class="copy" data-text="Look inside every deal folder in this Deals folder. For each one, read the executed contract and any amendments and pull the dates that decide the deal: effective date, option period end, inspection, appraisal, financing approval deadline, and closing. Also watch for [any other deadline your contracts use].
+
+Build one tracker sheet with a row per deal: the property address, my side (buyer or seller), my client&#x27;s name, and each deadline with days remaining.
+
+For every deal, tell me the next action due and who owes it: me, my client, the other agent, the lender, or the title company.
+
+Every Monday at 8am, give me a This week&#x27;s deadlines summary: everything due in the next seven days in date order, one line each on what has to happen, with anything inside 48 hours flagged urgent at the top. Where someone else owes the next move, draft a short, friendly reminder email I can send.
+
+Do not send anything. Leave every reminder as a draft for me to review. If a date is not in the paperwork, mark it Missing instead of guessing. I confirm every date against the signed contract.">Copy</button></div><pre class="ptext">Look inside every deal folder in this Deals folder. For each one, read the executed contract and any amendments and pull the dates that decide the deal: effective date, option period end, inspection, appraisal, financing approval deadline, and closing. Also watch for [any other deadline your contracts use].
+
+Build one tracker sheet with a row per deal: the property address, my side (buyer or seller), my client&#x27;s name, and each deadline with days remaining.
+
+For every deal, tell me the next action due and who owes it: me, my client, the other agent, the lender, or the title company.
+
+Every Monday at 8am, give me a This week&#x27;s deadlines summary: everything due in the next seven days in date order, one line each on what has to happen, with anything inside 48 hours flagged urgent at the top. Where someone else owes the next move, draft a short, friendly reminder email I can send.
+
+Do not send anything. Leave every reminder as a draft for me to review. If a date is not in the paperwork, mark it Missing instead of guessing. I confirm every date against the signed contract.</pre></div>
+  <div class="sec-h">The Library</div>
+  <h3 class="grp">Answer first</h3><div class="card"><div class="chead"><div><div class="lbl">The showing feedback chaser</div></div><button class="copy" data-text="After each showing on [my listing address], find the buyer&#x27;s agent&#x27;s contact from my calendar and email, then draft a short, friendly feedback request: how the showing went, any concerns about price or condition, and whether their buyer is interested. If an agent has not replied within two days, draft one polite nudge. Do not send anything. Leave every draft for me to review.">Copy</button></div><pre class="ptext">After each showing on [my listing address], find the buyer&#x27;s agent&#x27;s contact from my calendar and email, then draft a short, friendly feedback request: how the showing went, any concerns about price or condition, and whether their buyer is interested. If an agent has not replied within two days, draft one polite nudge. Do not send anything. Leave every draft for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The weekend catch-up</div></div><button class="copy" data-text="Every Monday at 8am, go through my email from Friday evening through Sunday night and pull out every new lead from my [portal alerts and website form]. Sort them by urgency: wants to tour this week, just starting to look, or unclear. Draft a warm personal reply to each one that mentions what they asked about and offers two showing windows, and add them to my leads sheet. Do not send anything, leave the drafts for me to review with my coffee.">Copy</button></div><pre class="ptext">Every Monday at 8am, go through my email from Friday evening through Sunday night and pull out every new lead from my [portal alerts and website form]. Sort them by urgency: wants to tour this week, just starting to look, or unclear. Draft a warm personal reply to each one that mentions what they asked about and offers two showing windows, and add them to my leads sheet. Do not send anything, leave the drafts for me to review with my coffee.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The price-drop alert</div></div><button class="copy" data-text="When I drop the price on [my listing address], draft a short notice to every buyer who has asked about or toured that property, pulled from my [leads sheet]: the new price, one line on why now is worth a second look, and an offer of two showing windows this week. Keep each one personal, not a blast. Do not send anything, leave the drafts for me to review before a single one goes out.">Copy</button></div><pre class="ptext">When I drop the price on [my listing address], draft a short notice to every buyer who has asked about or toured that property, pulled from my [leads sheet]: the new price, one line on why now is worth a second look, and an offer of two showing windows this week. Keep each one personal, not a blast. Do not send anything, leave the drafts for me to review before a single one goes out.</pre></div><h3 class="grp">Market like a pro</h3><div class="card"><div class="chead"><div><div class="lbl">The neighborhood one-pager</div></div><button class="copy" data-text="Using my notes in [this folder], build a one-page buyer&#x27;s guide to [Cedar Ridge]: parks, commute times, nearby shops and restaurants, and things to do on a Saturday. Describe the place and its amenities only, never the people who live there, so every word stays fair-housing safe. Format it clean enough to hand a buyer at a showing, and leave it for me to review before it goes to anyone.">Copy</button></div><pre class="ptext">Using my notes in [this folder], build a one-page buyer&#x27;s guide to [Cedar Ridge]: parks, commute times, nearby shops and restaurants, and things to do on a Saturday. Describe the place and its amenities only, never the people who live there, so every word stays fair-housing safe. Format it clean enough to hand a buyer at a showing, and leave it for me to review before it goes to anyone.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The just-sold story</div></div><button class="copy" data-text="When a deal closes, draft a celebratory just-sold post from the details in [that deal&#x27;s folder]: the win, one true moment from the deal, and a thank-you to my clients, written in my voice. Put a reminder at the top of the draft to get my clients&#x27; permission before I use their names or photo. Do not post anything, queue the draft for my approval.">Copy</button></div><pre class="ptext">When a deal closes, draft a celebratory just-sold post from the details in [that deal&#x27;s folder]: the win, one true moment from the deal, and a thank-you to my clients, written in my voice. Put a reminder at the top of the draft to get my clients&#x27; permission before I use their names or photo. Do not post anything, queue the draft for my approval.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The listing refresh</div></div><button class="copy" data-text="For any of my listings that reaches thirty days on market, reread the original description in [the listing folder] and draft three fresh angles: a new opening line, a different feature to lead with, and a tightened rewrite of the full description. Describe the property only, never the neighbors or who the home is &#x27;perfect for&#x27;, so it stays fair-housing safe. Leave the drafts in the listing folder, nothing publishes until I have read every word.">Copy</button></div><pre class="ptext">For any of my listings that reaches thirty days on market, reread the original description in [the listing folder] and draft three fresh angles: a new opening line, a different feature to lead with, and a tightened rewrite of the full description. Describe the property only, never the neighbors or who the home is &#x27;perfect for&#x27;, so it stays fair-housing safe. Leave the drafts in the listing folder, nothing publishes until I have read every word.</pre></div><h3 class="grp">Keep deals on track</h3><div class="card"><div class="chead"><div><div class="lbl">The document checklist</div></div><button class="copy" data-text="For each deal in my [deals folder], build a checklist of every document in the transaction: what is signed, what is missing, and who owes it next. For anything missing, draft a short, friendly chaser to the right person, whether that is the lender, the other agent, or my client. Do not send anything, leave the chasers as drafts for me to review.">Copy</button></div><pre class="ptext">For each deal in my [deals folder], build a checklist of every document in the transaction: what is signed, what is missing, and who owes it next. For anything missing, draft a short, friendly chaser to the right person, whether that is the lender, the other agent, or my client. Do not send anything, leave the chasers as drafts for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The vendor sheet</div></div><button class="copy" data-text="Using my contacts file at [file], build a one-page vendor sheet for [this deal]: my inspector, lender, title company, and insurance contact, with phone, email, and one line on what each person handles and when my buyers will hear from them. Format it clean enough to send straight to my clients. Leave it in the deal folder for me to check before it goes to anyone.">Copy</button></div><pre class="ptext">Using my contacts file at [file], build a one-page vendor sheet for [this deal]: my inspector, lender, title company, and insurance contact, with phone, email, and one line on what each person handles and when my buyers will hear from them. Format it clean enough to send straight to my clients. Leave it in the deal folder for me to check before it goes to anyone.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The closing-week packet</div></div><button class="copy" data-text="One week before closing on [this deal], draft a closing-week packet for my clients: which utilities to transfer and when, what to bring on closing day, how the keys change hands, and a final walk-through checklist. Write it warm and plain, the way I would explain it across a kitchen counter. Leave it as a draft in the deal folder, I send it only after I have confirmed every date against the signed contract.">Copy</button></div><pre class="ptext">One week before closing on [this deal], draft a closing-week packet for my clients: which utilities to transfer and when, what to bring on closing day, how the keys change hands, and a final walk-through checklist. Write it warm and plain, the way I would explain it across a kitchen counter. Leave it as a draft in the deal folder, I send it only after I have confirmed every date against the signed contract.</pre></div><h3 class="grp">Stay top of mind</h3><div class="card"><div class="chead"><div><div class="lbl">The home-iversary note</div></div><button class="copy" data-text="Each month, check my [closed-deals sheet] for closing anniversaries coming up, like Marcus, who closed last spring. Draft a short personal note for each one: congratulations on another year in the house, one genuine line about their move, and a soft offer to answer any home questions, with no sales pitch anywhere in it. Do not send anything, leave the drafts for me to make personal and send myself.">Copy</button></div><pre class="ptext">Each month, check my [closed-deals sheet] for closing anniversaries coming up, like Marcus, who closed last spring. Draft a short personal note for each one: congratulations on another year in the house, one genuine line about their move, and a soft offer to answer any home questions, with no sales pitch anywhere in it. Do not send anything, leave the drafts for me to make personal and send myself.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The quarterly check-in</div></div><button class="copy" data-text="Split my sphere list in [this file] into four groups, and each quarter draft a short personal check-in for one group, so everyone hears from me once a year without me writing ninety emails in a weekend. Make each draft feel one-to-one: pull a detail from my notes on that person, never a blast. Do not send anything, leave the drafts for me to review and personalize.">Copy</button></div><pre class="ptext">Split my sphere list in [this file] into four groups, and each quarter draft a short personal check-in for one group, so everyone hears from me once a year without me writing ninety emails in a weekend. Make each draft feel one-to-one: pull a detail from my notes on that person, never a blast. Do not send anything, leave the drafts for me to review and personalize.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The review ask</div></div><button class="copy" data-text="Two weeks after each closing, when the boxes are unpacked and the good feelings are still fresh, draft a review request to my clients: thank them, mention one specific moment from their deal, and include my [review link]. Keep it short and warm, never pushy, and skip anyone whose deal was rocky. Do not send anything, leave it as a draft for me to approve.">Copy</button></div><pre class="ptext">Two weeks after each closing, when the boxes are unpacked and the good feelings are still fresh, draft a review request to my clients: thank them, mention one specific moment from their deal, and include my [review link]. Keep it short and warm, never pushy, and skip anyone whose deal was rocky. Do not send anything, leave it as a draft for me to approve.</pre></div><h3 class="grp">Keep it running</h3><div class="card"><div class="chead"><div><div class="lbl">The inbox sorter</div></div><button class="copy" data-text="Go through my unread email from today and sort it into four buckets: Leads, Active deals, Vendors, and Noise. For the routine questions in the first three buckets, draft replies in my voice, and give me a one-line list of what you drafted and what still needs me. Do not send anything, leave every reply as a draft in my email for me to review.">Copy</button></div><pre class="ptext">Go through my unread email from today and sort it into four buckets: Leads, Active deals, Vendors, and Noise. For the routine questions in the first three buckets, draft replies in my voice, and give me a one-line list of what you drafted and what still needs me. Do not send anything, leave every reply as a draft in my email for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The weekly numbers email</div></div><button class="copy" data-text="Every Monday morning, read my [leads sheet and deals folder] and write me a short pipeline summary: new leads last week, who is touring, every deal under contract with its next deadline, and anyone who has gone quiet and deserves a touch. Keep it to one screen I can read at a red light, no fluff. Save it where I will see it first thing, this one is just for me.">Copy</button></div><pre class="ptext">Every Monday morning, read my [leads sheet and deals folder] and write me a short pipeline summary: new leads last week, who is touring, every deal under contract with its next deadline, and anyone who has gone quiet and deserves a touch. Keep it to one screen I can read at a red light, no fluff. Save it where I will see it first thing, this one is just for me.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The expense log</div></div><button class="copy" data-text="Once a month, turn the receipts in my [receipts folder] into one clean expense sheet: date, vendor, amount, and category, with signs, staging, photography, marketing, and mileage broken out. Total each category at the bottom and flag anything missing an amount or a date. Save it in the folder, so when tax time comes I hand over a spreadsheet instead of a shoebox.">Copy</button></div><pre class="ptext">Once a month, turn the receipts in my [receipts folder] into one clean expense sheet: date, vendor, amount, and category, with signs, staging, photography, marketing, and mileage broken out. Total each category at the bottom and flag anything missing an amount or a date. Save it in the folder, so when tax time comes I hand over a spreadsheet instead of a shoebox.</pre></div>
+  <div class="foot">Taylormade Academy · <a href="https://academy.taylormadecreative.net">academy.taylormadecreative.net</a><br>Paste these into Claude Cowork. Keep them yours.</div>
+</div></main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const gate=document.getElementById('gate'),pk=document.getElementById('pk'),gmsg=document.getElementById('gmsg'),gact=document.getElementById('gact');
+function deny(m){ gmsg.textContent=m; gact.style.display='flex'; }
+function allow(){ gate.style.display='none'; pk.style.display=''; }
+(async function(){
+  if(!CFG.SUPABASE_URL||!CFG.SUPABASE_KEY){ deny('Sign in to unlock your Prompt Pack.'); return; }
+  try{
+    const sb=createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY);
+    const s=await sb.auth.getSession();
+    const session=s&&s.data&&s.data.session;
+    if(!session){ deny('This Prompt Pack comes with the book. Sign in to unlock it.'); return; }
+    const r=await sb.rpc('ea_my_library');
+    if(r.error) throw r.error;
+    const owns=(r.data||[]).some(function(x){ return x.slug==='always-on-agent'; });
+    if(owns){ allow(); } else { deny('You do not own The Always-On Agent yet. Grab it to unlock the Prompt Pack.'); }
+  }catch(e){ deny('Sign in to unlock your Prompt Pack.'); }
+})();
+</script>
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    navigator.clipboard.writeText(btn.getAttribute('data-text')).then(function(){
+      var o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = o; btn.classList.remove('done'); }, 1400);
+    });
+  });
+});
+</script>
+</body></html>

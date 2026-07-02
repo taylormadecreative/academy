@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prompt Pack — Busy Season, Handled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#04123a;--ink:#0a1733;--ink-2:#33415b;--muted:#64748b;--blue:#0b40e0;--gold:#fdc921;--gold-deep:#f2b705;--hair:#e4e9f1;--soft:#f6f8fc;--paper:#fcfdff;
+--body:'Inter',system-ui,sans-serif;--disp:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink-2);line-height:1.55;}
+.hero{background:linear-gradient(165deg,#04102e,#020a1f);color:#fff;padding:44px 24px 40px;}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:-.02em;margin:12px 0 8px;}
+.hero p{color:#c7d4f5;max-width:52ch;font-size:15px;}
+.hero .brand{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.03em;margin-bottom:26px;}
+.dot{width:9px;height:9px;border-radius:2px;background:var(--gold);}
+main{padding:34px 0 70px;}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:32px 0 14px;display:flex;align-items:center;gap:9px;}
+.sec-h::before{content:"";width:18px;height:3px;border-radius:2px;background:var(--gold-deep);}
+.grp{font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+.card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(10,23,51,.04);}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px;}
+.lbl{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--ink);}
+.sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.copy{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:12.5px;color:#fff;background:var(--blue);border:none;border-radius:9px;padding:8px 15px;cursor:pointer;transition:background .15s;}
+.copy:hover{background:#0935bd;}
+.copy.done{background:var(--gold-deep);color:#1a1400;}
+.ptext{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;word-wrap:break-word;background:var(--soft);border-radius:10px;padding:13px 15px;border:1px solid var(--hair);}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;border-top:1px solid var(--hair);margin-top:40px;}
+.foot a{color:var(--blue);text-decoration:none;}
+.gate{position:fixed;inset:0;background:linear-gradient(165deg,#04102e,#020a1f);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gate-card{max-width:430px;text-align:center;color:#fff}
+.glogo{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.06em;margin-bottom:20px}
+.gmsg{font-size:16px;color:#c7d4f5;line-height:1.5}
+.gact{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.gbtn{background:var(--gold);color:#1a1400;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;text-decoration:none}
+.gbtn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}
+</style>
+<script src="/js/config.js?v=8fd3a8ab23"></script></head>
+<body>
+<div class="hero"><div class="wrap">
+  <div class="brand"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+  <div class="eyebrow">Companion Prompt Pack</div>
+  <h1>Busy Season, Handled</h1>
+  <p>Every prompt from the book, ready to copy. Point Cowork at the right folder or connect the right app, hit Copy, paste, and go. Change anything in [brackets] to fit your world.</p>
+</div></div>
+<div id="gate" class="gate"><div class="gate-card">
+<div class="glogo"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+<div id="gmsg" class="gmsg">Checking your access&hellip;</div>
+<div id="gact" class="gact" style="display:none">
+<a class="gbtn" href="/store/busy-season-handled/">Get the book</a>
+<a class="gbtn ghost" href="/login/">Sign in</a>
+</div></div></div>
+<main id="pk" style="display:none"><div class="wrap">
+  <div class="sec-h">The 6 Recipes</div>
+  <div class="card"><div class="chead"><div><div class="lbl">Recipe 01 — The Document Chaser</div></div><button class="copy" data-text="For every client subfolder in [my Clients folder], compare what has actually arrived, files in the folder plus attachments in my connected email, against that client&#x27;s checklist in [last-years-docs-list], the list of what each client provided last year.
+
+Check my sent mail so you know who has already been asked, and how many times. That decides each client&#x27;s tone tier.
+
+Build one missing-documents grid for the whole season: client, received, still missing, date last asked, and a status of Complete, Waiting, or Overdue. Save it in [my Clients folder].
+
+For each client still missing items, draft a warm chaser email naming only their missing documents and how to get them to me: a friendly first ask, a shorter and firmer second nudge, and for anyone on a third ask, a kind but plain note that without the documents by [your cutoff date] we will need to talk about filing an extension.
+
+Keep every draft under 150 words, in my voice, personal to that client. Never include Social Security numbers, dollar amounts, or anything from a return, and never answer a tax question in a draft; flag those to me instead.
+
+Do not send anything. Leave every draft in my email for me to review, with a one-line rundown of who got which tier.">Copy</button></div><pre class="ptext">For every client subfolder in [my Clients folder], compare what has actually arrived, files in the folder plus attachments in my connected email, against that client&#x27;s checklist in [last-years-docs-list], the list of what each client provided last year.
+
+Check my sent mail so you know who has already been asked, and how many times. That decides each client&#x27;s tone tier.
+
+Build one missing-documents grid for the whole season: client, received, still missing, date last asked, and a status of Complete, Waiting, or Overdue. Save it in [my Clients folder].
+
+For each client still missing items, draft a warm chaser email naming only their missing documents and how to get them to me: a friendly first ask, a shorter and firmer second nudge, and for anyone on a third ask, a kind but plain note that without the documents by [your cutoff date] we will need to talk about filing an extension.
+
+Keep every draft under 150 words, in my voice, personal to that client. Never include Social Security numbers, dollar amounts, or anything from a return, and never answer a tax question in a draft; flag those to me instead.
+
+Do not send anything. Leave every draft in my email for me to review, with a one-line rundown of who got which tier.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 02 — The Intake Organizer</div></div><button class="copy" data-text="A new client, [the Ramirez family], sent me their tax documents as a jumble of photos, PDFs, and attachments. Everything is in this folder, along with my folder-rules document.
+
+Sort every file into my standard structure using the rules in [folder-rules.docx]: Income, Deductions, Prior year, Personal info, and Not sure. Rename each file to my format, [LastName-Year-DocType], and put anything you cannot classify in Not sure instead of guessing.
+
+Compare what arrived against my [new-client checklist] and build an intake summary: what came in, what is still missing, and a flag on any file that is blurry, cut off, or unreadable, like a photo with a thumb over the numbers. Never guess at a number you cannot read; flag the file instead.
+
+Draft a warm welcome email to [the Ramirez family]: thank them, tell them their file is set up, and list exactly what we still need in plain language. Do not put Social Security numbers, dollar amounts, or anything from inside their documents in the email.
+
+Do not send anything, do not delete anything, and do not move files outside this folder. Leave the draft for me to review.">Copy</button></div><pre class="ptext">A new client, [the Ramirez family], sent me their tax documents as a jumble of photos, PDFs, and attachments. Everything is in this folder, along with my folder-rules document.
+
+Sort every file into my standard structure using the rules in [folder-rules.docx]: Income, Deductions, Prior year, Personal info, and Not sure. Rename each file to my format, [LastName-Year-DocType], and put anything you cannot classify in Not sure instead of guessing.
+
+Compare what arrived against my [new-client checklist] and build an intake summary: what came in, what is still missing, and a flag on any file that is blurry, cut off, or unreadable, like a photo with a thumb over the numbers. Never guess at a number you cannot read; flag the file instead.
+
+Draft a warm welcome email to [the Ramirez family]: thank them, tell them their file is set up, and list exactly what we still need in plain language. Do not put Social Security numbers, dollar amounts, or anything from inside their documents in the email.
+
+Do not send anything, do not delete anything, and do not move files outside this folder. Leave the draft for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 03 — The Morning Docket</div></div><button class="copy" data-text="Every weekday morning at 7, go through my unread email from the last 24 hours.
+
+Sort everything into four buckets: Docs arrived (client attachments, portal notices, anything that looks like a tax document), Client questions (anyone waiting on an answer from me; flag actual tax questions so I answer those personally), Deadlines &amp;amp; notices (anything official: a client forwarding a letter from a tax authority, a signature request, a deadline reminder), and Noise (newsletters, promotions, automated receipts).
+
+Then look at [my Clients folder] and list every client folder that changed since yesterday: new files, renamed files, anything added.
+
+Write it as one docket I can read in two minutes: Deadlines &amp;amp; notices first, then each bucket as a short list with the client&#x27;s name and the one thing I need to know. Save it with today&#x27;s date in [my Dockets folder].
+
+Never copy a Social Security number or a dollar amount into the docket. Refer to documents by file name only.
+
+Do not reply to, move, delete, or send anything. This is read-only. Leave every email and every file exactly where it is.">Copy</button></div><pre class="ptext">Every weekday morning at 7, go through my unread email from the last 24 hours.
+
+Sort everything into four buckets: Docs arrived (client attachments, portal notices, anything that looks like a tax document), Client questions (anyone waiting on an answer from me; flag actual tax questions so I answer those personally), Deadlines &amp;amp; notices (anything official: a client forwarding a letter from a tax authority, a signature request, a deadline reminder), and Noise (newsletters, promotions, automated receipts).
+
+Then look at [my Clients folder] and list every client folder that changed since yesterday: new files, renamed files, anything added.
+
+Write it as one docket I can read in two minutes: Deadlines &amp;amp; notices first, then each bucket as a short list with the client&#x27;s name and the one thing I need to know. Save it with today&#x27;s date in [my Dockets folder].
+
+Never copy a Social Security number or a dollar amount into the docket. Refer to documents by file name only.
+
+Do not reply to, move, delete, or send anything. This is read-only. Leave every email and every file exactly where it is.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 04 — The Status Update Machine</div></div><button class="copy" data-text="Every Friday at 4pm, read my client tracker in [tracker file name] and find every client whose return is still open, meaning any stage except Filed or Complete.
+
+For each one, draft a short, personal status email that translates their stage into plain English: Docs in means &#x27;I have everything and you are in my queue&#x27;, In prep means &#x27;your return is being worked on now&#x27;, In review means &#x27;prep is done and I am doing the final check&#x27;, and Ready to sign means &#x27;it is ready, the next step is your signature&#x27;. Use the notes column to personalize the opening line.
+
+Keep each one warm and plain, two or three sentences, signed [your name]. For clients who don&#x27;t do email well, keep it even simpler.
+
+Never put any number from a return in a draft: no dollar amounts, no refund or balance figures, no Social Security numbers. If a client&#x27;s stage is blank or unclear, write no draft and flag them to me instead of guessing.
+
+Do not send anything. Leave every email as a draft for me to review, and give me a one-line list of who got a draft, who got skipped, and why.">Copy</button></div><pre class="ptext">Every Friday at 4pm, read my client tracker in [tracker file name] and find every client whose return is still open, meaning any stage except Filed or Complete.
+
+For each one, draft a short, personal status email that translates their stage into plain English: Docs in means &#x27;I have everything and you are in my queue&#x27;, In prep means &#x27;your return is being worked on now&#x27;, In review means &#x27;prep is done and I am doing the final check&#x27;, and Ready to sign means &#x27;it is ready, the next step is your signature&#x27;. Use the notes column to personalize the opening line.
+
+Keep each one warm and plain, two or three sentences, signed [your name]. For clients who don&#x27;t do email well, keep it even simpler.
+
+Never put any number from a return in a draft: no dollar amounts, no refund or balance figures, no Social Security numbers. If a client&#x27;s stage is blank or unclear, write no draft and flag them to me instead of guessing.
+
+Do not send anything. Leave every email as a draft for me to review, and give me a one-line list of who got a draft, who got skipped, and why.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 05 — The Appointment Prep Brief</div></div><button class="copy" data-text="Before my [2pm] meeting with [the Ramirez family], build me a one-page prep brief. Work only from their folder at [Clients/Ramirez] and my email threads with them.
+
+Start with documents: compare what has arrived in their folder against [their intake checklist / last year&#x27;s document list] and show me what is in and what is still missing.
+
+Pull my notes from last year&#x27;s file and list any open questions I wrote down but never got answered. If they are a new client, use my intake notes instead and say so at the top of the brief.
+
+Read our email threads for life changes worth asking about: a new job, a marriage, a new baby, a move, a house bought or sold, a new side business. Note which email each one came from so I can check it.
+
+End with three talking points for opening the meeting. If they asked a tax question in an email, flag it for me to answer in the room. Do not answer it in the brief.
+
+This brief is for my eyes only. Do not draft or send anything to the client, and never include Social Security numbers or dollar amounts from any return.">Copy</button></div><pre class="ptext">Before my [2pm] meeting with [the Ramirez family], build me a one-page prep brief. Work only from their folder at [Clients/Ramirez] and my email threads with them.
+
+Start with documents: compare what has arrived in their folder against [their intake checklist / last year&#x27;s document list] and show me what is in and what is still missing.
+
+Pull my notes from last year&#x27;s file and list any open questions I wrote down but never got answered. If they are a new client, use my intake notes instead and say so at the top of the brief.
+
+Read our email threads for life changes worth asking about: a new job, a marriage, a new baby, a move, a house bought or sold, a new side business. Note which email each one came from so I can check it.
+
+End with three talking points for opening the meeting. If they asked a tax question in an email, flag it for me to answer in the room. Do not answer it in the brief.
+
+This brief is for my eyes only. Do not draft or send anything to the client, and never include Social Security numbers or dollar amounts from any return.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 06 — The Practice Dashboard</div></div><button class="copy" data-text="Read my client tracker, [client-tracker.xlsx], in this folder. Each row is one open return, with columns for client, stage, date docs were requested, docs complete, extension, fee billed, and fee paid. Read it only. Do not change the tracker.
+
+Build a clean one-page dashboard I can open in my web browser (an HTML file). Show returns by stage (docs in, in prep, in review, ready to sign, filed) with a count for each; a waiting on documents list sorted by days waiting, longest first; the extension list; and billed versus collected, with totals and who still owes.
+
+Add a capacity view of the next two weeks: given the open returns and the days left before the April deadline, lay out a realistic week-by-week plan, and say so plainly if the math does not work.
+
+Use only what is in the tracker. If a row is missing a stage or a date, list it under Needs attention instead of guessing.
+
+Never include Social Security numbers or any figure from a return. Client names and my own fees only.
+
+Save it as practice-dashboard.html in this folder, replacing the old one each time this runs.">Copy</button></div><pre class="ptext">Read my client tracker, [client-tracker.xlsx], in this folder. Each row is one open return, with columns for client, stage, date docs were requested, docs complete, extension, fee billed, and fee paid. Read it only. Do not change the tracker.
+
+Build a clean one-page dashboard I can open in my web browser (an HTML file). Show returns by stage (docs in, in prep, in review, ready to sign, filed) with a count for each; a waiting on documents list sorted by days waiting, longest first; the extension list; and billed versus collected, with totals and who still owes.
+
+Add a capacity view of the next two weeks: given the open returns and the days left before the April deadline, lay out a realistic week-by-week plan, and say so plainly if the math does not work.
+
+Use only what is in the tracker. If a row is missing a stage or a date, list it under Needs attention instead of guessing.
+
+Never include Social Security numbers or any figure from a return. Client names and my own fees only.
+
+Save it as practice-dashboard.html in this folder, replacing the old one each time this runs.</pre></div>
+  <div class="sec-h">The Library</div>
+  <h3 class="grp">Get the documents</h3><div class="card"><div class="chead"><div><div class="lbl">The engagement letter merge</div></div><button class="copy" data-text="Take my engagement letter template from [this folder] and merge in each client&#x27;s details from [my client list]: name, entity type, services, and the fee exactly as I have it listed. Save one finished letter per client as a PDF in that client&#x27;s folder, named with the client name and [year]. Do not send anything, and flag any client whose details are missing or unclear instead of guessing.">Copy</button></div><pre class="ptext">Take my engagement letter template from [this folder] and merge in each client&#x27;s details from [my client list]: name, entity type, services, and the fee exactly as I have it listed. Save one finished letter per client as a PDF in that client&#x27;s folder, named with the client name and [year]. Do not send anything, and flag any client whose details are missing or unclear instead of guessing.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The organizer sender</div></div><button class="copy" data-text="Using my organizer questionnaire in [this folder] and [my client list], draft a personalized cover email for each client: greet them by name, mention anything I flagged from last year (like Kim&#x27;s Bakery adding payroll), and note the organizer is attached. Keep each one warm and short, three or four sentences. Do not send anything. Leave every email as a draft for me to review.">Copy</button></div><pre class="ptext">Using my organizer questionnaire in [this folder] and [my client list], draft a personalized cover email for each client: greet them by name, mention anything I flagged from last year (like Kim&#x27;s Bakery adding payroll), and note the organizer is attached. Keep each one warm and short, three or four sentences. Do not send anything. Leave every email as a draft for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The final-notice drafts</div></div><button class="copy" data-text="For each client on [my still-missing list], draft a final-notice email that names exactly which documents we are still waiting on, sets a clear deadline of [day], and explains kindly that after that we will file an extension so nothing gets rushed. Keep the tone warm but unmistakably firm, and never apologize for asking. Do not mention amounts or anything from their return, do not send anything, and leave the drafts for me to review.">Copy</button></div><pre class="ptext">For each client on [my still-missing list], draft a final-notice email that names exactly which documents we are still waiting on, sets a clear deadline of [day], and explains kindly that after that we will file an extension so nothing gets rushed. Keep the tone warm but unmistakably firm, and never apologize for asking. Do not mention amounts or anything from their return, do not send anything, and leave the drafts for me to review.</pre></div><h3 class="grp">Quiet the inbox</h3><div class="card"><div class="chead"><div><div class="lbl">The FAQ responder</div></div><button class="copy" data-text="Go through my unread email and draft replies only to logistics questions: where to upload documents, what to bring, office hours, appointment changes. Answer from my FAQ sheet in [this folder], in my voice, and keep each reply to a few sentences. If an email asks anything about their taxes, their numbers, or what they should do, do not draft an answer; flag it for me instead. Do not send anything, and leave every reply as a draft.">Copy</button></div><pre class="ptext">Go through my unread email and draft replies only to logistics questions: where to upload documents, what to bring, office hours, appointment changes. Answer from my FAQ sheet in [this folder], in my voice, and keep each reply to a few sentences. If an email asks anything about their taxes, their numbers, or what they should do, do not draft an answer; flag it for me instead. Do not send anything, and leave every reply as a draft.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The extension notification</div></div><button class="copy" data-text="For each client on [my extension list], draft a short confirmation email: we have filed an extension for you, here is what that changes, and here is what we still need from you, pulled from my tracker. Use only the dates and details already on my list; never invent or estimate a date or an amount. Do not send anything. Leave the drafts for me to review.">Copy</button></div><pre class="ptext">For each client on [my extension list], draft a short confirmation email: we have filed an extension for you, here is what that changes, and here is what we still need from you, pulled from my tracker. Use only the dates and details already on my list; never invent or estimate a date or an amount. Do not send anything. Leave the drafts for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The &quot;we&#x27;re done&quot; packet</div></div><button class="copy" data-text="For each client on [my completed list], draft a wrap-up email: thank them, confirm their return has been delivered, and walk through what happens next and which records to keep, using my wrap-up sheet in [this folder] for the details. Personalize the opening line for each client so it never reads like a form letter, and never include any figure from a return. Do not send anything; leave the drafts for me to review.">Copy</button></div><pre class="ptext">For each client on [my completed list], draft a wrap-up email: thank them, confirm their return has been delivered, and walk through what happens next and which records to keep, using my wrap-up sheet in [this folder] for the details. Personalize the opening line for each client so it never reads like a form letter, and never include any figure from a return. Do not send anything; leave the drafts for me to review.</pre></div><h3 class="grp">Run the practice</h3><div class="card"><div class="chead"><div><div class="lbl">The billing chaser</div></div><button class="copy" data-text="Compare billed against paid in [my billing sheet] and list every client with an open balance and how long it has been open. For each one, draft a gentle reminder in my voice using only the invoice details already on my sheet: friendlier for recent ones, a touch firmer past [30 days]. Do not send anything. Leave the drafts for me to review.">Copy</button></div><pre class="ptext">Compare billed against paid in [my billing sheet] and list every client with an open balance and how long it has been open. For each one, draft a gentle reminder in my voice using only the invoice details already on my sheet: friendlier for recent ones, a touch firmer past [30 days]. Do not send anything. Leave the drafts for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The capacity forecast</div></div><button class="copy" data-text="Look at [my client tracker] and count the returns in progress by stage, then map them against my working days between now and the April deadline. Hand me a realistic plan for this week: which returns to finish, which to move to the extension list, and which are stuck waiting on documents. Flag anything that has sat in one stage for more than [X days], and do not quietly drop anyone off the list.">Copy</button></div><pre class="ptext">Look at [my client tracker] and count the returns in progress by stage, then map them against my working days between now and the April deadline. Hand me a realistic plan for this week: which returns to finish, which to move to the extension list, and which are stuck waiting on documents. Flag anything that has sat in one stage for more than [X days], and do not quietly drop anyone off the list.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The referral thank-you</div></div><button class="copy" data-text="Go through [my new-client list] and find everyone who came in by referral, and who sent them, the way the Ramirez family came in. Draft a short, personal thank-you note to each referrer in my voice: specific, warm, two or three sentences, no gifts or promises. Do not mention anything about the new client&#x27;s return or situation; a thank-you never needs the details. Do not send anything; leave the drafts for me.">Copy</button></div><pre class="ptext">Go through [my new-client list] and find everyone who came in by referral, and who sent them, the way the Ramirez family came in. Draft a short, personal thank-you note to each referrer in my voice: specific, warm, two or three sentences, no gifts or promises. Do not mention anything about the new client&#x27;s return or situation; a thank-you never needs the details. Do not send anything; leave the drafts for me.</pre></div><h3 class="grp">After the season</h3><div class="card"><div class="chead"><div><div class="lbl">The quarterly estimate reminder</div></div><button class="copy" data-text="Four times a year, take [my estimated-payments client list] and draft a short reminder for each client that a quarterly estimated payment is coming due, with an invitation to reach out if anything has changed. Include no amounts and no payment advice, and use a due date only if it is written on my list; never calculate or invent one. Do not send anything. Leave the drafts for me to review.">Copy</button></div><pre class="ptext">Four times a year, take [my estimated-payments client list] and draft a short reminder for each client that a quarterly estimated payment is coming due, with an invitation to reach out if anything has changed. Include no amounts and no payment advice, and use a due date only if it is written on my list; never calculate or invent one. Do not send anything. Leave the drafts for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The off-season check-in</div></div><button class="copy" data-text="In [month], draft a short check-in email for each client on [my A-list]: ask how their year is going and whether anything big has changed, like a new job, a move, a new baby, or a change in the business, since those are worth a conversation before year-end. Ask questions only; do not offer any advice, prediction, or number in the draft. Do not send anything. Leave the drafts for me to review.">Copy</button></div><pre class="ptext">In [month], draft a short check-in email for each client on [my A-list]: ask how their year is going and whether anything big has changed, like a new job, a move, a new baby, or a change in the business, since those are worth a conversation before year-end. Ask questions only; do not offer any advice, prediction, or number in the draft. Do not send anything. Leave the drafts for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The post-season review ask</div></div><button class="copy" data-text="After the season wraps, go through [my completed-client list] and pick the clients who had a smooth, friendly year with us. Draft each one a short, personal note thanking them and asking for a quick review at [my review link], three sentences at most, no pressure and no incentives. Say nothing about their return or their numbers. Do not send anything; leave the drafts for me to review.">Copy</button></div><pre class="ptext">After the season wraps, go through [my completed-client list] and pick the clients who had a smooth, friendly year with us. Draft each one a short, personal note thanking them and asking for a quick review at [my review link], three sentences at most, no pressure and no incentives. Say nothing about their return or their numbers. Do not send anything; leave the drafts for me to review.</pre></div><h3 class="grp">Keep it running</h3><div class="card"><div class="chead"><div><div class="lbl">The monthly close checklist</div></div><button class="copy" data-text="At the start of each month, open [my monthly close checklist] for [Chen &amp; Co.] and check what has arrived in their folder against it: statements, receipts, payroll reports. Hand me the checklist with each item marked received or missing, plus one drafted request email covering everything that is missing. Do not send anything. Leave the draft for me to review.">Copy</button></div><pre class="ptext">At the start of each month, open [my monthly close checklist] for [Chen &amp; Co.] and check what has arrived in their folder against it: statements, receipts, payroll reports. Hand me the checklist with each item marked received or missing, plus one drafted request email covering everything that is missing. Do not send anything. Leave the draft for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The notice intake</div></div><button class="copy" data-text="When I save a client&#x27;s tax-authority notice to [this folder], read it and hand me a plain-English summary: what the notice says, what it is asking for, and any deadline printed on it. Then list the documents I will likely need from the client, and draft the questions to ask them as an email draft. Do not draft any response to the tax authority and do not suggest a position; the response strategy is mine. Do not send anything.">Copy</button></div><pre class="ptext">When I save a client&#x27;s tax-authority notice to [this folder], read it and hand me a plain-English summary: what the notice says, what it is asking for, and any deadline printed on it. Then list the documents I will likely need from the client, and draft the questions to ask them as an email draft. Do not draft any response to the tax authority and do not suggest a position; the response strategy is mine. Do not send anything.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The disengagement letter</div></div><button class="copy" data-text="Using my disengagement template in [this folder], draft a letter for [client name]: professional, brief, and kind, confirming we will not be preparing their return this year, listing the records being returned to them, and wishing them well. Include no reasons beyond what my template already says, and nothing about their tax situation. Do not send anything. Leave the draft for me to review.">Copy</button></div><pre class="ptext">Using my disengagement template in [this folder], draft a letter for [client name]: professional, brief, and kind, confirming we will not be preparing their return this year, listing the records being returned to them, and wishing them well. Include no reasons beyond what my template already says, and nothing about their tax situation. Do not send anything. Leave the draft for me to review.</pre></div>
+  <div class="foot">Taylormade Academy · <a href="https://academy.taylormadecreative.net">academy.taylormadecreative.net</a><br>Paste these into Claude Cowork. Keep them yours.</div>
+</div></main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const gate=document.getElementById('gate'),pk=document.getElementById('pk'),gmsg=document.getElementById('gmsg'),gact=document.getElementById('gact');
+function deny(m){ gmsg.textContent=m; gact.style.display='flex'; }
+function allow(){ gate.style.display='none'; pk.style.display=''; }
+(async function(){
+  if(!CFG.SUPABASE_URL||!CFG.SUPABASE_KEY){ deny('Sign in to unlock your Prompt Pack.'); return; }
+  try{
+    const sb=createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY);
+    const s=await sb.auth.getSession();
+    const session=s&&s.data&&s.data.session;
+    if(!session){ deny('This Prompt Pack comes with the book. Sign in to unlock it.'); return; }
+    const r=await sb.rpc('ea_my_library');
+    if(r.error) throw r.error;
+    const owns=(r.data||[]).some(function(x){ return x.slug==='busy-season-handled'; });
+    if(owns){ allow(); } else { deny('You do not own Busy Season, Handled yet. Grab it to unlock the Prompt Pack.'); }
+  }catch(e){ deny('Sign in to unlock your Prompt Pack.'); }
+})();
+</script>
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    navigator.clipboard.writeText(btn.getAttribute('data-text')).then(function(){
+      var o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = o; btn.classList.remove('done'); }, 1400);
+    });
+  });
+});
+</script>
+</body></html>

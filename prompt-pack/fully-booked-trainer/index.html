@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prompt Pack — The Fully Booked Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#04123a;--ink:#0a1733;--ink-2:#33415b;--muted:#64748b;--blue:#0b40e0;--gold:#fdc921;--gold-deep:#f2b705;--hair:#e4e9f1;--soft:#f6f8fc;--paper:#fcfdff;
+--body:'Inter',system-ui,sans-serif;--disp:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink-2);line-height:1.55;}
+.hero{background:linear-gradient(165deg,#04102e,#020a1f);color:#fff;padding:44px 24px 40px;}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:-.02em;margin:12px 0 8px;}
+.hero p{color:#c7d4f5;max-width:52ch;font-size:15px;}
+.hero .brand{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.03em;margin-bottom:26px;}
+.dot{width:9px;height:9px;border-radius:2px;background:var(--gold);}
+main{padding:34px 0 70px;}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:32px 0 14px;display:flex;align-items:center;gap:9px;}
+.sec-h::before{content:"";width:18px;height:3px;border-radius:2px;background:var(--gold-deep);}
+.grp{font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+.card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(10,23,51,.04);}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px;}
+.lbl{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--ink);}
+.sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.copy{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:12.5px;color:#fff;background:var(--blue);border:none;border-radius:9px;padding:8px 15px;cursor:pointer;transition:background .15s;}
+.copy:hover{background:#0935bd;}
+.copy.done{background:var(--gold-deep);color:#1a1400;}
+.ptext{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;word-wrap:break-word;background:var(--soft);border-radius:10px;padding:13px 15px;border:1px solid var(--hair);}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;border-top:1px solid var(--hair);margin-top:40px;}
+.foot a{color:var(--blue);text-decoration:none;}
+.gate{position:fixed;inset:0;background:linear-gradient(165deg,#04102e,#020a1f);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gate-card{max-width:430px;text-align:center;color:#fff}
+.glogo{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.06em;margin-bottom:20px}
+.gmsg{font-size:16px;color:#c7d4f5;line-height:1.5}
+.gact{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.gbtn{background:var(--gold);color:#1a1400;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;text-decoration:none}
+.gbtn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}
+</style>
+<script src="/js/config.js?v=8fd3a8ab23"></script></head>
+<body>
+<div class="hero"><div class="wrap">
+  <div class="brand"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+  <div class="eyebrow">Companion Prompt Pack</div>
+  <h1>The Fully Booked Trainer</h1>
+  <p>Every prompt from the book, ready to copy. Point Cowork at the right folder or connect the right app, hit Copy, paste, and go. Change anything in [brackets] to fit your world.</p>
+</div></div>
+<div id="gate" class="gate"><div class="gate-card">
+<div class="glogo"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+<div id="gmsg" class="gmsg">Checking your access&hellip;</div>
+<div id="gact" class="gact" style="display:none">
+<a class="gbtn" href="/store/fully-booked-trainer/">Get the book</a>
+<a class="gbtn ghost" href="/login/">Sign in</a>
+</div></div></div>
+<main id="pk" style="display:none"><div class="wrap">
+  <div class="sec-h">The 6 Recipes</div>
+  <div class="card"><div class="chead"><div><div class="lbl">Recipe 01 — The Client Check-In Machine</div></div><button class="copy" data-text="Once a week, write a personal check-in message for every active client, using the session notes in my [Client notes] folder. One message per client, nobody skipped.
+
+For each client, pull real specifics from their notes: what they hit this week, what they skipped or struggled with, and one thing to nudge before their next session. Every message must mention at least one detail only their trainer would know.
+
+Write them the way I text: short, warm, first name only, no coach-speak. Match the tone of the real messages in my [voice-samples] file, and keep each one under [60] words.
+
+Then build a one-page client board: every active client, last session date, last check-in date, current weekly streak, and a flag on anyone who has missed [two] sessions in a row or gone quiet.
+
+If a note mentions pain, an injury, or anything health-related, do not draft advice about it. Flag it for me instead; that conversation is mine.
+
+Do not send anything and do not message anyone. Put every draft in one document for me to review. I send them myself, from my own phone.">Copy</button></div><pre class="ptext">Once a week, write a personal check-in message for every active client, using the session notes in my [Client notes] folder. One message per client, nobody skipped.
+
+For each client, pull real specifics from their notes: what they hit this week, what they skipped or struggled with, and one thing to nudge before their next session. Every message must mention at least one detail only their trainer would know.
+
+Write them the way I text: short, warm, first name only, no coach-speak. Match the tone of the real messages in my [voice-samples] file, and keep each one under [60] words.
+
+Then build a one-page client board: every active client, last session date, last check-in date, current weekly streak, and a flag on anyone who has missed [two] sessions in a row or gone quiet.
+
+If a note mentions pain, an injury, or anything health-related, do not draft advice about it. Flag it for me instead; that conversation is mine.
+
+Do not send anything and do not message anyone. Put every draft in one document for me to review. I send them myself, from my own phone.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 02 — The No-Show Killer</div></div><button class="copy" data-text="Every weekday at [8pm], look at tomorrow&#x27;s sessions on my connected calendar between [6am] and [7pm].
+
+For each session, draft one short confirmation text: the client&#x27;s first name, the session time, and one specific detail from their page in my [Client notes] folder, like the lift we are chasing or what we did last time. Match the tone of the texts in my voice-samples file, and keep each one under [40] words.
+
+Keep a sheet in the same folder called Confirmations. Add tomorrow&#x27;s sessions to it, and list anyone from yesterday I have not marked confirmed, with a friendly one-line nudge drafted for each.
+
+Hand everything back as one list I can clear in two minutes: each client, their time, the draft underneath, and the unconfirmed list at the bottom.
+
+Do not send or schedule anything. Leave every draft for me to review; I send from my own phone. If something looks off, like a session with no matching client page or a double-booking, flag it instead of guessing.">Copy</button></div><pre class="ptext">Every weekday at [8pm], look at tomorrow&#x27;s sessions on my connected calendar between [6am] and [7pm].
+
+For each session, draft one short confirmation text: the client&#x27;s first name, the session time, and one specific detail from their page in my [Client notes] folder, like the lift we are chasing or what we did last time. Match the tone of the texts in my voice-samples file, and keep each one under [40] words.
+
+Keep a sheet in the same folder called Confirmations. Add tomorrow&#x27;s sessions to it, and list anyone from yesterday I have not marked confirmed, with a friendly one-line nudge drafted for each.
+
+Hand everything back as one list I can clear in two minutes: each client, their time, the draft underneath, and the unconfirmed list at the bottom.
+
+Do not send or schedule anything. Leave every draft for me to review; I send from my own phone. If something looks off, like a session with no matching client page or a double-booking, flag it instead of guessing.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 03 — The Program Builder</div></div><button class="copy" data-text="Read this week&#x27;s session notes for each of my active clients in [my client notes folder] and draft next week&#x27;s program for each of them.
+
+Build every draft from my templates in [my Programs folder] and apply my progression-rules doc exactly: if a client hit all prescribed sets and reps, move up by the increment my rules give for that lift. If they missed reps, or my notes mention pain, tightness, or a tweak, hold or reduce per my rules and add a note to watch.
+
+Use my usual layout for each program: the day, the exercises, sets x reps x load, and a short Watch for line at the top pulled from this week&#x27;s notes (travel, a cranky knee, a missed session).
+
+Save each draft into that client&#x27;s program doc under the heading Draft, pending review, then give me one list of every client you drafted and anything you flagged.
+
+Do not send anything to a client, and never invent an exercise, load, or progression that is not in my templates or rules. If a note mentions pain or anything you are unsure about, leave that part unchanged and flag it for me. I review and approve every program.">Copy</button></div><pre class="ptext">Read this week&#x27;s session notes for each of my active clients in [my client notes folder] and draft next week&#x27;s program for each of them.
+
+Build every draft from my templates in [my Programs folder] and apply my progression-rules doc exactly: if a client hit all prescribed sets and reps, move up by the increment my rules give for that lift. If they missed reps, or my notes mention pain, tightness, or a tweak, hold or reduce per my rules and add a note to watch.
+
+Use my usual layout for each program: the day, the exercises, sets x reps x load, and a short Watch for line at the top pulled from this week&#x27;s notes (travel, a cranky knee, a missed session).
+
+Save each draft into that client&#x27;s program doc under the heading Draft, pending review, then give me one list of every client you drafted and anything you flagged.
+
+Do not send anything to a client, and never invent an exercise, load, or progression that is not in my templates or rules. If a note mentions pain or anything you are unsure about, leave that part unchanged and flag it for me. I review and approve every program.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 04 — The Lead Follow-Up Machine</div></div><button class="copy" data-text="Whenever I hand you a new inquiry, a pasted Instagram DM, a web form message, or a new email in my inbox that looks like a potential client, draft a warm reply in my voice.
+
+The reply should thank them by name, answer their question in plain words, ask one question about their goal, and include my consult link: [your booking link]. Keep it short and friendly, never pushy. If they ask about pricing, do not quote numbers; invite them to the consult instead.
+
+Log every lead in a Lead Tracker spreadsheet in this folder: name, where they came from, what they asked, date they inquired, last touch, next touch date, and status (New, Replied, Consult booked, Gone quiet). Create the sheet if it does not exist.
+
+When I say check my leads, scan the tracker, draft a short, friendly nudge for anyone whose next touch is due and who has not answered, and update every row. After [two] unanswered nudges, mark them Gone quiet and stop drafting.
+
+If a lead mentions an injury, a medical condition, or anything sensitive, do not answer that part. Flag it for me to handle personally.
+
+Do not send anything or reply to anyone. Leave every draft for me to review and send from my own phone or email.">Copy</button></div><pre class="ptext">Whenever I hand you a new inquiry, a pasted Instagram DM, a web form message, or a new email in my inbox that looks like a potential client, draft a warm reply in my voice.
+
+The reply should thank them by name, answer their question in plain words, ask one question about their goal, and include my consult link: [your booking link]. Keep it short and friendly, never pushy. If they ask about pricing, do not quote numbers; invite them to the consult instead.
+
+Log every lead in a Lead Tracker spreadsheet in this folder: name, where they came from, what they asked, date they inquired, last touch, next touch date, and status (New, Replied, Consult booked, Gone quiet). Create the sheet if it does not exist.
+
+When I say check my leads, scan the tracker, draft a short, friendly nudge for anyone whose next touch is due and who has not answered, and update every row. After [two] unanswered nudges, mark them Gone quiet and stop drafting.
+
+If a lead mentions an injury, a medical condition, or anything sensitive, do not answer that part. Flag it for me to handle personally.
+
+Do not send anything or reply to anyone. Leave every draft for me to review and send from my own phone or email.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 05 — Content on Autopilot</div></div><button class="copy" data-text="Each morning, read my training philosophy notes and this week&#x27;s session notes in this folder, then draft one Instagram caption and one short-form video idea.
+
+The caption: first person, in my voice, matched to the past posts in this folder. One idea per post, pulled from my topics: [form fixes, gym myths, client wins, the questions clients ask every week]. Five hashtags at most.
+
+If you use a client win from my session notes, strip the name and anything identifying. Say &#x27;one of my 6am regulars&#x27; or &#x27;a client of mine&#x27;, never who it actually was.
+
+The video idea: something I can film in one take on the gym floor between sessions. Give me the hook line I say to camera, the three beats to hit, and a rough length.
+
+Pick a fresh angle each day and log what you used in [a file in this folder called content-log] so nothing repeats within two weeks. Skip anything that reads like medical or nutrition advice; that is not my lane.
+
+Do not post anything, anywhere. Save both drafts in my [Content drafts] folder for me to review, with a one-line note on why you picked today&#x27;s angle.">Copy</button></div><pre class="ptext">Each morning, read my training philosophy notes and this week&#x27;s session notes in this folder, then draft one Instagram caption and one short-form video idea.
+
+The caption: first person, in my voice, matched to the past posts in this folder. One idea per post, pulled from my topics: [form fixes, gym myths, client wins, the questions clients ask every week]. Five hashtags at most.
+
+If you use a client win from my session notes, strip the name and anything identifying. Say &#x27;one of my 6am regulars&#x27; or &#x27;a client of mine&#x27;, never who it actually was.
+
+The video idea: something I can film in one take on the gym floor between sessions. Give me the hook line I say to camera, the three beats to hit, and a rough length.
+
+Pick a fresh angle each day and log what you used in [a file in this folder called content-log] so nothing repeats within two weeks. Skip anything that reads like medical or nutrition advice; that is not my lane.
+
+Do not post anything, anywhere. Save both drafts in my [Content drafts] folder for me to review, with a one-line note on why you picked today&#x27;s angle.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 06 — The Money Tracker</div></div><button class="copy" data-text="Read the session logs and booking exports in this folder and build one clean Excel workbook called My-Numbers.xlsx.
+
+Make a Clients tab: one row per client with sessions delivered this month, sessions left on their current package, what they paid for that package, and the date of their last session.
+
+Make a Renewals tab: every client with [2] or fewer sessions left, or nothing on the books in the last [14] days, sorted by who needs a conversation first.
+
+Make a This Month tab: sessions delivered and money collected this month next to last month, with the difference spelled out, plus a count of no-shows and late cancels.
+
+Use real formulas so the totals update when I re-run this, and highlight everyone on the Renewals tab so I can scan the whole workbook in ten seconds.
+
+Do not message anyone and do not change my original files. If a number does not add up or a package is unclear, put it on a Check These tab with a note instead of guessing.">Copy</button></div><pre class="ptext">Read the session logs and booking exports in this folder and build one clean Excel workbook called My-Numbers.xlsx.
+
+Make a Clients tab: one row per client with sessions delivered this month, sessions left on their current package, what they paid for that package, and the date of their last session.
+
+Make a Renewals tab: every client with [2] or fewer sessions left, or nothing on the books in the last [14] days, sorted by who needs a conversation first.
+
+Make a This Month tab: sessions delivered and money collected this month next to last month, with the difference spelled out, plus a count of no-shows and late cancels.
+
+Use real formulas so the totals update when I re-run this, and highlight everyone on the Renewals tab so I can scan the whole workbook in ten seconds.
+
+Do not message anyone and do not change my original files. If a number does not add up or a package is unclear, put it on a Check These tab with a note instead of guessing.</pre></div>
+  <div class="sec-h">The Library</div>
+  <h3 class="grp">Keep clients longer</h3><div class="card"><div class="chead"><div><div class="lbl">The comeback message</div></div><button class="copy" data-text="Read my session notes for [client name], who has not booked since [their last session]. Draft a short, warm check-in text in my voice: mention one specific thing we were working on, zero guilt, and end with one easy ask, like grabbing a slot this week. Do not send anything; leave the draft for me to send from my own phone.">Copy</button></div><pre class="ptext">Read my session notes for [client name], who has not booked since [their last session]. Draft a short, warm check-in text in my voice: mention one specific thing we were working on, zero guilt, and end with one easy ask, like grabbing a slot this week. Do not send anything; leave the draft for me to send from my own phone.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The milestone spotter</div></div><button class="copy" data-text="Once a week, scan my [client notes folder] for milestones: new PRs, first-evers, and training anniversaries like [six months or one year]. For each one, draft a short congrats text in my voice that names the exact win, not a generic &#x27;great job.&#x27; Do not send anything; leave the drafts in one list for me to review.">Copy</button></div><pre class="ptext">Once a week, scan my [client notes folder] for milestones: new PRs, first-evers, and training anniversaries like [six months or one year]. For each one, draft a short congrats text in my voice that names the exact win, not a generic &#x27;great job.&#x27; Do not send anything; leave the drafts in one list for me to review.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The testimonial ask</div></div><button class="copy" data-text="Read my client notes and flag anyone riding a high right now: a fresh PR, a goal hit, or a big thank-you they said in session. For each, draft a short, personal ask for a review that names their specific win and includes my review link [your link]. Keep it to three sentences so it feels like a text, not a campaign. Do not send anything; leave the drafts for me.">Copy</button></div><pre class="ptext">Read my client notes and flag anyone riding a high right now: a fresh PR, a goal hit, or a big thank-you they said in session. For each, draft a short, personal ask for a review that names their specific win and includes my review link [your link]. Keep it to three sentences so it feels like a text, not a campaign. Do not send anything; leave the drafts for me.</pre></div><h3 class="grp">Fill your book</h3><div class="card"><div class="chead"><div><div class="lbl">The referral thank-you</div></div><button class="copy" data-text="When I tell you a client sent me a referral, draft two texts in my voice: a real thank-you to [the client who referred], mentioning [your referral perk] if I have one, and a warm welcome to [the new person] with my consult link. Keep both short enough to read on a lock screen. Do not send either one; leave both drafts for me.">Copy</button></div><pre class="ptext">When I tell you a client sent me a referral, draft two texts in my voice: a real thank-you to [the client who referred], mentioning [your referral perk] if I have one, and a warm welcome to [the new person] with my consult link. Keep both short enough to read on a lock screen. Do not send either one; leave both drafts for me.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The waitlist warmer</div></div><button class="copy" data-text="Compare my calendar for the next two weeks against the waitlist in [your waitlist sheet or notes]. For each open slot, draft a message offering it to the best-fit person, with the exact day and time spelled out. Never offer the same slot to two people, and do not send anything; leave the drafts for me to fire off in order.">Copy</button></div><pre class="ptext">Compare my calendar for the next two weeks against the waitlist in [your waitlist sheet or notes]. For each open slot, draft a message offering it to the best-fit person, with the exact day and time spelled out. Never offer the same slot to two people, and do not send anything; leave the drafts for me to fire off in order.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The consult prep sheet</div></div><button class="copy" data-text="Before my consult with [lead name], read their intake form in [your intake folder] and build a one-page prep sheet: their goal in their own words, anything they flagged about injuries or schedule, and five questions worth asking. Add one line on which of my packages probably fits, marked clearly as my call to make. Keep it to one page I can skim in the gap before they walk in.">Copy</button></div><pre class="ptext">Before my consult with [lead name], read their intake form in [your intake folder] and build a one-page prep sheet: their goal in their own words, anything they flagged about injuries or schedule, and five questions worth asking. Add one line on which of my packages probably fits, marked clearly as my call to make. Keep it to one page I can skim in the gap before they walk in.</pre></div><h3 class="grp">Run the business</h3><div class="card"><div class="chead"><div><div class="lbl">The renewal chaser</div></div><button class="copy" data-text="Check my sessions log in [your log file] and flag every client with two or fewer sessions left on their package. For each one, draft a renewal text in my voice: friendly, tied to their recent progress from my notes, offering to set up the next package, with no pressure lines and no discounts I did not approve. Do not send anything; leave the drafts for me.">Copy</button></div><pre class="ptext">Check my sessions log in [your log file] and flag every client with two or fewer sessions left on their package. For each one, draft a renewal text in my voice: friendly, tied to their recent progress from my notes, offering to set up the next package, with no pressure lines and no discounts I did not approve. Do not send anything; leave the drafts for me.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The cancellation reply</div></div><button class="copy" data-text="When a client cancels, draft my reply using the rules in [your cancellation policy doc]: kind, consistent, and clear about whether the session is charged, rescheduled, or waived under the policy. Match the tone of the past replies in [your sent folder] so it sounds like me, not a contract. Do not send it, and if the policy does not clearly cover the situation, flag it for me instead of guessing.">Copy</button></div><pre class="ptext">When a client cancels, draft my reply using the rules in [your cancellation policy doc]: kind, consistent, and clear about whether the session is charged, rescheduled, or waived under the policy. Match the tone of the past replies in [your sent folder] so it sounds like me, not a contract. Do not send it, and if the policy does not clearly cover the situation, flag it for me instead of guessing.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The weekly numbers email</div></div><button class="copy" data-text="Every Monday morning, read my sessions log and booking export in [your folder] and write me a short numbers email: sessions delivered last week, money in, open gaps in this week&#x27;s calendar, and anyone who missed a session. Send it to me only, at [your email], never to a client. Keep it under ten lines so I can read it between the 6am and the 7am.">Copy</button></div><pre class="ptext">Every Monday morning, read my sessions log and booking export in [your folder] and write me a short numbers email: sessions delivered last week, money in, open gaps in this week&#x27;s calendar, and anyone who missed a session. Send it to me only, at [your email], never to a client. Keep it under ten lines so I can read it between the 6am and the 7am.</pre></div><h3 class="grp">Coach smarter</h3><div class="card"><div class="chead"><div><div class="lbl">The plateau flag</div></div><button class="copy" data-text="Once a month, read the training logs in my client notes folder and flag anyone whose main lifts have not moved in [four weeks]. For each, note the lift, where it is sticking, and two or three ideas pulled from my own programming notes, as talking points for me. Do not draft anything to a client; every programming change is my call.">Copy</button></div><pre class="ptext">Once a month, read the training logs in my client notes folder and flag anyone whose main lifts have not moved in [four weeks]. For each, note the lift, where it is sticking, and two or three ideas pulled from my own programming notes, as talking points for me. Do not draft anything to a client; every programming change is my call.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The session-notes cleaner</div></div><button class="copy" data-text="Take the voice-memo transcript in [today&#x27;s file] and turn it into clean session notes: client, date, what we did, loads and reps, how they moved, and one thing to watch next time. Save it into that client&#x27;s doc in my client notes folder, matching the format already there. If you cannot make out a number, flag it; never guess a load.">Copy</button></div><pre class="ptext">Take the voice-memo transcript in [today&#x27;s file] and turn it into clean session notes: client, date, what we did, loads and reps, how they moved, and one thing to watch next time. Save it into that client&#x27;s doc in my client notes folder, matching the format already there. If you cannot make out a number, flag it; never guess a load.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The grocery list builder</div></div><button class="copy" data-text="Using the meal template I wrote for [client name] in [your templates folder], build their grocery list for the week: every ingredient, grouped by store section, quantities scaled to my template&#x27;s servings. Do not add, swap, or suggest anything that is not already in my template; the plan is mine. Leave the list for me to review before it goes anywhere near the client.">Copy</button></div><pre class="ptext">Using the meal template I wrote for [client name] in [your templates folder], build their grocery list for the week: every ingredient, grouped by store section, quantities scaled to my template&#x27;s servings. Do not add, swap, or suggest anything that is not already in my template; the plan is mine. Leave the list for me to review before it goes anywhere near the client.</pre></div><h3 class="grp">Keep it running</h3><div class="card"><div class="chead"><div><div class="lbl">The inbox sorter</div></div><button class="copy" data-text="Go through my unread email from the last two days and sort it into Client, Lead, Admin, and Junk. Draft replies to the routine ones, schedule questions and package questions, in my voice, using the past replies in [your sent folder] as samples. Do not send anything; leave every reply as a draft and give me a one-line list of what needs me personally.">Copy</button></div><pre class="ptext">Go through my unread email from the last two days and sort it into Client, Lead, Admin, and Junk. Draft replies to the routine ones, schedule questions and package questions, in my voice, using the past replies in [your sent folder] as samples. Do not send anything; leave every reply as a draft and give me a one-line list of what needs me personally.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The schedule optimizer</div></div><button class="copy" data-text="Look at my calendar for the next two weeks and find the dead gaps: stranded single slots and the recurring midday hole. Draft one short &#x27;these slots just opened&#x27; message I can post to my story or text to my list, naming the [three] best openings by day and time. Do not post or send anything; leave the draft for me.">Copy</button></div><pre class="ptext">Look at my calendar for the next two weeks and find the dead gaps: stranded single slots and the recurring midday hole. Draft one short &#x27;these slots just opened&#x27; message I can post to my story or text to my list, naming the [three] best openings by day and time. Do not post or send anything; leave the draft for me.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The month-end packet</div></div><button class="copy" data-text="At month end, read my sessions log in [your log file] and build one packet: a simple per-client summary showing sessions delivered, sessions left on their package, and the amount due if any, using my rates from [your rates doc]. Never invent a price; if a rate is missing, flag it. Save one PDF per client into [your billing folder] and leave everything for me to check before any of it gets sent.">Copy</button></div><pre class="ptext">At month end, read my sessions log in [your log file] and build one packet: a simple per-client summary showing sessions delivered, sessions left on their package, and the amount due if any, using my rates from [your rates doc]. Never invent a price; if a rate is missing, flag it. Save one PDF per client into [your billing folder] and leave everything for me to check before any of it gets sent.</pre></div>
+  <div class="foot">Taylormade Academy · <a href="https://academy.taylormadecreative.net">academy.taylormadecreative.net</a><br>Paste these into Claude Cowork. Keep them yours.</div>
+</div></main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const gate=document.getElementById('gate'),pk=document.getElementById('pk'),gmsg=document.getElementById('gmsg'),gact=document.getElementById('gact');
+function deny(m){ gmsg.textContent=m; gact.style.display='flex'; }
+function allow(){ gate.style.display='none'; pk.style.display=''; }
+(async function(){
+  if(!CFG.SUPABASE_URL||!CFG.SUPABASE_KEY){ deny('Sign in to unlock your Prompt Pack.'); return; }
+  try{
+    const sb=createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY);
+    const s=await sb.auth.getSession();
+    const session=s&&s.data&&s.data.session;
+    if(!session){ deny('This Prompt Pack comes with the book. Sign in to unlock it.'); return; }
+    const r=await sb.rpc('ea_my_library');
+    if(r.error) throw r.error;
+    const owns=(r.data||[]).some(function(x){ return x.slug==='fully-booked-trainer'; });
+    if(owns){ allow(); } else { deny('You do not own The Fully Booked Trainer yet. Grab it to unlock the Prompt Pack.'); }
+  }catch(e){ deny('Sign in to unlock your Prompt Pack.'); }
+})();
+</script>
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    navigator.clipboard.writeText(btn.getAttribute('data-text')).then(function(){
+      var o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = o; btn.classList.remove('done'); }, 1400);
+    });
+  });
+});
+</script>
+</body></html>
