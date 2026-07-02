@@ -257,6 +257,25 @@ PRODUCTS = {
         "outcome": "You walk away with a clear, honest plan for a recurring-income AI service business, the prompts and templates to run it, and a first-week action list. Real service income, not a passive-income fantasy.",
         "what_is": "A short, run-it-this-week playbook for building a recurring-income AI service business. About 24 pages with graphics. The dependable, gets-paid-monthly stuff, on purpose.",
     },
+    "steal-your-week-back": {
+        "title": "Steal Your Week Back",
+        "tag": "EBOOK", "pages": "39 pages", "cover": "/assets/cover-steal-your-week-back.png",
+        "tags_extra": ["+ Prompt Pack"],
+        "blurb": "Put your busywork on autopilot with the AI you already pay for. No code, no new tools: six follow-along automation recipes with copy-paste prompts and real screenshots.",
+        "for": "Beginners who have never written a line of code. Creatives, freelancers, and busy people drowning in repetitive work. Anyone who wants their evenings back. If you can write an email and follow a numbered list, you can do everything in this book.",
+        "what": ["How AI automation actually works, in plain words", "The five-ingredient test for spotting what is worth automating",
+                 "How to write a prompt that works the first time",
+                 "Six deep, follow-along recipes: a 6am morning brief, inbox triage, an Excel machine, content on autopilot, an ad-spend dashboard, and a pre-call client brief",
+                 "A library of 17 more automations to steal", "How to put any of them on a timer and truly forget it",
+                 "A troubleshooting guide and a 7-day plan to get your first one running",
+                 "Bonus: the companion Prompt Pack, every prompt one click to copy"],
+        "outcome": "You finish with at least one real automation running without you, doing a piece of your actual week, every week. You get fluent enough to build the next one on your own, and you get hours of your time back. This is the on-ramp: get good at running these for yourself first. Turning it into income comes later in the series.",
+        "what_is": "A short, no-code, do-it-with-me guide to handing your busywork to the AI you already pay for. Thirty-nine pages of real screenshots and copy-paste prompts, so you actually finish it. You go from drowning in repetitive work to having real automations running while you sleep.",
+        "note": "<b>What you need:</b> a paid Claude plan (Pro, about $20/mo, or higher) and the Claude desktop app for Mac or Windows. That is it. No other tools, no phone-only. If you do not have a plan yet, grab one first so you can follow along.",
+        "flash": {"end": "2026-07-09T23:59:59", "was": "$19"},
+        "pairs": "boring-money",
+        "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
+    },
 }
 
 def price_block(slug="", big=False):
@@ -378,7 +397,8 @@ def trim_blurb(text, n):
         return text
     return text[:n].rsplit(" ", 1)[0].rstrip(",.;") + "&hellip;"
 
-COVER_DIMS = {"/assets/cover-ai-agent-v2.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120)}
+COVER_DIMS = {"/assets/cover-ai-agent-v2.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120),
+              "/assets/cover-steal-your-week-back.png": (1103, 1426)}
 
 def cover_pic(p, cls="cover ebook-cover", lazy=True, style=""):
     """WebP <picture> with PNG fallback + intrinsic size (no CLS)."""
@@ -398,14 +418,15 @@ def course_top(base, alt):
 
 def popular_cards():
     out = ""
-    for slug in ("ai-agent-ebook", "boring-money"):
+    for slug in ("steal-your-week-back", "ai-agent-ebook", "boring-money"):
         p = PRODUCTS[slug]
+        tag = ('<span class="tag gold"><span class="dot"></span>NEW &middot; LAUNCH FLASH</span>'
+               if p.get("flash") else '<span class="tag gold"><span class="dot"></span>EBOOK</span>')
         out += (f'<article class="pcard"><a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
-                f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
+                f'<div class="meta"><div class="tagrow">{tag}<span class="tag">{p["pages"]}</span></div>'
                 f'<h3>{p["title"]}</h3><p class="blurb">{trim_blurb(p["blurb"], 92)}</p></div>'
                 f'<div class="foot">{price_block(slug)}<a class="btn ghost sm" href="/store/{slug}/">Details <span class="arr">&rarr;</span></a></div></article>')
-    for name, desc, thumb in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "course-design"),
-                       ("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "course-video")):
+    for name, desc, thumb in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "course-design"),):
         out += (f'<article class="pcard">{course_top(thumb, name)}'
                 f'<div class="meta"><div class="tagrow"><span class="tag live"><span class="dot"></span>IN PRODUCTION</span></div>'
                 f'<h3>{name}</h3><p class="blurb">{desc}</p></div>'
@@ -525,10 +546,12 @@ def home():
 # ---------- STORE ----------
 def store():
     p1, p2 = PRODUCTS["ai-agent-ebook"], PRODUCTS["boring-money"]
-    def ebook_card(slug, p):
+    p0 = PRODUCTS["steal-your-week-back"]
+    def ebook_card(slug, p, tag_html=None):
+        tag_html = tag_html or '<span class="tag gold"><span class="dot"></span>EBOOK</span>'
         return (f'<article class="pcard" data-cat="ebook">'
                 f'<a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
-                f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
+                f'<div class="meta"><div class="tagrow">{tag_html}<span class="tag">{p["pages"]}</span></div>'
                 f'<h3>{p["title"]}</h3><p class="blurb">{trim_blurb(p["blurb"], 88)}</p></div>'
                 f'<div class="foot">{price_block(slug)}<button class="btn gold sm" data-add-cart="{slug}" data-title="{p["title"]}">Add to cart</button></div></article>')
     def soon_card(name, desc, key):
@@ -544,7 +567,8 @@ def store():
                 '<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>Bundle &amp; save</span><span class="tag">2 ebooks</span></div>'
                 '<h3>The Complete Bundle</h3><p class="blurb">Both ebooks together: build the AI agent, then the recurring-income business.</p></div>'
                 '<div class="foot">' + price_block("bundle") + '<button class="btn gold sm" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button></div></article>')
-    grid = (ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2) + bundle_tile()
+    grid = (ebook_card("steal-your-week-back", p0, '<span class="tag gold"><span class="dot"></span>NEW &middot; LAUNCH FLASH</span>')
+            + ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2) + bundle_tile()
             + soon_card("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "design")
             + soon_card("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "video")
             + soon_card("Photography That Sells", "Lighting, shooting, and editing images that stop the scroll.", "photo"))
@@ -582,30 +606,70 @@ def store():
 # ---------- PRODUCT PAGE ----------
 def product_page(slug):
     p = PRODUCTS[slug]
-    other = "boring-money" if slug == "ai-agent-ebook" else "ai-agent-ebook"
+    other = p.get("pairs") or ("boring-money" if slug == "ai-agent-ebook" else "ai-agent-ebook")
     op = PRODUCTS[other]
     feats = "".join(f"<li>{x}</li>" for x in p["what"])
+    w, h_ = COVER_DIMS.get(p["cover"], (840, 1120))
+    xtags = "".join(f'<span class="tag">{t}</span>' for t in p.get("tags_extra", []))
+    buy_note = p.get("buy_note", "Read on-site or download the PDF. 7-day refund.")
+    note_html = ""
+    if p.get("note"):
+        note_html = ('<div style="display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);'
+                     'border:1px solid #f1de9f;border-radius:14px;padding:14px 16px;margin-top:28px;font-size:13.5px;'
+                     'color:var(--gold-ink);line-height:1.55;max-width:56ch">'
+                     '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" '
+                     'stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px;color:var(--gold-deep)">'
+                     '<path d="M12 2l3 6.3 6.9 1-5 4.9 1.2 6.8L12 18.8 5.9 22l1.2-6.8-5-4.9 6.9-1z"/></svg>'
+                     f'<span>{p["note"]}</span></div>')
+    flash_html, flash_js = "", ""
+    if p.get("flash"):
+        f = p["flash"]
+        flash_html = (
+            '<div id="flashBadge" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;'
+            'letter-spacing:.07em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold-soft);'
+            'border:1px solid #f1de9f;border-radius:980px;padding:5px 12px;margin-bottom:12px">Launch flash &middot; first week only</div>'
+            '<div style="display:flex;align-items:baseline;gap:12px">'
+            + price_block(slug, big=True)
+            + f'<span id="flashWas" style="font-family:var(--font);font-size:18px;font-weight:700;color:var(--muted);text-decoration:line-through">{f["was"]}</span></div>'
+            + f'<div id="flashCount" data-flash-end="{f["end"]}" style="margin-top:10px;font-size:13px;font-weight:600;color:var(--ink-2)"></div>')
+        flash_js = """
+<script>
+(function(){
+  var el=document.getElementById('flashCount'); if(!el) return;
+  var end=new Date(el.getAttribute('data-flash-end')).getTime();
+  function off(id){var n=document.getElementById(id);if(n)n.style.display='none';}
+  function tick(){
+    if(isNaN(end)){el.style.display='none';return;}
+    var d=end-Date.now();
+    if(d<=0){el.style.display='none';off('flashWas');off('flashBadge');return;}
+    var days=Math.floor(d/864e5),h=Math.floor(d%864e5/36e5),m=Math.floor(d%36e5/6e4),s=Math.floor(d%6e4/1e3);
+    el.innerHTML='Ends in <b style="color:var(--gold-deep);font-variant-numeric:tabular-nums">'+days+'d '+h+'h '+m+'m '+s+'s</b> &middot; then """ + f["was"] + """';
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>"""
     return head(f"{p['title']} — Taylormade Academy", p["blurb"], f"/store/{slug}/", og=p['cover'].lstrip('/')) + header("Store") + f"""
 <main>
 <section class="section tight"><div class="wrap">
 <a class="mono" href="/store/" style="font-size:12px;letter-spacing:.1em;color:var(--muted)">&larr; STORE</a>
 <div class="g-12" style="margin-top:22px;align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
-<picture class="prod-cover"><source srcset="{p['cover'].rsplit('.',1)[0]}.webp" type="image/webp"><img src="{p['cover']}" width="840" height="1120" alt="{p['title']} cover" fetchpriority="high"></picture>
+<picture class="prod-cover"><source srcset="{p['cover'].rsplit('.',1)[0]}.webp" type="image/webp"><img src="{p['cover']}" width="{w}" height="{h_}" alt="{p['title']} cover" fetchpriority="high"></picture>
 <div style="background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:24px;margin-top:24px;box-shadow:var(--shadow-sm)">
-{price_block(slug, big=True)}
+{flash_html or price_block(slug, big=True)}
 <a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:16px">Get the ebook <span class="arr">&rarr;</span></a>
-<p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">Read on-site or download the PDF. 7-day refund.</p>
+<p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">{buy_note}</p>
 <hr class="rule hair" style="margin:16px 0">
 <p style="font-size:13px;color:var(--muted);text-align:center">Members read this free. <a class="textlink" href="/pricing/">See the $15/mo membership</a></p>
 </div></div>
 <div class="reveal" style="grid-column:7/13">
-<div class="tagrow" style="display:flex;gap:8px"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
+<div class="tagrow" style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span>{xtags}</div>
 <h1 class="display-l" style="margin-top:14px">{p['title']}</h1>
 <p class="lead" style="margin-top:18px;max-width:52ch">{p['what_is']}</p>
 <hr class="rule hair" style="margin:30px 0">
 <span class="kicker gold">Who it is for</span>
 <p style="margin-top:10px">{p['for']}</p>
+{note_html}
 <span class="kicker gold" style="display:block;margin-top:28px">What is inside</span>
 <ul class="flist">{feats}</ul>
 <span class="kicker gold" style="display:block;margin-top:28px">The outcome</span>
@@ -618,7 +682,7 @@ def product_page(slug):
 <p class="reveal" style="color:#9fb0d4;margin:16px auto 0;max-width:46ch">{op['blurb']}</p>
 <a class="btn gold reveal" style="margin-top:26px" href="/store/{other}/">See &#8220;{op['title']}&#8221; <span class="arr">&rarr;</span></a>
 </div></section>
-</main>""" + footer()
+</main>""" + flash_js + footer()
 
 # ---------- PRICING ----------
 FAQ = [
@@ -791,7 +855,7 @@ def not_found():
 <a class="btn ghost" href="/store/">Browse the store</a></div>
 </div></section></main>""" + footer()
 
-SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/",
+SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
 def write_meta():
@@ -877,6 +941,7 @@ if __name__ == "__main__":
     render("/store/", store())
     render("/store/ai-agent-ebook/", product_page("ai-agent-ebook"))
     render("/store/boring-money/", product_page("boring-money"))
+    render("/store/steal-your-week-back/", product_page("steal-your-week-back"))
     render("/pricing/", pricing())
     render("/about/", about())
     render("/join/", community_landing())
