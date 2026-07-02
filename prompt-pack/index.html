@@ -1,0 +1,161 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prompt Pack — Steal Your Week Back</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#04123a;--ink:#0a1733;--ink-2:#33415b;--muted:#64748b;--blue:#0b40e0;--gold:#fdc921;--gold-deep:#f2b705;--hair:#e4e9f1;--soft:#f6f8fc;--paper:#fcfdff;
+--body:'Inter',system-ui,sans-serif;--disp:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--body);background:var(--paper);color:var(--ink-2);line-height:1.55;}
+.hero{background:linear-gradient(165deg,#04102e,#020a1f);color:#fff;padding:44px 24px 40px;}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:34px;letter-spacing:-.02em;margin:12px 0 8px;}
+.hero p{color:#c7d4f5;max-width:52ch;font-size:15px;}
+.hero .brand{display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.03em;margin-bottom:26px;}
+.dot{width:9px;height:9px;border-radius:2px;background:var(--gold);}
+main{padding:34px 0 70px;}
+.sec-h{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:32px 0 14px;display:flex;align-items:center;gap:9px;}
+.sec-h::before{content:"";width:18px;height:3px;border-radius:2px;background:var(--gold-deep);}
+.grp{font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+.card{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(10,23,51,.04);}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px;}
+.lbl{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--ink);}
+.sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.copy{flex:0 0 auto;font-family:var(--body);font-weight:600;font-size:12.5px;color:#fff;background:var(--blue);border:none;border-radius:9px;padding:8px 15px;cursor:pointer;transition:background .15s;}
+.copy:hover{background:#0935bd;}
+.copy.done{background:var(--gold-deep);color:#1a1400;}
+.ptext{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap;word-wrap:break-word;background:var(--soft);border-radius:10px;padding:13px 15px;border:1px solid var(--hair);}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;padding:30px 0;border-top:1px solid var(--hair);margin-top:40px;}
+.foot a{color:var(--blue);text-decoration:none;}
+.gate{position:fixed;inset:0;background:linear-gradient(165deg,#04102e,#020a1f);display:flex;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gate-card{max-width:430px;text-align:center;color:#fff}
+.glogo{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.06em;margin-bottom:20px}
+.gmsg{font-size:16px;color:#c7d4f5;line-height:1.5}
+.gact{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.gbtn{background:var(--gold);color:#1a1400;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;text-decoration:none}
+.gbtn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.28)}
+</style>
+<script src="/js/config.js?v=8fd3a8ab23"></script></head>
+<body>
+<div class="hero"><div class="wrap">
+  <div class="brand"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+  <div class="eyebrow">Companion Prompt Pack</div>
+  <h1>Steal Your Week Back</h1>
+  <p>Every prompt from the book, ready to copy. Point Cowork at the right folder or connect the right app, hit Copy, paste, and go. Change anything in [brackets] to fit your world.</p>
+</div></div>
+<div id="gate" class="gate"><div class="gate-card">
+<div class="glogo"><span class="dot"></span>TAYLORMADE ACADEMY</div>
+<div id="gmsg" class="gmsg">Checking your access&hellip;</div>
+<div id="gact" class="gact" style="display:none">
+<a class="gbtn" href="/store/steal-your-week-back/">Get the book</a>
+<a class="gbtn ghost" href="/login/">Sign in</a>
+</div></div></div>
+<main id="pk" style="display:none"><div class="wrap">
+  <div class="sec-h">The 6 Recipes</div>
+  <div class="card"><div class="chead"><div><div class="lbl">Recipe 01 — The 6am Morning Brief</div></div><button class="copy" data-text="Every weekday at 7am, read my unread Gmail from the last 24 hours and my #team and #clients Slack channels.
+
+Sort what actually matters into three buckets: Urgent (needs me today), Reply today, and FYI. Ignore newsletters, receipts, promotions, and automated notifications.
+
+Write it as a brief I can read in two minutes: a one-line summary at the top, then each bucket as a short list showing the sender and the one thing they need. Keep it tight.
+
+Do not reply to anything or take any action. Just write the brief and save it.">Copy</button></div><pre class="ptext">Every weekday at 7am, read my unread Gmail from the last 24 hours and my #team and #clients Slack channels.
+
+Sort what actually matters into three buckets: Urgent (needs me today), Reply today, and FYI. Ignore newsletters, receipts, promotions, and automated notifications.
+
+Write it as a brief I can read in two minutes: a one-line summary at the top, then each bucket as a short list showing the sender and the one thing they need. Keep it tight.
+
+Do not reply to anything or take any action. Just write the brief and save it.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 02 — Inbox Triage</div></div><button class="copy" data-text="Go through my unread email from today. Sort each one into Client, Invoice, Newsletter, or Other.
+
+For anything that is a routine client question, draft a reply in my voice. Match the tone of the three past replies I am giving you as examples. Keep replies short and warm.
+
+Do not send anything. Leave every reply as a draft in Gmail for me to review. At the top, give me a one-line list of what you drafted and what still needs me.
+
+Flag anything you are unsure about instead of guessing.">Copy</button></div><pre class="ptext">Go through my unread email from today. Sort each one into Client, Invoice, Newsletter, or Other.
+
+For anything that is a routine client question, draft a reply in my voice. Match the tone of the three past replies I am giving you as examples. Keep replies short and warm.
+
+Do not send anything. Leave every reply as a draft in Gmail for me to review. At the top, give me a one-line list of what you drafted and what still needs me.
+
+Flag anything you are unsure about instead of guessing.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 03 — The Excel Machine</div></div><button class="copy" data-text="Take every spreadsheet and CSV in this folder and combine them into one clean Excel workbook.
+
+Make two tabs. A Raw Data tab with everything stacked and de-duplicated. A Summary tab with monthly totals using SUMIFS, a percent-change column versus the prior month, and a total row.
+
+Add conditional formatting on the Summary tab: highlight any month down more than 10 percent in red, and mark the healthy months so I can scan it fast.
+
+Name the file Q2-Summary.xlsx and save it to this folder.">Copy</button></div><pre class="ptext">Take every spreadsheet and CSV in this folder and combine them into one clean Excel workbook.
+
+Make two tabs. A Raw Data tab with everything stacked and de-duplicated. A Summary tab with monthly totals using SUMIFS, a percent-change column versus the prior month, and a total row.
+
+Add conditional formatting on the Summary tab: highlight any month down more than 10 percent in red, and mark the healthy months so I can scan it fast.
+
+Name the file Q2-Summary.xlsx and save it to this folder.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 04 — Content on Autopilot</div></div><button class="copy" data-text="Each morning, draft one Instagram caption and one LinkedIn post in my voice, using the brand notes in this folder.
+
+Pick a fresh angle each day from my topic list. First person, the way I actually talk. For Instagram, keep it to five hashtags at most.
+
+Line them up for me to approve. Do not post anything.
+
+Give me the two drafts plus a one-line note on why you picked today&#x27;s angle, so I can approve in ten seconds.">Copy</button></div><pre class="ptext">Each morning, draft one Instagram caption and one LinkedIn post in my voice, using the brand notes in this folder.
+
+Pick a fresh angle each day from my topic list. First person, the way I actually talk. For Instagram, keep it to five hashtags at most.
+
+Line them up for me to approve. Do not post anything.
+
+Give me the two drafts plus a one-line note on why you picked today&#x27;s angle, so I can approve in ten seconds.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 05 — The Ad-Spend Dashboard</div></div><button class="copy" data-text="Connect my Google Ads and Meta Ads. Build a live dashboard that shows, for each account: spend so far this month, the daily pace, and the projected month-end total against a combined budget of $6,000.
+
+Show a progress bar for each account and one for the combined total. Flag any account pacing over budget in red, and tell me exactly how much to cut per day to land on goal.
+
+Make it a clean HTML dashboard I can open any time, and update it daily.">Copy</button></div><pre class="ptext">Connect my Google Ads and Meta Ads. Build a live dashboard that shows, for each account: spend so far this month, the daily pace, and the projected month-end total against a combined budget of $6,000.
+
+Show a progress bar for each account and one for the combined total. Flag any account pacing over budget in red, and tell me exactly how much to cut per day to land on goal.
+
+Make it a clean HTML dashboard I can open any time, and update it daily.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Recipe 06 — The Client Research Brief</div></div><button class="copy" data-text="Before my call with Riverside Dental, build me a one-page brief.
+
+Cover: what they do and how big they are, their locations, their recent reviews and overall reputation, who the likely decision-makers are, and anything notable in the last few months.
+
+Then give me three specific angles I could open the conversation with, based on what you found. Keep the whole thing to one page I can read in the parking lot.
+
+Cite where each fact came from so I can trust it.">Copy</button></div><pre class="ptext">Before my call with Riverside Dental, build me a one-page brief.
+
+Cover: what they do and how big they are, their locations, their recent reviews and overall reputation, who the likely decision-makers are, and anything notable in the last few months.
+
+Then give me three specific angles I could open the conversation with, based on what you found. Keep the whole thing to one page I can read in the parking lot.
+
+Cite where each fact came from so I can trust it.</pre></div>
+  <div class="sec-h">The Library</div>
+  <h3 class="grp">Get your time back</h3><div class="card"><div class="chead"><div><div class="lbl">The weekly report, done</div></div><button class="copy" data-text="Every Monday, pull [this spreadsheet] and build my weekly report: the key numbers, what changed versus last week, and a two-line summary at the top. Save it as a PDF in my reports folder.">Copy</button></div><pre class="ptext">Every Monday, pull [this spreadsheet] and build my weekly report: the key numbers, what changed versus last week, and a two-line summary at the top. Save it as a PDF in my reports folder.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Meeting notes to action list</div></div><button class="copy" data-text="Take the transcript in this folder and turn it into clean notes: decisions made, action items with owners, and open questions. Keep it to one page.">Copy</button></div><pre class="ptext">Take the transcript in this folder and turn it into clean notes: decisions made, action items with owners, and open questions. Keep it to one page.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The file sorter</div></div><button class="copy" data-text="Rename and sort every file in this folder by [type / date / client] using this rule: [your rule]. Move them into matching subfolders. Ask me before deleting anything.">Copy</button></div><pre class="ptext">Rename and sort every file in this folder by [type / date / client] using this rule: [your rule]. Move them into matching subfolders. Ask me before deleting anything.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Receipts to expense sheet</div></div><button class="copy" data-text="Turn the receipts in this folder into one expense spreadsheet: date, vendor, amount, category. Total by category at the bottom, and flag anything missing an amount.">Copy</button></div><pre class="ptext">Turn the receipts in this folder into one expense spreadsheet: date, vendor, amount, category. Total by category at the bottom, and flag anything missing an amount.</pre></div><h3 class="grp">Grow what you&#x27;re building</h3><div class="card"><div class="chead"><div><div class="lbl">Repurpose one thing into five</div></div><button class="copy" data-text="Take [this blog post or video transcript] and turn it into five short social posts, a LinkedIn version, and a short email. Keep my voice. Line them up for approval, do not post.">Copy</button></div><pre class="ptext">Take [this blog post or video transcript] and turn it into five short social posts, a LinkedIn version, and a short email. Keep my voice. Line them up for approval, do not post.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The Friday newsletter</div></div><button class="copy" data-text="Every Friday, pull my top [posts / updates / notes] from the week and draft a short newsletter: one main story, two quick links, one call to action. Leave it as a draft.">Copy</button></div><pre class="ptext">Every Friday, pull my top [posts / updates / notes] from the week and draft a short newsletter: one main story, two quick links, one call to action. Leave it as a draft.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Competitor watch</div></div><button class="copy" data-text="Once a week, check [these three competitor pages] and tell me what changed: new offers, price changes, new content. Keep it to a short list.">Copy</button></div><pre class="ptext">Once a week, check [these three competitor pages] and tell me what changed: new offers, price changes, new content. Keep it to a short list.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The testimonial gatherer</div></div><button class="copy" data-text="Read my [reviews / emails / DMs] in this folder and pull out the best quotes I could use as testimonials. Group them by theme and note where each came from.">Copy</button></div><pre class="ptext">Read my [reviews / emails / DMs] in this folder and pull out the best quotes I could use as testimonials. Group them by theme and note where each came from.</pre></div><h3 class="grp">Handle the data</h3><div class="card"><div class="chead"><div><div class="lbl">Clean the list</div></div><button class="copy" data-text="De-duplicate and clean the contact list in this file: fix formatting, standardize names and phone numbers, and flag incomplete rows. Give me a clean version plus a short note on what you fixed.">Copy</button></div><pre class="ptext">De-duplicate and clean the contact list in this file: fix formatting, standardize names and phone numbers, and flag incomplete rows. Give me a clean version plus a short note on what you fixed.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Two sheets, reconciled</div></div><button class="copy" data-text="Compare [sheet A] and [sheet B] and tell me what does not match: missing rows, different amounts, duplicates. Put the mismatches in their own tab.">Copy</button></div><pre class="ptext">Compare [sheet A] and [sheet B] and tell me what does not match: missing rows, different amounts, duplicates. Put the mismatches in their own tab.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Survey to insights</div></div><button class="copy" data-text="Read the survey responses in this file and summarize them: the top three themes, a few representative quotes, and anything surprising. One page.">Copy</button></div><pre class="ptext">Read the survey responses in this file and summarize them: the top three themes, a few representative quotes, and anything surprising. One page.</pre></div><h3 class="grp">Research and prep</h3><div class="card"><div class="chead"><div><div class="lbl">The pre-read</div></div><button class="copy" data-text="Before I read [this long PDF or report], give me a one-page brief: the main argument, the three things I need to know, and any numbers that matter.">Copy</button></div><pre class="ptext">Before I read [this long PDF or report], give me a one-page brief: the main argument, the three things I need to know, and any numbers that matter.</pre></div><div class="card"><div class="chead"><div><div class="lbl">Vendor compare</div></div><button class="copy" data-text="Research [these three tools or vendors] and build me a comparison table: price, key features, best-for, and the catch with each.">Copy</button></div><pre class="ptext">Research [these three tools or vendors] and build me a comparison table: price, key features, best-for, and the catch with each.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The follow-up drafter</div></div><button class="copy" data-text="Using [these meeting notes], draft a follow-up email: thank them, recap what we agreed, and list the next steps with dates. Leave it as a draft.">Copy</button></div><pre class="ptext">Using [these meeting notes], draft a follow-up email: thank them, recap what we agreed, and list the next steps with dates. Leave it as a draft.</pre></div><h3 class="grp">Keep it running</h3><div class="card"><div class="chead"><div><div class="lbl">The Sunday check-in</div></div><button class="copy" data-text="Every Sunday evening, look at [my calendar / my tasks / this tracker] and send me a short plan for the week: what is due, what is at risk, and the three things that matter most.">Copy</button></div><pre class="ptext">Every Sunday evening, look at [my calendar / my tasks / this tracker] and send me a short plan for the week: what is due, what is at risk, and the three things that matter most.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The subscription audit</div></div><button class="copy" data-text="Once a month, scan the statements and receipts in this folder for recurring charges. List every subscription with its amount, flag anything new or increased since last month, and total what I am paying per month.">Copy</button></div><pre class="ptext">Once a month, scan the statements and receipts in this folder for recurring charges. List every subscription with its amount, flag anything new or increased since last month, and total what I am paying per month.</pre></div><div class="card"><div class="chead"><div><div class="lbl">The follow-up chaser</div></div><button class="copy" data-text="Every few days, check my sent mail for threads where I asked a question or sent work and got no reply within 4 days. Draft a short, friendly nudge for each one. Leave them as drafts, do not send anything.">Copy</button></div><pre class="ptext">Every few days, check my sent mail for threads where I asked a question or sent work and got no reply within 4 days. Draft a short, friendly nudge for each one. Leave them as drafts, do not send anything.</pre></div>
+  <div class="foot">Taylormade Academy · <a href="https://academy.taylormadecreative.net">academy.taylormadecreative.net</a><br>Paste these into Claude Cowork. Keep them yours.</div>
+</div></main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const gate=document.getElementById('gate'),pk=document.getElementById('pk'),gmsg=document.getElementById('gmsg'),gact=document.getElementById('gact');
+function deny(m){ gmsg.textContent=m; gact.style.display='flex'; }
+function allow(){ gate.style.display='none'; pk.style.display=''; }
+(async function(){
+  if(!CFG.SUPABASE_URL||!CFG.SUPABASE_KEY){ deny('Sign in to unlock your Prompt Pack.'); return; }
+  try{
+    const sb=createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY);
+    const s=await sb.auth.getSession();
+    const session=s&&s.data&&s.data.session;
+    if(!session){ deny('This Prompt Pack comes with the book. Sign in to unlock it.'); return; }
+    const r=await sb.rpc('ea_my_library');
+    if(r.error) throw r.error;
+    const owns=(r.data||[]).some(function(x){ return x.slug==='steal-your-week-back'; });
+    if(owns){ allow(); } else { deny('You do not own Steal Your Week Back yet. Grab it to unlock the Prompt Pack.'); }
+  }catch(e){ deny('Sign in to unlock your Prompt Pack.'); }
+})();
+</script>
+<script>
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    navigator.clipboard.writeText(btn.getAttribute('data-text')).then(function(){
+      var o = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = o; btn.classList.remove('done'); }, 1400);
+    });
+  });
+});
+</script>
+</body></html>
