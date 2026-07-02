@@ -40,7 +40,7 @@ PWA_TAGS = (
     f'<script src="/js/meta-pixel.js?v={ASSET_VER}" defer></script>'
 )
 
-NAV = [("Community", "/community/"), ("Courses", "/store/"), ("Ebooks", "/library/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -69,15 +69,20 @@ def socials_row(style=""):
 
 LOGO = ('<img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async">')
 
-HERO_BLOB = ('<svg class="blob" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-    '<defs><linearGradient id="hb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="0.55" stop-color="#bfdbfe"/><stop offset="1" stop-color="#93c5fd"/></linearGradient></defs>'
-    '<path fill="url(#hb)" d="M455,95 C545,160 582,290 530,395 C485,490 375,548 263,533 C158,519 58,450 44,338 C31,233 96,118 211,81 C301,52 370,33 455,95 Z"/></svg>')
+_IC_CHAT = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+            'stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-4 3z"/></svg>')
+_IC_BOOK = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+            'stroke-linejoin="round" aria-hidden="true"><path d="M5 4a1 1 0 0 1 1-1h7l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M13 3v5h5"/></svg>')
 
 def hero_photo():
     return ('<div class="hero-shot">'
-            '<picture><source srcset="/assets/hero-nelson.webp" type="image/webp">'
+            '<div class="hero-frame"><picture><source srcset="/assets/hero-nelson.webp" type="image/webp">'
             '<img class="hero-img" src="/assets/hero-nelson.png" width="942" height="941" '
-            'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy, in a Taylormade Creative varsity jacket"></picture>'
+            'fetchpriority="high" alt="Nelson Taylor, founder of Taylormade Academy, in a Taylormade Creative varsity jacket"></picture></div>'
+            '<div class="fl-chip a" aria-hidden="true"><span class="fc-ic">' + _IC_CHAT + '</span>'
+            '<span><span class="fc-t">Message from Nelson</span><br><span class="fc-s">"Welcome in. What are you building?"</span></span></div>'
+            '<div class="fl-chip b" aria-hidden="true"><span class="fc-ic gold">' + _IC_BOOK + '</span>'
+            '<span><span class="fc-t">Playbook unlocked</span><br><span class="fc-s">Waiting in your library</span></span></div>'
             '</div>')
 
 def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
@@ -112,16 +117,16 @@ def header(active=""):
     return f"""<header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/">{LOGO}<span class="mark">Taylormade Academy</span></a>
 <nav class="nav">{links}</nav>
-<div class="nav-cta"><a class="navlink" href="/login/">Sign In</a><a class="btn gold sm" href="/login/">Join Community <span class="arr">&rarr;</span></a>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a>
 <button class="btn ghost sm cart-btn" data-open-cart aria-label="Cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="cc" id="cartCount" style="display:none">0</span></button>
 <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
-</div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign In</a><a class="btn gold" href="/login/">Join Community</a></div></header>"""
+</div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>"""
 
 def footer():
-    socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">{t}</a>' for t, u in SOCIALS)
+    socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">{t}</a>' for t, u in SOCIALS)
     cols = {
-        "Explore": [("Courses", "/store/"), ("Ebooks", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")],
-        "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Messages", "/community/"), ("Join free", "/login/")],
+        "Explore": [("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
+        "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Sign in", "/login/"), ("Join free", "/login/?mode=join")],
     }
     colhtml = ""
     for h, items in cols.items():
@@ -133,15 +138,16 @@ def footer():
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px">{LOGO}</div><div class="mark">Taylormade Academy</div></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
-<div style="display:flex;flex-wrap:wrap;margin-top:14px;font-size:14px;font-weight:600">{socials}</div></div>
+<div style="display:flex;flex-wrap:wrap;margin-top:16px;font-size:14px;font-weight:600">{socials}</div></div>
 {colhtml}
 <div class="foot-col"><h4>Stay in the loop</h4>
-<p style="font-size:14px;color:var(--muted);margin-bottom:12px;max-width:30ch">New courses, ebooks, and community drops, to your inbox.</p>
+<p style="font-size:14px;color:#8fa0c7;margin-bottom:14px;max-width:30ch">New courses, ebooks, and community drops, straight to your inbox.</p>
 <form onsubmit="return BM.subscribe(event,'footer')" style="display:flex;gap:8px;flex-wrap:wrap">
-<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:150px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:10px;font-family:inherit;font-size:14px;background:#fff">
+<input type="email" name="email" placeholder="you@email.com" required aria-label="Email address" style="flex:1;min-width:150px;padding:12px 18px;border:1px solid rgba(255,255,255,.16);border-radius:980px;font-family:inherit;font-size:14px;background:rgba(255,255,255,.06);color:#fff;outline-offset:2px">
 <button class="btn gold sm" type="submit">Subscribe</button></form></div>
 </div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a><a href="/refunds/" style="color:#8fa0c7">Refunds</a></span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 <div class="cart-backdrop" id="cartBackdrop" data-close-cart></div>
@@ -161,13 +167,13 @@ def footer():
 <div class="pop-left">
 <div class="pop-brand">{LOGO}<span>Taylormade Academy</span></div>
 <div class="pop-eyebrow">Join free</div>
-<h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="gold">Playbook</span></h2>
-<p class="pop-sub">Create your free account and the Playbook is waiting inside — plus the community, members, and DMs. 100% free.</p>
+<h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="u-gold">Playbook</span></h2>
+<p class="pop-sub">Create your free account and the Playbook is waiting inside, plus the community, members, and DMs. 100% free.</p>
 <ul class="pop-bullets">
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M21 9v5"/><path d="M7 11v4c0 1 2.2 2.2 5 2.2s5-1.2 5-2.2v-4"/></svg></span> Learn AI skills</li>
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 4l6 6L9 21H3v-6z"/><path d="M12.5 6.5l5 5"/></svg></span> Create amazing content</li>
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.2c0-1.2 1.2-2 2.7-2s2.7.8 2.7 2-1.2 1.8-2.7 1.8-2.7.7-2.7 1.9 1.2 2 2.7 2 2.7-.8 2.7-2"/></svg></span> Earn &amp; build income</li>
-<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></span> Join a community that wins</li>
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></span> Meet builders like you</li>
 </ul>
 </div>
 <div class="pop-art">
@@ -178,14 +184,14 @@ def footer():
 <div class="pop-bottom">
 <div class="pop-bottom-copy">
 <div class="pob-h">Join the Taylormade Academy community</div>
-<p>Get the Playbook and weekly <span class="gold">exclusive tips</span> — free.</p>
+<p>Get the Playbook and weekly <span class="gold">exclusive tips</span>, free.</p>
 <form class="pop-form" onsubmit="return BM.getEbook(event)">
 <span class="pf-input"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><input type="email" name="email" placeholder="Enter your email address" required></span>
 <button class="btn gold" type="submit">Create my free account</button>
 </form>
 <div class="pob-fine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> No spam. Unsubscribe anytime.</div>
 </div>
-<div class="pop-free"><span class="gift"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span><strong>100% FREE</strong><span>No catch. Just value. Just for you.</span></div>
+<div class="pop-free"><span class="gift"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span><strong>Free</strong><span>No card. No spam.</span></div>
 </div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -199,7 +205,7 @@ def render(path, html):
 # Hand-maintained member-area pages the generator must NOT overwrite, but whose shared
 # CSS/JS links still need the cache-busting ?v= stamp. We only rewrite the version query
 # string on the asset links, leaving the rest of each file untouched.
-APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review")
+APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course")
 _ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):
@@ -280,37 +286,97 @@ def tracks_section():
 <p style="font-size:12px;color:var(--muted);margin:8px 0 0">First in line when the {name} track drops.</p></div></article>"""
     return cards
 
-def preview_panel():
-    return ('<div class="preview">'
-      '<div class="pv-top">'
-      '<div class="pv-side"><div class="pv-logo"></div>'
-      '<div class="pv-i on">Home</div><div class="pv-i">Courses</div><div class="pv-i">Ebooks</div>'
-      '<div class="pv-i">Community</div><div class="pv-i">Messages</div><div class="pv-i">Store</div></div>'
-      '<div class="pv-main"><div class="pv-h">Welcome back<b>Keep building.</b></div>'
-      '<div class="pv-cards"><div class="pv-card"><div class="t">Courses</div><div class="v">4</div></div>'
-      '<div class="pv-card"><div class="t">Ebooks</div><div class="v">2</div></div>'
-      '<div class="pv-card"><div class="t">Community</div><div class="v">Free</div></div></div>'
-      '<div class="pv-wide"><div class="thumb"></div><div style="flex:1;min-width:0">'
-      '<div class="b">Build Your First AI Agent</div><div class="s">Continue, chapter 2</div>'
-      '<div class="pv-bar"><i></i></div></div></div>'
-      '<div class="pv-wide"><div class="thumb"></div><div style="flex:1;min-width:0">'
-      '<div class="b">The community feed</div><div class="s">New posts from members</div></div></div>'
-      '</div></div></div>')
+# icon set for the platform showcase (stroke inherits currentColor)
+_PIC = {
+  "feed": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg>',
+  "play": '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
+  "book": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 0 2 2h13"/></svg>',
+  "chat": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-4 3z"/></svg>',
+  "dash": '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z"/></svg>',
+  "heart": '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.6-9-9c-1.2-2.7.6-6 3.8-6 2 0 3.6 1.2 5.2 3.3C13.6 6.2 15.2 5 17.2 5c3.2 0 5 3.3 3.8 6-2 4.4-9 9-9 9z"/></svg>',
+}
 
-def feature_bar():
-    IC = {
-      "play":'<svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>',
-      "doc":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4a1 1 0 0 1 1-1h7l5 5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M13 3v5h5"/></svg>',
-      "ppl":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg>',
-      "chat":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3z"/></svg>',
-      "store":'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>',
-    }
-    items = [("#2563eb","play","Video Courses","In-depth, practical courses that teach by doing."),
-             ("#10b981","doc","Ebooks &amp; PDFs","Actionable guides and resources you keep forever."),
-             ("#f97316","ppl","Community Feed","Share, ask, and grow with other creatives."),
-             ("#6366f1","chat","DMs &amp; Collaboration","Message members and build together."),
-             ("#f59e0b","store","A La Carte Store","Buy a single video or ebook, yours to keep.")]
-    return "".join(f'<div class="f"><div class="ic" style="background:{c}">{IC[k]}</div><div class="h">{h}</div><div class="d">{d}</div></div>' for c,k,h,d in items)
+def plat_mock():
+    """Hand-built, honest mock of the real member platform (feed, DMs, library, courses)."""
+    nav_items = (('feed', 'Feed', True, False), ('play', 'Courses', False, False),
+                 ('book', 'Library', False, False), ('chat', 'Messages', False, True),
+                 ('dash', 'Dashboard', False, False))
+    DOT = '<span class="mk-dot"></span>'
+    nav = "".join(
+        f'<span class="mk-i{" on" if on else ""}">{_PIC[k]}{t}{DOT if dot else ""}</span>'
+        for k, t, on, dot in nav_items)
+    return f"""<div class="plat-stage reveal">
+<div class="mock" role="img" aria-label="A preview of the Taylormade Academy member platform: community feed, courses, library, and messages">
+<div class="mk-bar"><i></i><i></i><i></i><span class="mk-url">academy.taylormadecreative.net</span></div>
+<div class="mk-body">
+<aside class="mk-nav"><span class="mk-logo">{LOGO.replace('width="40" height="40"', 'width="22" height="22"')}<b>Academy</b></span>{nav}</aside>
+<div class="mk-feed">
+<div class="mk-comp"><span class="mk-av bl">You</span><span class="mk-in">Share what you're building&hellip;</span><span class="mk-go">Post</span></div>
+<article class="mk-post">
+<div class="mk-who"><span class="mk-av">NT</span><span><b>Nelson Taylor</b> <span class="tag gold" style="margin-left:6px;font-size:9px;padding:2px 8px">HOST</span><br><span>#general</span></span></div>
+<p>Welcome to the Academy. Introduce yourself in the feed and tell us what you're working on: design, photo, video, or AI. Somebody in here has been where you are.</p>
+<div class="mk-acts"><span>{_PIC["heart"]} Like</span><span>{_PIC["chat"]} Reply</span></div>
+</article>
+<article class="mk-post" style="opacity:.65">
+<div class="mk-who"><span class="mk-av bl">You</span><span><b>Your first post</b><br><span>the crew is waiting</span></span></div>
+</article>
+</div>
+<aside class="mk-right">
+<div class="mk-card"><div class="mk-h">Continue reading</div><div class="mk-t">The AI Money Machine</div><div class="mk-s">Chapter 4 &middot; read on-site or download</div><div class="mk-prog"><i></i></div></div>
+<div class="mk-card"><div class="mk-h">Up next</div><div class="mk-t">Design Like a Pro</div><div class="mk-s">Video course &middot; in production</div><div class="mk-prog gold"><i></i></div></div>
+</aside>
+</div></div>
+<div class="plat-fl dm"><div class="pf-h"><span class="mk-av">NT</span> Nelson Taylor</div><div class="pf-s">Direct messages, built in. Ask, get unstuck, collaborate.</div></div>
+<div class="plat-fl vid"><div class="pf-h"><span class="pf-play">{_PIC["play"]}</span> Lesson 01 &middot; The Eye</div><div class="pf-s">Streams right on the site.</div><div class="pf-vidbar"><i></i></div></div>
+<div class="plat-fl book"><div class="pf-h"><span class="fc-ic gold" style="width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center">{_IC_BOOK}</span> Your library</div><div class="pf-s">Every ebook, readable in the browser or yours to download.</div></div>
+</div>"""
+
+def plat_feats():
+    feats = [
+        ("feed", "A real community", "A feed, channels, and a member directory. Post work, get feedback, find collaborators."),
+        ("play", "Video courses", "Step-by-step courses that stream on-site, on your phone or desktop. New content monthly."),
+        ("book", "Your ebook library", "Read every ebook right on the site, or download the PDF and keep it forever."),
+        ("dash", "Your dashboard", "One home for your courses, books, messages, and progress. Pick up where you left off."),
+    ]
+    return '<div class="plat-feats" data-stag>' + "".join(
+        f'<div class="pfe"><div class="ic">{_PIC[k]}</div><div class="h">{h}</div><div class="d">{d}</div></div>'
+        for k, h, d in feats) + "</div>"
+
+def mem_cards(context="home"):
+    """The money section: Free vs Membership, honest and simple."""
+    return f"""<div class="mem reveal">
+<div class="mem-card">
+<div class="pname">Free</div>
+<div class="pprice">$0<span> / forever</span></div>
+<p class="pdesc">A real taste. No card, no trial clock.</p>
+<ul class="flist">
+<li>The community feed, members, and DMs</li>
+<li>The Creator's AI Playbook, free in your library</li>
+<li>Free guides and intro videos</li>
+</ul>
+<a class="btn ghost" href="/login/?mode=join">Join free</a>
+</div>
+<div class="mem-card feat">
+<span class="mem-badge"><span class="dot" style="background:var(--navy)"></span>All access</span>
+<div class="pname">Membership</div>
+<div class="pprice">$15<span> / month</span></div>
+<p class="pdesc">Everything unlocked, about the price of a pizza.</p>
+<ul class="flist">
+<li>Every ebook, read on-site or download</li>
+<li>Every video course as it drops</li>
+<li>New content every month</li>
+<li>Cancel anytime, keep your community</li>
+</ul>
+<a class="btn gold" data-buy="all-access" href="#">Start membership <span class="arr">&rarr;</span></a>
+</div>
+</div>
+<p class="mem-fine reveal"><b>7-day refund</b> on everything &middot; cancel in one click &middot; secure checkout</p>"""
+
+def trim_blurb(text, n):
+    """Truncate at a word boundary, never mid-word."""
+    if len(text) <= n:
+        return text
+    return text[:n].rsplit(" ", 1)[0].rstrip(",.;") + "&hellip;"
 
 COVER_DIMS = {"/assets/cover-ai-agent-v2.png": (840, 1120), "/assets/cover-money-machine.png": (840, 1120)}
 
@@ -336,7 +402,7 @@ def popular_cards():
         p = PRODUCTS[slug]
         out += (f'<article class="pcard"><a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
                 f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
-                f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:92]}…</p></div>'
+                f'<h3>{p["title"]}</h3><p class="blurb">{trim_blurb(p["blurb"], 92)}</p></div>'
                 f'<div class="foot">{price_block(slug)}<a class="btn ghost sm" href="/store/{slug}/">Details <span class="arr">&rarr;</span></a></div></article>')
     for name, desc, thumb in (("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "course-design"),
                        ("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "course-video")):
@@ -360,102 +426,99 @@ def ai_launch():
                 f'<span class="aiic" style="background:{color}">{_SPARK}</span>'
                 f'<span><b>Ask {name}</b><span class="aism">Prompt pre-loaded</span></span>'
                 f'<span class="aiar">&rarr;</span></a>')
-    return ("""<style>
-.ailaunch{background:radial-gradient(120% 100% at 50% -20%,#0a205c,#04123a);border-radius:var(--r-lg);padding:clamp(26px,4vw,44px);display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(22px,3vw,44px);align-items:center;}
-.ailaunch .eyb{font:700 12px/1 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#fdc921;}
-.ailaunch h2{font-family:var(--display);color:#fff;font-size:clamp(26px,3.4vw,38px);line-height:1.05;letter-spacing:-.02em;margin:12px 0 0;}
-.ailaunch p{color:#bcc8e6;font-size:16px;line-height:1.6;margin:12px 0 0;max-width:44ch;}
-.ailaunch .btns{display:flex;flex-direction:column;gap:12px;}
-.ai-btn{display:flex;align-items:center;gap:13px;background:#fff;border-radius:14px;padding:15px 16px;text-decoration:none;box-shadow:0 12px 26px -16px rgba(0,0,0,.6);transition:transform .14s;}
-.ai-btn:active{transform:scale(.98);}
-.ai-btn .aiic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
-.ai-btn b{display:block;font-family:var(--display);font-size:16px;color:#0a1733;}
-.ai-btn .aism{font-size:12px;color:#8493ad;}
-.ai-btn .aiar{font-family:var(--display);font-weight:700;color:#0b40e0;font-size:18px;margin-left:auto;}
-@media(max-width:760px){.ailaunch{grid-template-columns:1fr;}}
-</style>
-<section class="section tight" style="padding-top:30px;padding-bottom:6px"><div class="wrap">
+    return ("""<section class="section tight"><div class="wrap">
 <div class="ailaunch reveal">
 <div><span class="eyb">AI Quick Launch</span>
 <h2>Talk to your AI. One tap.</h2>
-<p>Jump straight into ChatGPT or Claude with a prompt already loaded &mdash; the fastest way to put AI to work on your day, your studies, or your hustle.</p></div>
+<p>Jump straight into ChatGPT or Claude with a prompt already loaded. It's the fastest way to put AI to work on your day, your studies, or your hustle.</p></div>
 <div class="btns">""" + btn(CHATGPT_URL, "#10a37f", "ChatGPT") + btn(CLAUDE_URL, "#d97757", "Claude") + """</div>
 </div></div></section>""")
 
 # ---------- HOME ----------
 def home():
+    fb_svg = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+              '<path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z"/></svg>')
     return head(
         "Taylormade Academy — Learn the craft. Build real things. Create real income.",
-        "Taylormade Academy by Nelson Taylor. Video courses, ebooks, and a private community to learn graphic design, photography, video, and AI, and build real things, out of Dallas-Fort Worth.",
-        "/", preload_hero=True) + header("Community") + f"""
+        "A creative community by Nelson Taylor. Video courses, ebooks you can read on-site or download, and a private community for design, photography, video, and AI. Join free, unlock everything for $15/mo.",
+        "/", preload_hero=True) + header("") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
-<span class="hero-badge">The creative community for builders</span>
-<h1 class="display-xl" style="margin-top:18px">Learn the craft.<br>Build real things.<br><span class="blue u-gold">Create real income.</span></h1>
-<p class="sub">Step-by-step video courses, plain-English ebooks, and a private community, helping creators and hustlers use design, photo, video, and AI to build, ship, and earn. Hosted by Nelson Taylor.</p>
-<div class="cta-row"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Start Learning</a><a class="btn ghost" href="/store/">Browse Ebooks</a></div>
-<div class="statline"><div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div><div class="s"><div class="n">4</div><div class="l">creative tracks</div></div><div class="s"><div class="n">2</div><div class="l">ebooks ready now</div></div></div>
+<span class="hero-badge"><span class="dot"></span>The creative community for builders</span>
+<h1 class="display-xl" style="margin-top:24px">Learn the craft.<br>Build real things.<br><span class="u-gold">Create real income.</span></h1>
+<p class="sub">A private community, step-by-step video courses, and plain-English ebooks for design, photo, video, and AI. Hosted by Nelson Taylor. Built for people who ship.</p>
+<div class="cta-row"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="#inside">See what's inside</a></div>
+<div class="statline">
+<div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div>
+<div class="s"><div class="n">$15/mo</div><div class="l">unlocks everything</div></div>
+<div class="s"><div class="n">4</div><div class="l">creative crafts</div></div>
+</div>
 </div>
 <div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
 
-{ai_launch()}
-
-<section class="section tight" style="padding-top:26px"><div class="wrap">
-<div class="reveal" style="max-width:880px;margin:0 auto;text-align:center">
-<span class="kicker gold">Watch the intro</span>
-<h2 class="display-m" style="margin-top:8px">See what we're building.</h2></div>
-<div class="reveal" style="max-width:880px;margin:18px auto 0;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);background:#04123a;border:1px solid var(--hair)">
-<video style="display:block;width:100%;aspect-ratio:16/9;background:#04123a" src="/assets/home-hero-nelson.mp4" poster="/assets/home-hero-poster.jpg" controls playsinline preload="none"></video></div>
-<div class="reveal" style="text-align:center;margin-top:20px"><a class="btn gold" href="/login/">Join Free <span class="arr">&rarr;</span></a></div>
-</div></section>
-
-<section class="section tight" style="padding-top:4px;padding-bottom:0"><div class="wrap">
-<div class="cred reveal">
-<div class="cred-l"><span class="goldbar"></span><span>Taught by <b>Nelson Taylor</b> &mdash; 14 years a working Dallas-Fort Worth creative, not a content farm.</span></div>
-<div class="cred-chips">
-<span class="cred-chip">Shipped iOS app on the App Store</span>
-<span class="cred-chip">Design, photo &amp; video</span>
-<span class="cred-chip">BFA, Art Institute of Dallas</span>
-<span class="cred-chip">Ran a live AI build sprint</span>
-</div></div>
-</div></section>
-
-<section class="section tight" style="padding-top:18px"><div class="wrap">
-<div class="featurebar reveal">{feature_bar()}</div>
-</div></section>
-
-<section class="section tight"><div class="wrap">
-<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:end;justify-content:space-between;margin-bottom:24px">
-<div><span class="kicker gold reveal">Popular right now</span><h2 class="display-m reveal" style="margin-top:8px">Start with these.</h2></div>
-<a class="textlink reveal" href="/store/">View all courses &rarr;</a></div>
-<div class="products reveal" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">{popular_cards()}</div>
-</div></section>
-
-<section class="section tight"><div class="wrap">
-<div class="freebook reveal">
-<img class="fb-cover" src="/assets/ebook-book.webp" width="180" height="240" alt="The Creator's AI Playbook free ebook" loading="lazy">
-<div class="fb-copy">
-<span class="kicker gold" style="color:var(--blue-2)">Free starter guide</span>
-<h2 class="display-m" style="margin-top:8px;color:#fff">Start with the free AI Playbook.</h2>
-<p style="color:#aebbd8;margin-top:10px;max-width:50ch">The 3 tools, where to click, every beginner term, and the prompt formula, in a quick 11-page read. Drop your email and it's yours, free.</p>
-<button class="btn gold" data-get-ebook style="margin-top:18px">Join free for the Playbook <span class="arr">&rarr;</span></button>
+<section class="section plat on-ink" id="inside"><div class="wrap">
+<div class="plat-head">
+<span class="kicker gold reveal">Inside the Academy</span>
+<h2 class="display-l reveal" style="margin-top:16px">One membership.<br>A whole creative campus.</h2>
+<p class="lead reveal" style="margin:18px auto 0;max-width:56ch">The feed, the courses, your library, your messages: everything in one place, on the web and in the app.</p>
 </div>
-</div>
+{plat_mock()}
+{plat_feats()}
 </div></section>
 
 <section class="section"><div class="wrap">
-<div style="background:linear-gradient(180deg,var(--blue-soft),#fff);border:1px solid #dbeafe;border-radius:var(--r-lg);padding:clamp(26px,4vw,46px)">
-<div style="text-align:center;max-width:60ch;margin:0 auto 30px">
-<span class="kicker gold reveal">A community of builders, designers &amp; creators</span>
-<h2 class="display-l reveal" style="margin-top:12px">More than a platform. Your creative home.</h2>
-<p class="reveal" style="margin:14px auto 0;color:var(--muted)">Make friends, get feedback, collaborate on projects, and stay inspired. Start free, upgrade when you want more.</p>
-<div class="reveal" style="margin-top:18px"><a class="btn ghost sm" href="{FB_GROUP}" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z"/></svg> Join the free Facebook group <span class="arr">&rarr;</span></a></div></div>
-<div class="tiers reveal" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr));max-width:720px;margin:0 auto">
-<div class="tier"><div class="pname">Free</div><div class="pprice">$0<span> / forever</span></div><div class="pdesc">A real taste, free forever.</div><ul class="flist" style="margin:16px 0"><li>The community + members + DMs</li><li>Free intro videos + sample ebooks</li><li>Free guides and resources</li></ul><a class="btn ghost" style="margin-top:auto" href="/login/">Join Free</a></div>
-<div class="tier feat"><div class="tagrow" style="margin-bottom:8px"><span class="tag gold"><span class="dot"></span>ALL ACCESS</span></div><div class="pname">Membership</div><div class="pprice">$15<span> / month</span></div><div class="pdesc">Everything unlocked, about the price of a pizza.</div><ul class="flist" style="margin:16px 0"><li>Every ebook + video course</li><li>Everything in Free</li><li>New content every month</li><li>Cancel anytime</li></ul><a class="btn gold" style="margin-top:auto" data-buy="all-access" href="#">Start learning <span class="arr">&rarr;</span></a></div>
-</div></div>
+<div style="text-align:center;margin-bottom:clamp(32px,4.4vw,52px)">
+<span class="kicker gold reveal">Simple pricing</span>
+<h2 class="display-l reveal" style="margin-top:14px">Start free. Upgrade when you're ready.</h2>
+</div>
+{mem_cards()}
+</div></section>
+
+<section class="section" style="background:var(--bg-soft)"><div class="wrap">
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:end;justify-content:space-between;margin-bottom:30px">
+<div><span class="kicker gold reveal">Or own them outright</span><h2 class="display-m reveal" style="margin-top:10px">The playbooks.</h2></div>
+<a class="textlink reveal" href="/store/">Browse the store &rarr;</a></div>
+<div class="products" data-stag style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">{popular_cards()}</div>
+<div class="freebook reveal" style="margin-top:clamp(26px,3.4vw,44px)">
+<img class="fb-cover" src="/assets/ebook-book.webp" width="180" height="240" alt="The Creator's AI Playbook free ebook" loading="lazy">
+<div class="fb-copy">
+<span class="kicker gold">Free starter guide</span>
+<h2 class="display-m" style="margin-top:10px;color:#fff">Start with the free AI Playbook.</h2>
+<p style="color:#9fb0d4;margin-top:12px;max-width:50ch">The 3 tools, where to click, every beginner term, and the prompt formula, in a quick 11-page read. Create a free account and it's waiting in your library.</p>
+<button class="btn gold" data-get-ebook style="margin-top:20px">Join free for the Playbook <span class="arr">&rarr;</span></button>
+</div>
+</div>
+</div></section>
+
+{ai_launch()}
+
+<section class="section"><div class="wrap">
+<div class="g-12" style="align-items:center;gap:clamp(28px,4vw,64px)">
+<div class="reveal" style="grid-column:1/7">
+<div style="border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);background:var(--navy)">
+<video style="display:block;width:100%;aspect-ratio:16/9;background:var(--navy)" src="/assets/home-hero-nelson.mp4" poster="/assets/home-hero-poster.jpg" controls playsinline preload="none" aria-label="Nelson Taylor introduces Taylormade Academy"><track kind="captions" srclang="en" label="English" src="/assets/home-hero-nelson.vtt" default></video></div>
+</div>
+<div style="grid-column:7/13">
+<span class="kicker gold reveal">Why learn here</span>
+<h2 class="display-m reveal" style="margin-top:12px;max-width:16ch">Taught from the work, not from theory.</h2>
+<div class="receipts reveal" style="grid-template-columns:1fr;margin-top:26px">
+<div class="rc"><div class="num">01</div><div class="h">A live AI build sprint</div><div class="d">A 3-night "Build Your First AI Agent" workshop with AUC's Data Science Institute and Johns Hopkins, for about 50 HBCU students.</div></div>
+<div class="rc"><div class="num">02</div><div class="h">A shipped iOS app</div><div class="d">A real app on the App Store people can download today. Not a prototype, not a slide.</div></div>
+<div class="rc"><div class="num">03</div><div class="h">14 years of client work</div><div class="d">Design, photo, video, branding, and AI for real businesses across Dallas-Fort Worth. BFA, Art Institute of Dallas.</div></div>
+</div>
+<a class="textlink reveal" href="/about/" style="display:inline-block;margin-top:8px">More about Nelson &rarr;</a>
+</div>
+</div>
+</div></section>
+
+
+<section class="section cta-band"><div class="wrap">
+<span class="kicker gold reveal" style="justify-content:center">Your move</span>
+<h2 class="display-l reveal" style="margin-top:14px">Your creative home is ready.</h2>
+<p class="lead reveal" style="margin:16px auto 0;max-width:44ch">Join free today. Go all-access whenever you want everything.</p>
+<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">See the membership</a></div>
 </div></section>
 </main>""" + footer()
 
@@ -466,7 +529,7 @@ def store():
         return (f'<article class="pcard" data-cat="ebook">'
                 f'<a class="top" href="/store/{slug}/">{cover_pic(p)}</a>'
                 f'<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">{p["pages"]}</span></div>'
-                f'<h3>{p["title"]}</h3><p class="blurb">{p["blurb"][:88]}…</p></div>'
+                f'<h3>{p["title"]}</h3><p class="blurb">{trim_blurb(p["blurb"], 88)}</p></div>'
                 f'<div class="foot">{price_block(slug)}<button class="btn gold sm" data-add-cart="{slug}" data-title="{p["title"]}">Add to cart</button></div></article>')
     def soon_card(name, desc, key):
         return (f'<article class="pcard" data-cat="soon">{course_top("course-" + key, name)}'
@@ -475,38 +538,44 @@ def store():
                 f'<div class="foot" style="display:block"><form onsubmit="return BM.subscribe(event,\'store-{key}\')" style="display:flex;gap:8px">'
                 f'<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:110px;padding:10px 12px;border:1.5px solid var(--hair);border-radius:9px;font-family:inherit;font-size:13px;background:#fff">'
                 f'<button class="btn gold sm" type="submit">Notify</button></form></div></article>')
-    grid = (ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2)
+    def bundle_tile():
+        return ('<article class="pcard" data-cat="ebook">'
+                '<div class="top"><div class="cover-ph">THE COMPLETE<br>BUNDLE</div></div>'
+                '<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>Bundle &amp; save</span><span class="tag">2 ebooks</span></div>'
+                '<h3>The Complete Bundle</h3><p class="blurb">Both ebooks together: build the AI agent, then the recurring-income business.</p></div>'
+                '<div class="foot">' + price_block("bundle") + '<button class="btn gold sm" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button></div></article>')
+    grid = (ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2) + bundle_tile()
             + soon_card("Design Like a Pro", "Graphic design from 14 years of client work, the eye and the tools.", "design")
             + soon_card("Cinematic Video", "Shoot, light, and edit video on any camera, start to finish.", "video")
             + soon_card("Photography That Sells", "Lighting, shooting, and editing images that stop the scroll.", "photo"))
-    return head("Store — Taylormade Academy", "Buy what you need: ebooks, PDFs, and courses for design, photo, video, and AI. Or join the membership for everything.", "/store/") + header("Courses") + f"""
+    return head("Store — Taylormade Academy", "Buy what you need: ebooks, PDFs, and courses for design, photo, video, and AI. Or join the membership for everything.", "/store/") + header("Store") + f"""
 <main>
 <section class="section tight"><div class="wrap">
-<div class="g-12" style="align-items:stretch;gap:clamp(20px,3vw,32px)">
+<div class="g-12" style="align-items:stretch;gap:clamp(20px,3vw,36px)">
 <div style="grid-column:1/7;display:flex;flex-direction:column;justify-content:center">
-<span class="kicker gold reveal">A la carte store</span>
-<h1 class="display-l reveal" style="margin-top:10px">Buy what you need.<br><span class="blue">Learn, create, earn.</span></h1>
-<p class="reveal" style="margin-top:14px;color:var(--muted);max-width:46ch">Ebooks, PDFs, and courses to help you master design, photo, video, and AI, and build real income. Yours to keep, or get everything with a membership.</p>
+<span class="kicker gold reveal">The store</span>
+<h1 class="display-l reveal" style="margin-top:12px">Buy what you need.<br><span class="u-gold">Keep it forever.</span></h1>
+<p class="lead reveal" style="margin-top:16px;max-width:44ch">Ebooks and courses for design, photo, video, and AI. Read on-site or download. Or skip the cart: the $15/mo membership unlocks all of it.</p>
+<div class="cta-row reveal"><a class="btn ghost sm" href="/pricing/">See the membership <span class="arr">&rarr;</span></a></div>
 </div>
 <div style="grid-column:7/13" class="reveal">
-<div style="background:var(--ink-panel);color:#cbd5e1;border-radius:var(--r-lg);padding:clamp(20px,3vw,28px);height:100%;display:flex;flex-direction:column;justify-content:center">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="tag" style="background:rgba(255,255,255,.08);border-color:transparent;color:#93c5fd">FEATURED BUNDLE</span><span class="tag" style="background:var(--emerald);border-color:var(--emerald);color:#fff">BEST VALUE</span></div>
-<h2 style="color:#fff;font-size:clamp(22px,3vw,27px);font-weight:800;margin-top:14px;letter-spacing:-.02em">The Complete Bundle</h2>
-<p style="margin-top:8px;font-size:14px;color:#cbd5e1">Both ebooks together, build the AI agent, then the recurring-income business. Lifetime access, instant download.</p>
-<div style="display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap"><div class="price big" data-price="bundle" style="color:#fff"><span class="ph" style="color:#93c5fd">Price coming</span></div>
-<button class="btn gold" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button>
-<a class="textlink" style="color:#93c5fd" href="/pricing/">What's inside &rarr;</a></div>
+<div style="background:radial-gradient(120% 120% at 80% -20%,#0b2a6e,var(--navy));color:#c3cfe8;border-radius:var(--r-lg);padding:clamp(24px,3.4vw,36px);height:100%;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow)">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#a8bcf5">Featured bundle</span><span class="tag gold"><span class="dot"></span>Bundle &amp; save</span></div>
+<h2 style="color:#fff;font-size:clamp(23px,3vw,30px);margin-top:16px;letter-spacing:-.025em">The Complete Bundle</h2>
+<p style="margin-top:10px;font-size:14.5px;color:#9fb0d4;line-height:1.6">Both ebooks together: build the AI agent, then the recurring-income business. Lifetime access, instant download.</p>
+<div style="display:flex;align-items:center;gap:18px;margin-top:22px;flex-wrap:wrap"><div class="price big" data-price="bundle" style="color:#fff"><span class="ph" style="color:#a8bcf5">Price coming</span></div>
+<button class="btn gold" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button></div>
 </div></div>
 </div></div></section>
 
-<section class="section" style="padding-top:0"><div class="wrap">
-<div class="chips reveal" id="storeFilter" style="margin-bottom:22px">
+<section class="section" style="padding-top:clamp(16px,2vw,28px)"><div class="wrap">
+<div class="chips reveal" id="storeFilter" style="margin-bottom:24px" role="group" aria-label="Filter products">
 <button class="chip active" data-cat="all">All products</button>
 <button class="chip" data-cat="ebook">Ebooks</button>
 <button class="chip" data-cat="soon">Courses (soon)</button>
 </div>
-<div class="products reveal" id="storeGrid">{grid}</div>
-<p class="muted reveal" style="margin-top:26px;font-size:14px"><b style="color:var(--ink)">Most people just get the membership</b> &mdash; $15/mo for everything, less than a single ebook. <a class="textlink" href="/pricing/">See the membership &rarr;</a> &nbsp;&middot;&nbsp; <a class="textlink" href="/course/">Preview a course &rarr;</a></p>
+<div class="products" data-stag id="storeGrid">{grid}</div>
+<p class="muted reveal" style="margin-top:30px;font-size:14.5px"><b style="color:var(--ink)">Most people just get the membership.</b> $15/mo for everything, less than a single ebook. <a class="textlink" href="/pricing/">See the membership &rarr;</a> &nbsp;&middot;&nbsp; <a class="textlink" href="/course/">Preview a course &rarr;</a></p>
 </div></section>
 </main>""" + footer()
 
@@ -523,10 +592,12 @@ def product_page(slug):
 <div class="g-12" style="margin-top:22px;align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
 <picture class="prod-cover"><source srcset="{p['cover'].rsplit('.',1)[0]}.webp" type="image/webp"><img src="{p['cover']}" width="840" height="1120" alt="{p['title']} cover" fetchpriority="high"></picture>
-<div style="background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--r);padding:20px;margin-top:22px">
+<div style="background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:24px;margin-top:24px;box-shadow:var(--shadow-sm)">
 {price_block(slug, big=True)}
-<a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:14px">Get the ebook <span class="arr">&rarr;</span></a>
-<p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Instant PDF download. Read on any device. 7-day refund.</p>
+<a class="btn gold" data-buy="{slug}" href="#" style="width:100%;margin-top:16px">Get the ebook <span class="arr">&rarr;</span></a>
+<p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">Read on-site or download the PDF. 7-day refund.</p>
+<hr class="rule hair" style="margin:16px 0">
+<p style="font-size:13px;color:var(--muted);text-align:center">Members read this free. <a class="textlink" href="/pricing/">See the $15/mo membership</a></p>
 </div></div>
 <div class="reveal" style="grid-column:7/13">
 <div class="tagrow" style="display:flex;gap:8px"><span class="tag gold"><span class="dot"></span>{p['tag']}</span><span class="tag">{p['pages']}</span></div>
@@ -542,66 +613,91 @@ def product_page(slug):
 <div style="margin-top:32px;display:flex;gap:14px;flex-wrap:wrap"><a class="btn gold" data-buy="{slug}" href="#">Get the ebook <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">Or get both and save</a></div>
 </div></div></div></section>
 <section class="section on-ink"><div class="wrap" style="text-align:center">
-<span class="kicker reveal">Keep building</span>
-<h2 class="display-m reveal" style="color:var(--paper);margin-top:12px">Pairs with "{op['title']}"</h2>
-<p class="reveal" style="color:#D7D2C6;margin:14px auto 0;max-width:46ch">{op['blurb']}</p>
-<a class="btn gold reveal" style="margin-top:24px" href="/store/{other}/">See "{op['title']}" <span class="arr">&rarr;</span></a>
+<span class="kicker gold reveal" style="justify-content:center">Keep building</span>
+<h2 class="display-m reveal" style="margin-top:14px">Pairs with &#8220;{op['title']}&#8221;</h2>
+<p class="reveal" style="color:#9fb0d4;margin:16px auto 0;max-width:46ch">{op['blurb']}</p>
+<a class="btn gold reveal" style="margin-top:26px" href="/store/{other}/">See &#8220;{op['title']}&#8221; <span class="arr">&rarr;</span></a>
 </div></section>
 </main>""" + footer()
 
 # ---------- PRICING ----------
+FAQ = [
+    ("What do I get for free?",
+     "A real membership, not a teaser. The community feed, the member directory, direct messages, "
+     "The Creator's AI Playbook in your library, and the free guides and intro videos. No card, no trial clock. Free is free."),
+    ("What unlocks with the $15/mo membership?",
+     "Everything. Every ebook, every video course as it drops, and the new content that lands every month. "
+     "It is the same price as one pizza, and less than a single ebook."),
+    ("How do I read the ebooks?",
+     "Two ways, your choice: read them right on the site in your library (with your own notes saved per book), "
+     "or download the PDF and keep it forever on any device."),
+    ("Can I cancel anytime?",
+     "Yes, in one click from your dashboard. You keep access through the period you paid for, "
+     "and your free community membership never goes away."),
+    ("What if a book or course isn't for me?",
+     "Everything comes with a 7-day, no-questions refund. Email me within 7 days and I will send your money back."),
+    ("Is this on my phone?",
+     "Yes. The whole Academy works on mobile, and you can install it to your home screen as an app. "
+     "The feed, your library, the videos, and your messages come with you."),
+]
+
+def faq_section():
+    items = "".join(
+        f'<details><summary>{q}<span class="fx" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></summary><div class="fa">{a}</div></details>'
+        for q, a in FAQ)
+    return f"""<section class="section" style="background:var(--bg-soft)"><div class="wrap">
+<div style="text-align:center;margin-bottom:clamp(26px,3.4vw,44px)">
+<span class="kicker gold reveal">Questions</span>
+<h2 class="display-m reveal" style="margin-top:12px">Fair questions, straight answers.</h2>
+</div>
+<div class="faq reveal">{items}</div>
+</div></section>"""
+
 def pricing():
-    def card(tag, title, desc, feats, cta_label, cta_href, buy=None, featured=False, price_slug=None, price_text=None):
+    def alc_card(tag, title, desc, feats, cta_label, buy, featured=False):
         fl = "".join(f"<li>{x}</li>" for x in feats)
-        btn = f'<a class="btn {"gold" if featured else "ghost"}" {"data-buy="+chr(34)+buy+chr(34) if buy else "href="+chr(34)+cta_href+chr(34)} href="{cta_href}">{cta_label}</a>'
-        style = "border-color:var(--gold);box-shadow:var(--shadow)" if featured else ""
-        pr = (f'<div class="price big" style="margin:12px 0 4px">{price_text}</div>' if price_text
-              else f'<div style="margin:12px 0 4px">{price_block(price_slug or buy or "", big=True)}</div>')
-        return f"""<div class="pcard" style="padding:26px;{style}">
+        style = "border-color:#f3dfa0;box-shadow:var(--shadow-card)" if featured else ""
+        return f"""<div class="pcard" style="padding:28px;{style}">
 <div class="tagrow">{tag}</div>
-<h3 style="margin-top:6px">{title}</h3>
-{pr}
+<h3 style="margin-top:8px">{title}</h3>
+<div style="margin:12px 0 4px">{price_block(buy, big=True)}</div>
 <p class="blurb" style="margin-top:4px">{desc}</p>
 <ul class="flist" style="margin-top:16px">{fl}</ul>
-<div style="margin-top:22px">{btn}</div></div>"""
-    cards = "".join([
-        card('<span class="tag">EBOOK</span>', "Build Your First AI Agent",
-             "The no-code agent guide, on its own.", ["Easy 24-page PDF, screenshots included", "Read on any device", "7-day refund"],
-             "Get this ebook", "#", buy="ai-agent-ebook"),
-        card('<span class="tag gold"><span class="dot"></span>BEST VALUE</span>', "The Bundle",
+<div style="margin-top:auto;padding-top:24px"><a class="btn {'gold' if featured else 'ghost'}" data-buy="{buy}" href="#">{cta_label}</a></div></div>"""
+    alc = "".join([
+        alc_card('<span class="tag">EBOOK</span>', "Build Your First AI Agent",
+             "The no-code agent guide, on its own.", ["Easy 24-page PDF, screenshots included", "Read on-site or download", "7-day refund"],
+             "Get this ebook", "ai-agent-ebook"),
+        alc_card('<span class="tag gold"><span class="dot"></span>BUNDLE &amp; SAVE</span>', "The Bundle",
              "Both ebooks together. Build the agent, then the business.",
              ["Build Your First AI Agent", "The AI Money Machine", "Save vs buying separately", "First in line for the video courses"],
-             "Get the bundle", "#", buy="bundle", featured=True),
-        card('<span class="tag">EBOOK</span>', "The AI Money Machine",
+             "Get the bundle", "bundle", featured=True),
+        alc_card('<span class="tag">EBOOK</span>', "The AI Money Machine",
              "The recurring-income service playbook, on its own.", ["Easy 24-page PDF, graphics included", "Prompts and templates included", "7-day refund"],
-             "Get this ebook", "#", buy="boring-money"),
+             "Get this ebook", "boring-money"),
     ])
-    video_cards = "".join([
-        card('<span class="tag gold"><span class="dot"></span>ALL ACCESS</span>',
-             "Membership",
-             "$15/mo and everything unlocks: all the ebooks, every video course as it drops, plus the community. Cancel anytime.",
-             ["Every ebook + video course", "New content every month", "The community + DMs", "Cancel anytime"],
-             "Start membership", "#", buy="all-access", featured=True, price_slug="all-access"),
-        card('<span class="tag">PER VIDEO</span> <span class="tag live"><span class="dot"></span>SOON</span>',
-             "Single Videos",
-             "A la carte. Just need one thing? Buy that single video, watch it, and download it to keep.",
-             ["Buy any one video", "Watch it and download it", "Yours forever, no subscription", "Upgrade to All-Access anytime"],
-             "Join the waitlist", "/#waitlist", price_text="$19 each"),
-    ])
-    return head("Pricing — Taylormade Academy", "Simple pricing. Ebooks one-time, and the video courses two ways: an all-access subscription or a single video to keep.", "/pricing/") + header("Pricing") + f"""
+    return head("Pricing — Taylormade Academy", "Join free, or unlock every ebook and video course for $15/mo. Ebooks also available one-time. 7-day refund on everything.", "/pricing/") + header("Pricing") + f"""
 <main>
-<section class="section tight"><div class="wrap" style="text-align:center">
+<section class="section tight" style="padding-bottom:0"><div class="wrap" style="text-align:center">
 <span class="kicker gold reveal">Pricing</span>
-<h1 class="display-l reveal" style="margin-top:12px">Pick a book, or grab the bundle.</h1>
-<p class="reveal" style="margin:16px auto 0;color:var(--muted);max-width:48ch">Honest, one-time pricing. No subscription to read a book. Prices land here the moment they are set.</p>
+<h1 class="display-l reveal" style="margin-top:14px">Start free.<br>Go all-access for $15.</h1>
+<p class="lead reveal" style="margin:18px auto 0;max-width:46ch">One membership unlocks everything. No tiers to decode, no card to start.</p>
 </div></section>
-<section class="section" style="padding-top:0"><div class="wrap"><div class="products reveal" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">{cards}</div>
-<div class="reveal" style="margin-top:60px">
-<div class="eyebrow-row"><span class="kicker gold">The membership</span><hr class="rule hair"></div>
-<div class="sec-head" style="margin:18px 0 26px"><h2 class="display-m">Get everything for $15/mo.</h2>
-<p style="color:var(--muted);margin-top:10px;max-width:58ch">The membership unlocks all the ebooks and every video course as it drops, plus the community. The video courses are in production now. Prefer to own just one thing? Single videos will be available a la carte too.</p></div>
-<div class="products" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">{video_cards}</div>
-</div>
+<section class="section"><div class="wrap">
+{mem_cards("pricing")}
+</div></section>
+<section class="section" style="padding-top:0"><div class="wrap">
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:end;justify-content:space-between;margin-bottom:26px">
+<div><span class="kicker gold reveal">Rather own one thing?</span><h2 class="display-m reveal" style="margin-top:10px">The ebooks, a la carte.</h2></div>
+<span class="reveal" style="font-size:14px;color:var(--muted)">One-time. Yours forever.</span></div>
+<div class="products" data-stag style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">{alc}</div>
+<p class="reveal" style="margin-top:26px;font-size:14.5px;color:var(--muted)"><b style="color:var(--ink)">Both ebooks (and every course) come with the $15/mo membership.</b> Video courses are in production now. Members stream them all; single videos will sell a la carte at $19 each. <a class="textlink" href="/course/">Preview the course player &rarr;</a></p>
+</div></section>
+{faq_section()}
+<section class="section cta-band"><div class="wrap">
+<h2 class="display-m reveal">Still thinking? Start free.</h2>
+<p class="lead reveal" style="margin:14px auto 0;max-width:40ch">The community and the Playbook cost nothing. Upgrade only when you want everything.</p>
+<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a></div>
 </div></section>
 </main>""" + footer()
 
@@ -615,30 +711,31 @@ def about():
 <h1 class="display-l" style="margin-top:12px">I am Nelson Taylor, and I build things for a living.</h1>
 <p class="lead" style="margin-top:20px;max-width:48ch">Fourteen years as a creative in Dallas-Fort Worth: graphic design, photography, video, and now AI. I am not a computer scientist. I am a builder who learned to make this stuff do real work, and I teach it the way I wish someone had taught me. Plain English. Real projects. Honest about the effort.</p>
 {socials_row(style="margin-top:24px")}
+<div style="background:var(--bg-soft);border:1px solid var(--hair);border-radius:14px;padding:20px 22px;margin-top:30px">
+<p style="font-size:18px">Most online teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
 </div>
 <div class="reveal" style="grid-column:8/13;padding-top:8px">
-<div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;background:linear-gradient(160deg,#dbe5ff,#9db8ff);border:1px solid #cdd9ff;box-shadow:var(--shadow);margin-bottom:22px;display:flex;align-items:flex-end;justify-content:center">
-<picture><source srcset="/assets/nelson-hero.webp" type="image/webp">
-<img src="/assets/nelson-hero.png" width="736" height="1108" alt="Nelson Taylor, Taylormade Creative" loading="lazy" decoding="async" style="position:relative;max-height:97%;width:auto;max-width:100%;object-fit:contain;display:block">
+<div class="hero-frame" style="max-width:none;margin-bottom:22px">
+<picture><source srcset="/assets/hero-nelson.webp" type="image/webp">
+<img class="hero-img" src="/assets/hero-nelson.png" width="942" height="941" alt="Nelson Taylor, Taylormade Creative" loading="lazy" decoding="async">
 </picture></div>
-<div style="background:var(--bg-soft);border:1px solid var(--hair);border-radius:14px;padding:18px 20px">
-<p style="font-size:18px">Most online teaching is built to sell you a dream. I would rather hand you a craft. The ebooks and courses here come from real work, including a live workshop I ran for about 50 students, not from a content farm.</p></div>
+
 </div></div></div></section>
 
 <section class="section on-ink" id="workshops"><div class="wrap">
-<span class="kicker reveal">The receipts</span>
-<h2 class="display-l reveal" style="color:var(--paper);margin-top:12px;max-width:18ch">What I have actually shipped.</h2>
-<div class="audience reveal" style="margin-top:34px;background:#2a2722;border-color:#2a2722">
-<div class="a" style="background:var(--ink)"><div class="h" style="color:var(--paper)">The AUC workshop</div><div class="d" style="color:#bdb8ac">A live 3-night "Build Your First AI Agent" sprint with AUC's Data Science Institute and Johns Hopkins, for about 50 HBCU students.</div></div>
-<div class="a" style="background:var(--ink)"><div class="h" style="color:var(--paper)">A shipped iOS app</div><div class="d" style="color:#bdb8ac">A real app on the App Store. Not a prototype, not a slide. Something people can download.</div></div>
-<div class="a" style="background:var(--ink)"><div class="h" style="color:var(--paper)">14 years of client work</div><div class="d" style="color:#bdb8ac">Design, video, branding, and AI for real businesses across Dallas-Fort Worth.</div></div>
-<div class="a" style="background:var(--ink)"><div class="h" style="color:var(--paper)">These ebooks</div><div class="d" style="color:#bdb8ac">Written from the work, not from theory. The same steps I teach live.</div></div>
+<span class="kicker gold reveal">The receipts</span>
+<h2 class="display-l reveal" style="margin-top:14px;max-width:18ch">What I have actually shipped.</h2>
+<div class="audience" data-stag style="margin-top:38px">
+<div class="a"><div class="h">The AUC workshop</div><div class="d">A live 3-night "Build Your First AI Agent" sprint with AUC's Data Science Institute and Johns Hopkins, for about 50 HBCU students.</div></div>
+<div class="a"><div class="h">A shipped iOS app</div><div class="d">A real app on the App Store. Not a prototype, not a slide. Something people can download.</div></div>
+<div class="a"><div class="h">14 years of client work</div><div class="d">Design, video, branding, and AI for real businesses across Dallas-Fort Worth.</div></div>
+<div class="a"><div class="h">These ebooks</div><div class="d">Written from the work, not from theory. The same steps I teach live.</div></div>
 </div></div></section>
 
 <section class="section cta-band"><div class="wrap">
-<span class="kicker gold reveal">Your turn</span>
-<h2 class="display-l reveal">Let me show you how I do it.</h2>
-<div class="cta-row reveal"><a class="btn gold" href="/store/">Get the ebooks <span class="arr">&rarr;</span></a><a class="btn ghost" href="/community/">Join the community</a></div>
+<span class="kicker gold reveal" style="justify-content:center">Your turn</span>
+<h2 class="display-l reveal" style="margin-top:14px">Let me show you how I do it.</h2>
+<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Get the ebooks</a></div>
 </div></section>
 </main>""" + footer()
 
@@ -651,16 +748,36 @@ def stub(title, kicker, heading, body_html, active=""):
 <p style="margin-top:30px"><a class="btn ghost" href="/">Back home</a></p>
 </div></section></main>""" + footer()
 
-def community():
-    return head("Community — Taylormade Academy", "A community for everyone from the classes plus future builders. Coming soon.", "/community/") + header("Community") + """
-<main><section class="section"><div class="wrap" style="max-width:820px;text-align:center">
-<span class="tag live reveal"><span class="dot"></span>OPENING SOON</span>
-<h1 class="display-l reveal" style="margin-top:16px">The build crew.</h1>
-<p class="reveal" style="margin:18px auto 0;color:var(--muted);max-width:52ch">A free community of designers, photographers, video people, and AI builders. Ask questions, get unstuck, show your work, and meet people to create with, make friends, find collaborators, even business partners. Everybody from my classes ends up here.</p>
-<form class="cta-row reveal" onsubmit="return BM.subscribe(event,'community')" style="justify-content:center;margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
-<input type="email" name="email" placeholder="you@email.com" required style="padding:14px 20px;border:1.5px solid var(--hair);border-radius:100px;font-family:inherit;font-size:15px;min-width:240px;background:var(--paper)">
-<button class="btn gold" type="submit">Save my spot</button></form>
-</div></section></main>""" + footer()
+def community_landing():
+    """Marketing landing for /join/ — the logged-out pitch for the community.
+    (The live member app owns /community/; this page sells it.)"""
+    return head("The Community — Taylormade Academy", "A free community of designers, photographers, video people, and AI builders. A feed, DMs, and a member directory, hosted by Nelson Taylor.", "/join/") + header("Community") + f"""
+<main>
+<section class="section tight" style="padding-bottom:0"><div class="wrap" style="max-width:900px;text-align:center">
+<span class="hero-badge reveal"><span class="dot"></span>Free to join, free forever</span>
+<h1 class="display-xl reveal" style="margin-top:22px">The build crew.</h1>
+<p class="lead reveal" style="margin:20px auto 0;max-width:52ch">Designers, photographers, video people, and AI builders in one room. Post your work, ask questions, get unstuck, and meet people to create with: collaborators, friends, even business partners.</p>
+<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/login/">Sign in</a></div>
+</div></section>
+<section class="section plat on-ink" style="margin-top:clamp(48px,6vw,84px)"><div class="wrap">
+<div class="plat-head">
+<span class="kicker gold reveal">What's inside</span>
+<h2 class="display-l reveal" style="margin-top:14px">A real room, not a comment section.</h2>
+</div>
+{plat_mock()}
+{plat_feats()}
+<div class="reveal" style="text-align:center;margin-top:clamp(36px,4.4vw,56px)"><a class="btn gold" href="/login/?mode=join">Join the community free <span class="arr">&rarr;</span></a></div>
+</div></section>
+<section class="section"><div class="wrap" style="max-width:900px">
+<div class="cred reveal">
+<div class="cred-l"><span class="goldbar"></span><span>Hosted by <b>Nelson Taylor</b>, 14 years a working Dallas-Fort Worth creative, in the room every day.</span></div>
+<div class="cred-chips">
+<span class="cred-chip">Shipped iOS app</span>
+<span class="cred-chip">Design, photo &amp; video</span>
+<span class="cred-chip">Ran a live AI build sprint</span>
+</div></div>
+</div></section>
+</main>""" + footer()
 
 def not_found():
     return head("Page not found — Taylormade Academy",
@@ -675,7 +792,7 @@ def not_found():
 </div></section></main>""" + footer()
 
 SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/",
-                 "/pricing/", "/about/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
+                 "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
 def write_meta():
     (ROOT / "404.html").write_text(not_found())
@@ -762,6 +879,7 @@ if __name__ == "__main__":
     render("/store/boring-money/", product_page("boring-money"))
     render("/pricing/", pricing())
     render("/about/", about())
+    render("/join/", community_landing())
     # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.

@@ -8,32 +8,88 @@
 <meta property="og:description" content="Sign in to your Taylormade Academy library."><meta property="og:url" content="https://academy.taylormadecreative.net/login/">
 <meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
+<link rel="stylesheet" href="/css/build-mode.css?v=dd67b4672f">
 <style>
-  /* app pages: simple top bar + centered card, all from the existing system */
-  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
-    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
+  /* login: app top bar + auth card beside a quiet navy brand panel (v4) */
+  body{display:flex;flex-direction:column;min-height:100svh;}
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;}
+  .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 86%,transparent);
+    backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid rgba(4,18,58,.07);}
   .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
-  .authwrap{max-width:520px;}
-  .authcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:clamp(24px,4vw,40px);box-shadow:var(--shadow);}
-  .field{margin-top:18px;}
-  .field label{display:block;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;}
-  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:var(--paper-2);
-    border:1.5px solid var(--hair);border-radius:10px;padding:13px 15px;transition:border-color .15s;}
-  .field input:focus{outline:none;border-color:var(--gold);}
-  .field input.code{font-family:ui-monospace,monospace;letter-spacing:.4em;font-size:20px;text-align:center;}
+  .appbar .navlink{white-space:nowrap;}
+
+  /* layout: card column + brand panel */
+  .auth-sec{padding-block:clamp(44px,6vw,96px);}
+  .authgrid{display:grid;grid-template-columns:minmax(0,560px) minmax(300px,400px);gap:clamp(28px,4.5vw,72px);justify-content:center;align-items:start;}
+  .authwrap{max-width:560px;width:100%;min-width:0;}
+  #head{margin-top:14px;}
+  #sub{margin-top:14px;color:var(--muted);max-width:46ch;font-size:16.5px;line-height:1.6;}
+
+  /* auth card */
+  .authcard{background:#fff;border:1px solid var(--hair);border-radius:var(--r-lg);padding:clamp(26px,3.6vw,42px);box-shadow:var(--shadow-card);margin-top:28px;}
+  .authcard h3{font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:-.018em;color:var(--ink);line-height:1.15;}
+
+  /* fields */
+  .field{margin-top:2px;}
+  .field label{display:block;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:8px;}
+  .field input{width:100%;appearance:none;font-family:var(--font);font-size:16.5px;color:var(--ink);background:var(--paper-2);
+    border:1px solid var(--hair);border-radius:14px;padding:15px 17px;
+    transition:border-color .16s var(--ease),background .16s var(--ease),box-shadow .16s var(--ease);}
+  .field input::placeholder{color:var(--muted-ink);}
+  .field input:hover{border-color:#c6d0e2;}
+  .field input:focus{outline:none;border-color:var(--blue);background:#fff;box-shadow:0 0 0 4px rgba(11,64,224,.1);}
+  .field input.code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:24px;font-weight:600;letter-spacing:.34em;text-align:center;text-indent:.34em;padding:13px 12px;}
+
+  /* buttons + notes */
   .btn.block{width:100%;}
-  .formnote{font-size:13.5px;color:var(--muted);margin-top:14px;}
-  .formerr{font-size:14px;color:var(--clay);margin-top:14px;font-weight:500;}
+  .authcard .btn.block{margin-top:18px;padding:16px 24px;font-size:15.5px;}
+  .formnote{font-size:13.5px;color:var(--muted);margin-top:16px;line-height:1.55;}
+  .formerr{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;line-height:1.45;font-weight:500;color:#8f3a32;background:#fdf5f4;border:1px solid #f2dcd9;border-radius:12px;padding:10px 14px;margin-top:14px;}
+  .formerr::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#d92d20;margin-top:5px;}
   .hide{display:none !important;}
-  .swaplink{background:none;border:0;cursor:pointer;color:var(--ink);font-weight:600;font-family:inherit;font-size:14px;border-bottom:2px solid var(--gold);padding:0 0 1px;}
-  .swaplink:hover{border-color:var(--ink);}
+  .swaplink{background:none;border:0;cursor:pointer;color:var(--ink);font-weight:600;font-family:inherit;font-size:inherit;padding:0 0 1px;border-bottom:2px solid var(--gold);transition:color .16s var(--ease),border-color .16s var(--ease);}
+  .swaplink:hover{color:var(--blue);border-color:var(--blue);}
+  .swaplink:active{opacity:.7;}
+
+  /* "check your email" state */
+  .sent-ic{width:46px;height:46px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .sent-p{margin-top:10px;color:var(--muted);font-size:15px;line-height:1.6;}
+  #sentTo{color:var(--ink);font-weight:700;overflow-wrap:anywhere;}
+  .or-div{display:flex;align-items:center;gap:14px;margin:26px 0 16px;color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+  .or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--hair);}
+  .or-div span{flex:0 0 auto;}
+  #offState p{color:var(--muted);font-size:15px;line-height:1.6;margin-top:12px;}
+  #offState .btn{margin-top:22px;}
+
+  /* navy brand panel */
+  .authpanel{position:relative;overflow:hidden;display:flex;flex-direction:column;min-width:0;min-height:492px;
+    background:radial-gradient(130% 110% at 50% -20%,#0b2a6e 0%,var(--navy) 58%);
+    border-radius:var(--r-lg);padding:clamp(28px,3.2vw,42px);color:#c3cfe8;box-shadow:var(--shadow);}
+  .authpanel::after{content:"";position:absolute;left:-24%;bottom:-42%;width:86%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(253,201,33,.12),transparent 70%);pointer-events:none;}
+  .ap-tile{width:64px;height:64px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 28px -12px rgba(0,0,0,.55);position:relative;z-index:1;}
+  .ap-crest{width:46px;height:46px;object-fit:contain;}
+  .ap-promise{font-family:var(--display);font-size:clamp(20px,1.8vw,24px);font-weight:600;line-height:1.28;letter-spacing:-.015em;color:#fff;margin-top:20px;max-width:22ch;position:relative;z-index:1;}
+  .ap-list{list-style:none;margin-top:24px;display:flex;flex-direction:column;gap:13px;position:relative;z-index:1;}
+  .ap-list li{position:relative;padding-left:29px;font-size:14.5px;color:#c9d4ec;line-height:1.5;}
+  .ap-list li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(58,99,240,.32);}
+  .ap-list li::after{content:"";position:absolute;left:5px;top:9px;width:7px;height:3px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg);}
+  .ap-foot{margin-top:auto;padding-top:30px;display:flex;align-items:center;gap:11px;font-size:12.5px;font-weight:600;letter-spacing:.05em;color:#8fa0c7;position:relative;z-index:1;}
+
+  @media(max-width:960px){
+    .authgrid{grid-template-columns:minmax(0,560px);}
+    .ap-promise{max-width:none;}
+    .ap-foot{padding-top:26px;margin-top:26px;}
+  }
+  @media(max-width:480px){
+    .authcard{padding:24px 20px;}
+    .authcard .btn.block{padding:15px 20px;}
+  }
 </style>
 <!--PWA:start-->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -52,28 +108,30 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
-<script src="/js/native.js?v=8fd3a8ab23" defer></script>
-<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
+<script src="/js/pwa.js?v=dd67b4672f" defer></script>
+<script src="/js/native.js?v=dd67b4672f" defer></script>
+<script src="/js/meta-pixel.js?v=dd67b4672f" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade <b>Academy</b></span><span class="by">with Nelson Taylor</span></a>
 <a class="navlink" href="/store/">Back to store</a>
 </div></div></header>
-<main><section class="section"><div class="wrap authwrap">
+<main><section class="section auth-sec"><div class="wrap">
+<div class="authgrid">
 
-<span class="kicker gold">Member access</span>
-<h1 class="display-m" id="head" style="margin-top:12px">Sign in to your library.</h1>
-<p id="sub" style="margin-top:14px;color:var(--muted);max-width:42ch">Use the email you bought with. I will send a one-time link. No password to remember.</p>
+<div class="authwrap">
+<span class="kicker gold" id="kick">Member access</span>
+<h1 class="display-m" id="head">Sign in to your library.</h1>
+<p id="sub">Use the email you signed up with. I will send a one-time link. No password to remember.</p>
 
-<div class="authcard" id="card" style="margin-top:26px">
+<div class="authcard" id="card">
 
   <!-- accounts-off state (no Supabase keys yet) -->
   <div id="offState" class="hide">
-    <h3 style="font-size:22px">Accounts open soon.</h3>
-    <p style="margin-top:12px;color:var(--muted)">Sign in turns on this week, the moment payments go live. If you already bought an ebook, your download link is in your email. Anything missing, reach out and I will sort it.</p>
-    <p style="margin-top:22px"><a class="btn ghost block" href="/">Back home</a></p>
+    <h3>Accounts open soon.</h3>
+    <p>Sign in turns on this week, the moment payments go live. If you already bought an ebook, your download link is in your email. Anything missing, reach out and I will sort it.</p>
+    <a class="btn ghost block" href="/">Back home</a>
   </div>
 
   <!-- email entry -->
@@ -82,41 +140,71 @@
       <label for="email">Email address</label>
       <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" required>
     </div>
-    <button class="btn gold block" type="submit" id="sendBtn" style="margin-top:18px">Send my sign-in link <span class="arr">&rarr;</span></button>
+    <button class="btn gold block" type="submit" id="sendBtn">Send my sign-in link <span class="arr">&rarr;</span></button>
     <p class="formerr hide" id="emailErr"></p>
-    <p class="formnote">New here? Buying an ebook creates your account automatically. You can also sign in first, then buy.</p>
+    <p class="formnote" id="signupNote">New here? This same box creates your free account. No card, no password.</p>
   </form>
 
   <!-- check email + code fallback -->
   <div id="sentState" class="hide">
-    <h3 style="font-size:22px">Check your email.</h3>
-    <p style="margin-top:12px;color:var(--muted)">I sent a sign-in link to <b id="sentTo" style="color:var(--ink)"></b>. Open it on this device and you are in.</p>
-    <hr class="rule hair" style="margin:22px 0">
-    <p style="font-size:14px;color:var(--muted)">Prefer a code? The same email has a 6-digit code. Enter it here.</p>
+    <div class="sent-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></svg></div>
+    <p class="sent-p">I sent a sign-in link to <b id="sentTo"></b>. Open it on this device and you are in.</p>
+    <div class="or-div" role="separator"><span>Or type the code from the email</span></div>
     <form id="codeForm" novalidate>
       <div class="field">
         <label for="code">6-digit code</label>
         <input id="code" name="code" class="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
       </div>
-      <button class="btn block" type="submit" id="verifyBtn" style="margin-top:18px">Verify and sign in</button>
+      <button class="btn dark block" type="submit" id="verifyBtn">Verify and sign in</button>
       <p class="formerr hide" id="codeErr"></p>
     </form>
     <p class="formnote">Wrong email? <button type="button" class="swaplink" id="backBtn">Start over</button></p>
   </div>
 
 </div>
+</div>
+
+<aside class="authpanel" aria-label="What your sign-in opens">
+  <div class="ap-tile"><img class="ap-crest" src="/assets/logo-mark.webp" alt="" width="46" height="46" decoding="async"></div>
+  <p class="ap-promise">One sign-in opens all of it: the community, your ebooks, and your courses.</p>
+  <ul class="ap-list">
+    <li>The community feed, channels, and DMs</li>
+    <li>Read your ebooks right on the site, or download them</li>
+    <li>Video courses with your progress saved</li>
+  </ul>
+  <div class="ap-foot"><span class="goldbar"></span><span>By Nelson Taylor, Dallas-Fort Worth</span></div>
+</aside>
+
+</div>
 </div></section></main>
+
+<script>
+/* Join mode: every "Join free" CTA lands here with ?mode=join (or ?email= from the
+   popup hand-off). Same magic-link mechanics; the moment just greets a NEW person. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('mode') !== 'join' && !q.get('email')) return;
+  document.title = 'Join free - Taylormade Academy';
+  var set = function (id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; };
+  set('kick', 'Join free');
+  set('head', 'Create your free account.');
+  set('sub', 'Enter your email and you are in: the community, the free Playbook, and your own library. No card, no password.');
+  var b = document.getElementById('sendBtn');
+  if (b) b.innerHTML = 'Create my free account <span class="arr">&rarr;</span>';
+  set('signupNote', 'Already a member? This same form signs you in.');
+})();
+</script>
 
 <footer class="site-footer"><div class="wrap">
 <div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
-<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
+<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">The AI Money Machine</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=8fd3a8ab23"></script>
+<script src="/js/config.js?v=dd67b4672f"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -150,6 +238,12 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
   } else {
     show(emailForm);
 
+    // Captured AFTER the join-mode script may have swapped the copy, so error
+    // recovery and "start over" restore the right voice for this visit.
+    const SEND_LABEL = $("sendBtn").innerHTML;
+    const HEAD0 = $("head").textContent;
+    const SUB0 = $("sub").textContent;
+
     let pendingEmail = "";
 
     emailForm.addEventListener("submit", async (e) => {
@@ -166,7 +260,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
         $("head").textContent = "Enter your code.";
         $("sub").textContent = "Type your 6-digit code to sign in.";
         hide(emailForm); show(sentState); $("code").focus();
-        btn.disabled = false; btn.innerHTML = 'Send my sign-in link <span class="arr">&rarr;</span>';
+        btn.disabled = false; btn.innerHTML = SEND_LABEL;
         return;
       }
       try {
@@ -188,7 +282,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
       } catch (err) {
         setErr($("emailErr"), (err && err.message) ? err.message : "Could not send the link. Try again in a minute.");
       } finally {
-        btn.disabled = false; btn.innerHTML = 'Send my sign-in link <span class="arr">&rarr;</span>';
+        btn.disabled = false; btn.innerHTML = SEND_LABEL;
       }
     });
 
@@ -235,8 +329,8 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
     $("backBtn").addEventListener("click", () => {
       setErr($("codeErr"), ""); setErr($("emailErr"), "");
       $("code").value = "";
-      $("head").textContent = "Sign in to your library.";
-      $("sub").textContent = "Use the email you bought with. I will send a one-time link. No password to remember.";
+      $("head").textContent = HEAD0;
+      $("sub").textContent = SUB0;
       hide(sentState); show(emailForm); $("email").focus();
     });
   }

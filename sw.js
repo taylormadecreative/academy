@@ -3,7 +3,7 @@
    - Static assets (css/js/img/font, including ?v= versioned ones): cache-first, then network.
    - Cross-origin (Google Fonts, Supabase) is passed straight through, never intercepted.
    Bump VERSION to force every client onto a clean cache. */
-const VERSION = '2026-06-26a';
+const VERSION = 'tma-v4-redesign-1';
 const APP_CACHE = 'tma-app-' + VERSION;
 const RUNTIME = 'tma-rt-' + VERSION;
 const OFFLINE_URL = '/offline/';

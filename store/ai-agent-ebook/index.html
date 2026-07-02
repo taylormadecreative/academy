@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 
-<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
+<link rel="stylesheet" href="/css/build-mode.css?v=dd67b4672f">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -31,27 +31,29 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
-<script src="/js/native.js?v=8fd3a8ab23" defer></script>
-<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
+<script src="/js/pwa.js?v=dd67b4672f" defer></script>
+<script src="/js/native.js?v=dd67b4672f" defer></script>
+<script src="/js/meta-pixel.js?v=dd67b4672f" defer></script>
 <script>document.documentElement.classList.add('js')</script>
 </head><body><header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
-<nav class="nav"><a class="navlink" href="/community/">Community</a><a class="navlink" href="/store/">Courses</a><a class="navlink" href="/library/">Ebooks</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
-<div class="nav-cta"><a class="navlink" href="/login/">Sign In</a><a class="btn gold sm" href="/login/">Join Community <span class="arr">&rarr;</span></a>
+<nav class="nav"><a class="navlink" href="/join/">Community</a><a class="navlink active" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a>
 <button class="btn ghost sm cart-btn" data-open-cart aria-label="Cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="cc" id="cartCount" style="display:none">0</span></button>
 <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
-</div></div><div class="mobile-nav" id="mnav"><a href="/community/">Community</a><a href="/store/">Courses</a><a href="/library/">Ebooks</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign In</a><a class="btn gold" href="/login/">Join Community</a></div></header>
+</div></div><div class="mobile-nav" id="mnav"><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>
 <main>
 <section class="section tight"><div class="wrap">
 <a class="mono" href="/store/" style="font-size:12px;letter-spacing:.1em;color:var(--muted)">&larr; STORE</a>
 <div class="g-12" style="margin-top:22px;align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/6;position:sticky;top:90px">
 <picture class="prod-cover"><source srcset="/assets/cover-ai-agent-v2.webp" type="image/webp"><img src="/assets/cover-ai-agent-v2.png" width="840" height="1120" alt="Build Your First AI Agent cover" fetchpriority="high"></picture>
-<div style="background:var(--paper-2);border:1px solid var(--hair);border-radius:var(--r);padding:20px;margin-top:22px">
+<div style="background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:24px;margin-top:24px;box-shadow:var(--shadow-sm)">
 <div class="price big" data-price="ai-agent-ebook"><span class="ph">Price coming</span></div>
-<a class="btn gold" data-buy="ai-agent-ebook" href="#" style="width:100%;margin-top:14px">Get the ebook <span class="arr">&rarr;</span></a>
-<p style="font-size:12.5px;color:var(--muted);margin-top:12px;text-align:center">Instant PDF download. Read on any device. 7-day refund.</p>
+<a class="btn gold" data-buy="ai-agent-ebook" href="#" style="width:100%;margin-top:16px">Get the ebook <span class="arr">&rarr;</span></a>
+<p style="font-size:13px;color:var(--muted);margin-top:14px;text-align:center">Read on-site or download the PDF. 7-day refund.</p>
+<hr class="rule hair" style="margin:16px 0">
+<p style="font-size:13px;color:var(--muted);text-align:center">Members read this free. <a class="textlink" href="/pricing/">See the $15/mo membership</a></p>
 </div></div>
 <div class="reveal" style="grid-column:7/13">
 <div class="tagrow" style="display:flex;gap:8px"><span class="tag gold"><span class="dot"></span>EBOOK</span><span class="tag">~24 pages</span></div>
@@ -67,24 +69,25 @@
 <div style="margin-top:32px;display:flex;gap:14px;flex-wrap:wrap"><a class="btn gold" data-buy="ai-agent-ebook" href="#">Get the ebook <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">Or get both and save</a></div>
 </div></div></div></section>
 <section class="section on-ink"><div class="wrap" style="text-align:center">
-<span class="kicker reveal">Keep building</span>
-<h2 class="display-m reveal" style="color:var(--paper);margin-top:12px">Pairs with "The AI Money Machine"</h2>
-<p class="reveal" style="color:#D7D2C6;margin:14px auto 0;max-width:46ch">Turn AI into recurring income by solving the unglamorous problems small businesses pay for every month. The flashy AI stuff gets likes. This gets you paid. A short, run-it-this-week playbook.</p>
-<a class="btn gold reveal" style="margin-top:24px" href="/store/boring-money/">See "The AI Money Machine" <span class="arr">&rarr;</span></a>
+<span class="kicker gold reveal" style="justify-content:center">Keep building</span>
+<h2 class="display-m reveal" style="margin-top:14px">Pairs with &#8220;The AI Money Machine&#8221;</h2>
+<p class="reveal" style="color:#9fb0d4;margin:16px auto 0;max-width:46ch">Turn AI into recurring income by solving the unglamorous problems small businesses pay for every month. The flashy AI stuff gets likes. This gets you paid. A short, run-it-this-week playbook.</p>
+<a class="btn gold reveal" style="margin-top:26px" href="/store/boring-money/">See &#8220;The AI Money Machine&#8221; <span class="arr">&rarr;</span></a>
 </div></section>
 </main><footer class="site-footer"><div class="wrap">
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
-<div style="display:flex;flex-wrap:wrap;margin-top:14px;font-size:14px;font-weight:600"><a href="https://instagram.com/taylormade_creative" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">Instagram</a><a href="https://tiktok.com/@taylormadecreative" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">TikTok</a><a href="https://linkedin.com/in/taylormademd" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">LinkedIn</a><a href="https://taylormadecreative.net" target="_blank" rel="noopener" style="color:var(--muted);margin-right:18px">Portfolio</a></div></div>
-<div class="foot-col"><h4>Explore</h4><a href="/store/">Courses</a><a href="/store/">Ebooks</a><a href="/pricing/">Pricing</a><a href="/about/">About</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">The feed</a><a href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook group</a><a href="/community/">Messages</a><a href="/login/">Join free</a></div>
+<div style="display:flex;flex-wrap:wrap;margin-top:16px;font-size:14px;font-weight:600"><a href="https://instagram.com/taylormade_creative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Instagram</a><a href="https://tiktok.com/@taylormadecreative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">TikTok</a><a href="https://linkedin.com/in/taylormademd" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">LinkedIn</a><a href="https://taylormadecreative.net" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Portfolio</a></div></div>
+<div class="foot-col"><h4>Explore</h4><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a><a href="/course/">Preview a course</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">The feed</a><a href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook group</a><a href="/login/">Sign in</a><a href="/login/?mode=join">Join free</a></div>
 <div class="foot-col"><h4>Stay in the loop</h4>
-<p style="font-size:14px;color:var(--muted);margin-bottom:12px;max-width:30ch">New courses, ebooks, and community drops, to your inbox.</p>
+<p style="font-size:14px;color:#8fa0c7;margin-bottom:14px;max-width:30ch">New courses, ebooks, and community drops, straight to your inbox.</p>
 <form onsubmit="return BM.subscribe(event,'footer')" style="display:flex;gap:8px;flex-wrap:wrap">
-<input type="email" name="email" placeholder="you@email.com" required style="flex:1;min-width:150px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:10px;font-family:inherit;font-size:14px;background:#fff">
+<input type="email" name="email" placeholder="you@email.com" required aria-label="Email address" style="flex:1;min-width:150px;padding:12px 18px;border:1px solid rgba(255,255,255,.16);border-radius:980px;font-family:inherit;font-size:14px;background:rgba(255,255,255,.06);color:#fff;outline-offset:2px">
 <button class="btn gold sm" type="submit">Subscribe</button></form></div>
 </div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a><a href="/refunds/" style="color:#8fa0c7">Refunds</a></span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 <div class="cart-backdrop" id="cartBackdrop" data-close-cart></div>
@@ -104,13 +107,13 @@
 <div class="pop-left">
 <div class="pop-brand"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span>Taylormade Academy</span></div>
 <div class="pop-eyebrow">Join free</div>
-<h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="gold">Playbook</span></h2>
-<p class="pop-sub">Create your free account and the Playbook is waiting inside — plus the community, members, and DMs. 100% free.</p>
+<h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="u-gold">Playbook</span></h2>
+<p class="pop-sub">Create your free account and the Playbook is waiting inside, plus the community, members, and DMs. 100% free.</p>
 <ul class="pop-bullets">
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M21 9v5"/><path d="M7 11v4c0 1 2.2 2.2 5 2.2s5-1.2 5-2.2v-4"/></svg></span> Learn AI skills</li>
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 4l6 6L9 21H3v-6z"/><path d="M12.5 6.5l5 5"/></svg></span> Create amazing content</li>
 <li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.2c0-1.2 1.2-2 2.7-2s2.7.8 2.7 2-1.2 1.8-2.7 1.8-2.7.7-2.7 1.9 1.2 2 2.7 2 2.7-.8 2.7-2"/></svg></span> Earn &amp; build income</li>
-<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></span> Join a community that wins</li>
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></span> Meet builders like you</li>
 </ul>
 </div>
 <div class="pop-art">
@@ -121,15 +124,15 @@
 <div class="pop-bottom">
 <div class="pop-bottom-copy">
 <div class="pob-h">Join the Taylormade Academy community</div>
-<p>Get the Playbook and weekly <span class="gold">exclusive tips</span> — free.</p>
+<p>Get the Playbook and weekly <span class="gold">exclusive tips</span>, free.</p>
 <form class="pop-form" onsubmit="return BM.getEbook(event)">
 <span class="pf-input"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><input type="email" name="email" placeholder="Enter your email address" required></span>
 <button class="btn gold" type="submit">Create my free account</button>
 </form>
 <div class="pob-fine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> No spam. Unsubscribe anytime.</div>
 </div>
-<div class="pop-free"><span class="gift"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span><strong>100% FREE</strong><span>No catch. Just value. Just for you.</span></div>
+<div class="pop-free"><span class="gift"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span><strong>Free</strong><span>No card. No spam.</span></div>
 </div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=8fd3a8ab23"></script><script src="/js/site.js?v=8fd3a8ab23"></script></body></html>
+<script src="/js/config.js?v=dd67b4672f"></script><script src="/js/site.js?v=dd67b4672f"></script></body></html>

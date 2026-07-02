@@ -64,7 +64,13 @@
     /* ---------------- lead popup ---------------- */
     popSeen: function () { try { return !!sessionStorage.getItem('ea_pop'); } catch (_) { return false; } },
     popMark: function () { try { sessionStorage.setItem('ea_pop', '1'); } catch (_) {} },
-    showPop: function () { if (BM.popSeen()) return; var b = document.getElementById('popBack'); if (!b) return; BM._openOverlay(b, null); BM.popMark(); },
+    showPop: function () {
+      if (BM.popSeen()) return;
+      // never steal focus mid-typing; retry once the visitor is idle
+      var ae = document.activeElement;
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) { setTimeout(BM.showPop, 12000); return; }
+      var b = document.getElementById('popBack'); if (!b) return; BM._openOverlay(b, null); BM.popMark();
+    },
     hidePop: function () { BM._closeOverlay(document.getElementById('popBack'), null); },
     renderCart: function () {
       var n = BM._cart.length;
@@ -189,9 +195,9 @@
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } });
     }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+    document.querySelectorAll('.reveal, [data-stag]').forEach(function (el) { io.observe(el); });
   } else {
-    document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+    document.querySelectorAll('.reveal, [data-stag]').forEach(function (el) { el.classList.add('in'); });
   }
 
   // Fill prices from the database (single source of truth, always matches checkout)

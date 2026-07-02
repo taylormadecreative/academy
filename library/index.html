@@ -11,47 +11,92 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
+<link rel="stylesheet" href="/css/build-mode.css?v=dd67b4672f">
 <style>
   body{background:var(--bg-soft);}
-  .appbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--hair);}
-  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:66px;}
-  .appbar .who{display:flex;align-items:center;gap:12px;}
-  .appbar .email{font-size:13px;color:var(--muted);max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lib{max-width:1320px;margin:0 auto;padding:20px var(--gut) 56px;}
-  .lib3{display:grid;grid-template-columns:230px minmax(0,1fr) 300px;gap:18px;align-items:start;}
-  .col-stick{position:sticky;top:88px;}
-  .card{background:#fff;border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);}
-  .card.pad{padding:16px;}
-  .side-h{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:2px 4px 10px;}
+  /* ---- app bar ---- */
+  .appbar{position:sticky;top:0;z-index:60;background:rgba(252,253,255,.86);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(4,18,58,.07);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;}
+  .appbar .who{display:flex;align-items:center;gap:8px;}
+  .appbar .email{font-size:13px;color:var(--muted);max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-inline:4px;}
+  /* ---- shell ---- */
+  .lib{max-width:1360px;margin:0 auto;padding:clamp(22px,3.2vw,36px) var(--gut) 64px;}
+  .lib3{display:grid;grid-template-columns:242px minmax(0,1fr) 304px;gap:20px;align-items:start;}
+  .col-stick{position:sticky;top:90px;}
+  .card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);}
+  .card.pad{padding:18px;}
+  .side-h{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:2px 6px 8px;}
+  .libcount{font-size:13px;padding:0 6px 12px;}
+  .libcount:empty{display:none;}
+  /* ---- left rail: book list ---- */
   .liblist{display:flex;flex-direction:column;gap:2px;}
-  .liblist button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 10px;border-radius:9px;cursor:pointer;}
-  .liblist button:hover{background:var(--bg-soft);} .liblist button.active{background:var(--blue-soft);color:var(--blue-deep);}
-  .liblist .d{width:10px;height:13px;border-radius:2px;background:var(--blue);flex:0 0 auto;opacity:.7;}
-  .bookgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;}
-  .book{cursor:pointer;border:1px solid var(--hair);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s;}
-  .book:hover{transform:translateY(-3px);box-shadow:var(--shadow-card);}
-  .book .cv{aspect-ratio:3/4;object-fit:cover;width:100%;background:var(--ink-panel);display:block;}
-  .book .cvph{aspect-ratio:3/4;background:linear-gradient(135deg,#1e293b,var(--ink-panel));color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
-  .book .t{padding:10px 12px;font-size:13.5px;font-weight:700;line-height:1.3;}
-  .reader-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-  .reader-head h1{font-size:22px;font-weight:800;letter-spacing:-.02em;}
-  .reader-frame{border:1px solid var(--hair);border-radius:var(--r);overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);}
-  .reader-frame iframe{display:block;width:100%;height:78vh;min-height:520px;border:0;background:#fff;}
-  .skelbar{height:78vh;min-height:520px;border-radius:var(--r);border:1px solid var(--hair);background:linear-gradient(100deg,#fff 30%,var(--bg-soft2) 50%,#fff 70%);background-size:200% 100%;animation:sh 1.2s infinite linear;}
+  .liblist button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-2);padding:9px 11px;border-radius:11px;cursor:pointer;transition:background .16s var(--ease),color .16s var(--ease),transform .16s var(--ease);}
+  .liblist button:hover{background:var(--bg-soft);color:var(--ink);}
+  .liblist button:active{transform:scale(.98);}
+  .liblist button.active{background:var(--blue-soft);color:var(--blue-deep);}
+  .liblist .d{width:10px;height:14px;border-radius:2px 3px 3px 2px;background:var(--navy);border-left:2px solid var(--gold);flex:0 0 auto;transition:background .16s var(--ease);}
+  .liblist button.active .d{background:var(--blue);}
+  .store-link{width:100%;}
+  /* quiet membership card (locked books live behind this) */
+  .side-mem{margin-top:14px;background:radial-gradient(130% 120% at 50% -20%,#0b2a6e 0%,var(--navy) 62%);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-card);position:relative;overflow:hidden;}
+  .side-mem::after{content:"";position:absolute;right:-30%;bottom:-55%;width:80%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(253,201,33,.14),transparent 70%);pointer-events:none;}
+  .side-mem .goldbar{width:26px;margin-bottom:12px;}
+  .side-mem .h{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:-.01em;color:#fff;line-height:1.3;}
+  .side-mem p{font-size:13px;color:#9fb0d4;line-height:1.55;margin-top:7px;position:relative;z-index:1;}
+  .side-mem .mem-link{display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:13px;font-weight:700;color:var(--gold);position:relative;z-index:1;transition:color .16s var(--ease);}
+  .side-mem .mem-link:hover{color:#fff;}
+  .side-mem .mem-link .arr{font-family:inherit;}
+  /* ---- center: page head ---- */
+  .lib-title{font-family:var(--display);font-size:clamp(24px,2.6vw,31px);font-weight:700;letter-spacing:-.022em;color:var(--ink);line-height:1.08;}
+  .lib-sub{margin:8px 0 22px;font-size:14.5px;}
+  /* ---- bookshelf grid ---- */
+  .bookgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:18px;}
+  .book{cursor:pointer;display:flex;flex-direction:column;border:1px solid var(--hair);border-radius:16px;overflow:hidden;background:var(--paper);box-shadow:var(--shadow-sm);transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease);}
+  @media(hover:hover) and (pointer:fine){.book:hover{transform:translateY(-4px);box-shadow:var(--shadow-card);border-color:#d5deee;}}
+  .book:active{transform:scale(.98);}
+  .book .cv{aspect-ratio:3/4;object-fit:cover;width:100%;background:var(--ink-panel);display:block;border-bottom:1px solid var(--hair-soft);}
+  .book .cvph{aspect-ratio:3/4;background:radial-gradient(120% 130% at 50% -10%,#12306c,var(--ink-panel));color:#c7d4f5;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;font-weight:700;font-size:11px;letter-spacing:.18em;}
+  .book .cvph::after{content:"";width:28px;height:4px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));}
+  .book .t{padding:12px 14px 3px;font-size:14px;font-weight:700;line-height:1.35;color:var(--ink);letter-spacing:-.01em;}
+  .book::after{content:"Read \2192";display:block;padding:3px 14px 13px;font-size:12.5px;font-weight:700;color:var(--blue);transition:color .16s var(--ease);}
+  .book:hover::after{color:var(--blue-deep);}
+  /* skeleton shelf while the library loads */
+  .skel-book{border:1px solid var(--hair);border-radius:16px;overflow:hidden;background:var(--paper);box-shadow:var(--shadow-sm);}
+  .sk-sh{background:linear-gradient(100deg,#eef1f8 32%,#e2e8f3 50%,#eef1f8 68%);background-size:200% 100%;animation:sh 1.4s linear infinite;}
+  .skel-book .sk-cv{aspect-ratio:3/4;}
+  .skel-book .sk-l{height:11px;border-radius:6px;margin:13px 14px 0;}
+  .skel-book .sk-l.sm{width:52%;margin-bottom:15px;}
   @keyframes sh{to{background-position:-200% 0;}}
-  .panel{border:1.5px dashed var(--hair);border-radius:var(--r);background:#fff;padding:clamp(26px,5vw,44px);text-align:center;}
-  .note{background:var(--bg-soft);border:1px solid var(--hair);border-radius:12px;padding:11px 13px;margin-bottom:10px;}
-  .note .b{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
-  .note .m{display:flex;justify-content:space-between;align-items:center;margin-top:7px;}
-  .note .m span{font-size:11.5px;color:var(--muted);}
-  .note .del{appearance:none;border:0;background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
-  .note .del:hover{color:var(--clay);}
-  .notes-form textarea{width:100%;border:1.5px solid var(--hair);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;background:#fff;resize:vertical;min-height:64px;}
-  .notes-form textarea:focus{outline:none;border-color:var(--blue);}
+  /* ---- reader ---- */
+  .reader-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;margin:2px 0 16px;}
+  .reader-head h1{font-family:var(--display);font-size:clamp(20px,2.3vw,26px);font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.15;margin-top:10px;}
+  .backchip{display:inline-flex;align-items:center;gap:7px;appearance:none;background:var(--paper);border:1px solid var(--hair);border-radius:var(--pill);padding:8px 15px 8px 12px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;box-shadow:var(--shadow-sm);transition:border-color .16s var(--ease),color .16s var(--ease),background .16s var(--ease),transform .16s var(--ease);}
+  .backchip svg{flex:0 0 auto;transition:transform .16s var(--ease);}
+  .backchip:hover{border-color:#c6d0e2;color:var(--ink);background:var(--bg-soft);}
+  @media(hover:hover) and (pointer:fine){.backchip:hover svg{transform:translateX(-2px);}}
+  .backchip:active{transform:scale(.96);}
+  .reader-frame{border:1px solid var(--hair);border-radius:18px;overflow:hidden;background:var(--paper);box-shadow:var(--shadow-card);}
+  .reader-frame iframe{display:block;width:100%;height:78vh;min-height:520px;border:0;background:#fff;}
+  .skelbar{height:78vh;min-height:520px;border-radius:18px;border:1px solid var(--hair);background:linear-gradient(100deg,#fff 32%,var(--bg-soft2) 50%,#fff 68%);background-size:200% 100%;animation:sh 1.4s linear infinite;}
+  /* ---- empty + error states ---- */
+  .panel{border:1px dashed #c9d3e6;border-radius:var(--r-lg);background:var(--paper);padding:clamp(34px,5.5vw,56px) clamp(22px,4vw,44px);text-align:center;}
+  .panel .pic{width:52px;height:52px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .panel h3{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.015em;}
+  /* ---- notes: margin notebook ---- */
+  .notes-hint{font-size:13.5px;padding:2px 6px 6px;line-height:1.55;}
+  .note{background:var(--paper-2);border:1px solid var(--hair-soft);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+  .note .b{font-size:14px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;}
+  .note .m{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .note .m span{font-size:11.5px;font-weight:600;color:var(--muted-ink);letter-spacing:.02em;}
+  .note .del{appearance:none;border:0;background:none;font-family:inherit;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;padding:3px 7px;margin-right:-7px;border-radius:7px;transition:color .16s var(--ease),background .16s var(--ease);}
+  .note .del:hover{color:var(--clay);background:rgba(239,68,68,.07);}
+  .notes-form textarea{width:100%;border:1px solid var(--hair);border-radius:12px;padding:12px 14px;font-family:inherit;font-size:14px;line-height:1.55;color:var(--ink);background:var(--paper);resize:vertical;min-height:84px;transition:border-color .16s var(--ease);}
+  .notes-form textarea::placeholder{color:var(--muted-ink);}
+  .notes-form textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,64,224,.1);}
   .muted{color:var(--muted);} .hide{display:none !important;}
-  @media(max-width:1080px){ .lib3{grid-template-columns:1fr;} .col-stick{position:static;} .lib-left{order:1;} .lib-center{order:2;} .lib-right{order:3;} .liblist{flex-direction:row;flex-wrap:wrap;} }
-  @media(max-width:600px){ .appbar .navlink,.appbar .email{display:none;} .reader-frame iframe,.skelbar{height:70vh;} }
+  /* ---- responsive ---- */
+  @media(max-width:1080px){ .lib3{grid-template-columns:1fr;} .col-stick{position:static;} .lib-center{order:1;} .lib-right{order:2;} .lib-left{order:3;} .liblist{flex-direction:row;flex-wrap:wrap;gap:6px;} .liblist button{width:auto;border:1px solid var(--hair);border-radius:var(--pill);padding:8px 14px;background:var(--paper);} .liblist button.active{border-color:var(--blue);} }
+  @media(max-width:600px){ .appbar .navlink,.appbar .email{display:none;} .reader-frame iframe,.skelbar{height:70vh;} .bookgrid{grid-template-columns:repeat(2,1fr);gap:14px;} }
 </style>
 <!--PWA:start-->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -70,9 +115,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
-<script src="/js/native.js?v=8fd3a8ab23" defer></script>
-<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
+<script src="/js/pwa.js?v=dd67b4672f" defer></script>
+<script src="/js/native.js?v=dd67b4672f" defer></script>
+<script src="/js/meta-pixel.js?v=dd67b4672f" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -85,11 +130,17 @@
   <!-- LEFT: library list -->
   <aside class="lib-left col-stick">
     <div class="card pad">
-      <div class="side-h">Ebook Library</div>
-      <div id="libCount" class="muted" style="font-size:13px;padding:0 4px 10px"></div>
+      <div class="side-h">Your bookshelf</div>
+      <div id="libCount" class="muted libcount"></div>
       <div class="liblist" id="libList"></div>
-      <hr class="rule hair" style="margin:12px 0">
-      <a class="btn ghost sm" href="/store/" style="width:100%">Get more in the store</a>
+      <hr class="rule hair" style="margin:14px 0">
+      <a class="btn ghost sm store-link" href="/store/">Browse the store</a>
+    </div>
+    <div class="side-mem">
+      <span class="goldbar"></span>
+      <div class="h">Every book, one membership</div>
+      <p>Members read every ebook I publish here, plus the video courses, for one monthly price.</p>
+      <a class="mem-link" href="/pricing/">See what's included <span class="arr">&rarr;</span></a>
     </div>
   </aside>
 
@@ -97,21 +148,34 @@
   <section class="lib-center">
     <!-- pick state: the grid -->
     <div id="pickState">
-      <h1 style="font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px">Your library</h1>
-      <p class="muted" style="margin-bottom:20px">Open a book to read it in your browser or download the PDF.</p>
-      <div id="gridLoading" class="bookgrid"><div class="book"><div class="cvph">…</div></div><div class="book"><div class="cvph">…</div></div></div>
+      <h1 class="lib-title">Your library</h1>
+      <p class="muted lib-sub">Open a book to read it right here, or download the PDF for offline.</p>
+      <div id="gridLoading" class="bookgrid" aria-hidden="true">
+        <div class="skel-book"><div class="sk-cv sk-sh"></div><div class="sk-l sk-sh"></div><div class="sk-l sm sk-sh"></div></div>
+        <div class="skel-book"><div class="sk-cv sk-sh"></div><div class="sk-l sk-sh"></div><div class="sk-l sm sk-sh"></div></div>
+        <div class="skel-book"><div class="sk-cv sk-sh"></div><div class="sk-l sk-sh"></div><div class="sk-l sm sk-sh"></div></div>
+      </div>
       <div id="bookGrid" class="bookgrid hide"></div>
-      <div id="emptyState" class="panel hide"><h3 style="font-size:20px">Your library is empty.</h3><p class="muted" style="margin-top:8px;max-width:42ch;margin-inline:auto">Grab an ebook and it lands here, ready to read and take notes.</p><p style="margin-top:18px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p></div>
+      <div id="emptyState" class="panel hide">
+        <span class="pic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+        <h3>Nothing on the shelf yet</h3>
+        <p class="muted" style="margin-top:8px;max-width:44ch;margin-inline:auto">Grab an ebook from the store and it lands here, ready to read in your browser with your notes right beside it.</p>
+        <p style="margin-top:20px"><a class="btn gold" href="/store/">Browse the store <span class="arr">&rarr;</span></a></p>
+      </div>
     </div>
     <!-- read state: the reader -->
     <div id="readState" class="hide">
       <div class="reader-head">
-        <div><button class="textlink" id="backBtn" style="font-size:13px;background:none;border:0;cursor:pointer;padding:0">&larr; Library</button><h1 id="readTitle" style="margin-top:4px">Opening…</h1></div>
-        <div style="display:flex;gap:10px"><a class="btn gold sm hide" id="dlBtn" target="_blank" rel="noopener">Download PDF</a></div>
+        <div><button class="backchip" id="backBtn" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>Back to library</button><h1 id="readTitle">Opening&hellip;</h1></div>
+        <div style="display:flex;gap:10px"><a class="btn gold sm hide" id="dlBtn" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Download PDF</a></div>
       </div>
       <div id="readLoading" class="skelbar"></div>
       <div id="readFrame" class="reader-frame hide"><iframe id="frame" title="Ebook reader" referrerpolicy="no-referrer"></iframe></div>
-      <div id="readErr" class="panel hide"><h3 style="font-size:19px">Could not open this book.</h3><p class="muted" style="margin-top:8px">Refresh and try again. If it keeps happening, reach out and I will sort it.</p></div>
+      <div id="readErr" class="panel hide">
+        <span class="pic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></span>
+        <h3>Could not open this book</h3>
+        <p class="muted" style="margin-top:8px;max-width:44ch;margin-inline:auto">Refresh and try again. If it keeps happening, reach out and I will sort it.</p>
+      </div>
     </div>
   </section>
 
@@ -119,9 +183,9 @@
   <aside class="lib-right col-stick">
     <div class="card pad">
       <div class="side-h">Your notes</div>
-      <div id="notesEmpty" class="muted" style="font-size:13.5px;padding:4px">Open a book to take notes while you read. Your notes are private and saved to your account.</div>
+      <div id="notesEmpty" class="muted notes-hint">Open a book and this turns into your margin notebook. Notes are private and saved to your account.</div>
       <div id="notesWrap" class="hide">
-        <form class="notes-form" id="noteForm" style="margin-bottom:14px"><textarea id="noteBody" maxlength="5000" placeholder="Jot a note, an idea, a to-do..."></textarea><button class="btn gold sm" type="submit" style="width:100%;margin-top:8px">Add note</button></form>
+        <form class="notes-form" id="noteForm" style="margin-bottom:14px"><textarea id="noteBody" maxlength="5000" aria-label="Write a note" placeholder="Jot a note, an idea, a to-do..."></textarea><button class="btn gold sm" type="submit" style="width:100%;margin-top:10px">Add note</button></form>
         <div id="notesList"></div>
       </div>
     </div>
@@ -130,7 +194,7 @@
 </div></main>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=8fd3a8ab23"></script>
+<script src="/js/config.js?v=dd67b4672f"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};

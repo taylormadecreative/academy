@@ -8,38 +8,99 @@
 <meta property="og:description" content="Set up your Taylormade Academy profile."><meta property="og:url" content="https://academy.taylormadecreative.net/welcome/">
 <meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=8fd3a8ab23">
+<link rel="stylesheet" href="/css/build-mode.css?v=dd67b4672f">
 <style>
   /* app pages: simple top bar + centered card, all from the existing system */
   .appbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
-    backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
+    backdrop-filter:saturate(140%) blur(10px);-webkit-backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--hair-soft);}
   .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;height:68px;}
-  .authwrap{max-width:520px;}
-  .authcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:clamp(24px,4vw,40px);box-shadow:var(--shadow);}
-  .field{margin-top:18px;}
-  .field label{display:block;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;}
-  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:var(--paper-2);
-    border:1.5px solid var(--hair);border-radius:10px;padding:13px 15px;transition:border-color .15s;}
-  .field input:focus{outline:none;border-color:var(--gold);}
+  .appbar .navlink{white-space:nowrap;}
+  .authwrap{max-width:600px;}
+  .authcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);padding:clamp(24px,4vw,40px);box-shadow:var(--shadow-card);}
   .btn.block{width:100%;}
   .formnote{font-size:13.5px;color:var(--muted);margin-top:14px;}
-  .formerr{font-size:14px;color:var(--clay);margin-top:14px;font-weight:500;}
+  .formerr{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;line-height:1.45;font-weight:500;color:#8f3a32;background:#fdf5f4;border:1px solid #f2dcd9;border-radius:12px;padding:10px 14px;margin-top:14px;}
   .hide{display:none !important;}
-  /* avatar */
+
+  /* ---- onboarding head: kicker + step dots + big friendly title ---- */
+  .ob-head{margin-bottom:clamp(22px,3vw,30px);}
+  .ob-kick{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .ob-dots{display:inline-flex;align-items:center;gap:5px;}
+  .ob-dots span{width:6px;height:6px;border-radius:var(--pill);background:#d3dcea;transition:background .2s var(--ease);}
+  .ob-dots span.on{width:20px;background:var(--blue);}
+  h1.ob-title{margin-top:14px;font-size:clamp(31px,3.4vw,42px);}
+  .ob-sub{margin-top:14px;color:var(--muted);max-width:46ch;font-size:16.5px;line-height:1.6;}
+
+  /* ---- stepped rows inside the card ---- */
+  .ob-card{margin-top:0;}
+  .ob-row{display:grid;grid-template-columns:44px 1fr;align-items:start;padding:clamp(18px,2.6vw,24px) 0;}
+  .ob-row:first-child{padding-top:4px;}
+  .ob-row+.ob-row{border-top:1px solid var(--hair-soft);}
+  .ob-num{font-family:var(--display);font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.04em;padding-top:3px;}
+  .ob-t{display:block;font-family:var(--font);font-size:15.5px;font-weight:650;color:var(--ink);letter-spacing:-.005em;}
+  .ob-s{font-size:13.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+
+  /* ---- text input ---- */
+  .tin{width:100%;font-family:var(--font);font-size:16.5px;color:var(--ink);background:#fff;appearance:none;
+    border:1px solid var(--hair);border-radius:14px;padding:14px 16px;margin-top:14px;
+    transition:border-color .16s var(--ease),background .16s var(--ease);}
+  .tin::placeholder{color:var(--muted-ink);}
+  .tin:hover{border-color:#c6d0e2;}
+  .tin:focus{border-color:var(--blue);}
+  .tin:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:14px;}
+
+  /* ---- avatar upload: inviting placeholder with initials + camera badge ---- */
   .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue-2),var(--blue));
     color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;
-    flex:0 0 auto;text-transform:uppercase;overflow:hidden;}
-  .ava-prev{display:inline-block;width:64px;height:64px;border-radius:50%;
-    background:var(--paper-2);border:2px dashed var(--hair);overflow:hidden;}
-  .ava-prev .avatar{width:64px;height:64px;font-size:24px;}
-  /* chip selected state (build-mode.css uses .chip.active; onboarding uses .chip.on) */
-  .chip.on{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
+    flex:0 0 auto;text-transform:uppercase;overflow:hidden;font-family:var(--font);}
+  .ava-wrap{display:flex;align-items:center;gap:16px;margin-top:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;width:fit-content;}
+  .ava-frame{position:relative;display:inline-block;flex:0 0 auto;transition:transform .18s var(--ease);}
+  .ava-wrap:active .ava-frame{transform:scale(.95);}
+  .ava-prev{display:block;width:76px;height:76px;border-radius:50%;overflow:hidden;
+    background:var(--paper-2);border:1px solid var(--hair);box-shadow:var(--shadow-sm);}
+  .ava-prev .avatar{width:100%;height:100%;font-size:27px;border-radius:50%;}
+  .ava-badge{position:absolute;right:-3px;bottom:-3px;width:28px;height:28px;border-radius:50%;background:#fff;
+    border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;color:var(--blue);
+    box-shadow:var(--shadow-sm);transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease);}
+  .ava-wrap:hover .ava-badge{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .ava-cta{display:inline-flex;align-items:center;font-family:var(--font);font-size:14px;font-weight:600;color:var(--ink);
+    background:#fff;border:1px solid #c9d3e6;border-radius:var(--pill);padding:10px 18px;white-space:nowrap;
+    transition:background .16s var(--ease),border-color .16s var(--ease),transform .16s var(--ease);}
+  .ava-wrap:hover .ava-cta{border-color:var(--muted-ink);background:var(--bg-soft);}
+  .ava-wrap:active .ava-cta{transform:scale(.97);}
+
+  /* ---- interest chips: pill, blue fill when picked ---- */
+  .ob-chips{margin-top:14px;gap:9px;}
+  .ob-chips .chip{font-size:14px;padding:10px 18px;}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .chip.on:hover{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff;}
+
+  /* ---- primary action ---- */
+  .ob-card .btn.block{margin-top:clamp(20px,3vw,26px);padding:16px 24px;font-size:15.5px;}
+
+  /* ---- finish screen: navy video card ---- */
+  .vid-card{margin-top:clamp(22px,3vw,28px);background:var(--navy);border-radius:var(--r-lg);padding:10px 10px 4px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .vid-card::after{content:"";position:absolute;left:-20%;right:-20%;bottom:-70%;height:100%;
+    background:radial-gradient(50% 100% at 50% 100%,rgba(11,64,224,.45),transparent 70%);pointer-events:none;}
+  .vid{display:block;width:100%;aspect-ratio:16/9;border-radius:16px;background:var(--navy);position:relative;z-index:1;}
+  .vid-cap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 10px 10px;position:relative;z-index:1;}
+  .vid-cap-t{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:15px;color:#fff;letter-spacing:-.01em;}
+  .vid-cap-t::before{content:"";width:18px;height:3px;border-radius:2px;background:var(--gold);flex:0 0 auto;}
+  .vid-cap-s{font-size:12.5px;font-weight:600;color:#8fa0c7;white-space:nowrap;}
+  #enterBtn{margin-top:22px;padding:16px 24px;font-size:15.5px;}
+
+  @media(max-width:480px){
+    .ob-row{grid-template-columns:36px 1fr;}
+    .ava-wrap{gap:13px;}
+    .ava-prev{width:68px;height:68px;}
+  }
 </style>
 <!--PWA:start-->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -58,9 +119,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=8fd3a8ab23" defer></script>
-<script src="/js/native.js?v=8fd3a8ab23" defer></script>
-<script src="/js/meta-pixel.js?v=8fd3a8ab23" defer></script>
+<script src="/js/pwa.js?v=dd67b4672f" defer></script>
+<script src="/js/native.js?v=dd67b4672f" defer></script>
+<script src="/js/meta-pixel.js?v=dd67b4672f" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -70,44 +131,66 @@
 <main><section class="section"><div class="wrap authwrap">
 
 <div id="obStep">
-<span class="kicker gold">Almost there</span>
-<h1 class="display-m" style="margin-top:12px">Welcome — set up your profile.</h1>
-<p style="margin-top:14px;color:var(--muted);max-width:42ch">Just a few quick things, then you are in. You can update all of this later.</p>
+<div class="ob-head">
+  <div class="ob-kick"><span class="kicker gold">Almost there</span><span class="ob-dots" aria-hidden="true"><span class="on"></span><span></span></span></div>
+  <h1 class="display-m ob-title">Welcome. Set up your&nbsp;profile.</h1>
+  <p class="ob-sub">Three quick things and you are in. You can change any of this later.</p>
+</div>
 
-<form id="obForm" class="authcard" style="margin-top:24px">
-  <div style="display:flex;align-items:center;gap:16px">
-    <label id="avaLabel" for="avaInput" style="cursor:pointer" title="Click to upload a photo">
-      <span id="avaPreview" class="ava-prev"></span>
-    </label>
+<form id="obForm" class="authcard ob-card">
+  <div class="ob-row">
+    <span class="ob-num" aria-hidden="true">01</span>
     <div>
-      <div style="font-weight:700">Profile photo</div>
-      <div class="muted" style="font-size:13px">Optional. PNG/JPG/WebP, under 3 MB.</div>
+      <span class="ob-t">Profile photo</span>
+      <p class="ob-s">Optional. PNG, JPG, or WebP under 3&nbsp;MB.</p>
+      <label id="avaLabel" for="avaInput" class="ava-wrap" title="Upload a photo">
+        <span class="ava-frame">
+          <span id="avaPreview" class="ava-prev"></span>
+          <span class="ava-badge" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+        </span>
+        <span class="ava-cta">Upload a photo</span>
+      </label>
+      <input id="avaInput" type="file" accept="image/png,image/jpeg,image/webp" class="hide">
     </div>
-    <input id="avaInput" type="file" accept="image/png,image/jpeg,image/webp" class="hide">
   </div>
-  <div class="field"><label for="dn">Display name</label>
-    <input id="dn" type="text" maxlength="40" placeholder="Your name" required></div>
-  <div class="field"><label>What are you here for?</label>
-    <div id="interests" class="chips">
-      <button type="button" class="chip" data-tag="design">Graphic Design</button>
-      <button type="button" class="chip" data-tag="photo">Photography</button>
-      <button type="button" class="chip" data-tag="video">Video</button>
-      <button type="button" class="chip" data-tag="ai">AI</button>
-    </div></div>
-  <button class="btn gold block" type="submit" id="obSave" style="margin-top:20px">Enter the community <span class="arr">&rarr;</span></button>
+  <div class="ob-row">
+    <span class="ob-num" aria-hidden="true">02</span>
+    <div>
+      <label class="ob-t" for="dn">Display name</label>
+      <p class="ob-s">This is how you show up in the community.</p>
+      <input id="dn" class="tin" type="text" maxlength="40" placeholder="Your name" required>
+    </div>
+  </div>
+  <div class="ob-row">
+    <span class="ob-num" aria-hidden="true">03</span>
+    <div>
+      <span class="ob-t">What are you here for?</span>
+      <p class="ob-s">Pick as many as you like.</p>
+      <div id="interests" class="chips ob-chips">
+        <button type="button" class="chip" data-tag="design">Graphic Design</button>
+        <button type="button" class="chip" data-tag="photo">Photography</button>
+        <button type="button" class="chip" data-tag="video">Video</button>
+        <button type="button" class="chip" data-tag="ai">AI</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn gold block" type="submit" id="obSave">Enter the community <span class="arr">&rarr;</span></button>
   <p class="formerr hide" id="obErr"></p>
 </form>
 </div>
 
 <div id="welcomeDone" class="hide">
-<span class="kicker gold">You're in</span>
-<h1 class="display-m" style="margin-top:12px">Welcome to the crew.</h1>
-<p style="margin-top:14px;color:var(--muted);max-width:44ch">A quick hello from Nelson &mdash; then jump into the community and say hey.</p>
-<div class="authcard" style="margin-top:24px;padding:6px;overflow:hidden">
-<video id="welcomeVid" style="display:block;width:100%;aspect-ratio:16/9;border-radius:calc(var(--r) - 8px);background:#04123a"
-  src="/assets/welcome-nelson.mp4" poster="/assets/welcome-nelson-poster.jpg" controls playsinline preload="none"></video>
+<div class="ob-head">
+  <div class="ob-kick"><span class="kicker gold">You're in</span><span class="ob-dots" aria-hidden="true"><span></span><span class="on"></span></span></div>
+  <h1 class="display-m ob-title">Welcome to the crew.</h1>
+  <p class="ob-sub">A quick hello from Nelson, then jump into the community and say hey.</p>
 </div>
-<button class="btn gold block" id="enterBtn" style="margin-top:20px">Enter the community <span class="arr">&rarr;</span></button>
+<div class="vid-card">
+<video id="welcomeVid" class="vid"
+  src="/assets/welcome-nelson.mp4" poster="/assets/welcome-nelson-poster.jpg" controls playsinline preload="none"></video>
+<div class="vid-cap"><span class="vid-cap-t">A welcome from Nelson</span><span class="vid-cap-s">12 seconds</span></div>
+</div>
+<button class="btn gold block" id="enterBtn">Enter the community <span class="arr">&rarr;</span></button>
 </div>
 
 </div></section></main>
@@ -115,14 +198,14 @@
 <footer class="site-footer"><div class="wrap">
 <div class="foot-top"><div class="foot-brand"><div class="mark">Taylormade <b>Academy</b></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Taylormade Creative, Dallas-Fort Worth.</p></div>
-<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">Boring Money</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
+<div class="foot-col"><h4>Products</h4><a href="/store/ai-agent-ebook/">Build Your First AI Agent</a><a href="/store/boring-money/">The AI Money Machine</a><a href="/store/#video">Video courses</a><a href="/pricing/">Pricing</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">Join the community</a><a href="/about/">About Nelson</a><a href="/about/#workshops">The workshops</a></div><div class="foot-col"><h4>More</h4><a href="/login/">Account</a><a href="/refunds/">Refunds</a><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a></div></div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=8fd3a8ab23"></script>
-<script src="/js/site.js?v=8fd3a8ab23"></script>
+<script src="/js/config.js?v=dd67b4672f"></script>
+<script src="/js/site.js?v=dd67b4672f"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
