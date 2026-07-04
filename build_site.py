@@ -272,7 +272,7 @@ PRODUCTS = {
         "outcome": "You finish with at least one real automation running without you, doing a piece of your actual week, every week. You get fluent enough to build the next one on your own, and you get hours of your time back. This is the on-ramp: get good at running these for yourself first. Turning it into income comes later in the series.",
         "what_is": "A short, no-code, do-it-with-me guide to handing your busywork to the AI you already pay for. Thirty-nine pages of real screenshots and copy-paste prompts, so you actually finish it. You go from drowning in repetitive work to having real automations running while you sleep.",
         "note": "<b>What you need:</b> a paid Claude plan (Pro, about $20/mo, or higher) and the Claude desktop app for Mac or Windows. That is it. No other tools, no phone-only. If you do not have a plan yet, grab one first so you can follow along.",
-        "flash": {"end": "2026-07-09T23:59:59", "was": "$19"},
+        "flash": {"end": "2026-07-08T23:59:59", "was": "$19", "label": "4th of July flash &middot; ends Wed at midnight"},
         "pairs": "boring-money",
         "buy_note": "Instant PDF download, plus the copyable Prompt Pack. Read on any device. 7-day refund.",
     },
@@ -627,7 +627,7 @@ def store():
                 '<div class="meta"><div class="tagrow"><span class="tag gold"><span class="dot"></span>Bundle &amp; save</span><span class="tag">2 ebooks</span></div>'
                 '<h3>The Complete Bundle</h3><p class="blurb">Both ebooks together: build the AI agent, then the recurring-income business.</p></div>'
                 '<div class="foot">' + price_block("bundle") + '<button class="btn gold sm" data-add-cart="bundle" data-title="The Complete Bundle">Add to cart</button></div></article>')
-    grid = (ebook_card("steal-your-week-back", p0, '<span class="tag gold"><span class="dot"></span>NEW &middot; LAUNCH FLASH</span>')
+    grid = (ebook_card("steal-your-week-back", p0, '<span class="tag gold"><span class="dot"></span>4TH OF JULY &middot; $10 FLASH</span>')
             + ebook_card("ai-agent-ebook", p1) + ebook_card("boring-money", p2)
             + ebook_card("fully-booked-trainer", PRODUCTS["fully-booked-trainer"], '<span class="tag gold"><span class="dot"></span>FOR TRAINERS</span>')
             + ebook_card("always-on-agent", PRODUCTS["always-on-agent"], '<span class="tag gold"><span class="dot"></span>FOR AGENTS</span>')
@@ -691,7 +691,7 @@ def product_page(slug):
         flash_html = (
             '<div id="flashBadge" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;'
             'letter-spacing:.07em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold-soft);'
-            'border:1px solid #f1de9f;border-radius:980px;padding:5px 12px;margin-bottom:12px">Launch flash &middot; first week only</div>'
+            f'border:1px solid #f1de9f;border-radius:980px;padding:5px 12px;margin-bottom:12px">{f.get("label","Launch flash &middot; first week only")}</div>'
             '<div style="display:flex;align-items:baseline;gap:12px">'
             + price_block(slug, big=True)
             + f'<span id="flashWas" style="font-family:var(--font);font-size:18px;font-weight:700;color:var(--muted);text-decoration:line-through">{f["was"]}</span></div>'
