@@ -22,3 +22,6 @@ tools/academy-machine/.env
 tools/academy-machine/assets/.cache/
 campaigns/
 launch-kit/
+
+# Supabase CLI temp
+supabase/.temp/
