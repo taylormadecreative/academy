@@ -33,7 +33,9 @@ function mimeFor(p) {
 // ---- Nano Banana 2 / Gemini (best for exact 4:5 & 9:16 framing + ref photos) ----
 export async function genGemini({ prompt, ar = "4:5", refs = [], model }) {
   if (!GKEY) return { ok: false, error: "no GOOGLE_API_KEY in env" };
-  const MODEL = model || process.env.GEN_MODEL_GEMINI || "gemini-3.1-flash-image";
+  // Nano Banana 2 Lite (gemini-3.1-flash-lite-image) — faster + cheaper than the
+  // full gemini-3.1-flash-image. Override per call (model) or via GEN_MODEL_GEMINI.
+  const MODEL = model || process.env.GEN_MODEL_GEMINI || "gemini-3.1-flash-lite-image";
 
   const parts = [];
   for (const rp of refs) {

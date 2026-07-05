@@ -225,6 +225,18 @@
     setTimeout(apply, 1500);
   }
 
+  /* ---------- dead-CTA fix (App Store 2.1) ----------
+     Popups are hidden in-app, so a popup-style CTA like "Join free" (the
+     [data-get-ebook] button, which calls preventDefault + opens the hidden popup)
+     dead-ends on tap. Intercept it in the CAPTURE phase — before site.js's own click
+     handler — and navigate straight to the login/join page instead. */
+  function fixDeadCtas() {
+    document.addEventListener('click', function (ev) {
+      var t = ev.target && ev.target.closest && ev.target.closest('[data-get-ebook]');
+      if (t) { ev.preventDefault(); ev.stopPropagation(); location.href = '/login/?mode=join'; }
+    }, true);
+  }
+
   /* ---------- init (runs after all the above are defined) ---------- */
   function main() {
     suppressPopup();
@@ -234,6 +246,7 @@
     setupOffline();
     setupPush();
     adaptLogin();
+    fixDeadCtas();
     setTimeout(function () { try { P.SplashScreen && P.SplashScreen.hide(); } catch (_) {} }, 250);
   }
   ready(main);

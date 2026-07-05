@@ -31,7 +31,7 @@ rounded pills/cards, soft shadows, negative space; hero = Nelson in navy+gold le
 jacket; mood = aspirational "build/ship/create."
 
 ## Engines
-- **Nano Banana 2** (`gemini-3.1-flash-image`): true 4:5 / 9:16, reference photos, fast — the social workhorse.
+- **Nano Banana 2 Lite** (`gemini-3.1-flash-lite-image`): true 4:5 / 9:16, reference photos, fast + cheap — the social workhorse. (Override via `GEN_MODEL_GEMINI`, e.g. `gemini-3.1-flash-image` for full Nano Banana 2.)
 - **ChatGPT** (`gpt-image-1`, edits `gpt-image-2`): crisp typographic text; limited aspect ratios (letterbox/crop).
 - Default `--engine both`; the contact sheet decides.
 

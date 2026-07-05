@@ -42,7 +42,7 @@ Output lands in `out/<date>-<label>/` with all variants + an `index.html` contac
 
 ## Which engine wins
 - **ChatGPT (openai, `gpt-image-2`) — DEFAULT.** Nelson prefers this look: crispest typography, cleanest faces/jackets, most polished. Every output is cropped to the exact format pixels, so its 3 native sizes still frame as 4:5 / 9:16 / etc.
-- **Nano Banana 2 (gemini)** — available via `--engine gemini`: faster + cheaper, native 9:16/4:5. Good for quick drafts or true vertical framing.
+- **Nano Banana 2 Lite (gemini, `gemini-3.1-flash-lite-image`)** — available via `--engine gemini`: faster + cheaper, native 9:16/4:5. Good for quick drafts or true vertical framing. (Set `GEN_MODEL_GEMINI=gemini-3.1-flash-image` for the full Nano Banana 2.)
 - `--engine both` to compare on the contact sheet.
 
 ## Nelson's face + outfit (read this for any post with him in it)
