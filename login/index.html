@@ -74,7 +74,7 @@
   #sentTo{color:var(--ink);font-weight:700;overflow-wrap:anywhere;}
   .or-div{display:flex;align-items:center;gap:14px;margin:26px 0 16px;color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
   .or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--hair);}
-  .or-div span{flex:0 0 auto;}
+  .or-div span{flex:0 1 auto;min-width:0;text-align:center;}
   #offState p{color:var(--muted);font-size:15px;line-height:1.6;margin-top:12px;}
   #offState .btn{margin-top:22px;}
 
@@ -176,8 +176,8 @@
   <!-- check email + code fallback -->
   <div id="sentState" class="hide">
     <div class="sent-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></svg></div>
-    <p class="sent-p">I sent a sign-in link to <b id="sentTo"></b>. Open it on this device and you are in.</p>
-    <div class="or-div" role="separator"><span>Or type the code from the email</span></div>
+    <p class="sent-p"><span id="sentLead">I sent a sign-in link to</span> <b id="sentTo"></b>. <span id="sentTail">Open it on this device and you are in.</span></p>
+    <div class="or-div" role="separator"><span id="sentOrText">Or type the code from the email</span></div>
     <form id="codeForm" novalidate>
       <div class="field">
         <label for="code">6-digit code</label>
@@ -234,7 +234,18 @@
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Dynamic + raced on purpose. A STATIC top-level import means a blocked or slow CDN
+// (filtered campus/venue wifi) never evaluates this module at all -- and every child of
+// #card ships with class="hide", so the page would render an empty card with no error
+// and no way forward. This page is the fallback the playbook hands students when the
+// CDN fails, so it has to survive the exact network that broke the playbook.
+let createClient = null;
+try {
+  ({ createClient } = await Promise.race([
+    import("https://esm.sh/@supabase/supabase-js@2"),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("cdn-timeout")), 6000)),
+  ]));
+} catch (_) {}
 
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
@@ -252,7 +263,9 @@ const NEXT = (() => {
     return (n.charAt(0) === "/" && n.charAt(1) !== "/" && n.indexOf("\\") === -1) ? n : "";
   } catch (_) { return ""; }
 })();
-if (NEXT) { try { localStorage.setItem("bm_next", NEXT); } catch (_) {} }
+// Timestamped: a hand-off that was started and abandoned must not silently redirect an
+// unrelated signup later on.
+if (NEXT) { try { localStorage.setItem("bm_next", JSON.stringify({ p: NEXT, t: Date.now() })); } catch (_) {} }
 const WELCOME_URL = NEXT ? "/welcome/?next=" + encodeURIComponent(NEXT) : "/welcome/";
 
 const offState  = $("offState");
@@ -266,6 +279,17 @@ function setErr(node, msg){ if(!msg){ hide(node); node.textContent=""; return; }
 // No keys yet -> graceful "accounts open soon" and stop.
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
   $("sub").textContent = "Sign in is opening soon.";
+  show(offState);
+} else if (!createClient) {
+  // CDN blocked/hung. Tell them the one thing that actually fixes it.
+  $("head").textContent = "This network is blocking sign-in.";
+  $("sub").textContent = "";
+  offState.innerHTML = '<h3>Sign-in could not load.</h3>' +
+    '<p>The wi-fi you are on is blocking a file this page needs. Turn wi-fi off and use your cellular data, then reload. Nothing is wrong with your account.</p>';
+  const rb = document.createElement("button");
+  rb.type = "button"; rb.className = "btn gold block"; rb.textContent = "Reload";
+  rb.addEventListener("click", () => location.reload());
+  offState.appendChild(rb);
   show(offState);
 } else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
@@ -344,6 +368,22 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
         $("sentTo").textContent = email;
         $("head").textContent = "Check your email.";
         $("sub").textContent = "Your sign-in link is on the way.";
+        // When we owe them a specific destination (?next=), lead with the CODE, not the
+        // link. Tapping the link hands the session to whatever browser the mail app owns
+        // (Gmail's in-app webview on iOS), a separate storage partition where the stored
+        // destination does not exist -- so they'd get dropped in the community feed
+        // instead of the page they came for. The code verifies in THIS tab and keeps it.
+        // Null-guarded: in the bundled app, native.js rewrites this paragraph wholesale
+        // (js/native.js adaptLogin) and #sentLead/#sentTail no longer exist. Its copy
+        // already steers to the code, so there is nothing to do there anyway.
+        if (NEXT) {
+          const setTxt = (id, t) => { const e = $(id); if (e) e.textContent = t; };
+          setTxt("sentLead", "I sent a 6-digit code to");
+          setTxt("sentTail", "Type it in below and you will land right back where you started.");
+          setTxt("sentOrText", "Or use the link instead");
+          setTxt("head", "Check your email for the code.");
+          setTxt("sub", "Typing the code keeps you in this tab.");
+        }
         hide(emailForm); hide($("oauthBlock")); hide($("oauthDiv")); show(sentState);
         $("code").focus();
       } catch (err) {

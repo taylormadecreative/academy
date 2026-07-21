@@ -122,7 +122,7 @@
 <noscript><style>#gate{display:block!important}#oauth-google{display:none!important}</style></noscript>
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
-<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<a class="brand" href="/" aria-label="Taylormade Academy home"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
 <div class="who" id="abRight"></div>
 </div></div></header>
 
@@ -242,11 +242,11 @@
 
     <ul class="checklist">
       <li><b>Post it in the <a class="textlink" href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook AI group</a>.</b> That's where workshop folks are sharing theirs. Drop your clip, see what everybody else built, and steal a few ideas for your next one.</li>
-      <li><b>Drop it in the Academy community feed.</b> You're already signed in. Post your avatar right here so the Academy crew can see it too.</li>
+      <li><b>Introduce yourself in the Academy community feed.</b> You're already signed in. Tell everybody who your avatar is, what you named it, and what you'd build next.</li>
     </ul>
 
     <div class="cta-row" style="margin-top:22px">
-      <a class="btn gold" href="/community/">Post in the community <span class="arr">&rarr;</span></a>
+      <a class="btn gold" href="/community/">Say hey in the community <span class="arr">&rarr;</span></a>
     </div>
 
     <p class="pb-body" style="margin-top:24px">Here's the part worth sitting with: you just walked a simplified version of the exact process behind Da'Sci: an AI avatar that hosted a real, live, three-day event in front of hundreds of people. Same pipeline. Same tools. Your name on it.</p>
@@ -269,11 +269,34 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js?v=3b7d540f53"></script>
+<script>
+/* Fail open. Both #gate and #app ship hidden, so anything that stops the module below
+   from running at all (campus wifi black-holing esm.sh, a module parse error on an old
+   Android WebView) would otherwise leave a student staring at a blank page mid-session.
+   Classic script on purpose: it survives a module-level failure.
+   Fires at 6.5s, deliberately AFTER the module's own 6s CDN deadline below, so a
+   signed-in student never gets flashed a "you need an account" gate they don't need. */
+window.__pbWatchdog = setTimeout(function () {
+  var g = document.getElementById("gate"), a = document.getElementById("app");
+  if (g && a && g.classList.contains("hide") && a.classList.contains("hide")) g.classList.remove("hide");
+}, 6500);
+</script>
 <script type="module">
 // Dynamic import so a blocked/slow CDN (venue wifi content filters) can't kill
 // the whole module and leave the page blank; the gate still renders either way.
+// Raced against a timeout because a filtered network HANGS rather than refusing:
+// iOS Safari can sit on the TCP timeout for ~75s, which reads as a dead page.
+// The import promise is kept so a merely-slow network that lands late can still
+// rescue an already-signed-in student instead of stranding them on the join gate.
+const modPromise = import("https://esm.sh/@supabase/supabase-js@2");
+modPromise.catch(() => {});  // a late rejection must not surface as unhandled
 let createClient = null;
-try { ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2")); } catch (_) {}
+try {
+  ({ createClient } = await Promise.race([
+    modPromise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("cdn-timeout")), 6000)),
+  ]));
+} catch (_) {}
 
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
@@ -287,7 +310,17 @@ const PAGE_URL = "https://academy.taylormadecreative.net/playbook/ai-avatar/";
 
 let supabase = null;
 
+// Promote the email fallback to the primary button. Used whenever Google isn't an
+// option -- provider off, settings unreachable, or the SDK never loaded at all.
+function promoteEmailCta(){
+  const a = $("emailAlt");
+  if (!a) return;
+  a.className = "btn gold";
+  a.innerHTML = 'Join free with your email <span class="arr">&rarr;</span>';
+}
+
 function showGate(loggedOut){
+  clearTimeout(window.__pbWatchdog);
   show($("gate"));
   $("abRight").innerHTML = loggedOut
     ? '<a class="navlink" href="/store/">Courses</a><a class="btn gold sm" href="/login/?mode=join&next=%2Fplaybook%2Fai-avatar%2F">Join free</a>'
@@ -318,15 +351,10 @@ async function initOAuth(){
         }
       });
     } else {
-      // No Google yet: promote the email fallback to the primary button.
-      const a = $("emailAlt");
-      a.className = "btn gold";
-      a.innerHTML = 'Join free with your email <span class="arr">&rarr;</span>';
+      promoteEmailCta();  // no Google yet
     }
   } catch (_) {
-    const a = $("emailAlt");
-    a.className = "btn gold";
-    a.innerHTML = 'Join free with your email <span class="arr">&rarr;</span>';
+    promoteEmailCta();
   }
 }
 
@@ -352,6 +380,8 @@ function bindCopy(){
 }
 
 function boot(session){
+  clearTimeout(window.__pbWatchdog);
+  hide($("gate"));  // the fail-open watchdog may have already revealed it
   $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Dashboard</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
   $("ue").textContent = session.user.email || "";
   $("so").addEventListener("click", async () => { try{ await supabase.auth.signOut(); }catch(_){} location.replace("/playbook/ai-avatar/"); });
@@ -374,7 +404,22 @@ function oauthReturnError(){
 }
 
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { showGate(false); }
-else if (!createClient) { showGate(true); } // CDN unreachable: email join still works
+else if (!createClient) {
+  // SDK missed the 6s deadline. Show the gate now with a working email CTA...
+  showGate(true);
+  promoteEmailCta();
+  // ...but if the network was merely slow rather than blocked, let a late arrival
+  // upgrade the page in place, so a signed-in student isn't stuck staring at a join
+  // gate for an account they already have.
+  modPromise.then(async (m) => {
+    if (!$("app").classList.contains("hide")) return;   // already booted
+    try {
+      supabase = m.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) boot(session); else initOAuth();
+    } catch (_) {}
+  }).catch(() => {});
+}
 else {
   supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   let session = null;

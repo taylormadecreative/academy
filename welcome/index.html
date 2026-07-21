@@ -137,7 +137,10 @@
   <p class="ob-sub">Three quick things and you are in. You can change any of this later.</p>
 </div>
 
-<form id="obForm" class="authcard ob-card">
+<!-- onsubmit guard is set at parse time: the real submit handler is not bound until the
+     Supabase module has loaded, and an impatient tap (or the iOS keyboard's Go key) before
+     then would otherwise do a native GET, reload the page and wipe everything typed. -->
+<form id="obForm" class="authcard ob-card" onsubmit="return false">
   <div class="ob-row">
     <span class="ob-num" aria-hidden="true">01</span>
     <div>
@@ -207,26 +210,63 @@
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script src="/js/site.js?v=3b7d540f53"></script>
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Raced dynamic import, same as /login/. This page sits in the middle of the sign-in
+// chain, so a blocked CDN here used to leave a live, submittable onboarding form that
+// could never save.
+let createClient = null;
+try {
+  ({ createClient } = await Promise.race([
+    import("https://esm.sh/@supabase/supabase-js@2"),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("cdn-timeout")), 6000)),
+  ]));
+} catch (_) {}
+
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
 
 // Optional hand-off destination: ?next= from /login/, or the stored copy the
 // login page leaves for the magic-link tab. Same-origin paths only, single use.
+// NEXT_PARAM (vs the stored copy) tells us this hop was genuinely aimed somewhere.
+const NEXT_PARAM = (() => {
+  try { return new URLSearchParams(location.search).get('next') || ''; } catch (_) { return ''; }
+})();
 const NEXT = (() => {
   try {
-    let n = new URLSearchParams(location.search).get('next') || '';
-    if (!n) n = localStorage.getItem('bm_next') || '';
-    localStorage.removeItem('bm_next');
+    let n = NEXT_PARAM;
+    if (!n) {
+      // Stored copy is {p,t}; ignore it after 30 min so an abandoned hand-off cannot
+      // hijack an unrelated signup. A legacy plain string throws here and is dropped.
+      try {
+        const s = JSON.parse(localStorage.getItem('bm_next') || 'null');
+        if (s && s.p && (Date.now() - (s.t || 0)) < 1800000) n = s.p;
+      } catch (_) {}
+    }
     return (n.charAt(0) === '/' && n.charAt(1) !== '/' && n.indexOf('\\') === -1) ? n : '';
   } catch (_) { return ''; }
 })();
 const DEST = NEXT || '/community/';
 
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { location.replace('/login/'); }
-else {
+else if (!createClient) {
+  // CDN blocked/hung: say so instead of leaving a form that silently cannot save.
+  $('obStep').innerHTML = '<h2 class="display-s">This network is blocking sign-up.</h2>' +
+    '<p class="ob-sub">The wi-fi you are on is blocking a file this page needs. Turn wi-fi off, use your cellular data, then reload. Your account is fine.</p>';
+} else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const { data: { session } } = await supabase.auth.getSession();
+
+  // Pin the destination into THIS url so a reload mid-onboarding still lands them where
+  // they were headed (iOS discards backgrounded tabs; people pull-to-refresh).
+  // MUST run after getSession(): the magic link arrives carrying #access_token (or
+  // ?code=), auth-js reads and scrubs that itself at client construction, and rewriting
+  // the URL any earlier destroys the payload and loops the student back to /login/.
+  try {
+    if (NEXT && !NEXT_PARAM) {
+      history.replaceState(null, '', location.pathname + '?next=' + encodeURIComponent(NEXT));
+    }
+    localStorage.removeItem('bm_next');
+  } catch (_) {}
+
   if (!session) { location.replace(NEXT ? '/login/?next=' + encodeURIComponent(NEXT) : '/login/'); }
   else {
     const me = session.user;
@@ -293,8 +333,13 @@ else {
           $('obErr').classList.remove('hide');
           return;
         }
-        // Subscribed! Greet them with Nelson's welcome video, then into the community.
         try { window.fbq && fbq('track', 'CompleteRegistration'); } catch (_) {}
+        // Came here on the way to somewhere specific (a playbook link during a live
+        // workshop)? Send them straight there. The celebration screen autoplays a 10 MB
+        // welcome video UNMUTED, which is the wrong thing to fire on twenty phones in a
+        // virtual session -- and it puts one more tap between them and the follow-along.
+        if (NEXT) { location.replace(DEST); return; }
+        // Otherwise: greet them with Nelson's welcome video, then into the community.
         $('obStep').classList.add('hide');
         $('welcomeDone').classList.remove('hide');
         window.scrollTo(0, 0);
