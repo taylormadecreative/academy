@@ -205,6 +205,8 @@ def render(path, html):
 # Hand-maintained member-area pages the generator must NOT overwrite, but whose shared
 # CSS/JS links still need the cache-busting ?v= stamp. We only rewrite the version query
 # string on the asset links, leaving the rest of each file untouched.
+# NOTE: playbook/ai-avatar is intentionally NOT listed — it is web-only (no PWA/Capacitor
+# head injection) and pins its asset ?v= manually in the page itself.
 APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course")
 _ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
 

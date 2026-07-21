@@ -211,17 +211,29 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
 
+// Optional hand-off destination: ?next= from /login/, or the stored copy the
+// login page leaves for the magic-link tab. Same-origin paths only, single use.
+const NEXT = (() => {
+  try {
+    let n = new URLSearchParams(location.search).get('next') || '';
+    if (!n) n = localStorage.getItem('bm_next') || '';
+    localStorage.removeItem('bm_next');
+    return (n.charAt(0) === '/' && n.charAt(1) !== '/' && n.indexOf('\\') === -1) ? n : '';
+  } catch (_) { return ''; }
+})();
+const DEST = NEXT || '/community/';
+
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { location.replace('/login/'); }
 else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { location.replace('/login/'); }
+  if (!session) { location.replace(NEXT ? '/login/?next=' + encodeURIComponent(NEXT) : '/login/'); }
   else {
     const me = session.user;
     const { data: prof } = await supabase.from('ea_profiles')
       .select('display_name,avatar_url,interests,onboarded_at').eq('user_id', me.id).maybeSingle();
 
-    if (prof && prof.onboarded_at) { location.replace('/community/'); }
+    if (prof && prof.onboarded_at) { location.replace(DEST); }
     else {
       let avatarUrl = (prof && prof.avatar_url) || '';
       const tags = new Set((prof && prof.interests) || []);
@@ -292,7 +304,7 @@ else {
           const pr = v.play();
           if (pr && pr.catch) pr.catch(() => { v.muted = true; v.play().catch(() => {}); });
         } catch (_) {}
-        $('enterBtn').addEventListener('click', () => location.replace('/community/'));
+        $('enterBtn').addEventListener('click', () => location.replace(DEST));
       });
     }
   }

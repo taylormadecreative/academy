@@ -1,0 +1,390 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The AI Avatar Playbook - Taylormade Academy</title>
+<meta name="description" content="The free follow-along playbook from the Da'Sci workshop. Build your own AI avatar in about 15 minutes with free tools.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://academy.taylormadecreative.net/playbook/ai-avatar/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<meta name="theme-color" content="#04123a">
+<!-- asset ver pinned manually; page intentionally outside APP_PAGES (web-only, no PWA) -->
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<style>
+  body{background:var(--bg-soft);}
+  .hide{display:none !important;}
+  .muted{color:var(--muted);}
+
+  /* ---- app bar (same as community) ---- */
+  .appbar{position:sticky;top:0;z-index:60;background:rgba(252,253,255,.86);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(4,18,58,.07);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;}
+  .appbar .who{display:flex;align-items:center;gap:10px;}
+  .appbar .email{font-size:13px;color:var(--muted);max-width:24vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* ---- logged-out gate (same pattern as community) ---- */
+  .gate{max-width:780px;margin:clamp(22px,4.5vw,64px) auto clamp(30px,5vw,72px);padding:0 var(--gut);}
+  .gate-card{position:relative;overflow:hidden;background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(44px,6.5vw,80px) clamp(22px,6vw,76px);text-align:center;}
+  .gate-card::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(200px,46%);height:4px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));}
+  .gate-h{margin-top:18px;}
+  .gate-sub{margin:16px auto 0;color:var(--muted);font-size:clamp(15.5px,1.5vw,17.5px);line-height:1.6;max-width:48ch;}
+  .gate-cta{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:30px;}
+  .gate-fine{margin-top:18px;font-size:13px;color:var(--muted);}
+  #gateNote{margin-top:16px;font-size:14px;}
+
+  /* google button (same look as login) */
+  .oauth-btn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;max-width:340px;
+    font-family:var(--font);font-size:15px;font-weight:600;color:var(--ink);
+    background:#fff;border:1px solid #c9d3e6;border-radius:980px;padding:14px 20px;cursor:pointer;
+    transition:border-color .16s var(--ease),background .16s var(--ease),transform .16s var(--ease);}
+  .oauth-btn:hover{border-color:var(--muted-ink);background:var(--bg-soft);}
+  .oauth-btn:active{transform:scale(.97);}
+  .oauth-btn:disabled{opacity:.6;cursor:default;}
+  .oauth-btn svg{flex:0 0 auto;}
+  .formerr{display:inline-flex;align-items:flex-start;gap:9px;font-size:13.5px;line-height:1.45;font-weight:500;color:#8f3a32;background:#fdf5f4;border:1px solid #f2dcd9;border-radius:12px;padding:10px 14px;margin-top:16px;text-align:left;}
+  .formerr::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#d92d20;margin-top:5px;}
+
+  /* ---- playbook shell ---- */
+  .pbwrap{max-width:840px;margin:0 auto;padding:0 var(--gut);}
+  .pb-hero{padding:clamp(34px,6vw,72px) 0 clamp(22px,3.5vw,40px);}
+  .pb-hero h1{margin-top:16px;max-width:16ch;}
+  .pb-sub{margin-top:18px;color:var(--muted);font-size:clamp(15.5px,1.5vw,17.5px);line-height:1.65;max-width:62ch;}
+  .pb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;}
+  .pb-chips span{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--paper);border:1px solid var(--hair);border-radius:var(--pill);padding:8px 15px;}
+  .pb-chips span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold-deep);flex:0 0 auto;}
+
+  .pb-sec{padding:clamp(26px,4vw,48px) 0;}
+  .pb-sec.line{border-top:1px solid var(--hair);}
+  .pb-sec h2{margin-top:12px;}
+  .pb-lead{margin-top:14px;color:var(--ink-2);font-size:clamp(15px,1.4vw,16.5px);line-height:1.65;max-width:62ch;}
+  .pb-body{margin-top:14px;color:var(--ink-2);font-size:15px;line-height:1.65;max-width:62ch;}
+  .pb-note{margin-top:16px;font-size:14px;color:var(--muted);line-height:1.6;max-width:62ch;}
+  .pb-close{margin-top:20px;font-weight:600;color:var(--ink);font-size:15.5px;line-height:1.6;max-width:58ch;}
+
+  /* path cards (.path-card on purpose: .pcard belongs to build-mode.css store cards) */
+  .paths{display:grid;gap:16px;margin-top:22px;}
+  @media(min-width:820px){.paths{grid-template-columns:1fr 1fr;align-items:start;}}
+  .path-card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:clamp(20px,3vw,28px);}
+  .path-card .plab{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--blue-deep);background:var(--blue-soft);border-radius:var(--pill);padding:5px 12px;}
+  .path-card h3{font-family:var(--display);font-size:clamp(20px,2vw,23px);font-weight:700;letter-spacing:-.018em;color:var(--ink);margin-top:14px;line-height:1.2;}
+  .path-card p{margin-top:12px;font-size:14.5px;line-height:1.65;color:var(--ink-2);max-width:none;}
+  .tips-h{margin-top:16px;font-size:13px;font-weight:700;color:var(--ink);}
+  .tips{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:9px;}
+  .tips li{position:relative;padding-left:20px;font-size:14px;line-height:1.55;color:var(--ink-2);}
+  .tips li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:50%;background:var(--gold-deep);}
+  .path-card .fine{margin-top:16px;font-size:13.5px;color:var(--muted);}
+
+  /* copy blocks */
+  .cpy{background:var(--navy);border-radius:14px;padding:18px;margin-top:16px;}
+  .cpy p{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13.5px;line-height:1.7;color:#dbe4f7;margin:0;max-width:none;overflow-wrap:anywhere;}
+  .cpy button{appearance:none;border:0;cursor:pointer;margin-top:14px;font-family:var(--font);font-weight:700;font-size:13.5px;color:var(--navy);background:var(--gold);border-radius:var(--pill);padding:10px 18px;min-height:44px;transition:transform .16s var(--ease),filter .16s var(--ease);}
+  .cpy button:hover{filter:brightness(1.05);}
+  .cpy button:active{transform:scale(.96);}
+
+  /* callouts */
+  .callout{border:1px solid rgba(242,183,5,.4);background:var(--gold-soft);border-radius:14px;padding:15px 18px;margin-top:16px;}
+  .callout .ck{display:block;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:6px;}
+  .callout p{font-size:14px;line-height:1.6;color:var(--ink-2);margin:0;max-width:none;}
+
+  /* numbered steps */
+  .numsteps{list-style:none;counter-reset:n;margin-top:20px;display:flex;flex-direction:column;gap:15px;}
+  .numsteps li{counter-increment:n;position:relative;padding-left:44px;font-size:15px;line-height:1.6;color:var(--ink-2);max-width:60ch;}
+  .numsteps li::before{content:counter(n);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--navy);color:var(--gold);font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;font-family:var(--display);}
+
+  /* checklist */
+  .checklist{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:13px;}
+  .checklist li{position:relative;padding-left:31px;font-size:15px;line-height:1.6;color:var(--ink-2);max-width:60ch;}
+  .checklist li::before{content:"";position:absolute;left:0;top:3px;width:19px;height:19px;border-radius:50%;background:var(--blue-soft);}
+  .checklist li::after{content:"";position:absolute;left:5px;top:9px;width:8px;height:4px;border-left:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(-45deg);}
+
+  /* closing navy band */
+  .band{position:relative;overflow:hidden;background:radial-gradient(120% 130% at 50% -25%,#0a2160,var(--navy));border-radius:var(--r-lg);padding:clamp(30px,5vw,54px);box-shadow:var(--shadow);margin:clamp(10px,2vw,20px) 0 clamp(40px,6vw,72px);}
+  .band::after{content:"";position:absolute;left:-22%;bottom:-46%;width:80%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,rgba(253,201,33,.13),transparent 70%);pointer-events:none;}
+  .band h2{color:#fff;position:relative;z-index:1;}
+  .band p{color:#b9c6e4;font-size:15px;line-height:1.65;margin-top:14px;max-width:56ch;position:relative;z-index:1;}
+  .band .cta-row{margin-top:24px;position:relative;z-index:1;}
+  .band .btn.fb{background:var(--gold);color:var(--navy);border-color:transparent;}
+  .band .btn.fb:hover{filter:brightness(1.04);}
+  .band .soft{font-size:14px;color:#9fb0d4;}
+  .band .soft a{color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:2px;}
+  /* page-local dark surfaces: blue focus ring is invisible on navy, use gold
+     (mirrors build-mode.css's .on-ink/.site-footer override) */
+  .band :focus-visible,.cpy :focus-visible{outline-color:var(--gold);}
+
+  @media(max-width:680px){
+    .appbar .navlink,.appbar .email{display:none;}
+    .cpy button,.pb-sec .btn{width:100%;justify-content:center;text-align:center;}
+  }
+</style>
+<script src="/js/meta-pixel.js?v=3b7d540f53" defer></script>
+<noscript><style>#gate{display:block!important}#oauth-google{display:none!important}</style></noscript>
+</head><body>
+<header class="appbar"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="who" id="abRight"></div>
+</div></div></header>
+
+<main>
+
+<!-- LOGGED-OUT GATE -->
+<div id="gate" class="gate hide">
+  <div class="gate-card">
+    <span class="tag gold"><span class="dot"></span>Free playbook</span>
+    <h1 class="display-l gate-h">Grab your <span class="u-gold">free</span> playbook</h1>
+    <p class="gate-sub">This is the follow-along guide from the Da'Sci workshop. It's free. You just need an Academy account so we can save your spot in the community.</p>
+    <div class="gate-cta">
+      <button type="button" class="oauth-btn hide" id="oauth-google" data-oauth="google">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.8 2.3-6.3 0-11.6-4-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+        Join free with Google
+      </button>
+      <a class="textlink" id="emailAlt" href="/login/?mode=join&amp;next=%2Fplaybook%2Fai-avatar%2F">Or join with your email instead</a>
+    </div>
+    <p class="gate-fine">Free forever. No card, no catch. You'll land right back on this page.</p>
+    <p class="formerr hide" id="gateErr" role="alert"></p>
+    <p id="gateNote" class="muted hide"></p>
+  </div>
+</div>
+
+<!-- APP: THE PLAYBOOK -->
+<div id="app" class="hide">
+
+  <header class="pb-hero"><div class="pbwrap">
+    <span class="kicker gold">Free playbook &middot; PFx workshop</span>
+    <h1 class="display-l">Build your own <span class="u-gold">AI avatar</span> in about 15 minutes</h1>
+    <p class="pb-sub">This is the exact follow-along from the workshop: the same simplified pipeline behind Da'Sci, the AI avatar host built for the AUC Data Challenge Finale, wearing patches for all 24 HBCUs in the consortium. You'll design a character, make it talk on video, and show it off. Every tool here is free, and you don't need any AI experience. Just curiosity.</p>
+    <div class="pb-chips"><span>About 10&ndash;15 minutes</span><span>100% free tools</span><span>No experience needed</span></div>
+  </div></header>
+
+  <!-- WHAT YOU'LL NEED -->
+  <section class="pb-sec"><div class="pbwrap">
+    <h2 class="display-m">What you'll need</h2>
+    <p class="pb-lead">Three things, and you probably have all of them already.</p>
+    <div class="pb-chips">
+      <span>A phone or laptop</span>
+      <span>10&ndash;15 minutes</span>
+      <span>A free HeyGen account (no card)</span>
+      <span>A selfie or an imagination, your pick</span>
+    </div>
+  </div></section>
+
+  <!-- STEP 1 -->
+  <section class="pb-sec line"><div class="pbwrap">
+    <span class="kicker gold">Step 1</span>
+    <h2 class="display-m">Pick your path</h2>
+    <p class="pb-lead">Every avatar starts with a face. You've got two ways to get one: clone yourself, or invent someone new. There's no wrong answer. Pick whichever sounds more fun and go.</p>
+
+    <div class="paths">
+      <div class="path-card">
+        <span class="plab">Path A</span>
+        <h3>Clone yourself</h3>
+        <p>The fastest route. Take one clear selfie and HeyGen will turn it into a talking photo avatar of you. Want the full clone, one that moves and sounds like you? Record a short video of yourself instead and use HeyGen's <i>Clone a real person</i> option. The free plan includes one custom digital twin, so this is genuinely doable today.</p>
+        <p class="tips-h">Make your selfie (or footage) count:</p>
+        <ul class="tips">
+          <li><b>Good light.</b> Face a window or lamp. No shadows across your face.</li>
+          <li><b>Look straight at the camera.</b> Head-on beats an angle here.</li>
+          <li><b>Plain background.</b> A blank wall keeps the AI focused on you.</li>
+        </ul>
+        <p class="fine">Got your selfie? Skip straight to Step 2.</p>
+      </div>
+
+      <div class="path-card">
+        <span class="plab">Path B</span>
+        <h3>Design an original character</h3>
+        <p>This is how Da'Sci was made: a character built from scratch, with a name, a look, and a personality chosen on purpose. Open <a class="textlink" href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a> (free account, no card required) or <a class="textlink" href="https://www.meta.ai/" target="_blank" rel="noopener">Meta AI</a> and use this starter prompt, filling in your own details:</p>
+        <div class="cpy">
+          <p id="promptText">"Create an image of an original AI avatar character. Name: [your avatar's name]. Role/vibe: [mentor, mascot, guide, host, etc.]. Style: [realistic / illustrated / anime / stylized]. Key visual details: [hair, clothing, colors, accessories]. Personality shown through expression and pose: [confident, friendly, energetic, calm, etc.]."</p>
+          <button type="button" data-copy="promptText">Copy prompt</button>
+        </div>
+        <div class="callout">
+          <span class="ck">Heads up</span>
+          <p>Free ChatGPT accounts get roughly 2&ndash;3 image generations per day, so make each one count. Fill in every blank before you hit send.</p>
+        </div>
+        <p>If the first result isn't quite right, iterate once or twice. Tweak the details and run it again. That's exactly how Da'Sci's look came together. It wasn't a one-shot; it was refined until it felt right.</p>
+      </div>
+    </div>
+
+    <p class="pb-close">Save your final image. That's your avatar's face. You'll need it in the next step.</p>
+  </div></section>
+
+  <!-- STEP 2 -->
+  <section class="pb-sec line"><div class="pbwrap">
+    <span class="kicker gold">Step 2</span>
+    <h2 class="display-m">Bring it to life in HeyGen</h2>
+    <p class="pb-lead">Now your avatar learns to talk. HeyGen takes a single image, your selfie or your character, and turns it into a speaking, moving video. Free plan, no credit card.</p>
+
+    <ol class="numsteps">
+      <li><b>Sign up free at <a class="textlink" href="https://www.heygen.com/" target="_blank" rel="noopener">heygen.com</a>.</b> No card needed.</li>
+      <li><b>Create your avatar from your image.</b> Choose <i>Photo to Video</i> on the home screen, or Avatars &rarr; <i>Create a virtual character</i>, and upload the face from Step 1. (Cloning yourself from footage? Use Avatars &rarr; <i>Clone a real person</i> instead.)</li>
+      <li><b>Give it something to say.</b> Type a short script (a few sentences is plenty) or record your own voice.</li>
+      <li><b>Pick a voice</b> if you're using text-to-speech. This is a personality choice, not a throwaway. Da'Sci's voice was picked for warmth and big-sister energy, not a generic robot read. Choose one that fits who your avatar is.</li>
+      <li><b>Generate,</b> then <b>download your clip</b> once it's ready.</li>
+    </ol>
+
+    <p class="pb-body"><b>Stuck on what to say? Start here:</b></p>
+    <div class="cpy" style="max-width:560px">
+      <p id="scriptText">"Hi, I'm [your avatar's name]. I was made with AI in about ten minutes, and so can you."</p>
+      <button type="button" data-copy="scriptText">Copy script</button>
+    </div>
+
+    <div class="callout" style="max-width:560px">
+      <span class="ck">Straight talk on the free plan</span>
+      <p>HeyGen's free tier gives you up to 3 videos per month, 1 minute max per video, at standard quality with a HeyGen watermark. It also includes one custom digital twin of you. Real limits, but plenty to build your first talking avatar. Just don't burn a render on a test you don't care about.</p>
+    </div>
+  </div></section>
+
+  <!-- STEP 3 -->
+  <section class="pb-sec line"><div class="pbwrap">
+    <span class="kicker gold">Step 3</span>
+    <h2 class="display-m">Show it off</h2>
+    <p class="pb-lead">You just did the thing. An avatar sitting in your downloads folder is cool, but an avatar out in the world is better. Two places to post it, and yes, do both:</p>
+
+    <ul class="checklist">
+      <li><b>Post it in the <a class="textlink" href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook AI group</a>.</b> That's where workshop folks are sharing theirs. Drop your clip, see what everybody else built, and steal a few ideas for your next one.</li>
+      <li><b>Drop it in the Academy community feed.</b> You're already signed in. Post your avatar right here so the Academy crew can see it too.</li>
+    </ul>
+
+    <div class="cta-row" style="margin-top:22px">
+      <a class="btn gold" href="/community/">Post in the community <span class="arr">&rarr;</span></a>
+    </div>
+
+    <p class="pb-body" style="margin-top:24px">Here's the part worth sitting with: you just walked a simplified version of the exact process behind Da'Sci: an AI avatar that hosted a real, live, three-day event in front of hundreds of people. Same pipeline. Same tools. Your name on it.</p>
+  </div></section>
+
+  <!-- CLOSING CTA BAND -->
+  <section class="pb-sec"><div class="pbwrap">
+    <div class="band">
+      <h2 class="display-m">Keep the momentum</h2>
+      <p>The Facebook AI group is where this keeps going: avatar shares, new tool drops, and questions answered by people actually building with this stuff.</p>
+      <div class="cta-row">
+        <a class="btn fb" href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Join the Facebook group <span class="arr">&rarr;</span></a>
+      </div>
+      <p class="soft">And when you're ready to build more, the Academy community is right here: same login, new skills, no pressure. <a href="/community/">Explore the community</a></p>
+    </div>
+  </div></section>
+
+</div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+// Dynamic import so a blocked/slow CDN (venue wifi content filters) can't kill
+// the whole module and leave the page blank; the gate still renders either way.
+let createClient = null;
+try { ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2")); } catch (_) {}
+
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+function show(el){ if(el) el.classList.remove("hide"); }
+function hide(el){ if(el) el.classList.add("hide"); }
+function toast(m){ const t=$("toast"); if(!t) return; t.textContent=m; t.classList.add("show"); clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.classList.remove("show"),3200); }
+function setErr(msg){ const n=$("gateErr"); if(!msg){ hide(n); n.textContent=""; return; } n.textContent=msg; show(n); }
+
+// This page's own absolute URL: OAuth returns straight here (no /welcome/ detour).
+const PAGE_URL = "https://academy.taylormadecreative.net/playbook/ai-avatar/";
+
+let supabase = null;
+
+function showGate(loggedOut){
+  show($("gate"));
+  $("abRight").innerHTML = loggedOut
+    ? '<a class="navlink" href="/store/">Courses</a><a class="btn gold sm" href="/login/?mode=join&next=%2Fplaybook%2Fai-avatar%2F">Join free</a>'
+    : '<a class="navlink" href="/">Home</a>';
+  if(!loggedOut){ const n=$("gateNote"); n.textContent="Accounts open soon. Check back in a bit."; show(n); }
+}
+
+// Google button renders only if the provider is actually enabled in Supabase
+// (same /auth/v1/settings check as the login page), and never in the native app.
+async function initOAuth(){
+  const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (isNative) return;
+  try {
+    const r = await fetch(CFG.SUPABASE_URL + "/auth/v1/settings", { headers: { apikey: CFG.SUPABASE_KEY } });
+    const st = r.ok ? await r.json() : null;
+    if (st && st.external && st.external.google) {
+      const b = $("oauth-google");
+      show(b);
+      b.addEventListener("click", async () => {
+        b.disabled = true;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: b.getAttribute("data-oauth"),
+          options: { redirectTo: PAGE_URL }
+        });
+        if (error) {
+          b.disabled = false;
+          setErr("Could not start Google sign-in. Use the email link below instead. It works the same.");
+        }
+      });
+    } else {
+      // No Google yet: promote the email fallback to the primary button.
+      const a = $("emailAlt");
+      a.className = "btn gold";
+      a.innerHTML = 'Join free with your email <span class="arr">&rarr;</span>';
+    }
+  } catch (_) {
+    const a = $("emailAlt");
+    a.className = "btn gold";
+    a.innerHTML = 'Join free with your email <span class="arr">&rarr;</span>';
+  }
+}
+
+function bindCopy(){
+  document.querySelectorAll("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const src = $(btn.getAttribute("data-copy"));
+      const text = src ? src.textContent.trim() : "";
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => toast("Copied. Paste it in."), () => fallbackCopy(text));
+      } else { fallbackCopy(text); }
+    });
+  });
+  function fallbackCopy(text){
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly",""); ta.style.position = "fixed"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+      toast("Copied. Paste it in.");
+    } catch (_) { toast("Press and hold the text to copy it."); }
+  }
+}
+
+function boot(session){
+  $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Dashboard</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
+  $("ue").textContent = session.user.email || "";
+  $("so").addEventListener("click", async () => { try{ await supabase.auth.signOut(); }catch(_){} location.replace("/playbook/ai-avatar/"); });
+  show($("app"));
+  bindCopy();
+  // OAuth returns are implicit-flow (#access_token in the hash) and auth-js
+  // scrubs that itself; this is just a belt-and-braces strip of any stray query.
+  try { if (location.search) history.replaceState(null, "", location.pathname); } catch (_) {}
+}
+
+// Cancelled/failed OAuth comes back as #error=...&error_description=... and
+// auth-js only cleans the URL on success; read it, surface it, scrub it.
+function oauthReturnError(){
+  try {
+    const h = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    const msg = h.get("error_description") || h.get("error");
+    if (msg) { history.replaceState(null, "", location.pathname); return msg; }
+  } catch (_) {}
+  return null;
+}
+
+if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { showGate(false); }
+else if (!createClient) { showGate(true); } // CDN unreachable: email join still works
+else {
+  supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+  let session = null;
+  try { ({ data: { session } } = await supabase.auth.getSession()); } catch (_) {}
+  if (!session) {
+    showGate(true);
+    if (oauthReturnError()) setErr("Google sign-in was cancelled or did not finish. Try again, or use the email link below.");
+    initOAuth();
+  }
+  else { boot(session); }
+}
+</script>
+</body></html>
