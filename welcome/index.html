@@ -249,7 +249,7 @@ const DEST = NEXT || '/community/';
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { location.replace('/login/'); }
 else if (!createClient) {
   // CDN blocked/hung: say so instead of leaving a form that silently cannot save.
-  $('obStep').innerHTML = '<h2 class="display-s">This network is blocking sign-up.</h2>' +
+  $('obStep').innerHTML = '<h2 class="display-m">This network is blocking sign-up.</h2>' +
     '<p class="ob-sub">The wi-fi you are on is blocking a file this page needs. Turn wi-fi off, use your cellular data, then reload. Your account is fine.</p>';
 } else {
   const supabase = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);

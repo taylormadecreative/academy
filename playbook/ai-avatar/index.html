@@ -58,6 +58,16 @@
   .pb-chips span{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--paper);border:1px solid var(--hair);border-radius:var(--pill);padding:8px 15px;}
   .pb-chips span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold-deep);flex:0 0 auto;}
 
+  /* One step down from .display-m, which the shared scale stops at. Page-local on
+     purpose -- the design system only ships xl/l/m. */
+  .display-s{font-family:var(--display);font-size:clamp(21px,2.4vw,28px);line-height:1.12;font-weight:700;letter-spacing:-.02em;color:var(--ink);}
+  /* Sub-block inside a step (reference board, realism) -- indented off the step with a
+     gold hairline so it reads as part of Step 1, not a new step.
+     NOT .pb-sub: that name is already taken by the hero subtitle above. */
+  .pb-block{margin-top:clamp(26px,4vw,42px);padding-left:clamp(14px,2.2vw,22px);border-left:3px solid var(--gold);}
+  .pb-block .kicker{margin-bottom:10px;}
+  .pb-block .display-s{margin-bottom:4px;}
+
   .pb-sec{padding:clamp(26px,4vw,48px) 0;}
   .pb-sec.line{border-top:1px solid var(--hair);}
   .pb-sec h2{margin-top:12px;}
@@ -199,17 +209,50 @@
       <div class="path-card">
         <span class="plab">Path B</span>
         <h3>Design an original character</h3>
-        <p>This is how Da'Sci was made: a character built from scratch, with a name, a look, and a personality chosen on purpose. Open <a class="textlink" href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a> (free account, no card required) or <a class="textlink" href="https://www.meta.ai/" target="_blank" rel="noopener">Meta AI</a> and use this starter prompt, filling in your own details:</p>
-        <div class="cpy">
-          <p id="promptText">"Create an image of an original AI avatar character. Name: [your avatar's name]. Role/vibe: [mentor, mascot, guide, host, etc.]. Style: [realistic / illustrated / anime / stylized]. Key visual details: [hair, clothing, colors, accessories]. Personality shown through expression and pose: [confident, friendly, energetic, calm, etc.]."</p>
-          <button type="button" data-copy="promptText">Copy prompt</button>
-        </div>
-        <div class="callout">
-          <span class="ck">Heads up</span>
-          <p>Free ChatGPT accounts get roughly 2&ndash;3 image generations per day, so make each one count. Fill in every blank before you hit send.</p>
-        </div>
-        <p>If the first result isn't quite right, iterate once or twice. Tweak the details and run it again. That's exactly how Da'Sci's look came together. It wasn't a one-shot; it was refined until it felt right.</p>
+        <p>This is how Da'Sci was made: a character built on purpose, with a name, a look, and a point of view. Not typed out and accepted &mdash; <b>styled</b>. You're about to do the same thing, and it starts with pulling references.</p>
+        <p class="fine">Go build your reference board below, then come back and generate.</p>
       </div>
+    </div>
+
+    <!-- REFERENCE BOARD -->
+    <div class="pb-block">
+      <span class="kicker gold">The part that makes it yours</span>
+      <h3 class="display-s">Go shopping for your avatar first</h3>
+      <p class="pb-lead">Here's the move most people skip: <b>don't describe a look, show one.</b> Open some tabs and actually pull pictures of the things you want your character wearing. Then hand those images to the AI along with your prompt. Describing "a cool jacket" gets you the AI's idea of a cool jacket. Handing it <i>the</i> jacket gets you yours.</p>
+      <p class="pb-body">Da'Sci wasn't styled from a sentence. Every piece was chosen &mdash; right down to the patches for all 24 HBCUs in the consortium sitting on her jacket. That level of detail only happens when you bring references.</p>
+
+      <p class="tips-h">Open a few tabs and save what you like:</p>
+      <ul class="tips">
+        <li><b>Clothes.</b> <a class="textlink" href="https://www.fashionnova.com/" target="_blank" rel="noopener">Fashion Nova</a>, <a class="textlink" href="https://www.gucci.com/" target="_blank" rel="noopener">Gucci</a>, <a class="textlink" href="https://www.pinterest.com/" target="_blank" rel="noopener">Pinterest</a> &mdash; wherever you'd actually shop. A varsity jacket, a fit you saw and loved, streetwear, all-black everything.</li>
+        <li><b>Accessories.</b> Sunglasses, hats, chains, hoops, rings, a watch. This is where a character stops looking generic.</li>
+        <li><b>Hair.</b> Go look up real styles: locs, knotless braids, a fade with a part, a silk press, finger waves, a curly fro, bantu knots. Save the exact one.</li>
+        <li><b>Vibe.</b> Lighting, background, color palette. A photo whose <i>mood</i> is what you're after counts as a reference too.</li>
+      </ul>
+
+      <p class="pb-body"><b>Now hand them over.</b> In ChatGPT, attach your saved images to the message, then paste this underneath:</p>
+      <div class="cpy">
+        <p id="promptText">"Use the images I've attached as visual references. Create an original AI avatar character. Name: [your avatar's name]. Role/vibe: [mentor, mascot, guide, host, etc.]. Style: [photorealistic / illustrated / anime / stylized]. Hair: [match the hairstyle in the reference image]. Outfit: [describe which reference to pull the clothing from]. Accessories: [sunglasses, hat, jewelry, whatever you saved]. Personality shown through expression and pose: [confident, friendly, energetic, calm]. Head and shoulders, facing the camera, clean background."</p>
+        <button type="button" data-copy="promptText">Copy prompt</button>
+      </div>
+      <p class="pb-note">No reference images handy? It still works &mdash; just describe the pieces in plain words. References make it sharper, they aren't a requirement.</p>
+    </div>
+
+    <!-- REALISM -->
+    <div class="pb-block">
+      <span class="kicker gold">The pro move</span>
+      <h3 class="display-s">Ask for skin that isn't perfect</h3>
+      <p class="pb-lead">AI defaults to airbrushed. Poreless, symmetrical, plastic &mdash; and your eye clocks it as fake instantly, even if you can't say why. The single fastest way to make a character read as a real person is to <b>ask for the imperfections on purpose.</b></p>
+      <p class="pb-body">Add a line like this to your prompt:</p>
+      <div class="cpy">
+        <p id="realismText">"Ultra realistic skin. Natural skin texture with visible pores, not airbrushed or smooth. Add freckles across the nose and cheeks, a few small blemishes, and a birthmark. Slight asymmetry in the face. Realistic flyaway hairs. Natural, uneven lighting."</p>
+        <button type="button" data-copy="realismText">Copy realism add-on</button>
+      </div>
+      <p class="pb-body">Run it once without that line and once with it, and put them side by side. The difference is not subtle &mdash; and once you've seen it, you'll never look at an AI portrait the same way again.</p>
+      <div class="callout">
+        <span class="ck">Heads up</span>
+        <p>Free ChatGPT accounts get roughly 2&ndash;3 image generations per day, so make each one count. Pull your references and fill in every blank <i>before</i> you hit send.</p>
+      </div>
+      <p class="pb-body">If the first result isn't right, change one thing and run it again. That's exactly how Da'Sci came together &mdash; not a one-shot, refined until it felt right.</p>
     </div>
 
     <p class="pb-close">Save your final image. That's your avatar's face. You'll need it in the next step.</p>
@@ -249,11 +292,11 @@
 
     <ul class="checklist">
       <li><b>Post it in the <a class="textlink" href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook AI group</a>.</b> That's where workshop folks are sharing theirs. Drop your clip, see what everybody else built, and steal a few ideas for your next one.</li>
-      <li><b>Introduce yourself in the Academy community feed.</b> You're already signed in. Tell everybody who your avatar is, what you named it, and what you'd build next.</li>
+      <li><b>Post it in the Academy community feed.</b> You're already signed in &mdash; hit <i>Add image</i>, drop your avatar in, and tell everybody who they're looking at. Name, vibe, where you pulled the fit from.</li>
     </ul>
 
     <div class="cta-row" style="margin-top:22px">
-      <a class="btn gold" href="/community/">Say hey in the community <span class="arr">&rarr;</span></a>
+      <a class="btn gold" href="/community/">Post your avatar in the community <span class="arr">&rarr;</span></a>
     </div>
 
     <p class="pb-body" style="margin-top:24px">Here's the part worth sitting with: you just walked a simplified version of the exact process behind Da'Sci: an AI avatar that hosted a real, live, three-day event in front of hundreds of people. Same pipeline. Same tools. Your name on it.</p>

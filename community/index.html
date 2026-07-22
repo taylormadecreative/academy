@@ -85,6 +85,16 @@
   .composer textarea:focus{background:#fff;border-color:var(--hair);}
   .composer textarea:focus-visible{border-radius:14px;}
   .composer .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;}
+  /* attached-image preview (avatar shares) */
+  .attach-prev{position:relative;margin-top:12px;max-width:260px;}
+  .attach-prev img,.attach-prev video{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--hair);background:var(--navy);}
+  /* .btn.gold sets its colours by class, which beats the UA disabled style -- without
+     this an in-flight upload looks exactly like an idle button. */
+  .composer .btn:disabled{opacity:.62;cursor:default;}
+  .attach-x{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;border-radius:50%;cursor:pointer;
+    background:rgba(4,18,58,.72);color:#fff;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .attach-x:hover{background:rgba(4,18,58,.88);}
+  #attachBtn{margin-left:auto;}
   .composer .btn{padding:11px 22px;}
   select.sel{appearance:none;-webkit-appearance:none;font-family:var(--font);font-size:13.5px;font-weight:600;padding:10px 34px 10px 16px;border:1px solid var(--hair);border-radius:var(--pill);color:var(--ink);cursor:pointer;background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235d6b84' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 15px center/10px auto;transition:border-color .16s var(--ease);}
   select.sel:hover{border-color:var(--muted-ink);}
@@ -299,11 +309,18 @@
       <div class="card composer">
         <div class="top"><span id="meAva"></span>
         <textarea id="postBody" maxlength="4000" aria-label="Write a post" placeholder="What's on your mind? Share a win, ask a question, or drop a resource..."></textarea></div>
+        <div id="attachPrev" class="attach-prev hide">
+          <img id="attachImg" class="hide" alt="Attached image preview">
+          <video id="attachVid" class="hide" playsinline controls preload="metadata"></video>
+          <button type="button" class="attach-x" id="attachClear" aria-label="Remove attachment">&times;</button>
+        </div>
         <div class="row">
           <select class="sel" id="postChannel" aria-label="Channel">
             <option value="general">General</option><option value="design">Graphic Design</option>
             <option value="photo">Photography</option><option value="video">Video</option><option value="ai">AI</option>
           </select>
+          <input id="attachFile" type="file" accept="image/png,image/jpeg,image/webp,video/mp4,video/quicktime" class="hide">
+          <button type="button" class="btn ghost" id="attachBtn">Add photo or video</button>
           <button class="btn gold" id="postBtn">Post <span class="arr">&rarr;</span></button>
         </div>
       </div>
@@ -500,13 +517,77 @@ async function loadFeed(){
   $("feedEmpty").classList.toggle("hide", list.length>0);
   box.innerHTML = list.map(postHTML).join("");
 }
+// ---- photo / video attach (avatar shares) ---------------------------------------
+// Uploads land in the ea-avatars bucket, which already carries a per-user write policy
+// ({uid}/... = auth.uid()) and declares no mime or size restriction. Distinct filename
+// per post so this never overwrites the profile photo at {uid}/avatar.ext.
+// The feed already renders media_type 'video' as a <video> element.
+const ATTACH_IMG = /^image\/(png|jpe?g|webp)$/;
+const ATTACH_VID = /^video\/(mp4|quicktime)$/;
+const IMG_MAX = 8 * 1024 * 1024;
+const VID_MAX = 50 * 1024 * 1024;   // a 1-min HeyGen clip is well under this
+let attachFileSel = null, attachObjUrl = null;
+
+function clearAttach(){
+  attachFileSel = null;
+  if(attachObjUrl){ try{ URL.revokeObjectURL(attachObjUrl); }catch(_){} attachObjUrl = null; }
+  $("attachFile").value = "";
+  $("attachImg").removeAttribute("src"); $("attachImg").classList.add("hide");
+  $("attachVid").removeAttribute("src"); $("attachVid").classList.add("hide");
+  $("attachPrev").classList.add("hide");
+}
+function bindAttach(){
+  $("attachBtn").addEventListener("click", ()=> $("attachFile").click());
+  $("attachClear").addEventListener("click", clearAttach);
+  $("attachFile").addEventListener("change", ()=>{
+    const f = $("attachFile").files && $("attachFile").files[0];
+    if(!f) return;
+    const isImg = ATTACH_IMG.test(f.type), isVid = ATTACH_VID.test(f.type);
+    if(!isImg && !isVid){ toast("Use a PNG, JPG, WebP, or an MP4 video."); clearAttach(); return; }
+    if(isImg && f.size > IMG_MAX){ toast("Image must be under 8 MB."); clearAttach(); return; }
+    if(isVid && f.size > VID_MAX){ toast("Video must be under 50 MB."); clearAttach(); return; }
+    clearAttach();
+    attachFileSel = f;
+    attachObjUrl = URL.createObjectURL(f);
+    const el = isVid ? $("attachVid") : $("attachImg");
+    el.src = attachObjUrl; el.classList.remove("hide");
+    $("attachPrev").classList.remove("hide");
+  });
+}
+
+const EXT_BY_TYPE = { "image/png":"png", "image/webp":"webp", "image/jpeg":"jpg",
+                      "video/mp4":"mp4", "video/quicktime":"mov" };
+
 async function createPost(){
-  const body=$("postBody").value.trim(); if(!body) return;
-  $("postBtn").disabled=true;
-  const { error } = await supabase.from("ea_posts").insert({ author_id:me.id, channel:$("postChannel").value, body });
-  $("postBtn").disabled=false;
+  const body=$("postBody").value.trim();
+  if(!body && !attachFileSel) return;            // allow a media-only post
+  const pb=$("postBtn"), label=pb.innerHTML;
+  // A 50 MB clip on venue wifi takes real time, and a disabled .btn.gold looks identical
+  // to an enabled one -- without a label change people tap twice or reload mid-upload.
+  pb.disabled=true;
+  if(attachFileSel) pb.textContent = "Uploading...";
+  const done = () => { pb.disabled=false; pb.innerHTML=label; };
+
+  let media_url=null, media_type=null;
+  if(attachFileSel){
+    try{
+      const ext = EXT_BY_TYPE[attachFileSel.type] || "bin";
+      const path = me.id + "/posts/" + Date.now() + "." + ext;
+      const up = await supabase.storage.from("ea-avatars").upload(path, attachFileSel, { contentType: attachFileSel.type });
+      if(up.error) throw up.error;
+      media_url = supabase.storage.from("ea-avatars").getPublicUrl(path).data.publicUrl;
+      media_type = ATTACH_VID.test(attachFileSel.type) ? "video" : "image";
+    }catch(_){
+      done(); toast("Could not upload that file. Check your connection and try again."); return;
+    }
+    pb.textContent = "Posting...";
+  }
+  const row = { author_id:me.id, channel:$("postChannel").value, body };
+  if(media_url){ row.media_url=media_url; row.media_type=media_type; }
+  const { error } = await supabase.from("ea_posts").insert(row);
+  done();
   if(error){ toast("Could not post. Try again."); return; }
-  $("postBody").value=""; toast("Posted."); loadFeed(); loadLeaderboard();
+  $("postBody").value=""; clearAttach(); toast("Posted."); loadFeed(); loadLeaderboard();
 }
 async function toggleLike(btn){
   const id=btn.dataset.like, on=btn.classList.contains("on");
@@ -637,6 +718,7 @@ function bindUI(){
   $("lnav").addEventListener("click", e=>{ const b=e.target.closest("[data-view]"); if(b) setView(b.dataset.view); });
   document.querySelector(".comm").addEventListener("click", e=>{ const g=e.target.closest("[data-go]"); if(g) setView(g.dataset.go); });
   $("postBtn").addEventListener("click", createPost);
+  bindAttach();
   $("chips").addEventListener("click", e=>{ const c=e.target.closest("[data-ch]"); if(!c) return;
     curChannel=c.dataset.ch; document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===c)); loadFeed(); });
   $("chanList").addEventListener("click", e=>{ const c=e.target.closest("[data-gochan]"); if(!c) return;
