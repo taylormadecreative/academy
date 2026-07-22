@@ -160,8 +160,8 @@
     <span class="ob-num" aria-hidden="true">02</span>
     <div>
       <label class="ob-t" for="dn">Display name</label>
-      <p class="ob-s">This is how you show up in the community.</p>
-      <input id="dn" class="tin" type="text" maxlength="40" placeholder="Your name" required>
+      <p class="ob-s" id="dnHint">This is how you show up in the community.</p>
+      <input id="dn" class="tin" type="text" maxlength="40" placeholder="Your first name" required>
     </div>
   </div>
   <div class="ob-row">
@@ -273,19 +273,33 @@ else if (!createClient) {
     const { data: prof } = await supabase.from('ea_profiles')
       .select('display_name,avatar_url,interests,onboarded_at').eq('user_id', me.id).maybeSingle();
 
-    if (prof && prof.onboarded_at) { location.replace(DEST); }
+    // Google hands us the member's real name. Prefer it over a saved display_name that
+    // is merely the email handle, because community's ensureProfile() auto-creates rows
+    // with display_name = the local-part -- a placeholder nobody chose. Without this,
+    // a Google member who taps straight through is saved as "jwashington24" forever.
+    const meta = me.user_metadata || {};
+    const emailHandle = (me.email || '').split('@')[0];
+    const savedName = ((prof && prof.display_name) || '').trim();
+    const googleName = (meta.full_name || meta.name || '').trim();
+    const namedProperly = !!savedName && savedName !== emailHandle;
+
+    // Onboarded but still carrying the placeholder name? Show the form (prefilled with
+    // the real name) rather than bouncing back -- the playbook sends those members here
+    // precisely so they can fix it, and replacing straight to DEST would ping-pong.
+    if (prof && prof.onboarded_at && namedProperly) { location.replace(DEST); }
     else {
       let avatarUrl = (prof && prof.avatar_url) || '';
       const tags = new Set((prof && prof.interests) || []);
-      // Google hands us the member's real name -- use it before falling back to the
-      // email handle, so someone who signs in with Google and taps straight through
-      // ends up as "Jasmine Washington" rather than "jwashington24".
-      const meta = me.user_metadata || {};
-      let currentName = (prof && prof.display_name)
-        || (meta.full_name || meta.name || '').trim()
-        || (me.email || '').split('@')[0] || '';
+      // Deliberately NOT falling back to emailHandle. Seeding the box with the very
+      // placeholder we just rejected means the obvious action -- tap the gold button --
+      // re-saves "jwashington24" and nothing changes. Left empty, the placeholder text
+      // plus `required` plus the >=2 length guard make them actually choose a name.
+      let currentName = (namedProperly ? savedName : '') || googleName || '';
 
       $('dn').value = currentName;
+      if (!currentName) {
+        $('dnHint').textContent = 'All we have so far is your email address. What should we call you?';
+      }
 
       // Initial avatar preview — wrapper+innerHTML approach (no .replace duplicate-style hack)
       $('avaPreview').innerHTML = BM.avatarHtml(currentName, avatarUrl, '');

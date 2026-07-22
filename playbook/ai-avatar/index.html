@@ -409,12 +409,26 @@ async function boot(session){
     if (r.error) profFailed = true; else prof = r.data;
   } catch (_) { profFailed = true; }
 
+  const emailHandle = (session.user.email || "").split("@")[0];
+  const savedName = ((prof && prof.display_name) || "").trim();
+
+  // HARD requirement: no row, never onboarded, or no name at all -> always send them.
+  const needsProfile = !prof || !prof.onboarded_at || !savedName;
+  // SOFT nudge: the name is community's ensureProfile() placeholder (the email handle),
+  // which nobody chose. Worth one ask -- but only ONE, ever. Keyed to the user id in
+  // localStorage rather than sessionStorage, because a per-render latch would re-detour
+  // them on every new tab for as long as they keep the handle.
+  const placeholderName = !needsProfile && savedName === emailHandle;
+  let alreadyAsked = false;
+  try { alreadyAsked = localStorage.getItem("bm_name_asked") === session.user.id; } catch (_) {}
+
   // Fail OPEN on a failed lookup: showing the playbook to someone who already onboarded
   // is harmless, whereas bouncing on a bad round-trip could ping-pong with /welcome/.
   // The sessionStorage flag caps it at a single bounce either way.
-  if (!profFailed && (!prof || !prof.onboarded_at)) {
+  if (!profFailed && (needsProfile || (placeholderName && !alreadyAsked))) {
     let bounced = false;
     try { bounced = sessionStorage.getItem("pb_ob") === "1"; sessionStorage.setItem("pb_ob", "1"); } catch (_) {}
+    try { localStorage.setItem("bm_name_asked", session.user.id); } catch (_) {}
     // Same-origin navigation, so ?next= here is unrelated to the Supabase allow-list.
     if (!bounced) { clearTimeout(window.__pbWatchdog); location.replace("/welcome/?next=%2Fplaybook%2Fai-avatar%2F"); return; }
   }
@@ -424,8 +438,7 @@ async function boot(session){
   clearTimeout(window.__pbWatchdog);
   hide($("gate"));  // the fail-open watchdog may have already revealed it
   $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Dashboard</a><span class="who-name" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
-  const dn = ((prof && prof.display_name) || "").trim();
-  $("ue").textContent = dn ? dn.split(/\s+/)[0] : ((session.user.email || "").split("@")[0] || "there");
+  $("ue").textContent = savedName ? savedName.split(/\s+/)[0] : (emailHandle || "there");
   $("so").addEventListener("click", async () => { try{ await supabase.auth.signOut(); }catch(_){} location.replace("/playbook/ai-avatar/"); });
   show($("app"));
   bindCopy();
