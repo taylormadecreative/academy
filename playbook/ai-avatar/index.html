@@ -23,6 +23,9 @@
   .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;}
   .appbar .who{display:flex;align-items:center;gap:10px;}
   .appbar .email{font-size:13px;color:var(--muted);max-width:24vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Signed-in member's FIRST NAME (not their email). Short enough to keep on phones,
+     where it also stops "Sign out" from being the only thing next to the logo. */
+  .appbar .who-name{font-size:14px;font-weight:600;color:var(--ink-2);max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* ---- logged-out gate (same pattern as community) ---- */
   .gate{max-width:780px;margin:clamp(22px,4.5vw,64px) auto clamp(30px,5vw,72px);padding:0 var(--gut);}
@@ -115,6 +118,10 @@
 
   @media(max-width:680px){
     .appbar .navlink,.appbar .email{display:none;}
+    /* Drop the wordmark on phones: logo + a long first name + "Sign out" otherwise
+       overflows and forces the page to scroll sideways. */
+    .appbar .brand .mark{display:none;}
+    .appbar .who-name{font-size:13px;}
     .cpy button,.pb-sec .btn{width:100%;justify-content:center;text-align:center;}
   }
 </style>
@@ -141,7 +148,7 @@
       </button>
       <a class="textlink" id="emailAlt" href="/login/?mode=join&amp;next=%2Fplaybook%2Fai-avatar%2F">Or join with your email instead</a>
     </div>
-    <p class="gate-fine">Free forever. No card, no catch. You'll land right back on this page.</p>
+    <p class="gate-fine">Free forever. No card, no catch. Set up a quick profile and you're straight into the playbook.</p>
     <p class="formerr hide" id="gateErr" role="alert"></p>
     <p id="gateNote" class="muted hide"></p>
   </div>
@@ -379,11 +386,46 @@ function bindCopy(){
   }
 }
 
-function boot(session){
+async function boot(session){
+  // NOTE: the watchdog is deliberately NOT cleared here. It is the only thing that can
+  // reveal the page if the await below stalls, and both #gate and #app ship hidden.
+  // It gets cleared right before we actually paint or navigate.
+
+  // Everyone sets up a profile before the playbook. Google sign-in returns straight
+  // here (it never passes through /welcome/ the way the email flow does), so without
+  // this gate those members have no display name -- their posts and this header would
+  // fall back to a raw email address.
+  // Raced on a deadline for the same reason the CDN import is: a filtered network HANGS
+  // rather than refusing, and an unbounded await in front of the first paint is exactly
+  // how a student ends up staring at an empty page mid-workshop. A timeout lands in the
+  // catch below and fails open to the playbook.
+  let prof = null, profFailed = false;
+  try {
+    const r = await Promise.race([
+      supabase.from("ea_profiles")
+        .select("display_name,onboarded_at").eq("user_id", session.user.id).maybeSingle(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("profile-timeout")), 2500)),
+    ]);
+    if (r.error) profFailed = true; else prof = r.data;
+  } catch (_) { profFailed = true; }
+
+  // Fail OPEN on a failed lookup: showing the playbook to someone who already onboarded
+  // is harmless, whereas bouncing on a bad round-trip could ping-pong with /welcome/.
+  // The sessionStorage flag caps it at a single bounce either way.
+  if (!profFailed && (!prof || !prof.onboarded_at)) {
+    let bounced = false;
+    try { bounced = sessionStorage.getItem("pb_ob") === "1"; sessionStorage.setItem("pb_ob", "1"); } catch (_) {}
+    // Same-origin navigation, so ?next= here is unrelated to the Supabase allow-list.
+    if (!bounced) { clearTimeout(window.__pbWatchdog); location.replace("/welcome/?next=%2Fplaybook%2Fai-avatar%2F"); return; }
+  }
+  // Rendering for real, so reset the one-bounce latch for whoever signs in next.
+  try { sessionStorage.removeItem("pb_ob"); } catch (_) {}
+
   clearTimeout(window.__pbWatchdog);
   hide($("gate"));  // the fail-open watchdog may have already revealed it
-  $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Dashboard</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
-  $("ue").textContent = session.user.email || "";
+  $("abRight").innerHTML = '<a class="navlink" href="/store/">Courses</a><a class="navlink" href="/dashboard/">Dashboard</a><span class="who-name" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button>';
+  const dn = ((prof && prof.display_name) || "").trim();
+  $("ue").textContent = dn ? dn.split(/\s+/)[0] : ((session.user.email || "").split("@")[0] || "there");
   $("so").addEventListener("click", async () => { try{ await supabase.auth.signOut(); }catch(_){} location.replace("/playbook/ai-avatar/"); });
   show($("app"));
   bindCopy();
@@ -416,7 +458,7 @@ else if (!createClient) {
     try {
       supabase = m.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) boot(session); else initOAuth();
+      if (session) await boot(session); else initOAuth();
     } catch (_) {}
   }).catch(() => {});
 }
@@ -429,7 +471,7 @@ else {
     if (oauthReturnError()) setErr("Google sign-in was cancelled or did not finish. Try again, or use the email link below.");
     initOAuth();
   }
-  else { boot(session); }
+  else { await boot(session); }
 }
 </script>
 </body></html>

@@ -277,7 +277,13 @@ else if (!createClient) {
     else {
       let avatarUrl = (prof && prof.avatar_url) || '';
       const tags = new Set((prof && prof.interests) || []);
-      let currentName = (prof && prof.display_name) || (me.email || '').split('@')[0] || '';
+      // Google hands us the member's real name -- use it before falling back to the
+      // email handle, so someone who signs in with Google and taps straight through
+      // ends up as "Jasmine Washington" rather than "jwashington24".
+      const meta = me.user_metadata || {};
+      let currentName = (prof && prof.display_name)
+        || (meta.full_name || meta.name || '').trim()
+        || (me.email || '').split('@')[0] || '';
 
       $('dn').value = currentName;
 
