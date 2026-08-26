@@ -1,13 +1,13 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sponsor a Cohort — Taylormade Academy</title>
-<meta name="description" content="Sponsor a seat block at AI That Works For You, Nelson Taylor's live hands-on AI workshop. One invoice, a private registration link, and your students walk out with a working automation of their own.">
+<title>Sponsor a Cohort · Taylormade Academy</title>
+<meta name="description" content="Sponsor a seat block at AI That Works For You, Nelson Taylor's live hands-on AI workshop. One invoice, a private link, and your students leave with a working automation.">
 <link rel="canonical" href="https://academy.taylormadecreative.net/sponsor/">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <meta name="theme-color" content="#04123a">
-<meta property="og:type" content="website"><meta property="og:title" content="Sponsor a Cohort — Taylormade Academy">
+<meta property="og:type" content="website"><meta property="og:title" content="Sponsor a Cohort · Taylormade Academy">
 <meta property="og:description" content="Sponsor a seat block at AI That Works For You. One invoice on your side, a private link on theirs, and your students leave with AI doing real work."><meta property="og:url" content="https://academy.taylormadecreative.net/sponsor/">
 <meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,11 +43,12 @@
 .mq-run span{font-family:var(--display);font-weight:600;font-size:14.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap;}
 .mq-run i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold-deep);margin-inline:26px;flex:0 0 auto;}
 @keyframes mq{to{transform:translateX(-50%);}}
-@media (prefers-reduced-motion:reduce){.mq-track{animation:none;flex-wrap:wrap;width:auto;}}
-/* inline pill in heading */
-.pill-img{display:inline-block;width:2.1em;height:1.02em;border-radius:var(--pill);background-image:url('/assets/sponsor-nelson-sm.webp');background-size:200%;background-position:50% 12%;vertical-align:-.12em;margin-inline:.06em;border:2px solid var(--gold);}
+@media (hover:hover) and (pointer:fine){.mq:hover .mq-track{animation-play-state:paused;}}
+@media (prefers-reduced-motion:reduce){.mq-track{animation:none;flex-wrap:wrap;width:auto;gap:10px;}.mq-run[aria-hidden]{display:none;}}
+#night{scroll-margin-top:84px;}
 /* stacked curriculum cards */
-.stack{display:grid;gap:18px;}
+.stack{display:block;max-width:1120px;margin-inline:auto;}
+.scard+.scard{margin-top:18px;}
 .scard{position:sticky;background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(26px,3.4vw,44px);display:grid;grid-template-columns:auto 1fr;gap:clamp(18px,3vw,40px);align-items:start;}
 .scard:nth-child(1){top:92px;}
 .scard:nth-child(2){top:108px;}
@@ -88,7 +89,7 @@
 .prooflines .proofline:last-child{border-bottom:1px solid rgba(255,255,255,.12);}
 /* faq */
 .faq{max-width:var(--narrow);margin-inline:auto;}
-.faq details{border-bottom:1px solid var(--hair);}
+.faq details{border-top:0;border-bottom:1px solid var(--hair);}
 .faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:18px;padding-block:22px;font-family:var(--display);font-weight:600;font-size:clamp(17px,1.7vw,21px);color:var(--ink);}
 .faq summary::-webkit-details-marker{display:none;}
 .faq summary .pm{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--hair);display:inline-flex;align-items:center;justify-content:center;color:var(--blue);transition:transform .2s var(--ease),background .2s var(--ease);}
@@ -138,18 +139,18 @@
 </div></div></section>
 
 <!-- outcome marquee -->
-<div class="mq" aria-label="What attendees build">
+<div class="mq" aria-hidden="true">
 <div class="mq-track">
-<div class="mq-run"><span>Voice note in, client email out</span><i></i><span>Three posts in, ten drafts out</span><i></i><span>One working automation</span><i></i><span>A week of content in one night</span><i></i><span>Plain English, no experience needed</span><i></i></div>
-<div class="mq-run" aria-hidden="true"><span>Voice note in, client email out</span><i></i><span>Three posts in, ten drafts out</span><i></i><span>One working automation</span><i></i><span>A week of content in one night</span><i></i><span>Plain English, no experience needed</span><i></i></div>
+<div class="mq-run"><span>Voice note in, client email out</span><i></i><span>Three posts in, ten drafts out</span><i></i><span>One working automation</span><i></i><span>A week of content in one session</span><i></i><span>Plain English, no experience needed</span><i></i></div>
+<div class="mq-run" aria-hidden="true"><span>Voice note in, client email out</span><i></i><span>Three posts in, ten drafts out</span><i></i><span>One working automation</span><i></i><span>A week of content in one session</span><i></i><span>Plain English, no experience needed</span><i></i></div>
 </div>
 </div>
 
 <!-- INTEREST: what it is -->
 <section class="section"><div class="wrap"><div class="narrow reveal">
 <span class="kicker gold">What the workshop is</span>
-<h2 class="display-m" style="margin-top:16px">A working session with <span class="pill-img" role="img" aria-label="Nelson Taylor"></span> me, not a lecture.</h2>
-<p style="margin-top:18px">Two hours, live and hands-on. Every attendee arrives with one repetitive task they are tired of doing, and we hand that task to AI together, step by step, in plain English. Nobody watches from the sidelines: every block ends with a checkpoint, and nobody moves on until their own result is on their own screen.</p>
+<h2 class="display-m" style="margin-top:16px">A working session with me, not a lecture.</h2>
+<p style="margin-top:18px">Two hours, live and hands-on. Every attendee arrives with one repetitive task they are tired of doing, and we hand that task to AI together, step by step, in plain English. Nobody watches from the sidelines: every build block ends with a checkpoint, and nobody moves on until their own result is on their own screen.</p>
 <p style="margin-top:14px">They leave with working systems, not notes. That is the whole design.</p>
 </div></div></section>
 
@@ -157,7 +158,7 @@
 <section class="section tight" id="night" style="background:var(--bg-soft)"><div class="wrap">
 <div class="sec-head reveal" style="margin-bottom:38px">
 <span class="kicker gold">The session, block by block</span>
-<h2 class="display-l" style="margin-top:14px">Four blocks. Four checkpoints. Zero spectators.</h2>
+<h2 class="display-l" style="margin-top:14px">Four blocks. Three checkpoints. Zero spectators.</h2>
 </div>
 <div class="stack">
 <article class="scard"><div class="sc-num">01</div><div>
@@ -177,8 +178,8 @@
 </div></article>
 <article class="scard"><div class="sc-num">04</div><div>
 <h3 class="sc-title">Full Speed</h3>
-<p class="sc-body">I show the receipts. The campaign that filled the session, the posts, the emails, the reminders, all of it ran on the same systems they just built. Proof, not promises.</p>
-<span class="sc-check">Checkpoint: they have seen it run a real business</span>
+<p class="sc-body">I show the receipts. The campaign that fills my public sessions, the posts, the emails, the reminders, all of it runs on the same systems they just built. Proof, not promises.</p>
+<span class="sc-check">The receipts, shown live</span>
 </div></article>
 </div>
 </div></section>
@@ -219,7 +220,7 @@
 <div class="prooflines reveal">
 <p class="proofline">Three nights with <b>AUC DSI and Johns Hopkins</b>: around fifty HBCU students built their first AI agents live.</p>
 <p class="proofline"><b>Fourteen years</b> running Taylormade Creative in Dallas-Fort Worth.</p>
-<p class="proofline">Two apps of my own, <b>live on the App Store</b>, built with the same systems I teach.</p>
+<p class="proofline">Two apps of my own, <b>live on the App Store</b>.</p>
 </div>
 </div>
 </div></section>
@@ -232,8 +233,9 @@
 </div>
 <details><summary>Who is this for?<span class="pm">+</span></summary><p>Beginners. It is built for people who have never used AI past curiosity. Plain English the whole way through, and the pace is set by checkpoints, not a clock.</p></details>
 <details><summary>What do attendees need?<span class="pm">+</span></summary><p>A laptop, a phone, and one repetitive task they are tired of doing. That task becomes their automation by the end of the session.</p></details>
-<details><summary>Does our cohort attend in person?<span class="pm">+</span></summary><p>Sponsored cohorts join live online from anywhere. My public sessions run in my Dallas studio, and your block stays its own room either way.</p></details>
+<details><summary>Does our cohort attend in person?<span class="pm">+</span></summary><p>Sponsored cohorts join live online from anywhere, and your block stays its own room. My public sessions run in my Dallas studio, so if you have a different format in mind, bring it to the call.</p></details>
 <details><summary>When would our session happen?<span class="pm">+</span></summary><p>Around your calendar. Tell me the stretch of the semester or quarter that works for your people and we set the date there.</p></details>
+<details><summary>Is there any cost on the student side?<span class="pm">+</span></summary><p>No. We set everyone up on free AI accounts at the start of the session, so beyond the laptop and phone there is nothing for students to buy.</p></details>
 <details><summary>How is it billed?<span class="pm">+</span></summary><p>One invoice to your organization, billed in advance. Students never pay anything.</p></details>
 </div></div></section>
 
@@ -244,7 +246,7 @@
 <p>Send me your headcount and the stretch of the calendar that works. I will come back with one clean number and a date to hold.</p>
 <div class="row">
 <a class="btn on-gold" href="mailto:taylormademd@gmail.com?subject=Seat%20block%20for%20AI%20That%20Works%20For%20You">Start the conversation <span class="arr">&rarr;</span></a>
-<span class="mail">taylormademd@gmail.com</span>
+<a class="mail" href="mailto:taylormademd@gmail.com" style="text-decoration:none">taylormademd@gmail.com</a>
 </div>
 </div>
 </div></section>
@@ -288,8 +290,8 @@ window.addEventListener('load', function () {
     ease: 'none',
     scrollTrigger: { trigger: mani, start: 'top 78%', end: 'bottom 45%', scrub: true }
   });
-  /* watchdog: if ScrollTrigger never fires (layout race), un-gate after 3s */
-  setTimeout(function () {
+  /* watchdog: if ScrollTrigger never fires (layout race), un-gate rather than leave dim text */
+  function checkAndUngate() {
     var anyVisible = false;
     spans.forEach(function (s) { if (parseFloat(getComputedStyle(s).opacity) > 0.5) anyVisible = true; });
     var r = mani.getBoundingClientRect();
@@ -297,7 +299,12 @@ window.addEventListener('load', function () {
       document.documentElement.classList.remove('gsap-on');
       gsap.set(spans, { opacity: 1 });
     }
-  }, 3000);
+  }
+  setTimeout(checkAndUngate, 3000);
+  var io = new IntersectionObserver(function (entries) {
+    if (entries[0].isIntersecting) { setTimeout(checkAndUngate, 600); io.disconnect(); }
+  });
+  io.observe(mani);
 });
 </script>
 </body></html>
