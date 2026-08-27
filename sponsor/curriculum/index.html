@@ -1,0 +1,299 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Curriculum · AI That Works For You</title>
+<meta name="description" content="The full block-by-block curriculum for AI That Works For You, Nelson Taylor's live hands-on AI workshop. Built to run on free AI tools, checkpointed so every attendee leaves with real output.">
+<link rel="canonical" href="https://academy.taylormadecreative.net/sponsor/curriculum/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<meta name="theme-color" content="#04123a">
+<meta property="og:type" content="website"><meta property="og:title" content="The Curriculum · AI That Works For You">
+<meta property="og:description" content="What gets taught, block by block. A live, hands-on AI workshop built on free tools, checkpointed so every attendee leaves with real output."><meta property="og:url" content="https://academy.taylormadecreative.net/sponsor/curriculum/">
+<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Academy">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* ---- curriculum page scoped styles ---- */
+.cu-hero{padding-block:clamp(48px,6vw,92px) clamp(56px,7vw,104px);overflow:hidden;}
+.cu-hero .g-12{align-items:start;}
+.cu-hero-copy{grid-column:span 7;}
+.cu-hero-side{grid-column:10/span 3;}
+.cu-h1{font-size:clamp(38px,4.8vw,66px);line-height:1.03;font-weight:700;letter-spacing:-.03em;color:var(--ink);max-width:16ch;text-wrap:balance;}
+.gold-u{background-image:linear-gradient(var(--gold),var(--gold));background-repeat:no-repeat;background-size:100% .16em;background-position:0 92%;padding-bottom:.04em;}
+.cu-hero .lead{margin-top:20px;}
+.cu-cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;}
+.glance{background:var(--navy);border-radius:var(--r-lg);padding:26px 26px 10px;box-shadow:var(--shadow-float);position:relative;margin-top:6px;}
+.glance::before{content:"";position:absolute;left:26px;top:0;width:44px;height:4px;border-radius:0 0 3px 3px;background:var(--gold);}
+.glance .glance-title{font-family:var(--display);font-weight:700;color:#fff;font-size:16px;letter-spacing:-.01em;margin-bottom:14px;padding-top:8px;}
+.glance dl{margin:0;}
+.glance .gi{display:flex;justify-content:space-between;gap:14px;padding-block:11px;border-top:1px solid rgba(255,255,255,.1);}
+.glance dt{font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8fa5d9;white-space:nowrap;}
+.glance dd{font-size:13.5px;font-weight:600;color:#e7ecf8;margin:0;text-align:right;}
+/* timeline */
+.tl{max-width:1120px;margin-inline:auto;position:relative;}
+.tl-row{display:grid;grid-template-columns:150px 1fr;gap:clamp(20px,3.4vw,48px);position:relative;padding-block:clamp(24px,3vw,40px);}
+.tl-row + .tl-row{border-top:1px solid var(--hair);}
+.tl-when{padding-top:4px;}
+.tl-min{font-family:var(--display);font-weight:700;font-size:clamp(22px,2.3vw,30px);letter-spacing:-.02em;color:var(--ink);line-height:1;}
+.tl-min small{display:block;font-family:var(--font);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:7px;}
+.tl-node{display:inline-flex;align-items:center;gap:8px;margin-top:12px;}
+.tl-node i{width:9px;height:9px;border-radius:50%;background:var(--gold-deep);}
+.tl-node.blue i{background:var(--blue);}
+.tl-body h3{font-size:clamp(20px,2vw,26px);letter-spacing:-.02em;margin-bottom:4px;}
+.tl-tag{font-family:var(--display);font-weight:600;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:12px;}
+.tl-pair{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2.4vw,30px);margin-top:10px;}
+.tl-pair .cell{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm);}
+.tl-pair .cell em{display:block;font-style:normal;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.tl-pair .cell p{font-size:14.5px;line-height:1.55;color:var(--ink-2);max-width:none;}
+.tl-check{display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:var(--gold-soft);color:var(--gold-ink);border:1px solid #f0dfa4;font-size:13px;font-weight:600;padding:7px 13px;border-radius:var(--pill);}
+.tl-check.quiet{background:var(--blue-soft);border-color:#d5e0fb;color:var(--blue-deep);}
+.tl-brk{background:var(--bg-soft);border-radius:var(--r);}
+.tl-brk .tl-body p{color:var(--muted);font-size:15px;margin-top:4px;}
+@media (max-width:760px){.tl-row{grid-template-columns:1fr;gap:10px;}.tl-pair{grid-template-columns:1fr;}.tl-when{display:flex;align-items:baseline;gap:12px;}.tl-min small{margin-top:0;display:inline;}}
+/* tools band */
+.tools-band .narrow{max-width:900px;}
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.6vw,28px);margin-top:34px;}
+.tool-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.11);border-radius:var(--r-lg);padding:24px 26px;}
+.tool-card h3{color:#fff;font-size:18px;margin-bottom:9px;display:flex;align-items:center;gap:10px;}
+.tool-card h3 .dot{background:var(--gold);width:8px;height:8px;}
+.tool-card p{color:#9fb0d4;font-size:14.5px;line-height:1.6;max-width:none;}
+.honest{margin-top:26px;border:1px solid rgba(253,201,33,.4);background:rgba(253,201,33,.08);border-radius:var(--r-lg);padding:22px 26px;}
+.honest em{display:block;font-style:normal;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.honest p{color:#e7ecf8;font-size:15.5px;line-height:1.6;max-width:none;}
+@media (max-width:720px){.tools-grid{grid-template-columns:1fr;}}
+/* facilitator */
+.fac{display:grid;grid-template-columns:200px 1fr;gap:clamp(22px,3.4vw,44px);align-items:center;max-width:900px;margin-inline:auto;}
+.fac img{width:100%;height:auto;border-radius:var(--r-lg);border:1px solid var(--hair);box-shadow:var(--shadow-card);}
+.fac h2{font-size:clamp(23px,2.4vw,30px);margin-bottom:10px;}
+.fac p{font-size:15.5px;color:var(--ink-2);}
+.fac .creds{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.fac .creds span{font-size:14px;color:var(--ink-2);display:flex;gap:10px;align-items:baseline;}
+.fac .creds i{font-style:normal;color:var(--gold-deep);font-weight:700;}
+@media (max-width:640px){.fac{grid-template-columns:1fr;}.fac img{max-width:220px;}}
+/* cta band */
+.cu-cta{background:var(--navy);border-radius:var(--r-lg);padding:clamp(40px,5.4vw,72px);position:relative;overflow:hidden;}
+.cu-cta::after{content:"";position:absolute;right:-120px;top:-120px;width:340px;height:340px;border-radius:50%;background:radial-gradient(closest-side,rgba(11,64,224,.5),transparent 70%);}
+.cu-cta h2{color:#fff;font-size:clamp(28px,3.6vw,46px);max-width:20ch;position:relative;z-index:1;}
+.cu-cta p{color:#9fb0d4;margin-top:12px;max-width:54ch;position:relative;z-index:1;}
+.cu-cta .row{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:28px;position:relative;z-index:1;}
+.btn.on-gold{background:var(--gold);border-color:var(--gold);color:var(--navy);box-shadow:0 10px 22px -10px rgba(253,201,33,.5);}
+.btn.on-gold:hover{background:var(--gold-deep);border-color:var(--gold-deep);}
+@media (max-width:980px){.cu-hero-copy{grid-column:span 12;}.cu-hero-side{grid-column:span 12;max-width:520px;margin-top:30px;}}
+/* print */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none !important;}
+  .js .reveal,.js [data-stag]>*{opacity:1 !important;transform:none !important;}
+  .cu-hero .g-12{display:flex;gap:28px;align-items:flex-start;}
+  .cu-hero-copy{flex:1.4;}
+  .cu-hero-side{flex:1;margin-top:0;max-width:none;}
+  .cu-cta::after{display:none;}
+  .site-header,.site-footer,.cu-cta-row,.cu-cta .row,.mobile-nav{display:none !important;}
+  .section{padding-block:28px;}
+  .cu-hero{padding-block:20px 28px;}
+  .tl-row{break-inside:avoid;page-break-inside:avoid;padding-block:16px;grid-template-columns:120px 1fr;}
+  .tl-pair{grid-template-columns:1fr 1fr;}
+  .tl-when{display:block;}
+  .glance,.cu-cta,.fac,.tool-card,.honest{break-inside:avoid;page-break-inside:avoid;}
+  .cu-cta{padding:32px;}
+  .print-contact{display:block !important;font-family:var(--display);font-weight:600;color:#fff;font-size:15px;margin-top:18px;}
+  a{text-decoration:none;color:inherit;}
+}
+</style>
+</head><body><header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<nav class="nav"><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
+</div></div><div class="mobile-nav" id="mnav"><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>
+
+<main>
+
+<section class="cu-hero"><div class="wrap"><div class="g-12">
+<div class="cu-hero-copy">
+<span class="kicker gold">AI That Works For You &middot; The curriculum</span>
+<h1 class="cu-h1" style="margin-top:16px">What gets taught, <span class="gold-u">block by block</span>.</h1>
+<p class="lead">A two-hour live working session for people who have never used AI past curiosity. Every block ends with the attendee's own result on their own screen, and the whole session runs on the free tiers of the major AI chat tools.</p>
+<div class="cu-cta-row">
+<a class="btn primary" href="/sponsor/">Sponsor a seat block <span class="arr">&rarr;</span></a>
+<button class="btn" onclick="window.print()">Print this page</button>
+</div>
+</div>
+<aside class="cu-hero-side">
+<div class="glance">
+<p class="glance-title">The session at a glance</p>
+<dl>
+<div class="gi"><dt>Length</dt><dd>2 hours, live</dd></div>
+<div class="gi"><dt>Format</dt><dd>Hands-on, checkpointed</dd></div>
+<div class="gi"><dt>Level</dt><dd>Beginners, plain English</dd></div>
+<div class="gi"><dt>Tools</dt><dd>Free AI accounts</dd></div>
+<div class="gi"><dt>They bring</dt><dd>Laptop, phone, one task</dd></div>
+<div class="gi"><dt>Cohorts</dt><dd>Private session per org</dd></div>
+</dl>
+</div>
+</aside>
+</div></div></section>
+
+<section class="section tight" style="background:var(--bg-soft)"><div class="wrap">
+<div class="sec-head reveal" style="margin-bottom:8px">
+<span class="kicker gold">The two hours</span>
+<h2 class="display-l" style="margin-top:14px">Every minute is accounted for.</h2>
+</div>
+<div class="tl">
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">10 <small>minutes</small></div><span class="tl-node blue"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Opening demo</div>
+<h3>The Shift</h3>
+<div class="tl-pair">
+<div class="cell"><em>What is taught</em><p>The frame for the whole session: you do not need to learn AI, you need AI to learn your business. No tool lecture, no slides about models.</p></div>
+<div class="cell"><em>What they watch</em><p>A real automation running my real business live: the daily content system that posts for Taylormade while I am in the room with them.</p></div>
+</div>
+</div>
+</div>
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">20 <small>minutes</small></div><span class="tl-node"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Block one</div>
+<h3>Your First AI Employee</h3>
+<div class="tl-pair">
+<div class="cell"><em>What is taught</em><p>What AI is actually good at for real work: drafting, summarizing, answering, and repeating. How to hand it a messy input and get professional output.</p></div>
+<div class="cell"><em>What they do</em><p>Live demo first: a raw voice note becomes a client email, a quote, and a follow-up. Then every attendee does the same thing with the task they brought in.</p></div>
+</div>
+<span class="tl-check">Checkpoint: everyone has one real output</span>
+</div>
+</div>
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">25 <small>minutes</small></div><span class="tl-node"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Block two</div>
+<h3>The Content Machine</h3>
+<div class="tl-pair">
+<div class="cell"><em>What is taught</em><p>The voice-training move: feed AI three things you have already written and get ten drafts back that sound like you, not like a robot.</p></div>
+<div class="cell"><em>What they do</em><p>Each attendee generates a week of content for their own venture, in their own voice, before the block ends.</p></div>
+</div>
+<span class="tl-check">Checkpoint: five usable posts each</span>
+</div>
+</div>
+
+<div class="tl-row tl-brk reveal">
+<div class="tl-when" style="padding-left:18px"><div class="tl-min">10 <small>minutes</small></div></div>
+<div class="tl-body" style="padding-right:18px">
+<h3 style="font-size:19px">Break</h3>
+<p>Networking prompt on screen. The room compares outputs, which is where the energy usually spikes.</p>
+</div>
+</div>
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">25 <small>minutes</small></div><span class="tl-node"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Block three</div>
+<h3>Make It Recurring</h3>
+<div class="tl-pair">
+<div class="cell"><em>What is taught</em><p>How one-off prompts become a system that runs weekly: reusable templates and saved instructions, so the work does not reset to zero every time.</p></div>
+<div class="cell"><em>What they do</em><p>Each attendee sets up one simple automation on the task they came in dreading, then tests it once so they know it actually runs.</p></div>
+</div>
+<span class="tl-check">Checkpoint: automation saved and tested once</span>
+</div>
+</div>
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">15 <small>minutes</small></div><span class="tl-node"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Block four</div>
+<h3>Full Speed</h3>
+<div class="tl-pair">
+<div class="cell"><em>What is taught</em><p>What these systems look like when they compound: the posts, the emails, and the reminders behind my public sessions all run on what the room just built.</p></div>
+<div class="cell"><em>What they see</em><p>The receipts, shown live. Proof, not promises, so nobody leaves thinking the demo was staged.</p></div>
+</div>
+</div>
+</div>
+
+<div class="tl-row reveal">
+<div class="tl-when"><div class="tl-min">15 <small>minutes</small></div><span class="tl-node blue"><i></i></span></div>
+<div class="tl-body">
+<div class="tl-tag">Close</div>
+<h3>Wins and next steps</h3>
+<div class="tl-pair">
+<div class="cell"><em>What happens</em><p>Recap around the room: two or three attendees share what they built, out loud, in their own words. That is the moment the session becomes theirs.</p></div>
+<div class="cell"><em>What they keep</em><p>Their automation, their week of content, and the templates and saved instructions they built, all in their own accounts. Nothing lives on my machine.</p></div>
+</div>
+</div>
+</div>
+
+</div>
+</div></section>
+
+<section class="section on-ink tools-band"><div class="wrap"><div class="narrow">
+<span class="kicker gold">Tools and accounts</span>
+<h2 class="display-l" style="margin-top:14px;color:#fff">Built to run on free tools.</h2>
+<p class="lead" style="margin-top:16px">The session is designed around the free tiers of the major AI chat tools, on purpose. Nobody should have to buy anything to find out whether this works for them.</p>
+<div class="tools-grid">
+<div class="tool-card"><h3><span class="dot"></span>Setup happens before minute one</h3><p>Before the first block starts, every attendee is signed into a free AI account, in the room or on the private link. Nobody burns session time on passwords, and nobody gets left behind at step zero.</p></div>
+<div class="tool-card"><h3><span class="dot"></span>Their accounts, not mine</h3><p>Everything is built inside the attendee's own account. When the session ends, their automation, drafts, and templates go home with them and keep working.</p></div>
+</div>
+<div class="honest">
+<em>The honest caveat</em>
+<p>Free tiers carry usage limits, and the session fits inside them. Running these systems every day after the session may take one paid AI subscription, about $20 a month. I tell every room that upfront, and that is the entire tool budget.</p>
+</div>
+</div></div></section>
+
+<section class="section"><div class="wrap">
+<div class="fac reveal">
+<picture>
+<source srcset="/assets/sponsor-nelson-sm.webp" type="image/webp">
+<img src="/assets/sponsor-nelson-sm.jpg" alt="Nelson Taylor" width="720" height="576">
+</picture>
+<div>
+<span class="kicker gold">The facilitator</span>
+<h2 style="margin-top:10px">Nelson Taylor</h2>
+<p>I have run Taylormade Creative in Dallas-Fort Worth for fourteen years, and the systems in this curriculum are the ones running it today. I teach the way I build: plain English, live, with the receipts on screen.</p>
+<div class="creds">
+<span><i>/</i>Facilitated a three-night AI build sprint for around fifty HBCU students with AUC DSI and Johns Hopkins</span>
+<span><i>/</i>Founder of Taylormade Academy, the creative learning community behind this workshop</span>
+<span><i>/</i>Two apps of my own, live on the App Store</span>
+</div>
+</div>
+</div>
+</div></section>
+
+<section class="section tight"><div class="wrap">
+<div class="cu-cta reveal">
+<h2 class="display-l">Put this in front of your cohort.</h2>
+<p>Seat blocks make it one decision: your organization sponsors the seats on a single invoice, your people attend free, and we schedule the session around your calendar.</p>
+<p class="print-contact" style="display:none;position:relative;z-index:1">taylormademd@gmail.com &middot; academy.taylormadecreative.net/sponsor/</p>
+<div class="row">
+<a class="btn on-gold" href="/sponsor/">How seat blocks work <span class="arr">&rarr;</span></a>
+<a class="btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:#fff" href="mailto:taylormademd@gmail.com?subject=Seat%20block%20for%20AI%20That%20Works%20For%20You">taylormademd@gmail.com</a>
+</div>
+</div>
+</div></section>
+
+</main><footer class="site-footer"><div class="wrap">
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
+<div style="display:flex;flex-wrap:wrap;margin-top:16px;font-size:14px;font-weight:600"><a href="https://instagram.com/taylormade_creative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Instagram</a><a href="https://tiktok.com/@taylormadecreative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">TikTok</a><a href="https://linkedin.com/in/taylormademd" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">LinkedIn</a><a href="https://taylormadecreative.net" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Portfolio</a></div></div>
+<div class="foot-col"><h4>Explore</h4><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a><a href="/course/">Preview a course</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">The feed</a><a href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook group</a><a href="/login/">Sign in</a><a href="/login/?mode=join">Join free</a></div>
+<div class="foot-col"><h4>Stay in the loop</h4>
+<p style="font-size:14px;color:#8fa0c7;margin-bottom:14px;max-width:30ch">New courses, ebooks, and community drops, straight to your inbox.</p>
+<form onsubmit="return BM.subscribe(event,'footer')" style="display:flex;gap:8px;flex-wrap:wrap">
+<input type="email" name="email" placeholder="you@email.com" required aria-label="Email address" style="flex:1;min-width:150px;padding:12px 18px;border:1px solid rgba(255,255,255,.16);border-radius:980px;font-family:inherit;font-size:14px;background:rgba(255,255,255,.06);color:#fff;outline-offset:2px">
+<button class="btn gold sm" type="submit">Subscribe</button></form></div>
+</div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a><a href="/refunds/" style="color:#8fa0c7">Refunds</a></span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
+</div></footer>
+<script src="/js/config.js?v=3b7d540f53"></script><script src="/js/site.js?v=3b7d540f53"></script>
+</body></html>
