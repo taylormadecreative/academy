@@ -1,0 +1,409 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The AI Thread · Open Payments Innovation Lab</title>
+<meta name="description" content="Fourteen one-hour AI workshops woven through the AUC Open Payments Innovation Lab year, each aimed at the deliverable the cohort owes next, every one recorded into a hub students keep.">
+<link rel="canonical" href="https://academy.taylormadecreative.net/opil/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#175641">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website"><meta property="og:site_name" content="AUC Open Payments Innovation Lab">
+<meta property="og:title" content="The AI Thread · Open Payments Innovation Lab">
+<meta property="og:description" content="Fourteen one-hour AI workshops woven through the Lab year. Their Wednesdays teach the discipline. The Thread is where the homework gets done.">
+<meta property="og:url" content="https://academy.taylormadecreative.net/opil/">
+<meta property="og:image" content="https://academy.taylormadecreative.net/opil/dasci-hero.jpg"><meta property="og:image:alt" content="Da'Sci, the AI host of the AUC Data Challenge Finale">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@450;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+:root{
+  --paper:#faf6ef; --paper2:#f3ecdf; --card:#fffdf8;
+  --ink:#1a231e; --ink2:#43504a; --mut:#5f6d66;
+  --ever:#175641; --ever-deep:#0e3a2b; --ever-soft:#e7efe9;
+  --navy:#0d1330; --gold:#c9a227; --gold-soft:#f4e9c8;
+  --hair:#e4dccb; --hair-soft:#efe8da;
+  --serif:'Source Serif 4',Georgia,serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --ease:cubic-bezier(.23,1,.32,1);
+  --maxw:1440px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink2);font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--ever);color:#fff}
+.wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(20px,4.6vw,54px)}
+h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.06;font-weight:700;letter-spacing:-.015em}
+.kick{font-family:var(--mono);font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ever)}
+.kick::after{content:"";display:block;width:44px;height:2px;background:var(--gold);margin-top:10px}
+p{max-width:64ch}
+.btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;line-height:1;padding:15px 26px;border-radius:980px;border:1.5px solid var(--ink);color:var(--ink);cursor:pointer;transition:transform .16s var(--ease),background .16s var(--ease),color .16s var(--ease);background:transparent}
+.btn:active{transform:scale(.97)}
+.btn.solid{background:var(--ever);border-color:var(--ever);color:#fff}
+@media(hover:hover) and (pointer:fine){.btn:hover{background:var(--ink);color:var(--paper)}.btn.solid:hover{background:var(--ever-deep);border-color:var(--ever-deep);color:#fff}}
+.section{padding-block:clamp(72px,9vw,140px)}
+/* reveals (enhancement only) */
+.js .rv{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
+/* header */
+.hd{position:sticky;top:0;z-index:50;background:rgba(250,246,239,.86);backdrop-filter:blur(14px) saturate(160%);border-bottom:1px solid var(--hair)}
+.hd .bar{display:flex;align-items:center;justify-content:space-between;height:66px}
+.hd .lk{display:flex;align-items:center;gap:12px}
+.hd .lk img{height:34px;width:auto}
+.hd .lk span{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink2);border-left:1px solid var(--hair);padding-left:12px;line-height:1.4}
+.hd .btn{padding:11px 20px;font-size:14px}
+/* hero: artistic asymmetry */
+.hero{padding-block:clamp(64px,8vw,120px) clamp(84px,10vw,150px);position:relative;overflow:hidden}
+.hero h1{font-size:clamp(52px,7.6vw,116px);letter-spacing:-.02em;max-width:12ch}
+.hero .stand{margin-top:26px;font-size:clamp(17px,1.7vw,21px);line-height:1.55;color:var(--ink2);max-width:52ch}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px}
+.hero-art{position:absolute;right:clamp(-40px,1vw,70px);bottom:0;width:clamp(240px,26vw,400px);transform:rotate(2.5deg);z-index:1}
+.hero-art .frame{background:var(--card);border:1px solid var(--hair);border-radius:18px;padding:12px 12px 16px;box-shadow:0 34px 70px -30px rgba(26,35,30,.4)}
+.hero-art img{border-radius:10px}
+.hero-art .cap{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--mut);margin-top:11px;text-transform:uppercase}
+.hero-copy{position:relative;z-index:2;max-width:62vw}
+@media(max-width:860px){.hero-copy{max-width:none}.hero-art{position:static;transform:none;width:min(340px,80%);margin-top:44px}.hero{padding-bottom:clamp(64px,8vw,120px)}}
+/* fit diagram */
+.fit{background:var(--paper2);border-block:1px solid var(--hair)}
+.fit-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);align-items:center}
+.weekmap{background:var(--card);border:1px solid var(--hair);border-radius:18px;padding:clamp(20px,2.6vw,32px);box-shadow:0 20px 44px -24px rgba(26,35,30,.22)}
+.weekmap .wm-head{display:grid;grid-template-columns:64px repeat(4,1fr);gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--mut);text-transform:uppercase;margin-bottom:10px}
+.weekmap .row{display:grid;grid-template-columns:64px repeat(4,1fr);gap:8px;align-items:center;padding-block:9px;border-top:1px solid var(--hair-soft)}
+.weekmap .row b{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--ink2)}
+.pip{height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;color:#fff}
+.pip.wed{background:var(--ink);}
+.pip.hpc{background:#4c5b96}
+.pip.ai{background:var(--ever);outline:2px solid var(--gold);outline-offset:2px}
+.pip.mt{background:transparent;border:1px dashed var(--hair);color:var(--mut)}
+.leg{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;font-size:13px;color:var(--mut)}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:7px;vertical-align:-1px}
+@media(max-width:860px){.fit-grid{grid-template-columns:1fr}}
+/* accordion (HT-proven pattern: single is-open, aria, stacked mobile) */
+.sem{display:grid;grid-template-columns:190px 1fr;gap:clamp(24px,4vw,60px);align-items:start}
+.sem-rail{position:sticky;top:96px}
+.sem-rail .big{font-family:var(--serif);font-weight:700;font-size:clamp(34px,3.6vw,52px);color:var(--ink);line-height:1}
+.sem-rail .sub{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:10px;line-height:1.7}
+.acc{display:flex;flex-direction:column;gap:10px}
+.pane{border:1px solid var(--hair);border-radius:16px;background:var(--card);cursor:pointer;overflow:hidden;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.pane .closed{display:flex;align-items:center;gap:18px;padding:19px 24px;width:100%;text-align:left;background:none;border:0;font:inherit;cursor:pointer;transition:opacity .2s var(--ease)}
+.pane .closed:focus-visible{outline:2px solid var(--ever);outline-offset:-2px;border-radius:16px}
+.pane .closed .no{font-family:var(--mono);font-size:12.5px;color:var(--mut);flex:0 0 auto}
+.pane .closed .t{font-family:var(--serif);font-weight:600;font-size:clamp(17px,1.7vw,21px);color:var(--ink);flex:1;min-width:0}
+.pane .closed .mo{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);flex:0 0 auto}
+.pane .closed .pm{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--hair);display:inline-flex;align-items:center;justify-content:center;color:var(--ever);font-size:16px;transition:transform .25s var(--ease),background .25s var(--ease)}
+.pane .open{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s var(--ease)}
+.pane .open>div{overflow:hidden;min-height:0}
+.pane .open .inner{padding:4px clamp(22px,2.8vw,36px) clamp(24px,2.8vw,34px) clamp(22px,2.8vw,36px)}
+.pane.is-open{border-color:#cfc4a6;cursor:default}
+.pane.is-open .closed .pm{transform:rotate(45deg);background:var(--ever-soft)}
+.pane.is-open .open{grid-template-rows:1fr}
+.pane .open .meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ever);margin-bottom:12px}
+.pane .open h3{font-size:clamp(21px,2.1vw,28px);margin-bottom:12px}
+.pane .open .out{font-size:15.5px;line-height:1.62;color:var(--ink2);max-width:60ch}
+.pane .open .tie{margin-top:20px;padding-top:16px;border-top:1px solid var(--hair-soft);font-size:13.5px;color:var(--mut)}
+.pane .open .tie b{color:var(--ever);font-weight:600}
+.pane .open .chip{display:inline-flex;margin-top:14px;background:var(--gold-soft);border:1px solid #e3d3a0;color:#6b5716;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:980px}
+@media(max-width:920px){.sem{grid-template-columns:1fr}.sem-rail{position:static}}
+/* hub band */
+.hub{background:var(--ever-deep);color:#cfe0d6}
+.hub h2{color:#fff}
+.hub .kick{color:#9fc4ae}.hub .kick::after{background:var(--gold)}
+.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,2.6vw,30px);margin-top:44px}
+.hub-card{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);border-radius:16px;padding:26px}
+.hub-card h3{color:#fff;font-size:19px;margin-bottom:10px;font-family:var(--sans);font-weight:600;letter-spacing:0}
+.hub-card p{font-size:14.5px;color:#b9cfc2;max-width:none}
+.proof{margin-top:38px;border-left:0;border:1px solid rgba(201,162,39,.45);background:rgba(201,162,39,.09);border-radius:16px;padding:24px 28px;max-width:760px}
+.proof p{color:#efe6cd;font-family:var(--serif);font-size:clamp(17px,1.8vw,21px);line-height:1.5;max-width:none}
+.proof span{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#cbb265;margin-top:12px}
+@media(max-width:860px){.hub-grid{grid-template-columns:1fr}}
+/* dasci band */
+.dasci{background:var(--navy);color:#c6cbe4;overflow:hidden}
+.dasci .kick{color:#a4aed6}.dasci .kick::after{background:var(--gold)}
+.dasci h2{color:#fff}
+.dasci-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(28px,5vw,70px);align-items:center}
+.dasci-grid p{color:#aab3d6}
+.dasci-art{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.15);box-shadow:0 40px 80px -34px rgba(0,0,0,.7)}
+.dasci .gold-serif{font-family:var(--serif);color:var(--gold);font-weight:600}
+@media(max-width:860px){.dasci-grid{grid-template-columns:1fr}}
+/* facilitator */
+.fac{display:grid;grid-template-columns:210px 1fr;gap:clamp(24px,4vw,52px);align-items:center;max-width:980px;margin-inline:auto}
+.fac img{border-radius:16px;border:1px solid var(--hair);width:100%;height:auto}
+.fac h2{font-size:clamp(24px,2.6vw,34px);margin-bottom:12px}
+.fac .cr{margin-top:16px;display:flex;flex-direction:column;gap:9px;font-size:14.5px}
+.fac .cr span::before{content:"/";color:var(--gold);font-weight:700;margin-right:10px}
+@media(max-width:680px){.fac{grid-template-columns:1fr}.fac img{max-width:230px}}
+/* marquee */
+.mq{border-block:1px solid var(--hair);background:var(--paper2);padding-block:16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.mq-t{display:flex;width:max-content;animation:mq 34s linear infinite}
+.mq-r{display:flex;align-items:center}
+.mq-r span{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.mq-r i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-inline:24px}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media(hover:hover) and (pointer:fine){.mq:hover .mq-t{animation-play-state:paused}}
+@media(prefers-reduced-motion:reduce){.mq-t{animation:none;flex-wrap:wrap;gap:10px}.mq-r[aria-hidden]{display:none}}
+/* next steps */
+.next{background:var(--card);border:1px solid var(--hair);border-radius:22px;padding:clamp(36px,5vw,64px);box-shadow:0 30px 60px -30px rgba(26,35,30,.25)}
+.next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,40px);margin-top:36px}
+.next-grid .st{border-top:2px solid var(--ever);padding-top:16px}
+.next-grid .st em{font-family:var(--mono);font-style:normal;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.next-grid .st h3{font-size:19px;margin-top:8px}
+.next-grid .st p{font-size:14.5px;margin-top:8px}
+@media(max-width:820px){.next-grid{grid-template-columns:1fr}}
+/* footer */
+.ft{border-top:1px solid var(--hair);padding-block:44px;font-size:13.5px;color:var(--mut)}
+.ft .wrap{display:flex;flex-wrap:wrap;gap:22px;justify-content:space-between;align-items:flex-start}
+.ft p{max-width:52ch}
+.ft .mono{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em}
+</style>
+</head><body>
+
+<header class="hd"><div class="wrap"><div class="bar">
+<div class="lk"><img src="/opil/aucdsi-black.png" alt="AUC Data Science Initiative"><span>Open Payments<br>Innovation Lab</span></div>
+<a class="btn solid" href="/opil/register/">Registration <span aria-hidden="true">&rarr;</span></a>
+</div></div></header>
+
+<main>
+
+<section class="hero"><div class="wrap">
+<div class="hero-copy">
+<span class="kick">The AI workshop track &middot; 2026&ndash;27 program year</span>
+<h1 style="margin-top:22px">The AI Thread.</h1>
+<p class="stand">Fourteen one-hour AI workshops woven through the Innovation Lab year, one for every deliverable the cohort owes next. The curriculum teaches the discipline. The Thread is where the homework gets done, with AI, on free tools, every week.</p>
+<div class="ctas">
+<a class="btn solid" href="#fall">The fourteen sessions</a>
+<a class="btn" href="/opil/register/">Preview registration</a>
+</div>
+</div>
+<aside class="hero-art" aria-hidden="false">
+<div class="frame">
+<picture><source srcset="/opil/dasci-card.webp" type="image/webp"><img src="/opil/dasci-card.jpg" alt="Da'Sci at the 2026 Data Challenge Finale" width="900" height="1098"></picture>
+<div class="cap">Da'Sci &middot; program host &middot; Data Challenge Finale '26</div>
+</div>
+</aside>
+</div></section>
+
+<section class="fit section"><div class="wrap"><div class="fit-grid">
+<div class="rv">
+<span class="kick">How it fits</span>
+<h2 style="font-size:clamp(30px,3.6vw,50px);margin-top:16px">Wednesdays teach.<br>Mondays, it gets done.</h2>
+<p style="margin-top:18px">Curriculum sessions run every other Wednesday, with HPC working sessions and office hours between them. The AI Thread takes its own hour on Mondays, so it never competes with a session and never leaves a team stuck between Wednesdays. Each hour points at one deliverable: the one due next.</p>
+<p style="margin-top:12px">Every session runs on the free tiers of the major AI tools, live online, and ends with the team&rsquo;s own result on their own screen.</p>
+</div>
+<div class="weekmap rv" role="img" aria-label="A sample month: AI Thread hours on Mondays, curriculum and HPC on Wednesdays">
+<div class="wm-head"><span></span><span>Week 1</span><span>Week 2</span><span>Week 3</span><span>Week 4</span></div>
+<div class="row"><b>MON</b><span class="pip ai">AI 01</span><span class="pip ai">AI 02</span><span class="pip mt"></span><span class="pip ai">AI 03</span></div>
+<div class="row"><b>WED</b><span class="pip wed">Session</span><span class="pip hpc">HPC</span><span class="pip wed">Session</span><span class="pip mt">Office hrs</span></div>
+<div class="leg"><span><i style="background:var(--ever);outline:2px solid var(--gold);outline-offset:1px"></i>The AI Thread (1 hr, live online)</span><span><i style="background:var(--ink)"></i>Curriculum session</span><span><i style="background:#4c5b96"></i>MSCF HPC (Morehouse Supercomputing Facility)</span></div>
+</div>
+</div></div></section>
+
+<section class="section" id="fall"><div class="wrap"><div class="sem">
+<div class="sem-rail rv"><div class="big">Fall &rsquo;26</div><div class="sub">Seven hours<br>Build the business<br>&rarr; Pitch, Dec 4</div></div>
+<div class="acc" data-acc>
+<article class="pane is-open">
+<button type="button" class="closed" aria-expanded="true" aria-controls="pane-1"><span class="no">01</span><span class="t">Your AI Toolkit</span><span class="mo">Sep</span><span class="pm">+</span></button>
+<div class="open" id="pane-1" role="region" aria-label="Session 1 details"><div><div class="inner"><div class="meta">01 &middot; Kickoff week &middot; Sep 14</div>
+<p class="out">Every student signed into a free AI account and the program hub before the Lab&rsquo;s first Wednesday, with a first real output produced on the call. Nobody gets left behind at step zero.</p>
+<span class="chip">They leave with: accounts live + first output</span>
+<div class="tie"><b>Feeds</b> orientation week &middot; hub access from day one</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-2"><span class="no">02</span><span class="t">Your AI Research Team</span><span class="mo">Sep</span><span class="pm">+</span></button>
+<div class="open" id="pane-2" role="region" aria-label="Session 2 details"><div><div class="inner"><div class="meta">02 &middot; Week of Sep 21</div>
+<p class="out">Build the customer interview guide with AI, then rehearse it against AI playing a skeptical small-business owner, before teams talk to real ones.</p>
+<span class="chip">They leave with: interview guide + one practiced interview</span>
+<div class="tie"><b>Feeds</b> Session 2 &middot; Customer Discovery (Sep 30)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-3"><span class="no">03</span><span class="t">The Synthesis Machine</span><span class="mo">Oct</span><span class="pm">+</span></button>
+<div class="open" id="pane-3" role="region" aria-label="Session 3 details"><div><div class="inner"><div class="meta">03 &middot; Week of Oct 5</div>
+<p class="out">Raw discovery notes go in; patterns, quotes, and a target customer profile come out. Teams do it live with their own interviews from the week before.</p>
+<span class="chip">They leave with: insight sheet + customer profile</span>
+<div class="tie"><b>Feeds</b> Session 3 &middot; Building the Business Model (Oct 14)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-4"><span class="no">04</span><span class="t">Red-Team Your Model</span><span class="mo">Oct</span><span class="pm">+</span></button>
+<div class="open" id="pane-4" role="region" aria-label="Session 4 details"><div><div class="inner"><div class="meta">04 &middot; Week of Oct 19</div>
+<p class="out">AI attacks the business model canvas each team drafted in session: hidden assumptions, competitor pressure, where the model breaks. Teams patch it before viability week.</p>
+<span class="chip">They leave with: assumption list + hardened canvas</span>
+<div class="tie"><b>Feeds</b> Session 4 &middot; Viability &amp; Unit Economics (Oct 28)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-5"><span class="no">05</span><span class="t">Numbers Without Fear</span><span class="mo">Nov</span><span class="pm">+</span></button>
+<div class="open" id="pane-5" role="region" aria-label="Session 5 details"><div><div class="inner"><div class="meta">05 &middot; Week of Nov 2</div>
+<p class="out">AI builds the financial sheet with them: pricing, costs, break-even, the metrics that matter, and the team&rsquo;s data shaped for the supercomputing run that feeds the December pitch.</p>
+<span class="chip">They leave with: a working financial sheet</span>
+<div class="tie"><b>Feeds</b> Session 4 output &middot; MSCF fall run (Dec 2)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-6"><span class="no">06</span><span class="t">Content Machine</span><span class="mo">Nov</span><span class="pm">+</span></button>
+<div class="open" id="pane-6" role="region" aria-label="Session 6 details"><div><div class="inner"><div class="meta">06 &middot; Week of Nov 9</div>
+<p class="out">Feed AI three things the team has already written and get launch content back in their venture&rsquo;s own voice. Brand identity work built the way Da&rsquo;Sci was: references first, then generation.</p>
+<span class="chip">They leave with: five usable posts per team</span>
+<div class="tie"><b>Feeds</b> venture identity going into pitch season</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-7"><span class="no">07</span><span class="t">The Pitch Machine</span><span class="mo">Nov</span><span class="pm">+</span></button>
+<div class="open" id="pane-7" role="region" aria-label="Session 7 details"><div><div class="inner"><div class="meta">07 &middot; Week of Nov 30</div>
+<p class="out">Draft the pitch script with AI, tighten the deck copy, then drill the five hardest judge questions against an AI panel until the answers come out clean.</p>
+<span class="chip">They leave with: pitch script + drilled Q&amp;A</span>
+<div class="tie"><b>Feeds</b> the Business Idea Pitch (Dec 4)</div></div></div></div>
+</article>
+</div>
+</div></div></section>
+
+<section class="section" id="spring" style="padding-top:0"><div class="wrap"><div class="sem">
+<div class="sem-rail rv"><div class="big">Spring &rsquo;27</div><div class="sub">Seven hours<br>Build the product<br>&rarr; Showcase, Mar 19</div></div>
+<div class="acc" data-acc>
+<article class="pane is-open">
+<button type="button" class="closed" aria-expanded="true" aria-controls="pane-8"><span class="no">08</span><span class="t">Build With AI I</span><span class="mo">Feb</span><span class="pm">+</span></button>
+<div class="open" id="pane-8" role="region" aria-label="Session 8 details"><div><div class="inner"><div class="meta">08 &middot; Week of Feb 1</div>
+<p class="out">Each team&rsquo;s open-payments architecture diagram becomes a scaffolded repository with working boilerplate, built live with AI coding copilots.</p>
+<span class="chip">They leave with: a repo that runs</span>
+<div class="tie"><b>Feeds</b> Session 6 (Jan 27) &rarr; Session 7 prototype work</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-9"><span class="no">09</span><span class="t">Build With AI II</span><span class="mo">Feb</span><span class="pm">+</span></button>
+<div class="open" id="pane-9" role="region" aria-label="Session 9 details"><div><div class="inner"><div class="meta">09 &middot; Week of Feb 8</div>
+<p class="out">The debug loop with AI on the team&rsquo;s real failing code, generated tests, and a README another developer could follow. The open-source release starts here, not in May.</p>
+<span class="chip">They leave with: tests passing + README started</span>
+<div class="tie"><b>Feeds</b> Session 7 &middot; Prototype &amp; Testing (Feb 10) &middot; May release</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-10"><span class="no">10</span><span class="t">Venture Agent</span><span class="mo">Feb</span><span class="pm">+</span></button>
+<div class="open" id="pane-10" role="region" aria-label="Session 10 details"><div><div class="inner"><div class="meta">10 &middot; Week of Feb 15</div>
+<p class="out">Every team ships a working AI agent for their own venture, a support or onboarding agent built on the same one-hour format this cohort&rsquo;s community has run before.</p>
+<span class="chip">They leave with: a working agent</span>
+<div class="tie"><b>Feeds</b> prototype depth &middot; demo material</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-11"><span class="no">11</span><span class="t">Hackathon Power-Ups</span><span class="mo">Feb</span><span class="pm">+</span></button>
+<div class="open" id="pane-11" role="region" aria-label="Session 11 details"><div><div class="inner"><div class="meta">11 &middot; Week of Feb 22</div>
+<p class="out">The 48-hour AI toolkit: sprint prompts, dividing the work between humans and machines, and the guardrails that keep a weekend build honest.</p>
+<span class="chip">They leave with: a one-page team battle plan</span>
+<div class="tie"><b>Feeds</b> the Black History Month Financial Inclusion Hackathon (Feb 26&ndash;28)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-12"><span class="no">12</span><span class="t">Demo Day Films</span><span class="mo">Mar</span><span class="pm">+</span></button>
+<div class="open" id="pane-12" role="region" aria-label="Session 12 details"><div><div class="inner"><div class="meta">12 &middot; Week of Mar 1</div>
+<p class="out">A phone, an AI-drafted script, and a shot list: each team starts the sixty-second demo film that makes their prototype legible to judges and the ecosystem.</p>
+<span class="chip">They leave with: shot list + rough cut started</span>
+<div class="tie"><b>Feeds</b> showcase demos &middot; open-source storytelling</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-13"><span class="no">13</span><span class="t">The Final Polish</span><span class="mo">Mar</span><span class="pm">+</span></button>
+<div class="open" id="pane-13" role="region" aria-label="Session 13 details"><div><div class="inner"><div class="meta">13 &middot; Week of Mar 8, before the Mar 12 freeze</div>
+<p class="out">Deck visuals, README and docs finished, teleprompter reps against AI. Timed to the prototype freeze so every team walks into dry runs with submission-ready assets.</p>
+<span class="chip">They leave with: submission-ready assets</span>
+<div class="tie"><b>Feeds</b> Final Showcase &amp; ILP Demo Day (Mar 19)</div></div></div></div>
+</article>
+<article class="pane">
+<button type="button" class="closed" aria-expanded="false" aria-controls="pane-14"><span class="no">14</span><span class="t">Beyond the Lab</span><span class="mo">Apr</span><span class="pm">+</span></button>
+<div class="open" id="pane-14" role="region" aria-label="Session 14 details"><div><div class="inner"><div class="meta">14 &middot; April</div>
+<p class="out">Portfolio pages and LinkedIn posts drafted with AI from a year of real work, so the cohort carries the Lab into careers, and the program&rsquo;s ecosystem goals show up in public.</p>
+<span class="chip">They leave with: a published post + portfolio draft</span>
+<div class="tie"><b>Feeds</b> the grant&rsquo;s ecosystem-engagement outcome</div></div></div></div>
+</article>
+</div>
+</div></div></section>
+
+<div class="mq">
+<div class="mq-t">
+<div class="mq-r"><span>Kickoff Sep 14</span><i></i><span>Session 1 Sep 16</span><i></i><span>Business Idea Pitch Dec 4</span><i></i><span>Track Two Jan 27</span><i></i><span>Hackathon Feb 26&ndash;28</span><i></i><span>Final Showcase Mar 19</span><i></i><span>Open-source release May</span><i></i></div>
+<div class="mq-r" aria-hidden="true"><span>Kickoff Sep 14</span><i></i><span>Session 1 Sep 16</span><i></i><span>Business Idea Pitch Dec 4</span><i></i><span>Track Two Jan 27</span><i></i><span>Hackathon Feb 26&ndash;28</span><i></i><span>Final Showcase Mar 19</span><i></i><span>Open-source release May</span><i></i></div>
+</div>
+</div>
+
+<section class="hub section"><div class="wrap">
+<span class="kick">Nothing is lost after the hour</span>
+<h2 style="font-size:clamp(30px,3.8vw,52px);margin-top:16px;max-width:20ch">Every session becomes a permanent asset.</h2>
+<div class="hub-grid">
+<div class="hub-card rv"><h3>Recorded within 48 hours</h3><p>Every AI Thread hour lands in the cohort&rsquo;s hub on Taylormade Academy two days after it runs. Miss a Monday, lose nothing.</p></div>
+<div class="hub-card rv"><h3>A playbook per session</h3><p>Each hour ships with a written playbook: the prompts, the steps, the checkpoints. Students refer back all year, and after.</p></div>
+<div class="hub-card rv"><h3>One account, one step</h3><p>Registering for the Lab creates each student&rsquo;s Academy account in the same motion. Twenty-five students, one login each, zero friction.</p></div>
+</div>
+<div class="proof rv">
+<p style="font-family:var(--serif);font-weight:700;font-size:clamp(40px,4.6vw,64px);line-height:1;color:#fff">49<span style="font-size:clamp(16px,1.7vw,20px);font-weight:600;color:#efe6cd;margin-left:14px">accounts created in one hour, the last time this community got an hour inside the Academy</span></p>
+<span>PFx mini-workshop &middot; July 22, 2026 &middot; AUC DSI cohort</span>
+</div>
+</div></section>
+
+<section class="dasci section"><div class="wrap"><div class="dasci-grid">
+<div class="rv">
+<span class="kick">The host</span>
+<h2 style="font-size:clamp(30px,3.8vw,52px);margin-top:16px">This cohort already knows <span class="gold-serif">Da&rsquo;Sci</span>.</h2>
+<p style="margin-top:18px">She hosted the 2026 Data Challenge Finale, the room every one of these finalists stood in. For the Innovation Lab she returns as the program&rsquo;s AI host: welcoming registrants, opening the hub, and appearing through the year, proof in motion of exactly the craft the Thread teaches.</p>
+<p style="margin-top:12px"><a href="/opil/register/" style="color:var(--gold);font-weight:600">She&rsquo;s waiting on the registration page &rarr;</a></p>
+</div>
+<div class="dasci-art rv">
+<picture><source srcset="/opil/dasci-hero.webp" type="image/webp"><img src="/opil/dasci-hero.jpg" alt="Da'Sci hosting the 2026 Data Challenge Finale" width="1920" height="1072"></picture>
+</div>
+</div></div></section>
+
+<section class="section"><div class="wrap">
+<div class="fac rv">
+<img src="/assets/sponsor-nelson-sm.jpg" alt="Nelson Taylor" width="720" height="576">
+<div>
+<span class="kick">The facilitator</span>
+<h2 style="margin-top:12px">Nelson Taylor</h2>
+<p>Fourteen years running Taylormade Creative in Dallas-Fort Worth, and the AI systems in this track are the ones running it today. This cohort&rsquo;s community has been in my room before.</p>
+<div class="cr">
+<span>Facilitated the three-night AI build sprint for around fifty HBCU students, AUC DSI &times; Johns Hopkins, June 2026</span>
+<span>Created Da&rsquo;Sci, host of the 2026 Data Challenge Finale, for AUC DSI</span>
+<span>Founder of Taylormade Academy, home of the cohort hub</span>
+</div>
+</div>
+</div>
+</div></section>
+
+<section class="section" style="padding-top:0"><div class="wrap">
+<div class="next rv">
+<span class="kick">Next steps</span>
+<h2 style="font-size:clamp(28px,3.4vw,44px);margin-top:16px">Ready for Monday.</h2>
+<div class="next-grid">
+<div class="st"><em>Monday</em><h3>Registration opens</h3><p>The registration page goes in front of the finalist pool: one form, Lab seat plus Academy account in a single step.</p></div>
+<div class="st"><em>Sep 14</em><h3>The hub opens</h3><p>Cohort hub live for kickoff week, and AI Thread 01 puts every student on the tools before the first Wednesday.</p></div>
+<div class="st"><em>All year</em><h3>The Thread runs</h3><p>Fourteen Mondays, fall through spring, each one aimed at the deliverable due next. Recordings and playbooks accumulate in the hub.</p></div>
+</div>
+<div style="margin-top:36px;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+<a class="btn solid" href="mailto:taylormademd@gmail.com?subject=The%20AI%20Thread%20%C2%B7%20OPIL">Talk to Nelson <span aria-hidden="true">&rarr;</span></a>
+<a class="btn" href="/opil/register/">See the registration page</a>
+</div>
+</div>
+</div></section>
+
+</main>
+
+<footer class="ft"><div class="wrap">
+<p>The AUC Open Payments Innovation Lab is supported by the Interledger Foundation through the grant <i>Building Digital Pathways for Financial Equity</i> to the Atlanta University Center Consortium Data Science Initiative.</p>
+<p class="mono">THE AI THREAD &middot; PREPARED BY NELSON TAYLOR &middot; TAYLORMADE CREATIVE<br>FOR THE AUC DSI &middot; 2026&ndash;27</p>
+</div></footer>
+
+<script>
+(function(){
+  /* reveals */
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+    document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+  }else{document.querySelectorAll('.rv').forEach(function(el){el.classList.add('in');});}
+  /* horizontal accordions: single is-open per group, keyboard accessible */
+  document.querySelectorAll('[data-acc]').forEach(function(acc){
+    var panes=acc.querySelectorAll('.pane');
+    panes.forEach(function(p){
+      var btn=p.querySelector('.closed');
+      btn.addEventListener('click',function(){
+        var opening=!p.classList.contains('is-open');
+        panes.forEach(function(q){
+          var on=opening&&q===p;
+          q.classList.toggle('is-open',on);
+          q.querySelector('.closed').setAttribute('aria-expanded',on?'true':'false');
+        });
+      });
+    });
+  });
+})();
+</script>
+</body></html>
