@@ -4,7 +4,7 @@
 <meta name="description" content="Fourteen one-hour AI workshops woven through the AUC Open Payments Innovation Lab year, each aimed at the deliverable the cohort owes next, every one recorded into a hub students keep.">
 <link rel="canonical" href="https://academy.taylormadecreative.net/opil/">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#175641">
+<meta name="theme-color" content="#04123a">
 <meta name="robots" content="noindex">
 <meta property="og:type" content="website"><meta property="og:site_name" content="AUC Open Payments Innovation Lab">
 <meta property="og:title" content="The AI Thread · Open Payments Innovation Lab">
@@ -13,17 +13,18 @@
 <meta property="og:image" content="https://academy.taylormadecreative.net/opil/dasci-hero.jpg"><meta property="og:image:alt" content="Da'Sci, the AI host of the AUC Data Challenge Finale">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@450;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 :root{
-  --paper:#faf6ef; --paper2:#f3ecdf; --card:#fffdf8;
-  --ink:#1a231e; --ink2:#43504a; --mut:#5f6d66;
-  --ever:#175641; --ever-deep:#0e3a2b; --ever-soft:#e7efe9;
-  --navy:#0d1330; --gold:#c9a227; --gold-soft:#f4e9c8;
-  --hair:#e4dccb; --hair-soft:#efe8da;
-  --serif:'Source Serif 4',Georgia,serif;
-  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --paper:#fcfdff; --paper2:#f5f7fc; --card:#ffffff;
+  --ink:#0a1733; --ink2:#33415b; --mut:#5d6b84;
+  --ever:#0b40e0; --ever-deep:#04123a; --ever-soft:#eef3ff;
+  --navy:#04123a; --gold:#fdc921; --gold-soft:#fff6da;
+  --hair:#e4e9f1; --hair-soft:#eef2f7;
+  --serif:'Space Grotesk','Inter',system-ui,sans-serif;
+  --mono:'Inter',system-ui,sans-serif;
   --sans:'Inter',system-ui,sans-serif;
   --ease:cubic-bezier(.23,1,.32,1);
   --maxw:1440px;
@@ -35,14 +36,10 @@ img{max-width:100%;height:auto;display:block}
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--ever);color:#fff}
 .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(20px,4.6vw,54px)}
-h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.06;font-weight:700;letter-spacing:-.015em}
+h1,h2,h3{font-family:var(--serif);color:var(--ink);line-height:1.06;font-weight:700;letter-spacing:-.025em}
 .kick{font-family:var(--mono);font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ever)}
 .kick::after{content:"";display:block;width:44px;height:2px;background:var(--gold);margin-top:10px}
 p{max-width:64ch}
-.btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;line-height:1;padding:15px 26px;border-radius:980px;border:1.5px solid var(--ink);color:var(--ink);cursor:pointer;transition:transform .16s var(--ease),background .16s var(--ease),color .16s var(--ease);background:transparent}
-.btn:active{transform:scale(.97)}
-.btn.solid{background:var(--ever);border-color:var(--ever);color:#fff}
-@media(hover:hover) and (pointer:fine){.btn:hover{background:var(--ink);color:var(--paper)}.btn.solid:hover{background:var(--ever-deep);border-color:var(--ever-deep);color:#fff}}
 .section{padding-block:clamp(72px,9vw,140px)}
 /* reveals (enhancement only) */
 .js .rv{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
@@ -160,20 +157,22 @@ p{max-width:64ch}
 </style>
 </head><body>
 
-<header class="hd"><div class="wrap"><div class="bar">
-<div class="lk"><img src="/opil/aucdsi-black.png" alt="AUC Data Science Initiative"><span>Open Payments<br>Innovation Lab</span></div>
-<a class="btn solid" href="/opil/register/">Registration <span aria-hidden="true">&rarr;</span></a>
-</div></div></header>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<nav class="nav"><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/opil/register/">Registration <span class="arr">&rarr;</span></a>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
+</div></div><div class="mobile-nav" id="mnav"><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="/opil/register/">Registration</a></div></header>
 
 <main>
 
 <section class="hero"><div class="wrap">
 <div class="hero-copy">
-<span class="kick">The AI workshop track &middot; 2026&ndash;27 program year</span>
+<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="kick">The AI workshop track &middot; 2026&ndash;27 program year</span><img src="/opil/aucdsi-black.png" alt="AUC Data Science Initiative" style="height:30px;width:auto"></div>
 <h1 style="margin-top:22px">The AI Thread.</h1>
 <p class="stand">Fourteen one-hour AI workshops woven through the Innovation Lab year, one for every deliverable the cohort owes next. The curriculum teaches the discipline. The Thread is where the homework gets done, with AI, on free tools, every week.</p>
 <div class="ctas">
-<a class="btn solid" href="#fall">The fourteen sessions</a>
+<a class="btn primary" href="#fall">The fourteen sessions</a>
 <a class="btn" href="/opil/register/">Preview registration</a>
 </div>
 </div>
@@ -369,7 +368,7 @@ p{max-width:64ch}
 <div class="st"><em>All year</em><h3>The Thread runs</h3><p>Fourteen Mondays, fall through spring, each one aimed at the deliverable due next. Recordings and playbooks accumulate in the hub.</p></div>
 </div>
 <div style="margin-top:36px;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
-<a class="btn solid" href="mailto:taylormademd@gmail.com?subject=The%20AI%20Thread%20%C2%B7%20OPIL">Talk to Nelson <span aria-hidden="true">&rarr;</span></a>
+<a class="btn primary" href="mailto:taylormademd@gmail.com?subject=The%20AI%20Thread%20%C2%B7%20OPIL">Talk to Nelson <span aria-hidden="true">&rarr;</span></a>
 <a class="btn" href="/opil/register/">See the registration page</a>
 </div>
 </div>
@@ -377,10 +376,19 @@ p{max-width:64ch}
 
 </main>
 
-<footer class="ft"><div class="wrap">
-<p>The AUC Open Payments Innovation Lab is supported by the Interledger Foundation through the grant <i>Building Digital Pathways for Financial Equity</i> to the Atlanta University Center Consortium Data Science Initiative.</p>
-<p class="mono">THE AI THREAD &middot; PREPARED BY NELSON TAYLOR &middot; TAYLORMADE CREATIVE<br>FOR THE AUC DSI &middot; 2026&ndash;27</p>
+<section class="section tight" style="padding-top:0"><div class="wrap"><p style="font-size:13px;color:var(--mut);max-width:70ch">The AUC Open Payments Innovation Lab is supported by the Interledger Foundation through the grant <i>Building Digital Pathways for Financial Equity</i> to the Atlanta University Center Consortium Data Science Initiative. The AI Thread is prepared by Nelson Taylor for the AUC DSI.</p></div></section>
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p></div>
+<div class="foot-col"><h4>Explore</h4><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a><a href="/sponsor/">Sponsor a cohort</a></div>
+<div class="foot-col"><h4>The Lab</h4><a href="/opil/">The AI Thread</a><a href="/opil/register/">Registration</a><a href="/login/">Sign in</a></div>
+</div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a></span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
+<script src="/js/config.js?v=3b7d540f53"></script><script src="/js/site.js?v=3b7d540f53"></script>
 
 <script>
 (function(){
