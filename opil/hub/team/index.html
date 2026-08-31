@@ -83,11 +83,13 @@ function bubble(m) {
   return `<div class="bub${me ? ' me' : ''}">${me ? '' : `<div class="who">${esc(nm[m.user_id] || 'Member')}</div>`}<p>${esc(m.body)}</p><div class="w">${when(m.created_at)}</div></div>`;
 }
 async function loadChat() {
-  const { data: msgs } = await sb.from('ea_opil_team_messages').select('*').eq('team_id', teamId).order('created_at').limit(300);
+  const { data: msgs } = await sb.from('ea_opil_team_messages').select('*').eq('team_id', teamId).order('created_at', { ascending: false }).limit(300);
+  (msgs || []).reverse();
   const missing = (msgs || []).map(m => m.user_id).filter(id => !nm[id]);
   if (missing.length) Object.assign(nm, await names(sb, missing));
+  const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 60;
   scroll.innerHTML = (msgs && msgs.length) ? msgs.map(bubble).join('') : '<div class="empty">Say hello. Your team sees it instantly.</div>';
-  scroll.scrollTop = scroll.scrollHeight;
+  if (nearBottom) scroll.scrollTop = scroll.scrollHeight;
 }
 await loadChat();
 /* realtime with poll fallback */
@@ -102,9 +104,9 @@ document.getElementById('chatForm').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const input = document.getElementById('chatInput');
   const body = input.value.trim(); if (!body) return;
-  input.value = '';
   const { error } = await sb.from('ea_opil_team_messages').insert({ team_id: teamId, user_id: user.id, body });
-  if (!error) loadChat();
+  if (error) { input.setCustomValidity('Could not send. Try again.'); input.reportValidity(); setTimeout(()=>input.setCustomValidity(''),1500); return; }
+  input.value = ''; loadChat();
 });
 
 /* locker */
@@ -118,7 +120,10 @@ async function loadLocker() {
   const { data: dvs } = await sb.from('ea_opil_deliverables').select('*').eq('team_id', teamId).order('created_at', { ascending: false });
   const bySession = {};
   (dvs || []).forEach(d => { (bySession[d.session_no || 0] = bySession[d.session_no || 0] || []).push(d); });
-  document.getElementById('dvList').innerHTML = (sess || []).map(s => {
+  const gen = bySession[0] || [];
+  const genHtml = gen.length ? `<div class="dv"><span class="st done">✓</span><div class="m"><b>General</b><span>${gen.length} item${gen.length>1?'s':''}</span></div></div>` +
+    gen.map(d => { const link = d.link_url ? `<a href="${esc(d.link_url)}" target="_blank" rel="noopener">open link</a>` : ''; const file = d.file_path ? `<a href="#" data-file="${esc(d.file_path)}" class="fileLink">download file</a>` : ''; return `<div style="font-size:13px;color:var(--ink-2);padding:3px 0 3px 40px">${esc(d.title)} · ${link} ${file}</div>`; }).join('') : '';
+  document.getElementById('dvList').innerHTML = genHtml + (sess || []).map(s => {
     const items = bySession[s.no] || [];
     const rows = items.map(d => {
       const link = d.link_url ? `<a href="${esc(d.link_url)}" target="_blank" rel="noopener">open link</a>` : '';

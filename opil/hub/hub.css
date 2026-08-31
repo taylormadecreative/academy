@@ -9,6 +9,8 @@
 .hub-note{background:var(--gold-soft);border:1px solid #f0dfa4;color:var(--gold-ink);border-radius:14px;padding:14px 18px;font-size:14px;margin-bottom:22px}
 .hub-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(20px,3vw,36px);align-items:start;padding-bottom:clamp(48px,6vw,80px)}
 @media(max-width:900px){.hub-grid{grid-template-columns:1fr}}
+.hub-grid.dm{grid-template-columns:320px 1fr}
+@media(max-width:760px){.hub-grid.dm{grid-template-columns:1fr}}
 .hcard{background:#fff;border:1px solid var(--hair);border-radius:18px;box-shadow:var(--shadow-sm)}
 .hcard .hd2{padding:16px 20px;border-bottom:1px solid var(--hair-soft);display:flex;justify-content:space-between;align-items:center}
 .hcard .hd2 h2{font-size:17px}

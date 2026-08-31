@@ -30,7 +30,7 @@
 <div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Registrations</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 7</span></div>
 <div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
-<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Registered</th>
+<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Status</th>
 </tr></thead><tbody><tr><td colspan="6" class="empty">Loading&hellip;</td></tr></tbody></table></div>
 </div>
 
@@ -40,7 +40,7 @@
 </div>
 
 <div class="hcard" style="margin-bottom:26px">
-<div class="hd2"><h2>Deliverables by team</h2></div>
+<div class="hd2"><h2>Deliverables &middot; publish to the showcase</h2><a class="mono" style="font-size:11px;color:var(--blue)" href="/opil/showcase/" target="_blank">VIEW SHOWCASE →</a></div>
 <div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
@@ -81,9 +81,24 @@ document.getElementById('stats').innerHTML = [
 ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
 
 /* registrations table */
+function regRow(r){
+  const seats = 1 + ((r.members || []).length || 0);
+  const status = r.approved
+    ? '<span style="color:var(--emerald);font-weight:600">✓ approved</span>'
+    : `<button class="pillbtn" data-approve="${r.id}">Approve</button>`;
+  return `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td>${status}</td></tr>`;
+}
 document.querySelector('#regTbl tbody').innerHTML = (regs && regs.length)
-  ? regs.map(r => `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${1 + ((r.members || []).length || 0)}</td><td>${when(r.created_at)}</td></tr>`).join('')
+  ? regs.map(regRow).join('')
   : '<tr><td colspan="6" class="empty">No registrations yet. The pool opens Monday.</td></tr>';
+document.querySelector('#regTbl').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-approve]'); if (!b) return;
+  b.textContent = 'Approving…';
+  const { error } = await sb.from('ea_opil_registrations').update({ approved: true }).eq('id', b.dataset.approve);
+  if (error) { b.textContent = 'Approve'; alert('Could not approve: ' + error.message); return; }
+  const r = (regs || []).find(x => x.id === b.dataset.approve); if (r) r.approved = true;
+  b.closest('td').innerHTML = '<span style="color:var(--emerald);font-weight:600">✓ approved</span>';
+});
 
 /* attendance grid: rows = hub members, cols = thread sessions */
 const attSet = new Set((att || []).map(a => a.session_no + ':' + a.user_id));
@@ -111,16 +126,29 @@ document.getElementById('attWrap').addEventListener('click', async (ev) => {
   }
 });
 
-/* deliverables matrix */
-const byTeam = {}; (dvs || []).forEach(d => { (byTeam[d.team_id] = byTeam[d.team_id] || []).push(d); });
-document.getElementById('dvWrap').innerHTML = (teams && teams.length)
-  ? `<table class="tbl"><thead><tr><th>Team</th><th>Items</th><th>Latest</th></tr></thead><tbody>` +
-    (teams || []).map(t => {
-      const items = byTeam[t.id] || [];
-      const latest = items.length ? items.reduce((a, b) => a.created_at > b.created_at ? a : b) : null;
-      return `<tr><td><b>${esc(t.name)}</b></td><td>${items.length}</td><td>${latest ? esc(latest.title) + ' · ' + when(latest.created_at) : '<span style="color:var(--muted)">nothing yet</span>'}</td></tr>`;
-    }).join('') + '</tbody></table>'
-  : '<div class="empty">Teams appear as they register.</div>';
+/* deliverables list w/ publish toggle */
+function dvRows(){
+  return (dvs || []).length
+    ? `<table class="tbl"><thead><tr><th>Team</th><th>Deliverable</th><th>Session</th><th>Added</th><th>Showcase</th></tr></thead><tbody>` +
+      (dvs || []).map(d => {
+        const tn = teamName[d.team_id] || '';
+        const btn = d.published
+          ? `<button class="pillbtn" style="background:var(--emerald-soft);color:var(--emerald)" data-pub="${d.id}" data-to="0">Published ✓</button>`
+          : `<button class="pillbtn" data-pub="${d.id}" data-to="1">Publish</button>`;
+        return `<tr><td><b>${esc(tn)}</b></td><td>${esc(d.title)}</td><td>${d.session_no ? String(d.session_no).padStart(2,'0') : '—'}</td><td>${when(d.created_at)}</td><td>${btn}</td></tr>`;
+      }).join('') + '</tbody></table>'
+    : '<div class="empty">Deliverables appear as teams fill their lockers. Publish the strongest work to the public showcase.</div>';
+}
+document.getElementById('dvWrap').innerHTML = dvRows();
+document.getElementById('dvWrap').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-pub]'); if (!b) return;
+  const to = b.dataset.to === '1';
+  b.textContent = '…';
+  const { error } = await sb.from('ea_opil_deliverables').update({ published: to }).eq('id', b.dataset.pub);
+  if (error) { alert('Could not update: ' + error.message); document.getElementById('dvWrap').innerHTML = dvRows(); return; }
+  const d = (dvs || []).find(x => x.id === b.dataset.pub); if (d) d.published = to;
+  document.getElementById('dvWrap').innerHTML = dvRows();
+});
 
 /* announcement */
 document.getElementById('annForm').addEventListener('submit', async (ev) => {
@@ -133,9 +161,10 @@ document.getElementById('annForm').addEventListener('submit', async (ev) => {
 /* CSV export */
 document.getElementById('csvBtn').addEventListener('click', () => {
   const head = 'team,lead,email,school,members,registered\n';
+  const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
   const lines = (regs || []).map(r =>
     [r.team_name, r.full_name, r.email, r.school, 1 + ((r.members || []).length || 0), r.created_at]
-      .map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\n');
+      .map(cell).join(',')).join('\n');
   const blob = new Blob([head + lines], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = 'opil-roster.csv'; a.click();

@@ -26,7 +26,7 @@
 <a class="hub-tab" href="/opil/showcase/">Showcase</a>
 </nav>
 
-<div class="hub-grid" style="grid-template-columns:320px 1fr">
+<div class="hub-grid dm">
 <div class="hcard">
 <div class="hd2"><h2>The cohort</h2></div>
 <div class="bd" id="people" style="max-height:560px;overflow-y:auto"><div class="empty">Loading&hellip;</div></div>
@@ -65,13 +65,17 @@ const form = document.getElementById('dmForm');
 
 async function loadThread() {
   if (!to) return;
+  const req = to;
   const { data: msgs } = await sb.from('ea_opil_dms').select('*')
     .or(`and(sender_id.eq.${user.id},recipient_id.eq.${to}),and(sender_id.eq.${to},recipient_id.eq.${user.id})`)
-    .order('created_at').limit(300);
+    .order('created_at', { ascending: false }).limit(300);
+  if (msgs) msgs.reverse();
+  if (req !== to) return;
+  const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 60;
   scroll.innerHTML = (msgs && msgs.length)
     ? msgs.map(m => `<div class="bub${m.sender_id === user.id ? ' me' : ''}"><p>${esc(m.body)}</p><div class="w">${when(m.created_at)}</div></div>`).join('')
     : '<div class="empty">Start the conversation.</div>';
-  scroll.scrollTop = scroll.scrollHeight;
+  if (nearBottom) scroll.scrollTop = scroll.scrollHeight;
   /* mark received as read */
   sb.from('ea_opil_dms').update({ read_at: new Date().toISOString() })
     .eq('recipient_id', user.id).eq('sender_id', to).is('read_at', null).then(() => {});
@@ -90,9 +94,9 @@ form.addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const input = document.getElementById('dmInput');
   const body = input.value.trim(); if (!body || !to) return;
-  input.value = '';
   const { error } = await sb.from('ea_opil_dms').insert({ sender_id: user.id, recipient_id: to, body });
-  if (!error) loadThread();
+  if (error) { input.setCustomValidity('Could not send.'); input.reportValidity(); setTimeout(()=>input.setCustomValidity(''),1500); return; }
+  input.value = ''; loadThread();
 });
 try {
   sb.channel('dm-' + user.id)
