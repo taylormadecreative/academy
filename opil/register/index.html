@@ -10,9 +10,10 @@
 <meta property="og:title" content="Register · AUC Open Payments Innovation Lab">
 <meta property="og:description" content="Turn the small-business solution your team already built into a business — and a working open-payment prototype. Team registration closes Wed, Sep 9.">
 <meta property="og:url" content="https://taylormadeacademy.com/opil/register/">
-<meta property="og:image" content="https://taylormadeacademy.com/opil/duo-og.jpg"><meta property="og:image:alt" content="Nelson Taylor and Da'Sci welcome the 2026-27 Open Payments Innovation Lab cohort">
+<meta property="og:image" content="https://taylormadeacademy.com/opil/duo-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Nelson Taylor and Da'Sci welcome the 2026-27 Open Payments Innovation Lab cohort">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://esm.sh" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
 <link rel="preload" as="image" href="/opil/duo.webp" fetchpriority="high">
@@ -24,7 +25,7 @@
 @media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
 
 .okick{display:inline-block;font-size:12px;line-height:1.9;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700}
-.okick .x{color:var(--muted-ink);font-weight:600;padding-inline:4px}
+.okick .x{color:var(--muted);font-weight:600;padding-inline:4px}
 .ohl{background:linear-gradient(transparent 62%,var(--gold) 62%,var(--gold) 94%,transparent 94%)}
 
 /* hero + page grid: form is a right rail spanning hero, journey, and collab rows */
@@ -39,6 +40,7 @@
 .jcard{grid-area:journey}
 .ccard{grid-area:collab;align-self:start}
 .rcard{grid-area:rail;align-self:start}
+#register{scroll-margin-top:84px}
 .ohero h1{font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.04;color:var(--ink);font-size:clamp(34px,3.4vw,54px);margin-top:18px;text-wrap:balance}
 .ohero .sub{font-size:clamp(15.5px,1.35vw,18px);color:var(--muted);max-width:44ch;margin-top:16px}
 
@@ -54,47 +56,53 @@
 .dpill{flex:1 1 200px;display:flex;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:13px 16px;box-shadow:var(--shadow-sm)}
 .dpill .ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--gold-soft);color:var(--gold-ink);display:inline-flex;align-items:center;justify-content:center}
 .dpill em{display:block;font-style:normal;font-size:11.5px;font-weight:600;letter-spacing:.05em;color:var(--muted)}
-.dpill b{display:block;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:2px}
+.dpill b{display:block;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:2px;white-space:nowrap}
 
 /* duo figure — stands at the base of the hero, feet tucked behind the journey card */
-.duo{position:relative;align-self:end;display:flex;align-items:flex-end;justify-content:center;z-index:1;margin-right:calc(-1 * clamp(12px,2.2vw,36px))}
-.duo img{width:min(112%,580px);max-width:none;height:auto;margin-bottom:calc(-1 * clamp(24px,2.8vw,42px));filter:drop-shadow(0 26px 34px rgba(4,18,58,.16))}
-.duo .hexdeco{position:absolute;top:clamp(-20px,-1.4vw,-8px);right:6px;width:clamp(84px,8.5vw,118px);height:auto;pointer-events:none}
+.duo{position:relative;align-self:end;display:flex;align-items:flex-end;justify-content:center;z-index:1}
+.duo img{width:min(100%,540px);height:auto;margin-bottom:-56px;filter:drop-shadow(0 26px 34px rgba(4,18,58,.16))}
+.duo .hexdeco{position:absolute;top:clamp(-30px,-2vw,-14px);right:-6px;width:clamp(84px,8.5vw,118px);height:auto;pointer-events:none}
 
 /* form card */
 .rcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(22px,2.4vw,32px);position:relative;z-index:2}
 .rcard .rhead{display:flex;align-items:center;gap:14px}
-.rcard .rhead .ic{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);color:var(--gold-deep);display:inline-flex;align-items:center;justify-content:center}
+.rcard .rhead .ic{flex:0 0 auto;position:relative;width:46px;height:46px;color:var(--gold-deep);display:inline-flex;align-items:center;justify-content:center}
+.rcard .rhead .ic .hx{position:absolute;inset:0;width:100%;height:100%}
+.rcard .rhead .ic .gi{position:relative;display:inline-flex}
 .rcard h2{font-family:var(--display);font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:23px;line-height:1.1}
 .rcard .rsub{font-size:13px;color:var(--muted);margin-top:3px}
-.fsec{margin-top:22px;padding-top:16px;border-top:1px solid var(--hair-soft);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-ink)}
-.fsec:first-of-type{border-top:0;padding-top:0}
+.fs{border:0;margin:0;padding:0;min-width:0}
+.fsec{display:block;width:100%;margin-top:22px;padding-top:16px;border-top:1px solid var(--hair-soft);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.rhead + .fs .fsec{border-top:0;padding-top:0;margin-top:16px}
 .f{margin-top:14px}
 .f label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.f label i{font-style:normal;font-weight:500;color:var(--muted-ink);font-size:12px}
+.f label i{font-style:normal;font-weight:500;color:var(--muted);font-size:12px;white-space:nowrap}
 .f input,.f textarea,.f select{width:100%;font-family:var(--font);font-size:15.5px;color:var(--ink);background:#fff;border:1.5px solid #d5deee;border-radius:12px;padding:12px 14px;outline:none;transition:border-color .16s var(--ease),box-shadow .16s var(--ease)}
 .f select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%235d6b84' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .f select:has(> option[disabled]:checked){color:var(--muted)}
 .f input:focus,.f textarea:focus,.f select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,64,224,.14)}
+.f .badf{border-color:#c4441c;box-shadow:0 0 0 3px rgba(196,68,28,.12)}
+.ferr{font-size:12.5px;font-weight:600;color:#a33a12;margin-top:6px}
 .f textarea{min-height:76px;resize:vertical}
 .f .hint{font-size:12px;color:var(--muted);margin-top:5px}
 .rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-.count{font-size:11.5px;color:var(--muted-ink);text-align:right;margin-top:4px}
+.count{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
 /* teammate blocks */
-.mate{border:1px solid var(--hair);border-radius:14px;padding:14px 16px 16px;margin-top:14px;background:var(--paper-2)}
-.mate .mt{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.mate .mt button{font:inherit;color:var(--muted-ink);background:none;border:0;cursor:pointer;letter-spacing:.04em;text-transform:none;font-weight:600}
-.mate .mt button:hover{color:var(--clay)}
+.mate{position:relative;border:1px solid var(--hair);border-radius:14px;padding:12px 16px 16px;margin-top:14px;background:var(--paper-2)}
+.mate .mlg{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.mate .rm{position:absolute;top:6px;right:6px;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer;padding:8px 10px;border-radius:8px}
+.mate .rm:hover{color:var(--clay);background:#fdf1f0}
 .addmate{margin-top:14px;width:100%;font-family:var(--font);font-size:14px;font-weight:600;color:var(--blue);background:var(--blue-soft);border:1.5px dashed rgba(11,64,224,.35);border-radius:12px;padding:12px;cursor:pointer;transition:background .16s var(--ease)}
 .addmate:hover{background:#e2ebff}
 /* commitment radios */
 .commit{margin-top:14px}
 .commit .q{font-size:13px;font-weight:600;color:var(--ink)}
 .commit .opts{display:flex;gap:10px;margin-top:8px}
-.commit label{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid #d5deee;border-radius:12px;padding:11px;font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:border-color .16s var(--ease),background .16s var(--ease)}
+.commit .opts label{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid #d5deee;border-radius:12px;padding:11px;font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:border-color .16s var(--ease),background .16s var(--ease)}
 .commit input{position:absolute;opacity:0;pointer-events:none}
-.commit label:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep)}
-.commit label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
+.commit .opts label:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep)}
+.commit .opts label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
+.commit .hint{font-size:12px;color:var(--muted);margin-top:7px}
 /* submit */
 .osubmit{width:100%;margin-top:20px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font);font-weight:700;font-size:16px;color:#fff;background:var(--navy);border:0;border-radius:var(--pill);padding:16px 24px;cursor:pointer;box-shadow:0 14px 26px -12px rgba(4,18,58,.5);transition:background .16s var(--ease),transform .16s var(--ease)}
 .osubmit:hover:not([disabled]){background:#0a2058}
@@ -103,8 +111,8 @@
 .assure{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--muted)}
 .assure span{display:inline-flex;align-items:center;gap:7px}
 .legal{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.55}
-.err{display:none;margin-top:14px;border:1.5px solid #d9822b;background:#fdf3e7;color:#7a4a12;border-radius:12px;padding:12px 15px;font-size:14px}
-.err.show{display:block}
+.err{font-size:14px;color:#7a4a12}
+.err:not(:empty){margin-top:14px;border:1.5px solid #d9822b;background:#fdf3e7;border-radius:12px;padding:12px 15px}
 /* success */
 .done{display:none}
 .done.show{display:block}
@@ -114,14 +122,14 @@
 
 /* journey */
 .jcard{position:relative;z-index:2;margin-top:clamp(24px,2.6vw,38px);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(22px,2.6vw,34px)}
-.jhead{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue)}
+.jhead{font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin:0}
 .jsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:24px;position:relative}
 .jsteps::before{content:"";position:absolute;top:26px;left:12.5%;right:12.5%;height:2px;background:repeating-linear-gradient(90deg,var(--hair) 0 10px,transparent 10px 18px)}
 .jstep{text-align:center;position:relative}
 .jstep .badge{position:relative;width:54px;height:54px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff}
 .jstep .badge svg.h{position:absolute;inset:0;width:100%;height:100%}
 .jstep .badge .gi{position:relative;z-index:1;display:inline-flex}
-.jstep b{display:block;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:14px;letter-spacing:-.01em}
+.jstep h3{font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:14px;letter-spacing:-.01em;line-height:1.2}
 .jstep .when{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
 .jstep p{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px;max-width:27ch;margin-inline:auto}
 
@@ -141,19 +149,23 @@
   .ogrid{grid-template-columns:1fr;grid-template-areas:"top" "rail" "journey" "collab"}
   .rcard{max-width:720px;width:100%;margin:clamp(22px,4vw,34px) auto 0}
   .jcard{margin-top:clamp(28px,5vw,40px)}
-  .duo img{margin-bottom:0}
+  .duo img{margin-bottom:0;-webkit-mask-image:linear-gradient(#000 84%,rgba(0,0,0,0) 98%);mask-image:linear-gradient(#000 84%,rgba(0,0,0,0) 98%)}
 }
 @media(max-width:760px){
   .htop{grid-template-columns:minmax(0,1.02fr) minmax(150px,.98fr);grid-template-areas:"copy duo" "stats stats" "dates dates";gap:0 10px}
   .ohero h1{font-size:clamp(29px,8vw,36px)}
   .stats,.dates{max-width:none}
   .duo img{width:100%}
-  .duo .hexdeco{width:78px;top:-16px;right:0}
+  .duo .hexdeco{width:72px;top:-22px;right:2px}
   .jsteps{grid-template-columns:1fr 1fr;gap:26px 14px}
   .jsteps::before{display:none}
   .ccard{grid-template-columns:1fr}
 }
 @media(max-width:519px){
+  .htop{grid-template-columns:1fr;grid-template-areas:"copy" "duo" "stats" "dates"}
+  .duo{justify-content:center;margin-top:10px}
+  .duo img{width:min(76%,320px);margin-bottom:-8px}
+  .duo .hexdeco{right:6%;top:-8px;width:70px}
   .rgrid2{grid-template-columns:1fr}
 }
 </style>
@@ -174,7 +186,7 @@
 <div class="hcopy">
 <span class="okick">Taylormade Academy <span class="x">&times;</span> AUC Data Science Initiative</span>
 <h1>Register for the AUC <span class="ohl">Payments Lab</span></h1>
-<p class="sub">Turn the small-business solution your team already built into a business &mdash; and a working open-payment prototype. One academic year, both tracks, your original Data Challenge team.</p>
+<p class="sub">Turn the small-business solution your team already built into a business &mdash; and a working open-payment prototype. One academic year, both tracks, your original Data Challenge team &mdash; at no cost.</p>
 </div>
 
 <div class="stats rv">
@@ -203,100 +215,108 @@
 </div>
 
 <div class="rcard" id="register">
-<form id="regForm" novalidate>
-<div class="rhead"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span>
-<div><h2>Team registration</h2><p class="rsub">One submission per team &middot; 2&ndash;4 HBCU students</p></div></div>
+<form id="regForm" novalidate onsubmit="return false">
+<div class="rhead"><span class="ic"><svg class="hx" viewBox="0 0 46 46" aria-hidden="true"><polygon points="23,2.5 41,13 41,33 23,43.5 5,33 5,13" fill="none" stroke="#f2b705" stroke-width="2.6"/></svg><span class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span></span>
+<div><h2>Team registration</h2><p class="rsub">One submission per team &middot; 2&ndash;4 HBCU students &middot; every Data Challenge team welcome</p></div></div>
 
-<div class="fsec">Your team</div>
+<fieldset class="fs">
+<legend class="fsec">Your team</legend>
 <div class="f"><label for="team">Team name <i>&middot; from the Data Challenge</i></label><input id="team" name="team" required maxlength="160" autocomplete="off"></div>
+</fieldset>
 
-<div class="fsec">Team lead</div>
+<fieldset class="fs">
+<legend class="fsec">Team lead</legend>
 <div class="rgrid2">
 <div class="f"><label for="fname">Full name</label><input id="fname" name="fname" autocomplete="name" required maxlength="120"></div>
 <div class="f"><label for="school">HBCU institution</label><input id="school" name="school" list="schools" required maxlength="120"><datalist id="schools"><option value="Clark Atlanta University"><option value="Spelman College"><option value="Morehouse College"><option value="Morehouse School of Medicine"></datalist></div>
 <div class="f"><label for="major">Major / field of study <i>&middot; optional</i></label><input id="major" name="major" maxlength="120"></div>
 <div class="f"><label for="classification">Classification</label><select id="classification" name="classification" required><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
-<div class="f"><label for="email">HBCU email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="200" aria-describedby="emailHint"></div>
+<div class="f"><label for="email">HBCU email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="200" aria-describedby="emailHint"><p class="hint" id="emailHint">Your program hub &mdash; every session and playbook, all year &mdash; activates at this email.</p></div>
 <div class="f"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" required maxlength="40"></div>
 </div>
-<p class="hint" id="emailHint" style="font-size:12px;color:var(--muted);margin-top:6px">Your program-hub login lands at the HBCU email.</p>
-<div class="f"><label for="pemail">Personal email <i>&middot; optional</i></label><input id="pemail" name="pemail" type="email" maxlength="200"></div>
+<div class="f"><label for="pemail">Personal email <i>&middot; optional</i></label><input id="pemail" name="pemail" type="email" maxlength="200" aria-describedby="pemailHint"><p class="hint" id="pemailHint">A backup way to reach you.</p></div>
+</fieldset>
 
 <div class="fsec">Teammates</div>
-<div class="mate" data-mate="2">
-<div class="mt"><span>Teammate 2 &middot; required</span></div>
+<fieldset class="fs mate" data-mate="2">
+<legend class="mlg">Teammate 2 &middot; required</legend>
 <div class="rgrid2">
-<div class="f"><label for="m2name">Full name</label><input id="m2name" maxlength="120"></div>
-<div class="f"><label for="m2email">HBCU email</label><input id="m2email" type="email" maxlength="200"></div>
-<div class="f"><label for="m2phone">Phone</label><input id="m2phone" type="tel" maxlength="40"></div>
-<div class="f"><label for="m2class">Classification</label><select id="m2class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+<div class="f"><label for="m2name">Full name</label><input id="m2name" required aria-required="true" maxlength="120" autocomplete="section-mate2 name"></div>
+<div class="f"><label for="m2email">HBCU email</label><input id="m2email" type="email" required aria-required="true" maxlength="200" autocomplete="section-mate2 email"></div>
+<div class="f"><label for="m2phone">Phone</label><input id="m2phone" type="tel" required aria-required="true" maxlength="40" autocomplete="section-mate2 tel"></div>
+<div class="f"><label for="m2class">Classification</label><select id="m2class" required aria-required="true"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
 </div>
-</div>
-<div class="mate" data-mate="3" hidden>
-<div class="mt"><span>Teammate 3</span><button type="button" data-remove="3">Remove</button></div>
+</fieldset>
+<fieldset class="fs mate" data-mate="3" hidden>
+<legend class="mlg">Teammate 3</legend>
+<button type="button" class="rm" data-remove="3">Remove</button>
 <div class="rgrid2">
-<div class="f"><label for="m3name">Full name</label><input id="m3name" maxlength="120"></div>
-<div class="f"><label for="m3email">HBCU email</label><input id="m3email" type="email" maxlength="200"></div>
-<div class="f"><label for="m3phone">Phone</label><input id="m3phone" type="tel" maxlength="40"></div>
+<div class="f"><label for="m3name">Full name</label><input id="m3name" maxlength="120" autocomplete="section-mate3 name"></div>
+<div class="f"><label for="m3email">HBCU email</label><input id="m3email" type="email" maxlength="200" autocomplete="section-mate3 email"></div>
+<div class="f"><label for="m3phone">Phone</label><input id="m3phone" type="tel" maxlength="40" autocomplete="section-mate3 tel"></div>
 <div class="f"><label for="m3class">Classification</label><select id="m3class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
 </div>
-</div>
-<div class="mate" data-mate="4" hidden>
-<div class="mt"><span>Teammate 4</span><button type="button" data-remove="4">Remove</button></div>
+</fieldset>
+<fieldset class="fs mate" data-mate="4" hidden>
+<legend class="mlg">Teammate 4</legend>
+<button type="button" class="rm" data-remove="4">Remove</button>
 <div class="rgrid2">
-<div class="f"><label for="m4name">Full name</label><input id="m4name" maxlength="120"></div>
-<div class="f"><label for="m4email">HBCU email</label><input id="m4email" type="email" maxlength="200"></div>
-<div class="f"><label for="m4phone">Phone</label><input id="m4phone" type="tel" maxlength="40"></div>
+<div class="f"><label for="m4name">Full name</label><input id="m4name" maxlength="120" autocomplete="section-mate4 name"></div>
+<div class="f"><label for="m4email">HBCU email</label><input id="m4email" type="email" maxlength="200" autocomplete="section-mate4 email"></div>
+<div class="f"><label for="m4phone">Phone</label><input id="m4phone" type="tel" maxlength="40" autocomplete="section-mate4 tel"></div>
 <div class="f"><label for="m4class">Classification</label><select id="m4class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
 </div>
-</div>
+</fieldset>
 <button type="button" class="addmate" id="addMate">+ Add teammate 3</button>
 
-<div class="fsec">Your project</div>
+<fieldset class="fs">
+<legend class="fsec">Your project</legend>
 <div class="f"><label for="project">What your team built <i>&middot; optional</i></label><textarea id="project" name="project" maxlength="500" placeholder="One or two lines about your Data Challenge solution"></textarea><div class="count" id="projCount">0/500</div></div>
+</fieldset>
 
 <div class="commit">
-<p class="q" id="commitQ">Does every member plan to participate across both tracks &mdash; Fall 2026 and Spring 2027?</p>
+<p class="q" id="commitQ">Does every member plan to participate across both tracks &mdash; Business (Fall 2026) and FinTech (Spring 2027)?</p>
 <div class="opts" role="radiogroup" aria-labelledby="commitQ">
 <label><input type="radio" name="commit" value="yes">Yes</label>
 <label><input type="radio" name="commit" value="no">Not sure yet</label>
 </div>
+<p class="hint">The Lab runs both tracks as one year; this helps the program team plan seats.</p>
 </div>
 
 <button class="osubmit" id="submitBtn" type="submit">Register your team <span aria-hidden="true">&rarr;</span></button>
 <div class="assure"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>No cost, no card</span><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>Limited spaces &middot; 10 teams</span></div>
 <div class="err" id="errBox" role="alert"></div>
-<p class="legal">Submitting registers your team with the AUC DSI Open Payments Innovation Lab and creates the team lead&rsquo;s program-hub account on Taylormade Academy. One email to activate it &mdash; no password, no spam.</p>
+<p class="legal">Submitting registers your team with the AUC DSI Open Payments Innovation Lab and creates the team lead&rsquo;s program-hub account on Taylormade Academy &mdash; where every session and playbook lives all year. One email to activate it; that link is your login.</p>
 </form>
 <div class="done" id="doneBox" aria-live="polite">
-<p class="big" tabindex="-1">Your team is in. One tap left.</p>
+<p class="big" tabindex="-1">Your team is registered. One tap left.</p>
 <div class="step"><span class="tick">1</span><span><b style="color:var(--ink)">Registered.</b> <span id="doneTeam">Your team&rsquo;s registration</span> is with the program team for review.</span></div>
-<div class="step"><span class="tick">2</span><span id="doneStep2"><b style="color:var(--ink)">Check your email.</b> Tap the activation link inside to open your program hub on Taylormade Academy. That link is your login &mdash; no password to remember.</span></div>
+<div class="step"><span class="tick">2</span><span id="doneStep2"><b style="color:var(--ink)">Check your HBCU email.</b> Tap the activation link inside to open your program hub on Taylormade Academy. That link is your login &mdash; no password to remember.</span></div>
 <div class="step"><span class="tick">3</span><span><b style="color:var(--ink)">Orientation &amp; kickoff.</b> The evening of Wednesday, Sep 16. Accepted teams get the full schedule and onboarding by email.</span></div>
 </div>
 </div>
 
 <div class="jcard rv">
-<div class="jhead">Program journey</div>
+<h2 class="jhead">Program journey</h2>
 <div class="jsteps">
 <div class="jstep">
 <span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#f09048"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3 19c0-3 2.7-4.8 6-4.8s6 1.8 6 4.8M15.5 14.6c2.6.3 5 1.9 5 4.4"/></svg></span></span>
-<b>Orientation</b><span class="when">Evening of Sep 16, 2026</span>
+<h3>Orientation</h3><span class="when">Evening of Sep 16, 2026</span>
 <p>Kickoff for accepted teams: the cohort, the calendar, your program hub.</p>
 </div>
 <div class="jstep">
 <span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#00a848"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20V10m6 10V4m6 16v-7"/></svg></span></span>
-<b>Track One &middot; Business</b><span class="when">Sep &ndash; Dec 2026</span>
+<h3>Track One &middot; Business</h3><span class="when">Sep &ndash; Dec 2026</span>
 <p>Customer discovery, business model, unit economics. Capstone: the Business Idea Pitch, Dec 4.</p>
 </div>
 <div class="jstep">
 <span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#d83048"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4 3 12l5 8M16 4l5 8-5 8"/></svg></span></span>
-<b>Track Two &middot; FinTech</b><span class="when">Jan &ndash; Mar 2027</span>
+<h3>Track Two &middot; FinTech</h3><span class="when">Jan &ndash; Mar 2027</span>
 <p>Open payments, Interledger, prototyping with supercomputing (HPC). Hackathon Feb 26&ndash;28.</p>
 </div>
 <div class="jstep">
 <span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#f2b705"/></svg><span class="gi" style="color:#4a3700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 4H7v5a5 5 0 0 0 10 0V4z"/><path d="M17 6h3a1 1 0 0 1 1 1c0 2.5-2 4-4 4M7 6H4a1 1 0 0 0-1 1c0 2.5 2 4 4 4"/></svg></span></span>
-<b>Final Showcase</b><span class="when">Mar 19, 2027</span>
+<h3>Final Showcase</h3><span class="when">Mar 19, 2027</span>
 <p>Demo your working prototype to Interledger Foundation judges at ILP Demo Day.</p>
 </div>
 </div>
@@ -337,6 +357,12 @@ if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
   document.querySelectorAll('.rv').forEach((el) => io.observe(el));
 } else { document.querySelectorAll('.rv').forEach((el) => el.classList.add('in')); }
+
+/* mobile nav: close after choosing a link (the anchor CTA otherwise leaves it covering the form) */
+const mnav = document.getElementById('mnav');
+mnav.addEventListener('click', (e) => {
+  if (e.target.closest('a')) { mnav.classList.remove('open'); document.querySelector('.burger').setAttribute('aria-expanded', 'false'); }
+});
 
 /* teammate 3/4 progressive disclosure */
 const addBtn = document.getElementById('addMate');
@@ -380,14 +406,32 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 let sb = null;
 async function client() {
   if (sb) return sb;
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.45.4');
   sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
   return sb;
 }
+/* warm the module + connection so first submit isn't paying a CDN handshake */
+setTimeout(() => { client().catch(() => {}); }, 1200);
+
+function clearErrs() {
+  errBox.textContent = '';
+  form.querySelectorAll('.badf').forEach((el) => { el.classList.remove('badf'); el.removeAttribute('aria-invalid'); });
+  form.querySelectorAll('.ferr').forEach((el) => el.remove());
+}
 function fail(msg, el) {
-  errBox.textContent = msg; errBox.classList.add('show');
+  errBox.textContent = msg;
   btn.disabled = false; btn.innerHTML = 'Register your team <span aria-hidden="true">&rarr;</span>';
-  if (el) el.focus();
+  if (el) {
+    const box = el.closest('.f') || el.closest('.commit') || el.parentElement;
+    el.classList.add('badf'); el.setAttribute('aria-invalid', 'true');
+    const p = document.createElement('p'); p.className = 'ferr'; p.textContent = msg;
+    box.appendChild(p);
+    el.focus();
+    el.addEventListener('input', () => {
+      el.classList.remove('badf'); el.removeAttribute('aria-invalid');
+      const old = box.querySelector('.ferr'); if (old) old.remove();
+    }, { once: true });
+  }
 }
 function mate(n) {
   const name = document.getElementById('m'+n+'name').value.trim();
@@ -397,9 +441,16 @@ function mate(n) {
   if (!name && !email && !phone && !cls) return null;
   return { name, email, phone, classification: cls };
 }
+function validMate(n, m) {
+  if (m.name.length < 2) return fail('Add teammate ' + n + '’s full name' + (n > 2 ? ', or remove that teammate.' : '.'), document.getElementById('m'+n+'name'));
+  if (!EMAIL_RE.test(m.email)) return fail('Teammate ' + n + '’s HBCU email does not look right.', document.getElementById('m'+n+'email'));
+  if (m.phone.replace(/\D/g, '').length < 7) return fail('Add teammate ' + n + '’s phone number.', document.getElementById('m'+n+'phone'));
+  if (!m.classification) return fail('Pick teammate ' + n + '’s classification.', document.getElementById('m'+n+'class'));
+  return true;
+}
 form.addEventListener('submit', async (ev) => {
   ev.preventDefault();
-  errBox.classList.remove('show');
+  clearErrs();
   const team = form.team.value.trim(), fname = form.fname.value.trim(),
         school = form.school.value.trim(), major = form.major.value.trim(),
         cls = form.classification.value, email = form.email.value.trim().toLowerCase(),
@@ -414,20 +465,20 @@ form.addEventListener('submit', async (ev) => {
   if (phone.replace(/\D/g, '').length < 7) return fail('Add the team lead’s phone number.', form.phone);
   if (pemail && !EMAIL_RE.test(pemail)) return fail('The personal email does not look right.', form.pemail);
   const m2 = mate(2);
-  if (!m2 || m2.name.length < 2) return fail('Teams are 2–4 students — add teammate 2’s full name.', document.getElementById('m2name'));
-  if (!EMAIL_RE.test(m2.email)) return fail('Teammate 2’s HBCU email does not look right.', document.getElementById('m2email'));
-  if (m2.phone.replace(/\D/g, '').length < 7) return fail('Add teammate 2’s phone number.', document.getElementById('m2phone'));
-  if (!m2.classification) return fail('Pick teammate 2’s classification.', document.getElementById('m2class'));
+  if (!m2) return fail('Teams are 2–4 students — add teammate 2.', document.getElementById('m2name'));
+  if (validMate(2, m2) !== true) return;
   const members = [m2];
   for (const n of [3, 4]) {
     if (mates[n].hidden) continue;
     const m = mate(n);
     if (!m) continue;
-    if (m.name.length < 2) return fail('Add teammate ' + n + '’s full name, or remove that teammate.', document.getElementById('m'+n+'name'));
-    if (!EMAIL_RE.test(m.email)) return fail('Teammate ' + n + '’s HBCU email does not look right.', document.getElementById('m'+n+'email'));
+    if (validMate(n, m) !== true) return;
     members.push(m);
   }
-  if (!commit) return fail('Answer the both-tracks question — it’s how the program team plans seats.');
+  const allEmails = [email, ...members.map((m) => m.email)];
+  const dupAt = allEmails.findIndex((e, i) => allEmails.indexOf(e) !== i);
+  if (dupAt > 0) return fail('Each person needs their own email — two entries share the same address.', document.getElementById('m' + (dupAt + 1) + 'email'));
+  if (!commit) return fail('Answer the both-tracks question — it’s how the program team plans seats.', form.querySelector('input[name="commit"]'));
   btn.disabled = true; btn.textContent = 'Registering…';
   try {
     const supabase = await client();
@@ -437,7 +488,7 @@ form.addEventListener('submit', async (ev) => {
       members, all_participating: commit.value === 'yes'
     });
     if (error && !String(error.message || '').toLowerCase().includes('duplicate') && error.code !== '23505') {
-      return fail('Something hiccuped saving your registration. Try once more, or email taylormademd@gmail.com and we will register your team by hand.');
+      return fail('That didn’t save. Try once more, or email taylormademd@gmail.com and we’ll register your team by hand.');
     }
     /* duplicate = already registered: still (re)send the activation link */
     const { error: otpErr } = await supabase.auth.signInWithOtp({
@@ -453,7 +504,8 @@ form.addEventListener('submit', async (ev) => {
       s2.innerHTML = '<b style="color:var(--ink)">Your registration is saved</b>, but the activation email did not send just now. <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
       s2.querySelector('#resendBtn').addEventListener('click', async () => {
         const { error: again } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' } });
-        if (!again) s2.innerHTML = '<b style="color:var(--ink)">Sent.</b> Check your email and tap the activation link.';
+        if (!again) s2.innerHTML = '<b style="color:var(--ink)">Sent.</b> Check your HBCU email and tap the activation link.';
+        else s2.innerHTML = '<b style="color:var(--ink)">Still not sending.</b> Email taylormademd@gmail.com and we will activate you by hand — your registration is already saved.';
       });
     }
     done.classList.add('show');
