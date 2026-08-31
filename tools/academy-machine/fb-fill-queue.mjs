@@ -27,7 +27,7 @@ const MAKE = path.join(HERE, "make.mjs");
 const TOPICS = path.join(HERE, "fb-topics.json");
 const QUEUE_DIR = path.join(REPO, "fb", "queue");
 const QUEUE_JSON = path.join(REPO, "fb", "queue.json");
-const DOMAIN = "https://academy.taylormadecreative.net";
+const DOMAIN = "https://taylormadeacademy.com";
 
 const argv = process.argv.slice(2);
 const redo = argv.includes("--redo") ? argv[argv.indexOf("--redo") + 1] : null;

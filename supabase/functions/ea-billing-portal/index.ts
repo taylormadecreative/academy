@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Lock CORS to the storefront origin (no wildcard). Vary: Origin keeps shared
 // caches from leaking this allow-origin to other sites. (H-3)
-const ALLOWED_ORIGIN = "https://academy.taylormadecreative.net";
+const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Vary": "Origin",
@@ -33,7 +33,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-const RETURN_URL = "https://academy.taylormadecreative.net/dashboard/";
+const RETURN_URL = "https://taylormadeacademy.com/dashboard/";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });

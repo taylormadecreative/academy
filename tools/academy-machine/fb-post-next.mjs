@@ -5,7 +5,7 @@
 // How it works (runs daily in GitHub Actions — see .github/workflows/fb-daily.yml):
 //   1. Read fb/queue.json (repo-relative), find the first entry with posted=false.
 //   2. Its image already lives at a PUBLIC GitHub Pages URL
-//      (https://academy.taylormadecreative.net/fb/queue/<file>) because Pages serves
+//      (https://taylormadeacademy.com/fb/queue/<file>) because Pages serves
 //      the whole repo. Blotato's REST API can only take a media URL (no byte upload),
 //      so public hosting is exactly what we need.
 //   3. Re-host that URL on Blotato's CDN (POST /v2/media) for reliability.
@@ -40,7 +40,7 @@ function die(msg) { console.error("✗ " + msg); process.exit(1); }
 
 if (!fs.existsSync(QUEUE)) die(`no queue at ${QUEUE} — add posts with fb-fill-queue.mjs first`);
 const queue = JSON.parse(fs.readFileSync(QUEUE, "utf8"));
-const DOMAIN = (queue.domain || "https://academy.taylormadecreative.net").replace(/\/$/, "");
+const DOMAIN = (queue.domain || "https://taylormadeacademy.com").replace(/\/$/, "");
 const posts = Array.isArray(queue.posts) ? queue.posts : [];
 
 const next = posts.find((p) => !p.posted);

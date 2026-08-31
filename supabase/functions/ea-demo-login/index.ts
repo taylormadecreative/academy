@@ -19,13 +19,14 @@ const ANON_KEY = "sb_publishable_fyYqa9QkEeA5LD_0hYLTTA_F8Gxw1oz";
 
 // The native app runs at https://localhost (Capacitor); the site at its real origin.
 const ALLOWED_ORIGINS = new Set([
-  "https://academy.taylormadecreative.net",
+  "https://taylormadeacademy.com",
+  "https://academy.taylormadecreative.net", // legacy -- 301s to the new domain; safe to drop once traffic is gone
   "https://localhost",
   "capacitor://localhost",
 ]);
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
-  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "https://academy.taylormadecreative.net";
+  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "https://taylormadeacademy.com";
   return {
     "Access-Control-Allow-Origin": allow,
     "Vary": "Origin",

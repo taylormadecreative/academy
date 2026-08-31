@@ -5,7 +5,7 @@ until Supabase/Stripe are wired."""
 import pathlib, hashlib, re, urllib.parse
 
 ROOT = pathlib.Path(__file__).parent
-DOMAIN = "https://academy.taylormadecreative.net"
+DOMAIN = "https://taylormadeacademy.com"
 
 def _asset_ver():
     """Short content hash of the shared CSS/JS. Appended as ?v= to every asset link so
@@ -385,7 +385,7 @@ def plat_mock():
         for k, t, on, dot in nav_items)
     return f"""<div class="plat-stage reveal">
 <div class="mock" role="img" aria-label="A preview of the Taylormade Academy member platform: community feed, courses, library, and messages">
-<div class="mk-bar"><i></i><i></i><i></i><span class="mk-url">academy.taylormadecreative.net</span></div>
+<div class="mk-bar"><i></i><i></i><i></i><span class="mk-url">taylormadeacademy.com</span></div>
 <div class="mk-body">
 <aside class="mk-nav"><span class="mk-logo">{LOGO.replace('width="40" height="40"', 'width="22" height="22"')}<b>Academy</b></span>{nav}</aside>
 <div class="mk-feed">
@@ -936,7 +936,7 @@ def write_meta():
 
 PRIVACY_BODY = """
 <p style="color:var(--muted);font-size:14px;margin-top:-6px">Last updated: June 26, 2026</p>
-<p>This is the real, plain-English version. I'm Nelson Taylor, and Taylormade Academy is my education and community platform (Taylormade Creative, Dallas-Fort Worth, Texas). This policy covers the website at academy.taylormadecreative.net and the Taylormade Academy mobile app, which both use the same account and the same backend.</p>
+<p>This is the real, plain-English version. I'm Nelson Taylor, and Taylormade Academy is my education and community platform (Taylormade Creative, Dallas-Fort Worth, Texas). This policy covers the website at taylormadeacademy.com and the Taylormade Academy mobile app, which both use the same account and the same backend.</p>
 <p>The short version: I collect only what I need to run your account, deliver what you signed up for or bought, and keep the community working. I do not sell your data. I do not run ads, and I do not track you across other apps or websites for advertising. That's it.</p>
 
 <h2>Who I am</h2>

@@ -2,10 +2,10 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Community — Taylormade Academy</title>
 <meta name="description" content="A free community of designers, photographers, video people, and AI builders. Post, connect, message, and find collaborators.">
-<link rel="canonical" href="https://academy.taylormadecreative.net/community/">
+<link rel="canonical" href="https://taylormadeacademy.com/community/">
 <meta property="og:type" content="website"><meta property="og:title" content="Community — Taylormade Academy">
-<meta property="og:description" content="Connect with designers, photographers, video people, and AI builders. Post, message, and find collaborators."><meta property="og:url" content="https://academy.taylormadecreative.net/community/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:description" content="Connect with designers, photographers, video people, and AI builders. Post, message, and find collaborators."><meta property="og:url" content="https://taylormadeacademy.com/community/">
+<meta property="og:image" content="https://taylormadeacademy.com/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -745,7 +745,7 @@ function bindUI(){
   });
   $("pfOpen").addEventListener("change", e=>{ const l=e.target.closest(".check"); if(l) l.classList.toggle("on", e.target.checked); });
   $("blockedList").addEventListener("click", e=>{ const u=e.target.closest("[data-unblock]"); if(u) unblockUser(u.dataset.unblock); });
-  $("inviteBtn").addEventListener("click", ()=>{ const url="https://academy.taylormadecreative.net/community/";
+  $("inviteBtn").addEventListener("click", ()=>{ const url="https://taylormadeacademy.com/community/";
     if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast("Invite link copied."),()=>toast(url)); } else toast(url); });
 }
 

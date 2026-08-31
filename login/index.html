@@ -3,10 +3,10 @@
 <title>Sign in - Taylormade Academy</title>
 <meta name="description" content="Sign in to your Taylormade Academy library.">
 <meta name="robots" content="noindex">
-<link rel="canonical" href="https://academy.taylormadecreative.net/login/">
+<link rel="canonical" href="https://taylormadeacademy.com/login/">
 <meta property="og:type" content="website"><meta property="og:title" content="Sign in - Taylormade Academy">
-<meta property="og:description" content="Sign in to your Taylormade Academy library."><meta property="og:url" content="https://academy.taylormadecreative.net/login/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:description" content="Sign in to your Taylormade Academy library."><meta property="og:url" content="https://taylormadeacademy.com/login/">
+<meta property="og:image" content="https://taylormadeacademy.com/assets/og-image.png"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -318,7 +318,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
             b.disabled = true;
             const { error } = await supabase.auth.signInWithOAuth({
               provider: b.getAttribute("data-oauth"),
-              options: { redirectTo: "https://academy.taylormadecreative.net/welcome/" }
+              options: { redirectTo: "https://taylormadeacademy.com/welcome/" }
             });
             if (error) {
               b.disabled = false;
@@ -360,7 +360,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
           // Absolute (allow-listed) URL so it is valid both on the web and from the
           // bundled native app (capacitor://) origin. In-app, members sign in with the
           // 6-digit code below, so the link target only matters on the web.
-          options: { emailRedirectTo: "https://academy.taylormadecreative.net/welcome/", shouldCreateUser: true }
+          options: { emailRedirectTo: "https://taylormadeacademy.com/welcome/", shouldCreateUser: true }
         });
         if (error) throw error;
         try { window.fbq && fbq('track', 'Lead'); } catch (_) {}

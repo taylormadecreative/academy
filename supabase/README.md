@@ -60,7 +60,7 @@ Function secrets to set: `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`,
    and its price, or keep the community free for v1.
 3. Community for launch: a login-gated Discord invite seeded with the AUC cohort
    (near-zero build) vs the native on-site feed (`ea_posts`, already in the schema).
-4. Final brand sign-off on "BUILD MODE" and the subdomain `academy.taylormadecreative.net`.
+4. Final brand sign-off on "BUILD MODE" and the subdomain `taylormadeacademy.com`.
 
 ## Live now vs needs keys
 - **Live now (no keys):** the whole marketing storefront, both ebook sales pages,

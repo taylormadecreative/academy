@@ -87,7 +87,7 @@ Unlike `ea-issue-media` (which guards with `token.split(".").length !== 3`), the
 
 `*` on `ea-issue-media` and `ea-billing-portal` means any website can make a logged-in user's browser POST to your media/portal endpoints with their bearer token (if the site can read it). You're not using cookie auth (token is in a header, not credentialed cookies), so this is **medium** not critical — but there's no reason to allow `*`. Lock the origin to your storefront. Reflecting `*` while also documenting `Access-Control-Allow-Headers: authorization` is the worst-of-both signal to an auditor.
 ```ts
-const ALLOWED_ORIGIN = "https://academy.taylormadecreative.net";
+const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Vary": "Origin",

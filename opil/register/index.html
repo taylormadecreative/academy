@@ -2,15 +2,15 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Register · Open Payments Innovation Lab</title>
 <meta name="description" content="Registration for the AUC Open Payments Innovation Lab 2026-27 cohort. One step: your Lab seat and your program hub account, together.">
-<link rel="canonical" href="https://academy.taylormadecreative.net/opil/register/">
+<link rel="canonical" href="https://taylormadeacademy.com/opil/register/">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta name="theme-color" content="#04123a">
 <meta name="robots" content="noindex">
 <meta property="og:type" content="website"><meta property="og:site_name" content="AUC Open Payments Innovation Lab">
 <meta property="og:title" content="Register · Open Payments Innovation Lab">
 <meta property="og:description" content="You built the solution. Now build the business. One year, ten teams, working open-payment prototypes. Finalists, claim your seat.">
-<meta property="og:url" content="https://academy.taylormadecreative.net/opil/register/">
-<meta property="og:image" content="https://academy.taylormadecreative.net/opil/dasci-hero.jpg"><meta property="og:image:alt" content="Da'Sci welcomes the 2026-27 Innovation Lab cohort">
+<meta property="og:url" content="https://taylormadeacademy.com/opil/register/">
+<meta property="og:image" content="https://taylormadeacademy.com/opil/dasci-hero.jpg"><meta property="og:image:alt" content="Da'Sci welcomes the 2026-27 Innovation Lab cohort">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -234,7 +234,7 @@ form.addEventListener('submit', async (ev) => {
     /* duplicate = already registered: still (re)send the activation link */
     const { error: otpErr } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://academy.taylormadecreative.net/welcome/' }
+      options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' }
     });
     form.style.display = 'none';
     const done = document.getElementById('doneBox');
@@ -242,7 +242,7 @@ form.addEventListener('submit', async (ev) => {
       const s2 = document.getElementById('doneStep2');
       s2.innerHTML = '<b style="color:var(--ink)">Your seat is saved</b>, but the activation email did not send just now. <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
       s2.querySelector('#resendBtn').addEventListener('click', async () => {
-        const { error: again } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://academy.taylormadecreative.net/welcome/' } });
+        const { error: again } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' } });
         if (!again) s2.innerHTML = '<b style="color:var(--ink)">Sent.</b> Check your email and tap the activation link.';
       });
     }

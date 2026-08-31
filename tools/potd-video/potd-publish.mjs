@@ -59,4 +59,4 @@ const staged = await bot({
 });
 
 console.log("✅ Staged hidden post:", staged.id);
-console.log("👉 Review + approve: https://academy.taylormadecreative.net/review/");
+console.log("👉 Review + approve: https://taylormadeacademy.com/review/");

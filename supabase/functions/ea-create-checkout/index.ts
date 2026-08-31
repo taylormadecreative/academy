@@ -6,7 +6,7 @@
 // reads the product (and its price) from ea_products by slug, server-side. The
 // service role key is a function secret and is never returned to the caller.
 //
-// The static storefront (https://academy.taylormadecreative.net) POSTs
+// The static storefront (https://taylormadeacademy.com) POSTs
 //   { product_id: <slug>, email?: <string> }
 // and redirects the browser to the returned { url }. On HTTP 503 the front-end
 // shows a "payments not switched on yet" notice.
@@ -20,7 +20,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Lock CORS to the storefront origin (no wildcard). Vary: Origin keeps caches
 // from serving this allow-origin to other sites. (H-3)
-const ALLOWED_ORIGIN = "https://academy.taylormadecreative.net";
+const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Vary": "Origin",
@@ -41,7 +41,7 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-const SITE_BASE = "https://academy.taylormadecreative.net";
+const SITE_BASE = "https://taylormadeacademy.com";
 const SUCCESS_URL = `${SITE_BASE}/thank-you/?session_id={CHECKOUT_SESSION_ID}`;
 
 type ProductRow = {

@@ -8,7 +8,7 @@ and stages it as a **hidden** community post for Nelson to approve.
    — also runnable on-demand from the Actions tab (`workflow_dispatch`).
 2. `potd-publish.mjs`: picks the day's task → renders the Remotion video →
    uploads it to the `community-media` bucket → stages a **hidden** post.
-3. Nelson opens **https://academy.taylormadecreative.net/review/**, watches it, and
+3. Nelson opens **https://taylormadeacademy.com/review/**, watches it, and
    **Approve & publish** (it goes live in the feed) or **Reject** (discarded).
 
 ## One-time setup (Nelson)

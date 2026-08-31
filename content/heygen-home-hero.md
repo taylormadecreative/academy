@@ -1,6 +1,6 @@
 # HeyGen Video Plan — Home-Screen Hero (cold visitor)
 
-**Audience:** Cold visitor on academy.taylormadecreative.net who has NOT signed up yet. Goal = land the **learn → create → EARN** promise in one breath (earn is the hook) and drive "Join Free."
+**Audience:** Cold visitor on taylormadeacademy.com who has NOT signed up yet. Goal = land the **learn → create → EARN** promise in one breath (earn is the hook) and drive "Join Free."
 **Honesty guardrail:** sell the income angle aspirationally — NO dollar figures, no "guaranteed," no fake testimonials. "Turn your skills into income" / "get paid for it," not "make $10k a month."
 **Avatar:** Custom avatar clone (or Photo Avatar) of Nelson in the Taylormade Creative varsity jacket — same look as the hero photo so the page feels cohesive
 **Workflow:** HeyGen + ElevenLabs (voice your own clone for realism)
@@ -32,7 +32,7 @@
 - **Pacing:** the `[PAUSE]` markers are breath breaks so it doesn't feel rushed. Pronunciation: type "Taylor-made Academy" if the TTS clips it.
 - **B-roll:** cut 2–3 quick shots over the BODY — a design, a photo, a video clip, the app/community feed — to show the four crafts and lift retention. End on the "Join Free" button.
 - **Length discipline:** if it runs long, the BODY is where to trim — keep the hook and the CTA intact.
-- **Where to use it:** the home hero (16:9), plus the 9:16 cutdown as a paid/organic ad pointing at academy.taylormadecreative.net.
+- **Where to use it:** the home hero (16:9), plus the 9:16 cutdown as a paid/organic ad pointing at taylormadeacademy.com.
 
 ## Pricing note
 The "$15 / price of a pizza" line matches what the home page already displays, so it's fine on the SITE hero. For the **9:16 social cutdown, drop the price** (per the no-rates-on-social rule) — use the no-price version below.

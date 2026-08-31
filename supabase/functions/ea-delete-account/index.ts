@@ -16,13 +16,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // The native app runs at https://localhost (Capacitor); the site at its real origin.
 // Echo back whichever allowed origin made the request (no wildcard).
 const ALLOWED_ORIGINS = new Set([
-  "https://academy.taylormadecreative.net",
+  "https://taylormadeacademy.com",
+  "https://academy.taylormadecreative.net", // legacy -- 301s to the new domain; safe to drop once traffic is gone
   "https://localhost",
   "capacitor://localhost",
 ]);
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
-  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "https://academy.taylormadecreative.net";
+  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "https://taylormadeacademy.com";
   return {
     "Access-Control-Allow-Origin": allow,
     "Vary": "Origin",

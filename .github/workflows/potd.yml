@@ -1,7 +1,7 @@
 name: Prompt of the Day
 
 # Renders the daily Cowork "Prompt of the Day" video and stages it as a HIDDEN
-# community post for Nelson to approve at academy.taylormadecreative.net/review/.
+# community post for Nelson to approve at taylormadeacademy.com/review/.
 # Requires one repo secret: BOT_SECRET (the ea-community-bot x-bot-secret).
 
 on:

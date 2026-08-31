@@ -1,7 +1,7 @@
 # Taylormade Academy — project guide for Claude
 
 This repo is the **Taylormade Academy** site (storefront, courses, community, ebooks)
-deployed to GitHub Pages → `academy.taylormadecreative.net`.
+deployed to GitHub Pages → `taylormadeacademy.com`.
 
 ## Making social content / images — use the Content Machine
 When asked to make hero images, social posts, carousels, quote cards, or any visual

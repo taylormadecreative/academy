@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://academy.taylormadecreative.net/sitemap.xml
+Sitemap: https://taylormadeacademy.com/sitemap.xml
