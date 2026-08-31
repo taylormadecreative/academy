@@ -53,6 +53,11 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 .cover::before{content:"";position:absolute;right:-200px;top:-150px;width:640px;height:640px;border-radius:50%;background:radial-gradient(closest-side,rgba(11,64,224,.55),transparent 70%)}
 .cover::after{content:"";position:absolute;left:-160px;bottom:-200px;width:520px;height:520px;border-radius:50%;background:radial-gradient(closest-side,rgba(253,201,33,.14),transparent 70%)}
 .cover .wrap{position:relative;z-index:2;width:100%}
+.cover-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(30px,5vw,70px);align-items:center}
+.cover-art{position:relative;transform:rotate(1.8deg)}
+.cover-art .frame{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(253,201,33,.18),0 50px 100px -40px rgba(0,0,0,.85)}
+.cover-art .chip{position:absolute;left:18px;bottom:-16px;background:var(--gold);color:var(--navy);font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.04em;padding:10px 16px;border-radius:980px;box-shadow:0 14px 30px -12px rgba(0,0,0,.6)}
+@media(max-width:920px){.cover-grid{grid-template-columns:1fr}.cover-art{max-width:560px;transform:rotate(0deg)}}
 .cover-lock{display:flex;align-items:center;gap:16px;margin-bottom:40px;flex-wrap:wrap}
 .cover-lock img{height:34px}
 .cover-lock .x{color:#6b7bb5;font-size:20px}
@@ -109,20 +114,6 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 .tl .row .dt{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink)}
 .tl .row .ev b{color:var(--ink);font-weight:600}
 @media(max-width:640px){.tl .row{grid-template-columns:1fr;gap:4px}}
-/* investment */
-.inv{background:var(--card);border:1px solid var(--hair);border-radius:22px;overflow:hidden;margin-top:44px;box-shadow:0 30px 60px -30px rgba(4,18,58,.18)}
-.inv .li{display:grid;grid-template-columns:1fr auto;gap:20px;padding:22px clamp(22px,3vw,36px);border-bottom:1px solid var(--hair);align-items:start}
-.inv .li:last-child{border-bottom:0}
-.inv .li h3{font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:5px;letter-spacing:-.01em}
-.inv .li p{font-size:14px;color:var(--mut);max-width:52ch}
-.inv .li .amt{font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink);white-space:nowrap;text-align:right}
-.inv .li .amt small{display:block;font-size:12px;color:var(--mut);font-weight:500}
-.inv .total{background:var(--navy);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:26px clamp(22px,3vw,36px)}
-.inv .total b{font-family:var(--display);font-size:19px}
-.inv .total .amt{font-family:var(--display);font-weight:700;font-size:30px;color:var(--gold)}
-.inv-note{margin-top:20px;font-size:14px;color:var(--mut);max-width:64ch}
-.terms{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
-.terms span{font-size:13px;font-weight:600;color:var(--blue-deep);background:var(--blue-soft);padding:8px 15px;border-radius:980px}
 /* close */
 .close h2{font-size:clamp(34px,5vw,68px);max-width:16ch}
 .close .row{margin-top:38px;display:flex;flex-wrap:wrap;gap:14px}
@@ -151,12 +142,20 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <span class="x">×</span>
 <span style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 14px;display:inline-flex"><img class="auc" src="/opil/aucdsi-white.png" alt="AUC Data Science Initiative" style="height:44px"></span>
 </div>
+<div class="cover-grid">
+<div>
 <span class="kick on-navy">A proposal · 2026&ndash;27 program year</span>
-<h1 style="margin-top:22px">A home for the <span class="g">Innovation Lab</span>.</h1>
+<h1 style="margin-top:22px;font-size:clamp(40px,5.2vw,72px)">A home for the <span class="g">Innovation Lab</span>.</h1>
 <p class="sub">Twenty-five students, ten teams, one academic year, and everything they build. This is a proposal to run all of it on one platform, an AI workshop track that fits your curriculum, and a virtual environment, delivered by the team that already knows your cohort.</p>
 <div class="meta">
 <a class="btn gold" href="/opil/demo/" target="_blank" rel="noopener">Walk through the live platform <span aria-hidden="true">&rarr;</span></a>
 <a class="btn ghost" href="#platform">Read the proposal</a>
+</div>
+</div>
+<div class="cover-art">
+<div class="frame"><picture><source srcset="img/admin.webp" type="image/webp"><img src="img/admin.jpg" alt="The coordinator dashboard: roster, attendance, deliverables" width="1600" height="1159" fetchpriority="high"></picture></div>
+<span class="chip">The coordinator view &middot; live now</span>
+</div>
 </div>
 </div>
 </section>
@@ -266,35 +265,12 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 </div>
 </section>
 
-<!-- INVESTMENT -->
-<section class="sec" id="invest">
-<div class="wrap">
-<span class="kick">The investment</span>
-<h2 style="margin-top:16px;font-size:clamp(28px,4vw,52px)">One program, delivered end to end.</h2>
-<div class="inv rv">
-<div class="li" style="background:var(--paper2);border-bottom:1px solid var(--hair)"><div><h3 style="font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)">One-time build</h3></div><div></div></div>
-<div class="li"><div><h3>Digital Financial Inclusion environment</h3><p>The full five-zone virtual environment, AUC DSI branding, student onboarding, and a facilitator playbook so your team can run sessions in-house.</p></div><div class="amt">$3,500</div></div>
-<div class="li"><div><h3>The Lab Hub &middot; platform build</h3><p>Team spaces, cohort messaging, the deliverable locker, the coordinator dashboard, and the public showcase. Built for this program.</p></div><div class="amt">$6,500</div></div>
-<div class="li"><div><h3>Registration &amp; launch</h3><p>The one-step registration page and program overview, delivered and live for the launch.</p></div><div class="amt">$1,500</div></div>
-<div class="li"><div><h3>The AI Thread &middot; 14 workshops</h3><p>Fourteen one-hour AI workshops across the program year, each recorded with a written playbook into the hub.</p></div><div class="amt">$8,400<small>$4,200 / semester, in advance</small></div></div>
-<div class="li" style="background:var(--paper2);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)"><div><h3 style="font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)">Program year, recurring</h3></div><div></div></div>
-<div class="li"><div><h3>Platform license &amp; support</h3><p>Twenty-five hosted accounts, hosting, updates, and support across the full 2026&ndash;27 year.</p></div><div class="amt">$1,800<small>/ year</small></div></div>
-<div class="li"><div><h3>Environment platform</h3><p>The virtual environment&rsquo;s annual platform fee, passed through at cost.</p></div><div class="amt">$240<small>/ year</small></div></div>
-<div class="total"><b>Year-one program total</b><span class="amt">$21,940</span></div>
-</div>
-<div class="terms">
-<span>Deposit on signature</span><span>Workshop track billed per semester, in advance</span><span>Grant line items, invoiced to AUC DSI</span>
-</div>
-<p class="inv-note">A leaner <b>Hub Core</b> tier is available if the program prefers to start with recordings, playbooks, announcements, and the roster, and add team spaces, the coordinator dashboard, and the showcase when the reporting need arrives. Happy to walk through either on the call.</p>
-</div>
-</section>
-
 <!-- CLOSE -->
 <section class="sec navy close">
 <div class="wrap">
 <span class="kick on-navy">Next step</span>
 <h2 style="margin-top:16px">Don&rsquo;t take my word for it. Click through it.</h2>
-<p style="margin-top:20px;color:#9fb0d4;max-width:52ch;font-size:19px">The platform is running. Walk through the team space and the coordinator view with a sample cohort, no account needed, and see the program you would be handing your students. Then let&rsquo;s put the whole year on the calendar.</p>
+<p style="margin-top:20px;color:#9fb0d4;max-width:52ch;font-size:19px">The platform is running. Walk through the team space and the coordinator view with a sample cohort, no account needed, and see the program you would be handing your students. Then let&rsquo;s get on a call, walk the year together, and I&rsquo;ll bring the numbers.</p>
 <div class="row">
 <a class="btn gold" href="/opil/demo/" target="_blank" rel="noopener">Open the live platform <span aria-hidden="true">&rarr;</span></a>
 <a class="btn ghost" href="mailto:taylormademd@gmail.com?subject=Innovation%20Lab%20platform">Let&rsquo;s talk</a>
