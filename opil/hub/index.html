@@ -56,11 +56,12 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, esc, when } from '/opil/hub/hub.js';
+import { boot, esc, when, tabs } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin } = ctx;
+tabs('Home', isAdmin);
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
-if (isAdmin) document.getElementById('adminTab').style.display = '';
+
 if (!teamId) document.getElementById('noTeamNote').style.display = '';
 
 /* announcements */

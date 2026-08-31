@@ -41,9 +41,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when } from '/opil/hub/hub.js';
+import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
-const { sb, user } = ctx;
+const { sb, user, isAdmin } = ctx;
+tabs('Messages', isAdmin);
 
 /* cohort directory: everyone with a team membership */
 const { data: mems } = await sb.from('ea_opil_team_members').select('user_id, team_id');

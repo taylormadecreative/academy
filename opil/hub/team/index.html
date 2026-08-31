@@ -60,9 +60,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when } from '/opil/hub/hub.js';
+import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
-const { sb, user, teamId } = ctx;
+const { sb, user, teamId, isAdmin } = ctx;
+tabs('My team', isAdmin);
 if (!teamId) { location.replace('/opil/hub/'); throw new Error('no team'); }
 
 const { data: team } = await sb.from('ea_opil_teams').select('*').eq('id', teamId).single();

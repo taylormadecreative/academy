@@ -6,7 +6,7 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta name="theme-color" content="#04123a">
 <meta property="og:title" content="A Home for the Innovation Lab">
-<meta property="og:description" content="Environment, AI workshop track, and a working cohort platform for the AUC Open Payments Innovation Lab."><meta property="og:image" content="https://taylormadeacademy.com/opil/proposal/img/admin.jpg">
+<meta property="og:description" content="Environment, AI workshop track, and a working cohort platform for the AUC Open Payments Innovation Lab."><meta property="og:image" content="https://taylormadeacademy.com/opil/proposal/img/admin.jpg"><meta property="og:image:width" content="1600"><meta property="og:image:height" content="1159"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://taylormadeacademy.com/opil/proposal/img/admin.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -47,6 +47,7 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 .rv.vis{opacity:1;transform:none}
 .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+.btn:focus-visible,.cta:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
 /* cover */
 .cover{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden}
 .cover::before{content:"";position:absolute;right:-200px;top:-150px;width:640px;height:640px;border-radius:50%;background:radial-gradient(closest-side,rgba(11,64,224,.55),transparent 70%)}
@@ -112,7 +113,7 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 .inv{background:var(--card);border:1px solid var(--hair);border-radius:22px;overflow:hidden;margin-top:44px;box-shadow:0 30px 60px -30px rgba(4,18,58,.18)}
 .inv .li{display:grid;grid-template-columns:1fr auto;gap:20px;padding:22px clamp(22px,3vw,36px);border-bottom:1px solid var(--hair);align-items:start}
 .inv .li:last-child{border-bottom:0}
-.inv .li h4{font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:5px}
+.inv .li h3{font-family:var(--display);font-size:18px;color:var(--ink);margin-bottom:5px;letter-spacing:-.01em}
 .inv .li p{font-size:14px;color:var(--mut);max-width:52ch}
 .inv .li .amt{font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink);white-space:nowrap;text-align:right}
 .inv .li .amt small{display:block;font-size:12px;color:var(--mut);font-weight:500}
@@ -127,13 +128,17 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 .close .row{margin-top:38px;display:flex;flex-wrap:wrap;gap:14px}
 .close .contact{margin-top:40px;font-size:15px;color:#9fb0d4}
 .close .contact b{color:#fff;font-family:var(--display)}
-.foot{padding-block:34px;font-size:12.5px;color:var(--mut)}
+.foot{padding-block:34px;font-size:12.5px;color:#9fb0d4}
+.shot-img.hi{border-color:rgba(255,255,255,.28);box-shadow:0 0 0 1px rgba(253,201,33,.25),0 40px 80px -34px rgba(2,10,34,.7)}
+.nav.dark{background:rgba(4,18,58,.7);border-bottom-color:rgba(255,255,255,.1)}
+.nav.dark .bl b{color:#fff}.nav.dark .bl span{color:#8fa5d9;border-color:rgba(255,255,255,.2)}
 </style>
+<noscript><style>.rv{opacity:1;transform:none}</style></noscript>
 </head><body>
 
 <nav class="nav" id="nav"><div class="wrap"><div class="bar">
 <div class="bl"><img src="/assets/logo-nav.webp" alt=""><b>Taylormade Academy</b><span>Proposal · AUC DSI</span></div>
-<a class="cta" href="#invest">The investment</a>
+<a class="cta" href="/opil/demo/" target="_blank" rel="noopener">Live platform</a>
 </div></div></nav>
 <div class="prog" id="prog"></div>
 
@@ -144,14 +149,14 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <img src="/assets/logo-nav.webp" alt="Taylormade Academy" style="width:34px;height:34px">
 <b style="font-family:var(--display);color:#fff;font-weight:600;font-size:18px">Taylormade Academy</b>
 <span class="x">×</span>
-<img class="auc" src="/opil/aucdsi-white.png" alt="AUC Data Science Initiative">
+<span style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 14px;display:inline-flex"><img class="auc" src="/opil/aucdsi-white.png" alt="AUC Data Science Initiative" style="height:44px"></span>
 </div>
 <span class="kick on-navy">A proposal · 2026&ndash;27 program year</span>
 <h1 style="margin-top:22px">A home for the <span class="g">Innovation Lab</span>.</h1>
 <p class="sub">Twenty-five students, ten teams, one academic year, and everything they build. This is a proposal to run all of it on one platform, an AI workshop track that fits your curriculum, and a virtual environment, delivered by the team that already knows your cohort.</p>
 <div class="meta">
-<a class="btn gold" href="https://taylormadeacademy.com/opil/hub/" target="_blank" rel="noopener">Log into the live platform <span aria-hidden="true">&rarr;</span></a>
-<a class="btn ghost" href="#platform">See what it does</a>
+<a class="btn gold" href="/opil/demo/" target="_blank" rel="noopener">Walk through the live platform <span aria-hidden="true">&rarr;</span></a>
+<a class="btn ghost" href="#platform">Read the proposal</a>
 </div>
 </div>
 </section>
@@ -161,7 +166,7 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <div class="wrap">
 <span class="kick">Where the program lives today</span>
 <h2 style="margin-top:16px">A year-long program deserves one home, not five tabs.</h2>
-<p>The Lab is ambitious: two tracks, thirteen contact points, ten teams each shipping a working prototype for a real business, all reported back to the Interledger Foundation. Right now that runs across a shared drive, a survey form, a calendar, and email threads. Students lose the thread between Wednesdays. Deliverables scatter. And when the funder asks what happened, the evidence has to be reassembled by hand.</p>
+<p>The Lab is ambitious: two tracks, sessions every other Wednesday with working sessions in between, ten teams each shipping a working prototype for a real business, all reported back to the Interledger Foundation. Right now that runs across a shared drive, a survey form, a calendar, and email threads. Students lose the thread between Wednesdays. Deliverables scatter. And when the funder asks what happened, the evidence has to be reassembled by hand.</p>
 <div class="scatter rv">
 <div class="c bad"><b>Registration → SurveyMonkey</b><p>A form that ends at a spreadsheet, disconnected from everything that comes after.</p></div>
 <div class="c bad"><b>Materials → shared drive</b><p>Folders students forget exist by October, with no record of who opened what.</p></div>
@@ -179,39 +184,41 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 
 <div class="shot rv">
 <div class="shot-grid">
-<div class="shot-img"><picture><source srcset="img/team.webp" type="image/webp"><img src="img/team.jpg" alt="A team space with live chat, roster, and deliverable locker"></picture></div>
+<div class="shot-img"><picture><source srcset="img/admin.webp" type="image/webp"><img src="img/admin.jpg" width="1600" height="1159" loading="lazy" decoding="async" alt="Coordinator dashboard: roster, attendance grid, deliverables, CSV export"></picture></div>
+<div class="shot-copy"><span class="shot-num">02 · Coordinator view</span><h3>The grant-evidence machine.</h3><p>Roster, attendance marked in one click, every team&rsquo;s deliverables, and a one-tap CSV export. The competency and completion data your funder report needs is produced as the program runs, not reconstructed after it.</p><div class="pt">When Interledger asks what happened, the answer is already a table.</div></div>
+</div>
+<div class="rv" style="margin-top:26px;border:1px solid rgba(253,201,33,.4);background:rgba(253,201,33,.08);border-radius:16px;padding:20px 26px;max-width:640px"><b style="font-family:var(--display);color:var(--gold);font-size:17px">Your Interledger report becomes one CSV export.</b><p style="color:#e9dfc0;font-size:14.5px;margin-top:6px;max-width:none">Attendance, deliverable completion, and roster evidence are captured as the program runs, not reconstructed in May.</p></div>
+</div>
+
+<div class="shot rv">
+<div class="shot-grid rt">
+<div class="shot-img"><picture><source srcset="img/team.webp" type="image/webp"><img src="img/team.jpg" width="1600" height="1101" loading="lazy" decoding="async" alt="A team space with live chat, roster, and deliverable locker"></picture></div>
 <div class="shot-copy"><span class="shot-num">01 · Team spaces</span><h3>Ten teams, ten private rooms.</h3><p>Each team gets its own space: a live chat, its roster, and a locker with every checkpoint the year asks for. Work lands where it belongs and nothing scatters.</p><div class="pt">The teams collaborate between Wednesdays instead of going quiet.</div></div>
 </div>
 </div>
 
 <div class="shot rv">
-<div class="shot-grid rt">
-<div class="shot-img"><picture><source srcset="img/admin.webp" type="image/webp"><img src="img/admin.jpg" alt="Coordinator dashboard: roster, attendance grid, deliverables, CSV export"></picture></div>
-<div class="shot-copy"><span class="shot-num">02 · Coordinator view</span><h3>The grant-evidence machine.</h3><p>Roster, attendance marked in one click, every team&rsquo;s deliverables, and a one-tap CSV export. The competency and completion data your funder report needs is produced as the program runs, not reconstructed after it.</p><div class="pt">When Interledger asks what happened, the answer is already a table.</div></div>
-</div>
-</div>
-
-<div class="shot rv">
 <div class="shot-grid">
-<div class="shot-img"><picture><source srcset="img/home.webp" type="image/webp"><img src="img/home.jpg" alt="Hub home with announcements and every session"></picture></div>
+<div class="shot-img"><picture><source srcset="img/home.webp" type="image/webp"><img src="img/home.jpg" width="1600" height="1159" loading="lazy" decoding="async" alt="Hub home with announcements and every session"></picture></div>
 <div class="shot-copy"><span class="shot-num">03 · The hub, all year</span><h3>Every session, kept.</h3><p>Announcements reach the whole cohort. Every workshop recording and playbook lands here within 48 hours and stays. Miss a Monday, lose nothing. Refer back in March to something from September.</p></div>
 </div>
 </div>
 
 <div class="shot rv">
 <div class="shot-grid rt">
-<div class="shot-img"><picture><source srcset="img/messages.webp" type="image/webp"><img src="img/messages.jpg" alt="Cohort direct messages"></picture></div>
+<div class="shot-img"><picture><source srcset="img/messages.webp" type="image/webp"><img src="img/messages.jpg" width="1600" height="870" loading="lazy" decoding="async" alt="Cohort direct messages"></picture></div>
 <div class="shot-copy"><span class="shot-num">04 · Cohort messaging</span><h3>The cohort talks to itself.</h3><p>Direct messages across all ten teams. The students who met at your Data Challenge Finale keep building the network the grant wants them to carry past the program year.</p></div>
 </div>
 </div>
 
 <div class="shot rv">
 <div class="shot-grid">
-<div class="shot-img"><picture><source srcset="img/showcase.webp" type="image/webp"><img src="img/showcase.jpg" alt="Public showcase of published team prototypes"></picture></div>
+<div class="shot-img hi"><picture><source srcset="img/showcase.webp" type="image/webp"><img src="img/showcase.jpg" width="1600" height="812" loading="lazy" decoding="async" alt="Public showcase of published team prototypes"></picture></div>
 <div class="shot-copy"><span class="shot-num">05 · The public showcase</span><h3>The work, in public.</h3><p>The coordinator publishes the strongest deliverables to a public gallery: open-source prototypes credited to the students who built them. Your ten published prototypes, one shareable page, ready for Demo Day and the funder.</p></div>
 </div>
 </div>
 
+<div class="rv" style="text-align:center;margin-top:70px"><a class="btn gold" href="/opil/demo/" target="_blank" rel="noopener">Click through these screens yourself <span aria-hidden="true">&rarr;</span></a><p style="color:#8fa5d9;font-size:13.5px;margin-top:12px;max-width:none">No account needed. The preview runs on the live platform with a sample cohort.</p></div>
 </div>
 </section>
 
@@ -221,11 +228,11 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <span class="kick">Why this platform, and this partner</span>
 <h2 style="margin-top:16px;font-size:clamp(30px,4.4vw,54px);max-width:16ch">Five reasons this is the right home.</h2>
 <div class="why-grid">
-<div class="why rv"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><h3>It already exists</h3><p>No procurement of a new tool, no build risk, no launch delay. It is live today, it registered your cohort this week, and it scales from one team to ten without a rebuild.</p></div>
-<div class="why rv d1"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div><h3>It reports for you</h3><p>Attendance, deliverable completion, and engagement are captured as the program runs. Your Interledger reporting stops being a scramble and becomes an export.</p></div>
-<div class="why rv d2"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div><h3>The students keep it</h3><p>Every account is a Taylormade Academy login. When the Lab ends in May, twenty-five HBCU builders stay inside a creative learning community, exactly the ecosystem engagement the grant is measured on.</p></div>
-<div class="why rv d3"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>One relationship, not five</h3><p>Registration, the platform, the AI workshop track, the environment, and Da&rsquo;Sci, the host your cohort already met at the Finale, all from one team that knows this program. Not a stack of vendors to coordinate.</p></div>
-<div class="why rv d4" style="grid-column:1/-1"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></div><h3>The proof is on record</h3><p>The last time this community got one hour inside the Academy, forty-nine students created accounts before the session ended. The platform in these screenshots is the same one, purpose-built for your cohort. It is not a promise. It is running.</p></div>
+<div class="why rv"><div class="ic"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><h3>It already exists</h3><p>No procurement of a new tool, no build risk, no launch delay. It is live today, it registered your cohort this week, and it scales from one team to ten without a rebuild.</p></div>
+<div class="why rv d1"><div class="ic"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div><h3>It reports for you</h3><p>Attendance, deliverable completion, and engagement are captured as the program runs. Your Interledger reporting stops being a scramble and becomes an export.</p></div>
+<div class="why rv d2"><div class="ic"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div><h3>The students keep it</h3><p>Every account is a Taylormade Academy login. When the Lab ends in May, twenty-five HBCU builders stay inside a creative learning community, exactly the ecosystem engagement the grant is measured on.</p></div>
+<div class="why rv d3"><div class="ic"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>One relationship, not five</h3><p>Registration, the platform, the AI workshop track, the environment, and Da&rsquo;Sci, the host your cohort already met at the Finale, all from one team that knows this program. Not a stack of vendors to coordinate.</p></div>
+<div class="why rv d4" style="grid-column:1/-1"><div class="ic"><svg aria-hidden="true" focusable="false" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></div><h3>The proof is on record</h3><p>In July, the AUC DSI&rsquo;s own PFx cohort got one hour inside the Academy and forty-nine students created accounts before the session ended. The platform in these screenshots is the same one, purpose-built for this program. It is not a promise. It is running.</p></div>
 </div>
 </div>
 </section>
@@ -238,7 +245,7 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <p style="margin-top:20px;color:#9fb0d4;max-width:58ch;font-size:18px">Fourteen one-hour AI workshops, each aimed at the deliverable your cohort owes next, each recorded into the hub. Your Wednesdays teach the discipline. The Thread is where the homework gets done, with AI, on free tools.</p>
 <div style="margin-top:26px"><a class="btn gold" href="/opil/" target="_blank" rel="noopener">See all fourteen sessions <span aria-hidden="true">&rarr;</span></a></div>
 <div class="proof proof-row rv" style="margin-top:70px">
-<div><div class="n">49</div><div class="l">accounts created in one hour, this cohort&rsquo;s last session inside the Academy</div></div>
+<div><div class="n">49</div><div class="l">accounts created in one hour, the last AUC DSI cohort to get an hour inside the Academy</div></div>
 <div><div class="n">14 yrs</div><div class="l">Taylormade Creative, Dallas&ndash;Fort Worth, running on these same AI systems</div></div>
 <div><div class="n">Da&rsquo;Sci</div><div class="l">the AI host your finalists already met, returning to open the Lab</div></div>
 </div>
@@ -265,12 +272,15 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <span class="kick">The investment</span>
 <h2 style="margin-top:16px;font-size:clamp(28px,4vw,52px)">One program, delivered end to end.</h2>
 <div class="inv rv">
-<div class="li"><div><h4>Digital Financial Inclusion environment</h4><p>The full five-zone virtual environment, AUC DSI branding, student onboarding, and a facilitator playbook so your team can run sessions in-house.</p></div><div class="amt">$3,500<small>+ $240 / yr platform</small></div></div>
-<div class="li"><div><h4>The AI Thread · 14 workshops</h4><p>Fourteen one-hour AI workshops across the program year, each recorded with a written playbook into the hub.</p></div><div class="amt">$8,400<small>$4,200 / semester</small></div></div>
-<div class="li"><div><h4>The Lab Hub · platform build</h4><p>Team spaces, cohort messaging, the deliverable locker, the coordinator dashboard, and the public showcase. Built for this program.</p></div><div class="amt">$6,500<small>one-time</small></div></div>
-<div class="li"><div><h4>Platform license &amp; support · program year</h4><p>Twenty-five hosted accounts, hosting, and support across the full 2026&ndash;27 year.</p></div><div class="amt">$1,800<small>/ year</small></div></div>
-<div class="li"><div><h4>Registration &amp; launch</h4><p>The one-step registration page and program overview, delivered and live for the Monday launch.</p></div><div class="amt">$1,500<small>delivered</small></div></div>
-<div class="total"><b>Program total</b><span class="amt">$21,940</span></div>
+<div class="li" style="background:var(--paper2);border-bottom:1px solid var(--hair)"><div><h3 style="font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)">One-time build</h3></div><div></div></div>
+<div class="li"><div><h3>Digital Financial Inclusion environment</h3><p>The full five-zone virtual environment, AUC DSI branding, student onboarding, and a facilitator playbook so your team can run sessions in-house.</p></div><div class="amt">$3,500</div></div>
+<div class="li"><div><h3>The Lab Hub &middot; platform build</h3><p>Team spaces, cohort messaging, the deliverable locker, the coordinator dashboard, and the public showcase. Built for this program.</p></div><div class="amt">$6,500</div></div>
+<div class="li"><div><h3>Registration &amp; launch</h3><p>The one-step registration page and program overview, delivered and live for the launch.</p></div><div class="amt">$1,500</div></div>
+<div class="li"><div><h3>The AI Thread &middot; 14 workshops</h3><p>Fourteen one-hour AI workshops across the program year, each recorded with a written playbook into the hub.</p></div><div class="amt">$8,400<small>$4,200 / semester, in advance</small></div></div>
+<div class="li" style="background:var(--paper2);border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)"><div><h3 style="font-family:var(--display);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)">Program year, recurring</h3></div><div></div></div>
+<div class="li"><div><h3>Platform license &amp; support</h3><p>Twenty-five hosted accounts, hosting, updates, and support across the full 2026&ndash;27 year.</p></div><div class="amt">$1,800<small>/ year</small></div></div>
+<div class="li"><div><h3>Environment platform</h3><p>The virtual environment&rsquo;s annual platform fee, passed through at cost.</p></div><div class="amt">$240<small>/ year</small></div></div>
+<div class="total"><b>Year-one program total</b><span class="amt">$21,940</span></div>
 </div>
 <div class="terms">
 <span>Deposit on signature</span><span>Workshop track billed per semester, in advance</span><span>Grant line items, invoiced to AUC DSI</span>
@@ -283,10 +293,10 @@ h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;letter-spac
 <section class="sec navy close">
 <div class="wrap">
 <span class="kick on-navy">Next step</span>
-<h2 style="margin-top:16px">Don&rsquo;t take my word for it. Log in.</h2>
-<p style="margin-top:20px;color:#9fb0d4;max-width:52ch;font-size:19px">The platform is running. Sign in, click through the team space, open the coordinator view, and see the program you would be handing your students. Then let&rsquo;s put the whole year on the calendar.</p>
+<h2 style="margin-top:16px">Don&rsquo;t take my word for it. Click through it.</h2>
+<p style="margin-top:20px;color:#9fb0d4;max-width:52ch;font-size:19px">The platform is running. Walk through the team space and the coordinator view with a sample cohort, no account needed, and see the program you would be handing your students. Then let&rsquo;s put the whole year on the calendar.</p>
 <div class="row">
-<a class="btn gold" href="https://taylormadeacademy.com/opil/hub/" target="_blank" rel="noopener">Open the live platform <span aria-hidden="true">&rarr;</span></a>
+<a class="btn gold" href="/opil/demo/" target="_blank" rel="noopener">Open the live platform <span aria-hidden="true">&rarr;</span></a>
 <a class="btn ghost" href="mailto:taylormademd@gmail.com?subject=Innovation%20Lab%20platform">Let&rsquo;s talk</a>
 </div>
 <div class="contact"><b>Nelson Taylor</b> · Taylormade Creative · Taylormade Academy<br>taylormademd@gmail.com · Dallas&ndash;Fort Worth</div>
@@ -301,6 +311,9 @@ Prepared for the AUC Consortium Data Science Initiative · Open Payments Innovat
 /* nav + progress */
 const nav=document.getElementById('nav'), prog=document.getElementById('prog');
 setTimeout(()=>nav.classList.add('in'),300);
+const coverH=document.querySelector('.cover').offsetHeight;
+const navMode=()=>nav.classList.toggle('dark', scrollY < coverH-80);
+navMode(); addEventListener('scroll',navMode,{passive:true});
 addEventListener('scroll',()=>{
   const h=document.documentElement.scrollHeight-innerHeight;
   prog.style.width=(scrollY/h*100)+'%';

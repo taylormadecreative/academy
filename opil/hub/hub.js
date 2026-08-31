@@ -46,3 +46,16 @@ export function when(ts) {
     ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
+
+export function tabs(active, isAdmin) {
+  /* one consistent 5-tab strip on every hub page */
+  const items = [
+    ['Home', '/opil/hub/'], ['My team', '/opil/hub/team/'],
+    ['Messages', '/opil/hub/messages/'], ['Showcase', '/opil/showcase/'],
+  ];
+  if (isAdmin) items.push(['Coordinator view', '/opil/hub/admin/']);
+  const nav = document.querySelector('.hub-tabs');
+  if (!nav) return;
+  nav.innerHTML = items.map(([label, href]) =>
+    `<a class="hub-tab${label === active ? ' on' : ''}" href="${href}">${label}</a>`).join('');
+}
