@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coordinator View · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/opil/hub/hub.css">
+<script>document.documentElement.classList.add('js')</script>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL COORDINATOR VIEW</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head">
+<div><span class="kicker gold">For the program team</span><h1 style="margin-top:10px">Coordinator view</h1></div>
+<button class="pillbtn" id="csvBtn" style="padding:11px 22px;font-size:14px">Export roster CSV</button>
+</div>
+<nav class="hub-tabs">
+<a class="hub-tab" href="/opil/hub/">Home</a>
+<a class="hub-tab on" href="/opil/hub/admin/">Coordinator view</a>
+</nav>
+
+<div class="statrow" id="stats"></div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Registrations</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 7</span></div>
+<div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
+<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Registered</th>
+</tr></thead><tbody><tr><td colspan="6" class="empty">Loading&hellip;</td></tr></tbody></table></div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Attendance &middot; the AI Thread</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLICK A CELL TO MARK</span></div>
+<div class="bd" style="overflow-x:auto" id="attWrap"><div class="empty">Loading&hellip;</div></div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Deliverables by team</h2></div>
+<div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
+</div>
+
+<div class="hcard" style="margin-bottom:60px">
+<div class="hd2"><h2>Post an announcement</h2></div>
+<div class="bd"><form id="annForm" style="display:flex;gap:10px;flex-wrap:wrap">
+<input id="annBody" placeholder="Everyone in the cohort sees this on their hub home" maxlength="2000" required style="flex:1;min-width:260px;font:inherit;font-size:14px;padding:12px 16px;border:1.5px solid var(--hair);border-radius:12px">
+<button class="pillbtn" style="padding:11px 22px;font-size:14px" type="submit">Post</button>
+</form></div>
+</div>
+</main>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { boot, names, esc, when } from '/opil/hub/hub.js';
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user, isAdmin } = ctx;
+if (!isAdmin) { location.replace('/opil/hub/'); throw new Error('not admin'); }
+
+const [{ data: regs }, { data: teams }, { data: mems }, { data: sess }, { data: att }, { data: dvs }] = await Promise.all([
+  sb.from('ea_opil_registrations').select('*').order('created_at'),
+  sb.from('ea_opil_teams').select('*'),
+  sb.from('ea_opil_team_members').select('*'),
+  sb.from('ea_opil_sessions').select('*').eq('kind', 'thread').order('no'),
+  sb.from('ea_opil_attendance').select('*'),
+  sb.from('ea_opil_deliverables').select('*'),
+]);
+const teamName = {}; (teams || []).forEach(t => { teamName[t.id] = t.name; });
+const nm = await names(sb, (mems || []).map(m => m.user_id));
+
+/* stats */
+const seatCount = (regs || []).reduce((a, r) => a + 1 + ((r.members || []).length || 0), 0);
+document.getElementById('stats').innerHTML = [
+  [`${(regs || []).length}`, 'teams registered'],
+  [`${seatCount}`, 'students (of 25)'],
+  [`${(mems || []).length}`, 'hub accounts active'],
+  [`${(dvs || []).length}`, 'deliverables in lockers'],
+].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
+
+/* registrations table */
+document.querySelector('#regTbl tbody').innerHTML = (regs && regs.length)
+  ? regs.map(r => `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${1 + ((r.members || []).length || 0)}</td><td>${when(r.created_at)}</td></tr>`).join('')
+  : '<tr><td colspan="6" class="empty">No registrations yet. The pool opens Monday.</td></tr>';
+
+/* attendance grid: rows = hub members, cols = thread sessions */
+const attSet = new Set((att || []).map(a => a.session_no + ':' + a.user_id));
+const cols = (sess || []).map(s => `<th title="${esc(s.title)}">${String(s.no).padStart(2, '0')}</th>`).join('');
+const rows = (mems || []).map(m => {
+  const cells = (sess || []).map(s => {
+    const on = attSet.has(s.no + ':' + m.user_id);
+    return `<td style="text-align:center;cursor:pointer" data-att="${s.no}:${m.user_id}">${on ? '<span style="color:var(--emerald);font-weight:700">✓</span>' : '<span style="color:var(--hair)">·</span>'}</td>`;
+  }).join('');
+  return `<tr><td><b>${esc(nm[m.user_id])}</b><br><span style="font-size:11.5px;color:var(--muted)">${esc(teamName[m.team_id] || '')}</span></td>${cells}</tr>`;
+}).join('');
+document.getElementById('attWrap').innerHTML = (mems && mems.length)
+  ? `<table class="tbl"><thead><tr><th>Member</th>${cols}</tr></thead><tbody>${rows}</tbody></table>`
+  : '<div class="empty">Attendance fills in as students claim their hub accounts.</div>';
+document.getElementById('attWrap').addEventListener('click', async (ev) => {
+  const td = ev.target.closest('[data-att]'); if (!td) return;
+  const [no, uid] = td.dataset.att.split(':');
+  const key = no + ':' + uid;
+  if (attSet.has(key)) {
+    await sb.from('ea_opil_attendance').delete().eq('session_no', Number(no)).eq('user_id', uid);
+    attSet.delete(key); td.innerHTML = '<span style="color:var(--hair)">·</span>';
+  } else {
+    const { error } = await sb.from('ea_opil_attendance').insert({ session_no: Number(no), user_id: uid, marked_by: user.id });
+    if (!error) { attSet.add(key); td.innerHTML = '<span style="color:var(--emerald);font-weight:700">✓</span>'; }
+  }
+});
+
+/* deliverables matrix */
+const byTeam = {}; (dvs || []).forEach(d => { (byTeam[d.team_id] = byTeam[d.team_id] || []).push(d); });
+document.getElementById('dvWrap').innerHTML = (teams && teams.length)
+  ? `<table class="tbl"><thead><tr><th>Team</th><th>Items</th><th>Latest</th></tr></thead><tbody>` +
+    (teams || []).map(t => {
+      const items = byTeam[t.id] || [];
+      const latest = items.length ? items.reduce((a, b) => a.created_at > b.created_at ? a : b) : null;
+      return `<tr><td><b>${esc(t.name)}</b></td><td>${items.length}</td><td>${latest ? esc(latest.title) + ' · ' + when(latest.created_at) : '<span style="color:var(--muted)">nothing yet</span>'}</td></tr>`;
+    }).join('') + '</tbody></table>'
+  : '<div class="empty">Teams appear as they register.</div>';
+
+/* announcement */
+document.getElementById('annForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const body = document.getElementById('annBody').value.trim(); if (!body) return;
+  const { error } = await sb.from('ea_opil_announcements').insert({ author: user.id, body });
+  if (!error) { document.getElementById('annBody').value = ''; alert('Posted to the cohort.'); }
+});
+
+/* CSV export */
+document.getElementById('csvBtn').addEventListener('click', () => {
+  const head = 'team,lead,email,school,members,registered\n';
+  const lines = (regs || []).map(r =>
+    [r.team_name, r.full_name, r.email, r.school, 1 + ((r.members || []).length || 0), r.created_at]
+      .map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([head + lines], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'opil-roster.csv'; a.click();
+});
+</script>
+</body></html>

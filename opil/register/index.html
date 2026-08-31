@@ -1,210 +1,382 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Register · Open Payments Innovation Lab</title>
-<meta name="description" content="Registration for the AUC Open Payments Innovation Lab 2026-27 cohort. One step: your Lab seat and your program hub account, together.">
+<meta name="description" content="Team registration for the AUC Open Payments Innovation Lab 2026-27. One submission per team of 2-4 HBCU students. Closes Wednesday, September 9.">
 <link rel="canonical" href="https://taylormadeacademy.com/opil/register/">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#04123a">
+<meta name="theme-color" content="#fcfdff">
 <meta name="robots" content="noindex">
-<meta property="og:type" content="website"><meta property="og:site_name" content="AUC Open Payments Innovation Lab">
-<meta property="og:title" content="Register · Open Payments Innovation Lab">
-<meta property="og:description" content="You built the solution. Now build the business. One year, ten teams, working open-payment prototypes. Finalists, claim your seat.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Taylormade Academy">
+<meta property="og:title" content="Register · AUC Open Payments Innovation Lab">
+<meta property="og:description" content="Turn the small-business solution your team already built into a business — and a working open-payment prototype. Team registration closes Wed, Sep 9.">
 <meta property="og:url" content="https://taylormadeacademy.com/opil/register/">
-<meta property="og:image" content="https://taylormadeacademy.com/opil/dasci-hero.jpg"><meta property="og:image:alt" content="Da'Sci welcomes the 2026-27 Innovation Lab cohort">
+<meta property="og:image" content="https://taylormadeacademy.com/opil/duo-og.jpg"><meta property="og:image:alt" content="Nelson Taylor and Da'Sci welcome the 2026-27 Open Payments Innovation Lab cohort">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/opil/dasci-hero.webp" type="image/webp" fetchpriority="high">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="preload" as="image" href="/opil/duo.webp" fetchpriority="high">
 <script>document.documentElement.classList.add('js')</script>
 <style>
-:root{
-  --navy:#04123a; --navy2:#0a1733; --panel:#0d1d4d;
-  --ink-on:#e7ecf8; --mut-on:#9fb0d4; --dim-on:#8fa5d9;
-  --gold:#fdc921; --gold-2:#fdc921; --gold-soft:rgba(253,201,33,.12);
-  --paper:#ffffff; --ink:#0a1733; --ever:#0b40e0;
-  --hair:rgba(255,255,255,.14); --hair-soft:rgba(255,255,255,.09);
-  --serif:'Space Grotesk','Inter',system-ui,sans-serif;
-  --mono:'Inter',system-ui,sans-serif;
-  --sans:'Inter',system-ui,sans-serif;
-  --ease:cubic-bezier(.23,1,.32,1);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--sans);background:var(--navy);color:var(--mut-on);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
-img{max-width:100%;display:block}
-a{color:inherit;text-decoration:none}
-::selection{background:var(--gold);color:var(--navy)}
-.wrap{max-width:1180px;margin-inline:auto;padding-inline:clamp(20px,4.6vw,48px)}
-.kick{font-family:var(--mono);font-weight:600;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-2)}
-.kick::after{content:"";display:block;width:44px;height:2px;background:var(--gold);margin-top:10px}
-h1,h2,h3{font-family:var(--serif);color:#fff;line-height:1.08;font-weight:700;letter-spacing:-.025em}
-.js .rv{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+/* ---- OPIL registration page (light Academy shell) ---- */
+.js .rv{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
-/* header */
-.hd{border-bottom:1px solid var(--hair-soft)}
-.hd .bar{display:flex;align-items:center;justify-content:space-between;height:70px}
-.hd img{height:34px;width:auto}
-.hd .rt{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim-on)}
-/* hero */
-.hero{padding-block:clamp(52px,6.5vw,96px) clamp(24px,3vw,40px);text-align:center}
-.hero .kick{display:inline-block}.hero .kick::after{margin-inline:auto}
-.hero h1{font-size:clamp(36px,5vw,68px);margin-top:20px;max-width:26ch;margin-inline:auto;text-wrap:balance}
-.hero h1 .g{color:var(--gold-2)}
-.hero p{max-width:56ch;margin:20px auto 0;font-size:clamp(15.5px,1.5vw,18px)}
-/* video */
-.vid{margin-top:clamp(36px,4.6vw,60px)}
-.vid .frame{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--hair);box-shadow:0 50px 110px -40px rgba(0,0,0,.8);max-width:940px;margin-inline:auto;background:#000}
-.vid video,.vid .poster{width:100%;height:auto;display:block;aspect-ratio:16/9;object-fit:cover}
-.vid .badge{position:absolute;left:18px;top:18px;background:rgba(13,19,48,.78);backdrop-filter:blur(8px);border:1px solid var(--hair);color:#fff;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;border-radius:980px;display:inline-flex;align-items:center;gap:8px}
-.vid .badge i{width:7px;height:7px;border-radius:50%;background:var(--gold)}
-.vid .capline{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim-on);text-align:center;margin-top:14px}
-/* strip */
-.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hair-soft);border-block:1px solid var(--hair-soft);margin-top:clamp(48px,6vw,80px)}
-.strip .c{background:var(--navy);padding:22px 18px;text-align:center}
-.strip .c b{display:block;font-family:var(--serif);font-weight:700;font-size:clamp(18px,1.9vw,24px);color:#fff}
-.strip .c span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim-on);margin-top:6px;display:block}
-@media(max-width:720px){.strip{grid-template-columns:1fr 1fr}}
-/* body grid */
-.main{padding-block:clamp(56px,7vw,100px)}
-.grid{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(32px,5vw,72px);align-items:start}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.what{position:sticky;top:40px}
-.what h2{font-size:clamp(27px,3vw,40px);margin-top:16px}
-.what .li{display:flex;gap:16px;margin-top:26px;align-items:flex-start}
-.what .li .n{flex:0 0 auto;font-family:var(--mono);font-size:12px;color:var(--gold-2);border:1px solid rgba(201,162,39,.4);border-radius:50%;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
-.what .li b{color:var(--ink-on);font-weight:600}
-.what .li p{font-size:14.5px;margin-top:3px}
-.what .note{margin-top:30px;border:1px solid rgba(201,162,39,.35);background:var(--gold-soft);border-radius:14px;padding:18px 20px;font-size:14px;color:#e9dfc0}
+
+.okick{display:inline-block;font-size:12px;line-height:1.9;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700}
+.okick .x{color:var(--muted-ink);font-weight:600;padding-inline:4px}
+.ohl{background:linear-gradient(transparent 62%,var(--gold) 62%,var(--gold) 94%,transparent 94%)}
+
+/* hero + page grid: form is a right rail spanning hero, journey, and collab rows */
+.ohero{position:relative;padding-bottom:clamp(48px,6vw,84px)}
+.ohero .wrap{position:relative}
+.ogrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(350px,432px);grid-template-rows:auto auto 1fr;grid-template-areas:"top rail" "journey rail" "collab rail";gap:0 clamp(24px,3vw,48px);align-items:start;padding-top:clamp(30px,3.6vw,54px)}
+.htop{grid-area:top;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.94fr);grid-template-areas:"copy duo" "stats duo" "dates duo";gap:0 clamp(10px,1.4vw,22px);align-items:end}
+.hcopy{grid-area:copy;align-self:start}
+.htop .stats{grid-area:stats}
+.htop .dates{grid-area:dates}
+.duo{grid-area:duo}
+.jcard{grid-area:journey}
+.ccard{grid-area:collab;align-self:start}
+.rcard{grid-area:rail;align-self:start}
+.ohero h1{font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.04;color:var(--ink);font-size:clamp(34px,3.4vw,54px);margin-top:18px;text-wrap:balance}
+.ohero .sub{font-size:clamp(15.5px,1.35vw,18px);color:var(--muted);max-width:44ch;margin-top:16px}
+
+/* stat tiles */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:clamp(22px,2.4vw,34px);max-width:460px}
+.stat{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px}
+.stat .hex{flex:0 0 auto}
+.stat b{display:block;font-family:var(--display);font-weight:700;font-size:24px;line-height:1;color:var(--ink)}
+.stat span{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-top:4px}
+
+/* date pills */
+.dates{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px;max-width:460px}
+.dpill{flex:1 1 200px;display:flex;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:13px 16px;box-shadow:var(--shadow-sm)}
+.dpill .ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--gold-soft);color:var(--gold-ink);display:inline-flex;align-items:center;justify-content:center}
+.dpill em{display:block;font-style:normal;font-size:11.5px;font-weight:600;letter-spacing:.05em;color:var(--muted)}
+.dpill b{display:block;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:2px}
+
+/* duo figure — stands at the base of the hero, feet tucked behind the journey card */
+.duo{position:relative;align-self:end;display:flex;align-items:flex-end;justify-content:center;z-index:1;margin-right:calc(-1 * clamp(12px,2.2vw,36px))}
+.duo img{width:min(112%,580px);max-width:none;height:auto;margin-bottom:calc(-1 * clamp(24px,2.8vw,42px));filter:drop-shadow(0 26px 34px rgba(4,18,58,.16))}
+.duo .hexdeco{position:absolute;top:clamp(-20px,-1.4vw,-8px);right:6px;width:clamp(84px,8.5vw,118px);height:auto;pointer-events:none}
+
 /* form card */
-.card{background:#ffffff;border-radius:22px;padding:clamp(26px,3.4vw,44px);box-shadow:0 50px 110px -40px rgba(0,0,0,.75);color:#43504a}
-.card h2{color:var(--ink);font-size:clamp(24px,2.4vw,32px)}
-.card .sub{font-size:14.5px;margin-top:8px;color:#5d6b84}
-.f{margin-top:22px}
-.f label{display:block;font-family:var(--mono);font-weight:700;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#5d6b84;margin-bottom:8px}
-.f input,.f textarea{width:100%;font-family:var(--sans);font-size:16px;color:var(--ink);background:#fff;border:1.5px solid #d5deee;border-radius:12px;padding:14px 16px;outline:none;transition:border-color .16s var(--ease),box-shadow .16s var(--ease)}
-.f input:focus,.f textarea:focus{border-color:var(--ever);box-shadow:0 0 0 3px rgba(11,64,224,.16)}
-.f textarea{min-height:84px;resize:vertical}
-.f .hint{font-size:12.5px;color:#5d6b84;margin-top:6px}
-.submit{width:100%;margin-top:26px;font-family:var(--sans);font-weight:700;font-size:16px;color:#fff;background:var(--ever);border:0;border-radius:980px;padding:17px 24px;cursor:pointer;box-shadow:0 10px 22px -10px rgba(11,64,224,.55);transition:background .16s var(--ease),transform .16s var(--ease)}
-.submit:active{transform:scale(.98)}
-.submit[disabled]{opacity:.55;cursor:default}
-@media(hover:hover) and (pointer:fine){.submit:hover:not([disabled]){background:#0730ad}}
-.legal{font-size:12px;color:#5d6b84;margin-top:14px;line-height:1.55}
-.err{display:none;margin-top:16px;border:1.5px solid #d9822b;background:#fdf3e7;color:#7a4a12;border-radius:12px;padding:13px 16px;font-size:14px}
+.rcard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(22px,2.4vw,32px);position:relative;z-index:2}
+.rcard .rhead{display:flex;align-items:center;gap:14px}
+.rcard .rhead .ic{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);color:var(--gold-deep);display:inline-flex;align-items:center;justify-content:center}
+.rcard h2{font-family:var(--display);font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:23px;line-height:1.1}
+.rcard .rsub{font-size:13px;color:var(--muted);margin-top:3px}
+.fsec{margin-top:22px;padding-top:16px;border-top:1px solid var(--hair-soft);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-ink)}
+.fsec:first-of-type{border-top:0;padding-top:0}
+.f{margin-top:14px}
+.f label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.f label i{font-style:normal;font-weight:500;color:var(--muted-ink);font-size:12px}
+.f input,.f textarea,.f select{width:100%;font-family:var(--font);font-size:15.5px;color:var(--ink);background:#fff;border:1.5px solid #d5deee;border-radius:12px;padding:12px 14px;outline:none;transition:border-color .16s var(--ease),box-shadow .16s var(--ease)}
+.f select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%235d6b84' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.f select:has(> option[disabled]:checked){color:var(--muted)}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,64,224,.14)}
+.f textarea{min-height:76px;resize:vertical}
+.f .hint{font-size:12px;color:var(--muted);margin-top:5px}
+.rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.count{font-size:11.5px;color:var(--muted-ink);text-align:right;margin-top:4px}
+/* teammate blocks */
+.mate{border:1px solid var(--hair);border-radius:14px;padding:14px 16px 16px;margin-top:14px;background:var(--paper-2)}
+.mate .mt{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mate .mt button{font:inherit;color:var(--muted-ink);background:none;border:0;cursor:pointer;letter-spacing:.04em;text-transform:none;font-weight:600}
+.mate .mt button:hover{color:var(--clay)}
+.addmate{margin-top:14px;width:100%;font-family:var(--font);font-size:14px;font-weight:600;color:var(--blue);background:var(--blue-soft);border:1.5px dashed rgba(11,64,224,.35);border-radius:12px;padding:12px;cursor:pointer;transition:background .16s var(--ease)}
+.addmate:hover{background:#e2ebff}
+/* commitment radios */
+.commit{margin-top:14px}
+.commit .q{font-size:13px;font-weight:600;color:var(--ink)}
+.commit .opts{display:flex;gap:10px;margin-top:8px}
+.commit label{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid #d5deee;border-radius:12px;padding:11px;font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:border-color .16s var(--ease),background .16s var(--ease)}
+.commit input{position:absolute;opacity:0;pointer-events:none}
+.commit label:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep)}
+.commit label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
+/* submit */
+.osubmit{width:100%;margin-top:20px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font);font-weight:700;font-size:16px;color:#fff;background:var(--navy);border:0;border-radius:var(--pill);padding:16px 24px;cursor:pointer;box-shadow:0 14px 26px -12px rgba(4,18,58,.5);transition:background .16s var(--ease),transform .16s var(--ease)}
+.osubmit:hover:not([disabled]){background:#0a2058}
+.osubmit:active{transform:scale(.985)}
+.osubmit[disabled]{opacity:.55;cursor:default}
+.assure{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.assure span{display:inline-flex;align-items:center;gap:7px}
+.legal{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.55}
+.err{display:none;margin-top:14px;border:1.5px solid #d9822b;background:#fdf3e7;color:#7a4a12;border-radius:12px;padding:12px 15px;font-size:14px}
 .err.show{display:block}
 /* success */
-.done{display:none;text-align:left}
+.done{display:none}
 .done.show{display:block}
-.done .big{font-family:var(--serif);font-weight:700;color:var(--ink);font-size:clamp(26px,2.6vw,34px);line-height:1.1}
-.done .step{display:flex;gap:14px;margin-top:20px;align-items:flex-start;font-size:15px}
-.done .step .tick{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#0b40e0;color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;font-size:13px}
-/* footer */
-.ft{border-top:1px solid var(--hair-soft);padding-block:38px;font-size:12.5px;color:var(--dim-on)}
-.ft p{max-width:70ch}
+.done .big{font-family:var(--display);font-weight:700;color:var(--ink);font-size:clamp(24px,2.2vw,30px);line-height:1.12;letter-spacing:-.02em}
+.done .step{display:flex;gap:13px;margin-top:18px;align-items:flex-start;font-size:14.5px;color:var(--ink-2)}
+.done .step .tick{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;font-size:13px;font-weight:700}
+
+/* journey */
+.jcard{position:relative;z-index:2;margin-top:clamp(24px,2.6vw,38px);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(22px,2.6vw,34px)}
+.jhead{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--blue)}
+.jsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:24px;position:relative}
+.jsteps::before{content:"";position:absolute;top:26px;left:12.5%;right:12.5%;height:2px;background:repeating-linear-gradient(90deg,var(--hair) 0 10px,transparent 10px 18px)}
+.jstep{text-align:center;position:relative}
+.jstep .badge{position:relative;width:54px;height:54px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff}
+.jstep .badge svg.h{position:absolute;inset:0;width:100%;height:100%}
+.jstep .badge .gi{position:relative;z-index:1;display:inline-flex}
+.jstep b{display:block;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink);margin-top:14px;letter-spacing:-.01em}
+.jstep .when{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
+.jstep p{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px;max-width:27ch;margin-inline:auto}
+
+/* collab band */
+.ccard{margin-top:clamp(24px,2.6vw,38px);background:var(--bg-soft);border:1px solid var(--hair);border-radius:var(--r-lg);padding:clamp(22px,2.6vw,34px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);gap:clamp(20px,2.6vw,40px);align-items:center}
+.ccard .lg{display:flex;align-items:center;gap:16px}
+.ccard .lg img{width:84px;height:auto}
+.ccard .lg .t em{display:block;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ccard .lg .t b{display:block;font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:-.02em;margin-top:3px}
+.ccard .grant{font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px;max-width:52ch}
+.ccard blockquote{border-left:3px solid var(--gold);padding-left:18px;font-size:15.5px;line-height:1.6;color:var(--ink-2)}
+.ccard blockquote footer{font-size:13px;font-weight:600;color:var(--muted);margin-top:10px}
+.ccard .more{margin-top:18px}
+
+/* responsive */
+@media(max-width:1023px){
+  .ogrid{grid-template-columns:1fr;grid-template-areas:"top" "rail" "journey" "collab"}
+  .rcard{max-width:720px;width:100%;margin:clamp(22px,4vw,34px) auto 0}
+  .jcard{margin-top:clamp(28px,5vw,40px)}
+  .duo img{margin-bottom:0}
+}
+@media(max-width:760px){
+  .htop{grid-template-columns:minmax(0,1.02fr) minmax(150px,.98fr);grid-template-areas:"copy duo" "stats stats" "dates dates";gap:0 10px}
+  .ohero h1{font-size:clamp(29px,8vw,36px)}
+  .stats,.dates{max-width:none}
+  .duo img{width:100%}
+  .duo .hexdeco{width:78px;top:-16px;right:0}
+  .jsteps{grid-template-columns:1fr 1fr;gap:26px 14px}
+  .jsteps::before{display:none}
+  .ccard{grid-template-columns:1fr}
+}
+@media(max-width:519px){
+  .rgrid2{grid-template-columns:1fr}
+}
 </style>
 </head><body>
 
-<header class="hd"><div class="wrap"><div class="bar">
-<a href="/" style="display:flex;align-items:center;gap:11px"><img src="/assets/logo-nav.webp" alt="" style="width:36px;height:36px;object-fit:contain"><span style="font-family:var(--serif);font-weight:600;font-size:18px;color:#fff;letter-spacing:-.02em">Taylormade Academy</span></a>
-<span class="rt"><img src="/opil/aucdsi-white.png" alt="AUC Data Science Initiative" style="height:30px;width:auto;vertical-align:middle"></span>
-</div></div></header>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<nav class="nav"><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="#register">Register now <span class="arr">&rarr;</span></a>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
+</div></div><div class="mobile-nav" id="mnav"><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="#register">Register now</a></div></header>
 
 <main>
+<section class="ohero"><div class="wrap">
+<div class="ogrid">
 
-<section class="hero"><div class="wrap">
-<span class="kick">Finalists only &middot; Registration closes Sep 7</span>
-<h1>You built the solution.<br>Now build <span class="g">the business</span>.</h1>
-<p>Twenty-five students. Ten teams. One academic year to turn your Data Challenge solution into a business with a working open-payment prototype. Invited finalists, this is your seat.</p>
-
-<div class="vid rv">
-<div class="frame" id="vidFrame">
-<picture><source srcset="/opil/dasci-hero.webp" type="image/webp"><img class="poster" src="/opil/dasci-hero.jpg" alt="Da'Sci, your program host, welcomes the 2026-27 cohort" width="1920" height="1072"></picture>
-<span class="badge"><i></i>Da&rsquo;Sci &middot; your program host</span>
-</div>
-<div class="capline">She hosted your Finale. She opens your Lab.</div>
-</div>
-</div></section>
-
-<div class="strip">
-<div class="c"><b>Sep 14</b><span>Cohort kickoff</span></div>
-<div class="c"><b>Dec 4</b><span>Business Idea Pitch</span></div>
-<div class="c"><b>Feb 26&ndash;28</b><span>BHM Hackathon</span></div>
-<div class="c"><b>Mar 19</b><span>Final Showcase</span></div>
+<div class="htop">
+<div class="hcopy">
+<span class="okick">Taylormade Academy <span class="x">&times;</span> AUC Data Science Initiative</span>
+<h1>Register for the AUC <span class="ohl">Payments Lab</span></h1>
+<p class="sub">Turn the small-business solution your team already built into a business &mdash; and a working open-payment prototype. One academic year, both tracks, your original Data Challenge team.</p>
 </div>
 
-<section class="main"><div class="wrap"><div class="grid">
-
-<div class="what rv">
-<span class="kick">One form, everything on</span>
-<h2>Registering does two things at once.</h2>
-<div class="li"><span class="n">1</span><div><b>Your seat in the Lab.</b><p>You join the 2026&ndash;27 cohort: both tracks, the working sessions, the hackathon, and the Final Showcase in front of Interledger Foundation judges.</p></div></div>
-<div class="li"><span class="n">2</span><div><b>Your program hub account.</b><p>The same form creates your login on Taylormade Academy, where every workshop recording and playbook lives all year. Miss a session, lose nothing. Rewatch anything.</p></div></div>
-<div class="note">Registration is for invited 2026 Data Challenge finalists. It costs you nothing, and everything in the program runs on free tools.</div>
+<div class="stats rv">
+<div class="stat"><svg class="hex" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><polygon points="15,2 26.3,8.5 26.3,21.5 15,28 3.7,21.5 3.7,8.5" fill="none" stroke="#f09048" stroke-width="2.4"/></svg><div><b>25</b><span>HBCU students</span></div></div>
+<div class="stat"><svg class="hex" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><polygon points="15,2 26.3,8.5 26.3,21.5 15,28 3.7,21.5 3.7,8.5" fill="none" stroke="#00a848" stroke-width="2.4"/></svg><div><b>10</b><span>student teams</span></div></div>
+<div class="stat"><svg class="hex" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><polygon points="15,2 26.3,8.5 26.3,21.5 15,28 3.7,21.5 3.7,8.5" fill="none" stroke="#d83048" stroke-width="2.4"/></svg><div><b>8</b><span>curriculum sessions</span></div></div>
+<div class="stat"><svg class="hex" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><polygon points="15,2 26.3,8.5 26.3,21.5 15,28 3.7,21.5 3.7,8.5" fill="none" stroke="#f2b705" stroke-width="2.4"/></svg><div><b>4</b><span>HPC sessions</span></div></div>
 </div>
 
-<div class="card rv">
+<div class="dates rv">
+<div class="dpill"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></span><div><em>Registration closes</em><b>Wed, Sep 9, 2026</b></div></div>
+<div class="dpill"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 4H7v5a5 5 0 0 0 10 0V4z"/><path d="M17 6h3a1 1 0 0 1 1 1c0 2.5-2 4-4 4M7 6H4a1 1 0 0 0-1 1c0 2.5 2 4 4 4"/></svg></span><div><em>Final Showcase</em><b>March 19, 2027</b></div></div>
+</div>
+
+<div class="duo">
+<svg class="hexdeco" viewBox="0 0 120 110" aria-hidden="true">
+<polygon points="60,4 76,13 76,31 60,40 44,31 44,13" fill="#f09048"/>
+<polygon points="93,22 106,29.5 106,44.5 93,52 80,44.5 80,29.5" fill="#00a848"/>
+<polygon points="60,44 73,51.5 73,66.5 60,74 47,66.5 47,51.5" fill="#d83048"/>
+<polygon points="27,26 38,32.5 38,45.5 27,52 16,45.5 16,32.5" fill="#f0d830"/>
+<polygon points="90,60 100,65.5 100,77.5 90,83 80,77.5 80,65.5" fill="#a8c048"/>
+<polygon points="38,62 46,66.5 46,75.5 38,80 30,75.5 30,66.5" fill="#901830"/>
+</svg>
+<img src="/opil/duo.webp" alt="Nelson Taylor of Taylormade Academy and Da&rsquo;Sci of the AUC Data Science Initiative, side by side in letterman jackets" width="1100" height="985" fetchpriority="high">
+</div>
+</div>
+
+<div class="rcard" id="register">
 <form id="regForm" novalidate>
-<h2>Claim your seat.</h2>
-<p class="sub">Five fields. Under a minute.</p>
+<div class="rhead"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span>
+<div><h2>Team registration</h2><p class="rsub">One submission per team &middot; 2&ndash;4 HBCU students</p></div></div>
+
+<div class="fsec">Your team</div>
+<div class="f"><label for="team">Team name <i>&middot; from the Data Challenge</i></label><input id="team" name="team" required maxlength="160" autocomplete="off"></div>
+
+<div class="fsec">Team lead</div>
+<div class="rgrid2">
 <div class="f"><label for="fname">Full name</label><input id="fname" name="fname" autocomplete="name" required maxlength="120"></div>
-<div class="f"><label for="email">School email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="200" aria-describedby="emailHint"><p class="hint" id="emailHint">Use the email your invitation came to. Your hub login lands here.</p></div>
-<div class="f"><label for="school">Your school</label><input id="school" name="school" list="schools" required maxlength="120"><datalist id="schools"><option value="Clark Atlanta University"><option value="Spelman College"><option value="Morehouse College"><option value="Morehouse School of Medicine"></datalist></div>
-<div class="f"><label for="team">Team name (from the Data Challenge)</label><input id="team" name="team" required maxlength="160"></div>
-<div class="f"><label for="project">What your team built (optional)</label><textarea id="project" name="project" maxlength="500" placeholder="One or two lines about your Data Challenge solution"></textarea></div>
-<button class="submit" id="submitBtn" type="submit">Register for the Lab</button>
+<div class="f"><label for="school">HBCU institution</label><input id="school" name="school" list="schools" required maxlength="120"><datalist id="schools"><option value="Clark Atlanta University"><option value="Spelman College"><option value="Morehouse College"><option value="Morehouse School of Medicine"></datalist></div>
+<div class="f"><label for="major">Major / field of study <i>&middot; optional</i></label><input id="major" name="major" maxlength="120"></div>
+<div class="f"><label for="classification">Classification</label><select id="classification" name="classification" required><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+<div class="f"><label for="email">HBCU email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="200" aria-describedby="emailHint"></div>
+<div class="f"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" required maxlength="40"></div>
+</div>
+<p class="hint" id="emailHint" style="font-size:12px;color:var(--muted);margin-top:6px">Your program-hub login lands at the HBCU email.</p>
+<div class="f"><label for="pemail">Personal email <i>&middot; optional</i></label><input id="pemail" name="pemail" type="email" maxlength="200"></div>
+
+<div class="fsec">Teammates</div>
+<div class="mate" data-mate="2">
+<div class="mt"><span>Teammate 2 &middot; required</span></div>
+<div class="rgrid2">
+<div class="f"><label for="m2name">Full name</label><input id="m2name" maxlength="120"></div>
+<div class="f"><label for="m2email">HBCU email</label><input id="m2email" type="email" maxlength="200"></div>
+<div class="f"><label for="m2phone">Phone</label><input id="m2phone" type="tel" maxlength="40"></div>
+<div class="f"><label for="m2class">Classification</label><select id="m2class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+</div>
+</div>
+<div class="mate" data-mate="3" hidden>
+<div class="mt"><span>Teammate 3</span><button type="button" data-remove="3">Remove</button></div>
+<div class="rgrid2">
+<div class="f"><label for="m3name">Full name</label><input id="m3name" maxlength="120"></div>
+<div class="f"><label for="m3email">HBCU email</label><input id="m3email" type="email" maxlength="200"></div>
+<div class="f"><label for="m3phone">Phone</label><input id="m3phone" type="tel" maxlength="40"></div>
+<div class="f"><label for="m3class">Classification</label><select id="m3class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+</div>
+</div>
+<div class="mate" data-mate="4" hidden>
+<div class="mt"><span>Teammate 4</span><button type="button" data-remove="4">Remove</button></div>
+<div class="rgrid2">
+<div class="f"><label for="m4name">Full name</label><input id="m4name" maxlength="120"></div>
+<div class="f"><label for="m4email">HBCU email</label><input id="m4email" type="email" maxlength="200"></div>
+<div class="f"><label for="m4phone">Phone</label><input id="m4phone" type="tel" maxlength="40"></div>
+<div class="f"><label for="m4class">Classification</label><select id="m4class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+</div>
+</div>
+<button type="button" class="addmate" id="addMate">+ Add teammate 3</button>
+
+<div class="fsec">Your project</div>
+<div class="f"><label for="project">What your team built <i>&middot; optional</i></label><textarea id="project" name="project" maxlength="500" placeholder="One or two lines about your Data Challenge solution"></textarea><div class="count" id="projCount">0/500</div></div>
+
+<div class="commit">
+<p class="q" id="commitQ">Does every member plan to participate across both tracks &mdash; Fall 2026 and Spring 2027?</p>
+<div class="opts" role="radiogroup" aria-labelledby="commitQ">
+<label><input type="radio" name="commit" value="yes">Yes</label>
+<label><input type="radio" name="commit" value="no">Not sure yet</label>
+</div>
+</div>
+
+<button class="osubmit" id="submitBtn" type="submit">Register your team <span aria-hidden="true">&rarr;</span></button>
+<div class="assure"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>No cost, no card</span><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>Limited spaces &middot; 10 teams</span></div>
 <div class="err" id="errBox" role="alert"></div>
-<p class="legal">Submitting registers you with the AUC DSI Open Payments Innovation Lab and creates your program hub account on Taylormade Academy. You&rsquo;ll get one email to activate it. No spam, no card, nothing to buy.</p>
+<p class="legal">Submitting registers your team with the AUC DSI Open Payments Innovation Lab and creates the team lead&rsquo;s program-hub account on Taylormade Academy. One email to activate it &mdash; no password, no spam.</p>
 </form>
 <div class="done" id="doneBox" aria-live="polite">
-<p class="big" tabindex="-1">You&rsquo;re in. One tap left.</p>
-<div class="step"><span class="tick">1</span><span><b style="color:var(--ink)">Registered.</b> Your seat request is with the program team.</span></div>
-<div class="step"><span class="tick">2</span><span id="doneStep2"><b style="color:var(--ink)">Check your email.</b> Tap the activation link inside to open your program hub account. That link is your login, no password to remember.</span></div>
-<div class="step"><span class="tick">3</span><span><b style="color:var(--ink)">See you Sep 14.</b> Kickoff and orientation. Da&rsquo;Sci will be there too.</span></div>
+<p class="big" tabindex="-1">Your team is in. One tap left.</p>
+<div class="step"><span class="tick">1</span><span><b style="color:var(--ink)">Registered.</b> <span id="doneTeam">Your team&rsquo;s registration</span> is with the program team for review.</span></div>
+<div class="step"><span class="tick">2</span><span id="doneStep2"><b style="color:var(--ink)">Check your email.</b> Tap the activation link inside to open your program hub on Taylormade Academy. That link is your login &mdash; no password to remember.</span></div>
+<div class="step"><span class="tick">3</span><span><b style="color:var(--ink)">Orientation &amp; kickoff.</b> The evening of Wednesday, Sep 16. Accepted teams get the full schedule and onboarding by email.</span></div>
 </div>
 </div>
 
-</div></div></section>
+<div class="jcard rv">
+<div class="jhead">Program journey</div>
+<div class="jsteps">
+<div class="jstep">
+<span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#f09048"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3 19c0-3 2.7-4.8 6-4.8s6 1.8 6 4.8M15.5 14.6c2.6.3 5 1.9 5 4.4"/></svg></span></span>
+<b>Orientation</b><span class="when">Evening of Sep 16, 2026</span>
+<p>Kickoff for accepted teams: the cohort, the calendar, your program hub.</p>
+</div>
+<div class="jstep">
+<span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#00a848"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M6 20V10m6 10V4m6 16v-7"/></svg></span></span>
+<b>Track One &middot; Business</b><span class="when">Sep &ndash; Dec 2026</span>
+<p>Customer discovery, business model, unit economics. Capstone: the Business Idea Pitch, Dec 4.</p>
+</div>
+<div class="jstep">
+<span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#d83048"/></svg><span class="gi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4 3 12l5 8M16 4l5 8-5 8"/></svg></span></span>
+<b>Track Two &middot; FinTech</b><span class="when">Jan &ndash; Mar 2027</span>
+<p>Open payments, Interledger, prototyping with supercomputing (HPC). Hackathon Feb 26&ndash;28.</p>
+</div>
+<div class="jstep">
+<span class="badge"><svg class="h" viewBox="0 0 54 54" aria-hidden="true"><polygon points="27,3 48,15 48,39 27,51 6,39 6,15" fill="#f2b705"/></svg><span class="gi" style="color:#4a3700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 4H7v5a5 5 0 0 0 10 0V4z"/><path d="M17 6h3a1 1 0 0 1 1 1c0 2.5-2 4-4 4M7 6H4a1 1 0 0 0-1 1c0 2.5 2 4 4 4"/></svg></span></span>
+<b>Final Showcase</b><span class="when">Mar 19, 2027</span>
+<p>Demo your working prototype to Interledger Foundation judges at ILP Demo Day.</p>
+</div>
+</div>
+</div>
 
+<div class="ccard rv">
+<div>
+<div class="lg"><img src="/opil/aucdsi-black.png" alt="" width="84" height="54"><div class="t"><em>In collaboration with</em><b>The AUC Data Science Initiative</b></div></div>
+<p class="grant">The AUC Open Payments Innovation Lab is supported by the Interledger Foundation through the grant <i>Building Digital Pathways for Financial Equity</i> to the Atlanta University Center Consortium Data Science Initiative.</p>
+</div>
+<div>
+<blockquote>&ldquo;These teams didn&rsquo;t arrive with an idea &mdash; they arrived with a solution they already built. The Lab is where it becomes a business, and the Academy keeps every session and playbook with them all year.&rdquo;
+<footer>&mdash; Nelson Taylor, Taylormade Academy</footer></blockquote>
+<div class="more"><a class="btn ghost sm" href="/opil/">Explore the full program <span class="arr">&rarr;</span></a></div>
+</div>
+</div>
+
+</div>
+</div></section>
 </main>
 
-<footer class="ft"><div class="wrap">
-<p>The AUC Open Payments Innovation Lab is supported by the Interledger Foundation through the grant <i>Building Digital Pathways for Financial Equity</i> to the Atlanta University Center Consortium Data Science Initiative. Registration and program hub by <a href="/" style="color:#9fb0d4;text-decoration:underline">Taylormade Academy</a>, a Taylormade Creative platform.</p>
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p></div>
+<div class="foot-col"><h4>Explore</h4><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a><a href="/sponsor/">Sponsor a cohort</a></div>
+<div class="foot-col"><h4>The Lab</h4><a href="/opil/">The AI Thread</a><a href="/opil/register/">Registration</a><a href="/login/">Sign in</a></div>
+</div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a></span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
-<!--
-  DA'SCI WELCOME VIDEO
-  Drop the rendered HeyGen file at /opil/dasci-welcome.mp4 and push.
-  The page checks for it and upgrades the poster to a player automatically.
-  Script for HeyGen is staged at ~/Downloads/dasci-welcome-script.txt
--->
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-/* video auto-upgrade: poster -> player when the mp4 exists */
-(async () => {
-  try {
-    const r = await fetch('/opil/dasci-welcome.mp4', { method: 'HEAD' });
-    if (r.ok) {
-      const frame = document.getElementById('vidFrame');
-      const badge = frame.querySelector('.badge');
-      frame.querySelector('picture').remove();
-      const v = document.createElement('video');
-      v.controls = true; v.playsInline = true; v.preload = 'metadata';
-      v.poster = '/opil/dasci-hero.jpg'; v.src = '/opil/dasci-welcome.mp4';
-      frame.insertBefore(v, badge);
-    }
-  } catch (e) { /* poster stays */ }
-})();
-
 /* reveals */
 if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
   document.querySelectorAll('.rv').forEach((el) => io.observe(el));
 } else { document.querySelectorAll('.rv').forEach((el) => el.classList.add('in')); }
 
-/* one-step registration: insert row + fire Academy magic link */
+/* teammate 3/4 progressive disclosure */
+const addBtn = document.getElementById('addMate');
+const mates = { 3: document.querySelector('[data-mate="3"]'), 4: document.querySelector('[data-mate="4"]') };
+function syncAdd() {
+  if (mates[3].hidden) { addBtn.textContent = '+ Add teammate 3'; addBtn.hidden = false; }
+  else if (mates[4].hidden) { addBtn.textContent = '+ Add teammate 4'; addBtn.hidden = false; }
+  else addBtn.hidden = true;
+}
+addBtn.addEventListener('click', () => {
+  const n = mates[3].hidden ? 3 : 4;
+  mates[n].hidden = false;
+  mates[n].querySelector('input').focus();
+  syncAdd();
+});
+document.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('click', () => {
+  const n = +b.dataset.remove;
+  if (n === 3 && !mates[4].hidden) {
+    /* keep numbering contiguous: move 4 down into 3 */
+    ['name','email','phone','class'].forEach((k) => { const a = document.getElementById('m3'+k), c = document.getElementById('m4'+k); a.value = c.value; c.value = ''; });
+    document.getElementById('m4class').selectedIndex = 0;
+    mates[4].hidden = true;
+  } else {
+    mates[n].querySelectorAll('input').forEach((i) => i.value = '');
+    mates[n].querySelector('select').selectedIndex = 0;
+    mates[n].hidden = true;
+  }
+  syncAdd(); addBtn.focus();
+}));
+syncAdd();
+
+/* project counter */
+const proj = document.getElementById('project'), projCount = document.getElementById('projCount');
+proj.addEventListener('input', () => projCount.textContent = proj.value.length + '/500');
+
+/* one-step team registration: insert row + fire Academy magic link */
 const form = document.getElementById('regForm');
 const btn = document.getElementById('submitBtn');
 const errBox = document.getElementById('errBox');
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 let sb = null;
 async function client() {
   if (sb) return sb;
@@ -212,24 +384,60 @@ async function client() {
   sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
   return sb;
 }
-function fail(msg) { errBox.textContent = msg; errBox.classList.add('show'); btn.disabled = false; btn.textContent = 'Register for the Lab'; }
+function fail(msg, el) {
+  errBox.textContent = msg; errBox.classList.add('show');
+  btn.disabled = false; btn.innerHTML = 'Register your team <span aria-hidden="true">&rarr;</span>';
+  if (el) el.focus();
+}
+function mate(n) {
+  const name = document.getElementById('m'+n+'name').value.trim();
+  const email = document.getElementById('m'+n+'email').value.trim().toLowerCase();
+  const phone = document.getElementById('m'+n+'phone').value.trim();
+  const cls = document.getElementById('m'+n+'class').value;
+  if (!name && !email && !phone && !cls) return null;
+  return { name, email, phone, classification: cls };
+}
 form.addEventListener('submit', async (ev) => {
   ev.preventDefault();
   errBox.classList.remove('show');
-  const fname = form.fname.value.trim(), email = form.email.value.trim().toLowerCase(),
-        school = form.school.value.trim(), team = form.team.value.trim(), project = form.project.value.trim();
-  if (fname.length < 2) return fail('Add your full name.');
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('That email does not look right.');
-  if (school.length < 2) return fail('Add your school.');
-  if (!team) return fail('Add your Data Challenge team name.');
+  const team = form.team.value.trim(), fname = form.fname.value.trim(),
+        school = form.school.value.trim(), major = form.major.value.trim(),
+        cls = form.classification.value, email = form.email.value.trim().toLowerCase(),
+        phone = form.phone.value.trim(), pemail = form.pemail.value.trim().toLowerCase(),
+        project = form.project.value.trim(),
+        commit = form.querySelector('input[name="commit"]:checked');
+  if (!team) return fail('Add your team name from the Data Challenge.', form.team);
+  if (fname.length < 2) return fail('Add the team lead’s full name.', form.fname);
+  if (school.length < 2) return fail('Add the team lead’s HBCU institution.', form.school);
+  if (!cls) return fail('Pick the team lead’s classification.', form.classification);
+  if (!EMAIL_RE.test(email)) return fail('The team lead’s HBCU email does not look right.', form.email);
+  if (phone.replace(/\D/g, '').length < 7) return fail('Add the team lead’s phone number.', form.phone);
+  if (pemail && !EMAIL_RE.test(pemail)) return fail('The personal email does not look right.', form.pemail);
+  const m2 = mate(2);
+  if (!m2 || m2.name.length < 2) return fail('Teams are 2–4 students — add teammate 2’s full name.', document.getElementById('m2name'));
+  if (!EMAIL_RE.test(m2.email)) return fail('Teammate 2’s HBCU email does not look right.', document.getElementById('m2email'));
+  if (m2.phone.replace(/\D/g, '').length < 7) return fail('Add teammate 2’s phone number.', document.getElementById('m2phone'));
+  if (!m2.classification) return fail('Pick teammate 2’s classification.', document.getElementById('m2class'));
+  const members = [m2];
+  for (const n of [3, 4]) {
+    if (mates[n].hidden) continue;
+    const m = mate(n);
+    if (!m) continue;
+    if (m.name.length < 2) return fail('Add teammate ' + n + '’s full name, or remove that teammate.', document.getElementById('m'+n+'name'));
+    if (!EMAIL_RE.test(m.email)) return fail('Teammate ' + n + '’s HBCU email does not look right.', document.getElementById('m'+n+'email'));
+    members.push(m);
+  }
+  if (!commit) return fail('Answer the both-tracks question — it’s how the program team plans seats.');
   btn.disabled = true; btn.textContent = 'Registering…';
   try {
     const supabase = await client();
     const { error } = await supabase.from('ea_opil_registrations').insert({
-      full_name: fname, email, school, team_name: team, project: project || null
+      full_name: fname, email, school, team_name: team, project: project || null,
+      major: major || null, phone, classification: cls, personal_email: pemail || null,
+      members, all_participating: commit.value === 'yes'
     });
     if (error && !String(error.message || '').toLowerCase().includes('duplicate') && error.code !== '23505') {
-      return fail('Something hiccuped saving your registration. Try once more, or email taylormademd@gmail.com and we will register you by hand.');
+      return fail('Something hiccuped saving your registration. Try once more, or email taylormademd@gmail.com and we will register your team by hand.');
     }
     /* duplicate = already registered: still (re)send the activation link */
     const { error: otpErr } = await supabase.auth.signInWithOtp({
@@ -237,10 +445,12 @@ form.addEventListener('submit', async (ev) => {
       options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' }
     });
     form.style.display = 'none';
+    document.getElementById('doneTeam').innerHTML = '<b style="color:var(--ink)">' +
+      team.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>’s registration';
     const done = document.getElementById('doneBox');
     if (otpErr) {
       const s2 = document.getElementById('doneStep2');
-      s2.innerHTML = '<b style="color:var(--ink)">Your seat is saved</b>, but the activation email did not send just now. <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
+      s2.innerHTML = '<b style="color:var(--ink)">Your registration is saved</b>, but the activation email did not send just now. <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
       s2.querySelector('#resendBtn').addEventListener('click', async () => {
         const { error: again } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' } });
         if (!again) s2.innerHTML = '<b style="color:var(--ink)">Sent.</b> Check your email and tap the activation link.';
@@ -248,11 +458,11 @@ form.addEventListener('submit', async (ev) => {
     }
     done.classList.add('show');
     const big = done.querySelector('.big');
-    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'center' });
     big.focus({ preventScroll: true });
   } catch (e) {
     fail('Could not reach the registration service. Check your connection and try again.');
   }
-})
+});
 </script>
 </body></html>

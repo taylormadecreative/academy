@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Messages · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/opil/hub/hub.css">
+<script>document.documentElement.classList.add('js')</script>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head">
+<div><span class="kicker gold">Direct messages</span><h1 style="margin-top:10px">Messages</h1></div>
+</div>
+<nav class="hub-tabs">
+<a class="hub-tab" href="/opil/hub/">Home</a>
+<a class="hub-tab" href="/opil/hub/team/">My team</a>
+<a class="hub-tab on" href="/opil/hub/messages/">Messages</a>
+<a class="hub-tab" href="/opil/showcase/">Showcase</a>
+</nav>
+
+<div class="hub-grid" style="grid-template-columns:320px 1fr">
+<div class="hcard">
+<div class="hd2"><h2>The cohort</h2></div>
+<div class="bd" id="people" style="max-height:560px;overflow-y:auto"><div class="empty">Loading&hellip;</div></div>
+</div>
+<div class="hcard chat">
+<div class="hd2"><h2 id="threadTitle">Pick someone to message</h2></div>
+<div class="scroll" id="dmScroll"><div class="empty">Messages are private between the two of you.</div></div>
+<form id="dmForm" style="display:none"><input id="dmInput" placeholder="Write a message" maxlength="4000" autocomplete="off"><button type="submit">Send</button></form>
+</div>
+</div>
+</main>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { boot, names, esc, when } from '/opil/hub/hub.js';
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user } = ctx;
+
+/* cohort directory: everyone with a team membership */
+const { data: mems } = await sb.from('ea_opil_team_members').select('user_id, team_id');
+const teamIds = [...new Set((mems || []).map(m => m.team_id))];
+const { data: teams } = await sb.from('ea_opil_teams').select('id, name').in('id', teamIds.length ? teamIds : ['00000000-0000-0000-0000-000000000000']);
+const teamName = {}; (teams || []).forEach(t => { teamName[t.id] = t.name; });
+const others = (mems || []).filter(m => m.user_id !== user.id);
+const nm = await names(sb, others.map(m => m.user_id));
+
+const peopleEl = document.getElementById('people');
+peopleEl.innerHTML = others.length ? others.map(m =>
+  `<a class="member" style="cursor:pointer" data-uid="${m.user_id}"><span class="av">${esc((nm[m.user_id] || 'M')[0])}</span>
+   <div><b>${esc(nm[m.user_id])}</b><span>${esc(teamName[m.team_id] || '')}</span></div></a>`).join('')
+  : '<div class="empty">As teams register, the whole cohort appears here.</div>';
+
+let to = null, toName = '';
+const scroll = document.getElementById('dmScroll');
+const form = document.getElementById('dmForm');
+
+async function loadThread() {
+  if (!to) return;
+  const { data: msgs } = await sb.from('ea_opil_dms').select('*')
+    .or(`and(sender_id.eq.${user.id},recipient_id.eq.${to}),and(sender_id.eq.${to},recipient_id.eq.${user.id})`)
+    .order('created_at').limit(300);
+  scroll.innerHTML = (msgs && msgs.length)
+    ? msgs.map(m => `<div class="bub${m.sender_id === user.id ? ' me' : ''}"><p>${esc(m.body)}</p><div class="w">${when(m.created_at)}</div></div>`).join('')
+    : '<div class="empty">Start the conversation.</div>';
+  scroll.scrollTop = scroll.scrollHeight;
+  /* mark received as read */
+  sb.from('ea_opil_dms').update({ read_at: new Date().toISOString() })
+    .eq('recipient_id', user.id).eq('sender_id', to).is('read_at', null).then(() => {});
+}
+function openThread(uid, name) {
+  to = uid; toName = name;
+  document.getElementById('threadTitle').textContent = name;
+  form.style.display = '';
+  loadThread();
+}
+peopleEl.addEventListener('click', (ev) => {
+  const a = ev.target.closest('[data-uid]'); if (!a) return;
+  openThread(a.dataset.uid, a.querySelector('b').textContent);
+});
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const input = document.getElementById('dmInput');
+  const body = input.value.trim(); if (!body || !to) return;
+  input.value = '';
+  const { error } = await sb.from('ea_opil_dms').insert({ sender_id: user.id, recipient_id: to, body });
+  if (!error) loadThread();
+});
+try {
+  sb.channel('dm-' + user.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_dms', filter: 'recipient_id=eq.' + user.id }, loadThread)
+    .subscribe();
+} catch (e) {}
+setInterval(loadThread, 15000);
+
+/* deep link ?to=uid (from team roster) */
+const want = new URLSearchParams(location.search).get('to');
+if (want && others.some(m => m.user_id === want)) openThread(want, nm[want] || 'Member');
+</script>
+</body></html>

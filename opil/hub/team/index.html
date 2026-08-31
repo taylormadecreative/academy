@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Team · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/opil/hub/hub.css">
+<script>document.documentElement.classList.add('js')</script>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head">
+<div><span class="kicker gold">Team space</span><h1 id="teamName" style="margin-top:10px">My team</h1></div>
+</div>
+<nav class="hub-tabs">
+<a class="hub-tab" href="/opil/hub/">Home</a>
+<a class="hub-tab on" href="/opil/hub/team/">My team</a>
+<a class="hub-tab" href="/opil/hub/messages/">Messages</a>
+<a class="hub-tab" href="/opil/showcase/">Showcase</a>
+</nav>
+
+<div class="hub-grid">
+<div>
+<div class="hcard chat" style="margin-bottom:24px">
+<div class="hd2"><h2>Team chat</h2><span class="mono" style="font-size:11px;color:var(--emerald)">LIVE</span></div>
+<div class="scroll" id="chatScroll"><div class="empty">Loading&hellip;</div></div>
+<form id="chatForm"><input id="chatInput" placeholder="Message your team" maxlength="4000" autocomplete="off"><button type="submit">Send</button></form>
+</div>
+<div class="hcard">
+<div class="hd2"><h2>The locker &middot; checkpoints and files</h2></div>
+<div class="bd" id="dvList"><div class="empty">Loading&hellip;</div></div>
+<div class="bd" style="border-top:1px solid var(--hair-soft)">
+<form id="dvForm" style="display:grid;gap:10px">
+<b style="font-size:13px;color:var(--ink)">Add to the locker</b>
+<select id="dvSession" style="font:inherit;font-size:14px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:12px"></select>
+<input id="dvTitle" placeholder="What is it? (e.g. Business Model Canvas v2)" maxlength="200" required style="font:inherit;font-size:14px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:12px">
+<input id="dvLink" placeholder="Link (repo, doc, video) — optional if uploading a file" style="font:inherit;font-size:14px;padding:11px 14px;border:1.5px solid var(--hair);border-radius:12px">
+<input id="dvFile" type="file" style="font:inherit;font-size:13px">
+<button class="pillbtn" style="justify-self:start;padding:11px 22px;font-size:14px" type="submit">Save to locker</button>
+<div id="dvMsg" style="font-size:13px;color:var(--muted)"></div>
+</form>
+</div>
+</div>
+</div>
+<div>
+<div class="hcard">
+<div class="hd2"><h2>Roster</h2></div>
+<div class="bd" id="roster"><div class="empty">Loading&hellip;</div></div>
+</div>
+</div>
+</div>
+</main>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { boot, names, esc, when } from '/opil/hub/hub.js';
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user, teamId } = ctx;
+if (!teamId) { location.replace('/opil/hub/'); throw new Error('no team'); }
+
+const { data: team } = await sb.from('ea_opil_teams').select('*').eq('id', teamId).single();
+document.getElementById('teamName').textContent = team.name;
+document.title = team.name + ' · Lab Hub';
+
+/* roster */
+const { data: members } = await sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId);
+let nm = await names(sb, (members || []).map(m => m.user_id).concat([user.id]));
+document.getElementById('roster').innerHTML = (members || []).map(m =>
+  `<div class="member"><span class="av">${esc((nm[m.user_id] || 'M')[0])}</span><div><b>${esc(nm[m.user_id])}</b><span>${m.role}</span></div>
+   ${m.user_id !== user.id ? `<a class="dmlink" href="/opil/hub/messages/?to=${m.user_id}">Message</a>` : ''}</div>`).join('');
+
+/* chat */
+const scroll = document.getElementById('chatScroll');
+function bubble(m) {
+  const me = m.user_id === user.id;
+  return `<div class="bub${me ? ' me' : ''}">${me ? '' : `<div class="who">${esc(nm[m.user_id] || 'Member')}</div>`}<p>${esc(m.body)}</p><div class="w">${when(m.created_at)}</div></div>`;
+}
+async function loadChat() {
+  const { data: msgs } = await sb.from('ea_opil_team_messages').select('*').eq('team_id', teamId).order('created_at').limit(300);
+  const missing = (msgs || []).map(m => m.user_id).filter(id => !nm[id]);
+  if (missing.length) Object.assign(nm, await names(sb, missing));
+  scroll.innerHTML = (msgs && msgs.length) ? msgs.map(bubble).join('') : '<div class="empty">Say hello. Your team sees it instantly.</div>';
+  scroll.scrollTop = scroll.scrollHeight;
+}
+await loadChat();
+/* realtime with poll fallback */
+try {
+  sb.channel('team-' + teamId)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_team_messages', filter: 'team_id=eq.' + teamId }, loadChat)
+    .subscribe();
+} catch (e) {}
+setInterval(loadChat, 15000);
+
+document.getElementById('chatForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const input = document.getElementById('chatInput');
+  const body = input.value.trim(); if (!body) return;
+  input.value = '';
+  const { error } = await sb.from('ea_opil_team_messages').insert({ team_id: teamId, user_id: user.id, body });
+  if (!error) loadChat();
+});
+
+/* locker */
+const dvMsg = document.getElementById('dvMsg');
+const selEl = document.getElementById('dvSession');
+const { data: sess } = await sb.from('ea_opil_sessions').select('no, title').eq('kind', 'thread').order('no');
+selEl.innerHTML = '<option value="">General (no session)</option>' +
+  (sess || []).map(s => `<option value="${s.no}">${String(s.no).padStart(2, '0')} · ${esc(s.title)}</option>`).join('');
+
+async function loadLocker() {
+  const { data: dvs } = await sb.from('ea_opil_deliverables').select('*').eq('team_id', teamId).order('created_at', { ascending: false });
+  const bySession = {};
+  (dvs || []).forEach(d => { (bySession[d.session_no || 0] = bySession[d.session_no || 0] || []).push(d); });
+  document.getElementById('dvList').innerHTML = (sess || []).map(s => {
+    const items = bySession[s.no] || [];
+    const rows = items.map(d => {
+      const link = d.link_url ? `<a href="${esc(d.link_url)}" target="_blank" rel="noopener">open link</a>` : '';
+      const file = d.file_path ? `<a href="#" data-file="${esc(d.file_path)}" class="fileLink">download file</a>` : '';
+      return `<div style="font-size:13px;color:var(--ink-2);padding:3px 0 3px 40px">${esc(d.title)} · ${link} ${file}</div>`;
+    }).join('');
+    return `<div class="dv"><span class="st ${items.length ? 'done' : 'open'}">${items.length ? '✓' : ''}</span>
+      <div class="m"><b>${String(s.no).padStart(2, '0')} · ${esc(s.title)}</b><span>${items.length ? items.length + ' item' + (items.length > 1 ? 's' : '') : 'nothing yet'}</span></div></div>${rows}`;
+  }).join('');
+  document.querySelectorAll('.fileLink').forEach(a => a.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const { data } = await sb.storage.from('opil-files').createSignedUrl(ev.currentTarget.dataset.file, 300);
+    if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+  }));
+}
+await loadLocker();
+
+document.getElementById('dvForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  dvMsg.textContent = 'Saving…';
+  const title = document.getElementById('dvTitle').value.trim();
+  const link = document.getElementById('dvLink').value.trim();
+  const sessionNo = selEl.value ? Number(selEl.value) : null;
+  const fileEl = document.getElementById('dvFile');
+  if (!title) { dvMsg.textContent = 'Give it a name.'; return; }
+  if (!link && !fileEl.files.length) { dvMsg.textContent = 'Add a link or choose a file.'; return; }
+  let file_path = null;
+  if (fileEl.files.length) {
+    const f = fileEl.files[0];
+    if (f.size > 25 * 1024 * 1024) { dvMsg.textContent = 'Files cap at 25 MB — use a link for anything bigger.'; return; }
+    file_path = `${teamId}/${Date.now()}-${f.name.replace(/[^\w.\-]+/g, '_')}`;
+    const { error: upErr } = await sb.storage.from('opil-files').upload(file_path, f);
+    if (upErr) { dvMsg.textContent = 'Upload failed: ' + upErr.message; return; }
+  }
+  const { error } = await sb.from('ea_opil_deliverables').insert({
+    team_id: teamId, session_no: sessionNo, title, link_url: link || null, file_path, uploaded_by: user.id
+  });
+  if (error) { dvMsg.textContent = 'Could not save: ' + error.message; return; }
+  dvMsg.textContent = 'Saved.';
+  document.getElementById('dvForm').reset();
+  loadLocker();
+});
+</script>
+</body></html>
