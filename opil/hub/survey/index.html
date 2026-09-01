@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Survey · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/opil/hub/hub.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+.svy{max-width:760px;margin-inline:auto}
+.q{background:#fff;border:1px solid var(--hair);border-radius:16px;padding:22px 24px;margin-bottom:14px}
+.q b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:14px}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scale label{border:1.5px solid var(--hair);border-radius:12px;padding:11px 6px;text-align:center;font-size:12.5px;color:var(--muted);cursor:pointer;transition:all .16s var(--ease)}
+.scale input{position:absolute;opacity:0;pointer-events:none}
+.scale input:checked + span{color:#fff}
+.scale label:has(input:checked){background:var(--blue);border-color:var(--blue);color:#fff}
+.scale label:hover{border-color:var(--blue)}
+.svy textarea{width:100%;font:inherit;font-size:15px;padding:13px 16px;border:1.5px solid var(--hair);border-radius:12px;min-height:96px;resize:vertical}
+.svy .sub{width:100%;margin-top:8px;font:inherit;font-weight:700;font-size:16px;color:#fff;background:var(--blue);border:0;border-radius:980px;padding:16px;cursor:pointer}
+.svy .sub:active{transform:scale(.98)}
+.donebox{background:var(--emerald-soft);border:1px solid #b7e8d4;border-radius:16px;padding:26px;text-align:center;color:var(--ink-2)}
+.donebox b{font-family:var(--display);color:var(--ink);font-size:19px;display:block;margin-bottom:6px}
+</style>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head"><div><span class="kicker gold" id="kick">Baseline survey</span><h1 id="ttl" style="margin-top:10px">Where are you starting from?</h1></div></div>
+<nav class="hub-tabs"></nav>
+<div class="svy">
+<p id="lede" style="font-size:15px;color:var(--muted);margin-bottom:22px;max-width:64ch">Six quick questions, one minute. Your answers are how the program measures what the year gave you: you take this now, and again at the end. Be honest, not impressive.</p>
+<form id="svyForm"></form>
+<div class="donebox" id="doneBox" style="display:none"><b>Recorded. Thank you.</b><span id="doneMsg">See you at the sessions. You can head back to the hub.</span><div style="margin-top:14px"><a class="btn primary sm" href="/opil/hub/">Back to the hub</a></div></div>
+</div>
+</main>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { boot, tabs } from '/opil/hub/hub.js';
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user, isAdmin } = ctx;
+tabs('', isAdmin);
+
+const KEY = new URLSearchParams(location.search).get('k') === 'post' ? 'post' : 'baseline';
+if (KEY === 'post') {
+  document.getElementById('kick').textContent = 'Closing survey';
+  document.getElementById('ttl').textContent = 'Where did the year take you?';
+  document.getElementById('lede').textContent = 'The same six questions you answered in September. Your two answers together are the story of your year.';
+}
+const ITEMS = [
+  ['open_payments','I can explain what open payments and the Interledger Protocol make possible.'],
+  ['business_model','I can turn a problem into a business model I could defend to a judge.'],
+  ['ai_tools','I use AI tools to do real work for my venture every week.'],
+  ['hpc','I know how to put high-performance computing to work on my own data.'],
+  ['pitching','I can pitch our solution to industry professionals with confidence.'],
+  ['network','I have a network in fintech and open payments I could actually call on.'],
+];
+const FREE = KEY === 'baseline'
+  ? ['goal','What do you most want to be able to do by the end of the Lab?']
+  : ['proud','What are you most proud of building this year?'];
+const SCALE = ['Strongly disagree','Disagree','Neutral','Agree','Strongly agree'];
+
+const form = document.getElementById('svyForm');
+/* already submitted? */
+const { data: prior } = await sb.from('ea_opil_survey_responses').select('created_at').eq('survey_key', KEY).eq('user_id', user.id).maybeSingle();
+if (prior) {
+  form.style.display = 'none';
+  document.getElementById('doneMsg').textContent = 'You already completed this one on ' + new Date(prior.created_at).toLocaleDateString() + '.';
+  document.getElementById('doneBox').style.display = '';
+} else {
+  form.innerHTML = ITEMS.map(([k, q], i) => `
+    <div class="q"><b>${i + 1}. ${q}</b>
+    <div class="scale">${SCALE.map((s, v) => `<label><input type="radio" name="${k}" value="${v + 1}" required><span>${s}</span></label>`).join('')}</div></div>`).join('')
+    + `<div class="q"><b>7. ${FREE[1]}</b><textarea name="${FREE[0]}" maxlength="1000"></textarea></div>`
+    + '<button class="sub" type="submit">Submit</button>';
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const answers = {};
+    ITEMS.forEach(([k]) => { const v = form.querySelector(`input[name="${k}"]:checked`); if (v) answers[k] = Number(v.value); });
+    if (Object.keys(answers).length < ITEMS.length) return;
+    answers[FREE[0]] = form.querySelector('textarea').value.trim() || null;
+    const btn = form.querySelector('.sub'); btn.disabled = true; btn.textContent = 'Recording…';
+    const { error } = await sb.from('ea_opil_survey_responses').insert({ survey_key: KEY, user_id: user.id, answers });
+    if (error) { btn.disabled = false; btn.textContent = 'Try again'; return; }
+    form.style.display = 'none';
+    document.getElementById('doneBox').style.display = '';
+  });
+}
+</script>
+</body></html>

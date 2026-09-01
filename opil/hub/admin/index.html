@@ -18,7 +18,7 @@
 <main class="hub-wrap">
 <div class="hub-head">
 <div><span class="kicker gold">For the program team</span><h1 style="margin-top:10px">Coordinator view</h1></div>
-<button class="pillbtn" id="csvBtn" style="padding:11px 22px;font-size:14px">Export roster CSV</button>
+<button class="pillbtn" id="csvBtn" style="padding:11px 22px;font-size:14px">Export report pack</button>
 </div>
 <nav class="hub-tabs">
 <a class="hub-tab" href="/opil/hub/">Home</a>
@@ -37,6 +37,11 @@
 <div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Sessions &amp; content</h2><span class="mono" style="font-size:11px;color:var(--muted)">RECORDINGS · PLAYBOOKS · ASSIGNMENTS · NO DEVELOPER NEEDED</span></div>
 <div class="bd" id="sessMgr"><div class="empty">Loading&hellip;</div></div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Competency surveys</h2><span class="mono" style="font-size:11px;color:var(--muted)">PRE / POST · THE GRANT'S OUTCOME 1</span></div>
+<div class="bd" id="svyWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
 <div class="hcard" style="margin-bottom:26px">
@@ -79,11 +84,15 @@ const nm = await names(sb, (mems || []).map(m => m.user_id));
 
 /* stats */
 const seatCount = (regs || []).reduce((a, r) => a + 1 + ((r.members || []).length || 0), 0);
+const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <= new Date().toISOString().slice(0,10)).length;
+const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
+const teamsWithWork = new Set((dvs || []).map(d => d.team_id)).size;
+const complRate = (teams || []).length ? Math.round((teamsWithWork / (teams || []).length) * 100) + '%' : '—';
 document.getElementById('stats').innerHTML = [
   [`${(regs || []).length}`, 'teams registered'],
   [`${seatCount}`, 'students (of 25)'],
-  [`${(mems || []).length}`, 'hub accounts active'],
-  [`${(dvs || []).length}`, 'deliverables in lockers'],
+  [attRate, 'attendance rate to date'],
+  [complRate, 'teams with work in the locker'],
 ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
 
 /* registrations table */
@@ -245,16 +254,34 @@ document.getElementById('annForm').addEventListener('submit', async (ev) => {
   if (!error) { document.getElementById('annBody').value = ''; alert('Posted to the cohort.'); }
 });
 
-/* CSV export */
+/* surveys summary */
+const ITEM_LABELS = { open_payments:'Open payments', business_model:'Business model', ai_tools:'AI tools', hpc:'HPC', pitching:'Pitching', network:'Network' };
+let svyRows = [];
+try { const { data } = await sb.from('ea_opil_survey_responses').select('*'); svyRows = data || []; } catch (e) {}
+(function renderSvy(){
+  const wrap = document.getElementById('svyWrap');
+  const by = { baseline: svyRows.filter(r=>r.survey_key==='baseline'), post: svyRows.filter(r=>r.survey_key==='post') };
+  if (!svyRows.length) { wrap.innerHTML = '<div class="empty">Baseline responses collect at kickoff; the closing survey runs after the showcase. Averages per competency appear here, pre next to post.</div>'; return; }
+  const avg = (rows,k)=>{ const v=rows.map(r=>Number((r.answers||{})[k])).filter(n=>n>0); return v.length? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : '—'; };
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Competency</th><th>Baseline (n=${by.baseline.length})</th><th>Post (n=${by.post.length})</th></tr></thead><tbody>` +
+    Object.entries(ITEM_LABELS).map(([k,l])=>`<tr><td><b>${l}</b></td><td>${avg(by.baseline,k)} / 5</td><td>${avg(by.post,k)} / 5</td></tr>`).join('') + '</tbody></table>';
+})();
+
+/* report pack: roster + attendance + deliverables + surveys */
 document.getElementById('csvBtn').addEventListener('click', () => {
-  const head = 'team,lead,email,school,members,registered\n';
   const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
-  const lines = (regs || []).map(r =>
-    [r.team_name, r.full_name, r.email, r.school, 1 + ((r.members || []).length || 0), r.created_at]
-      .map(cell).join(',')).join('\n');
-  const blob = new Blob([head + lines], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'opil-roster.csv'; a.click();
+  const dl = (name, head, rows) => {
+    const blob = new Blob([head + '\n' + rows.map(r => r.map(cell).join(',')).join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  };
+  dl('opil-roster.csv', 'team,lead,email,school,members,approved,registered',
+    (regs || []).map(r => [r.team_name, r.full_name, r.email, r.school, 1 + ((r.members || []).length || 0), r.approved ? 'yes' : 'no', r.created_at]));
+  dl('opil-attendance.csv', 'member,team,session_no,present_at',
+    (att || []).map(a2 => [nm[a2.user_id] || a2.user_id, teamName[(mems || []).find(m => m.user_id === a2.user_id)?.team_id] || '', a2.session_no, a2.created_at]));
+  dl('opil-deliverables.csv', 'team,session_no,title,link,published,added',
+    (dvs || []).map(d => [teamName[d.team_id] || '', d.session_no || '', d.title, d.link_url || (d.file_path ? 'file:' + d.file_path : ''), d.published ? 'yes' : 'no', d.created_at]));
+  dl('opil-surveys.csv', 'survey,member,' + Object.keys(ITEM_LABELS).join(',') + ',free_text,submitted',
+    svyRows.map(r => [r.survey_key, nm[r.user_id] || r.user_id, ...Object.keys(ITEM_LABELS).map(k => (r.answers || {})[k] ?? ''), (r.answers || {}).goal || (r.answers || {}).proud || '', r.created_at]));
 });
 </script>
 </body></html>

@@ -28,6 +28,7 @@
 <a class="hub-tab" id="adminTab" href="/opil/hub/admin/" style="display:none">Coordinator view</a>
 </nav>
 
+<div class="hub-note" id="svyNote" style="display:none;background:var(--blue-soft);border-color:#c9d7fb;color:var(--blue-deep)"><b>One minute before kickoff:</b> take the baseline survey so the program can measure what this year gives you. <a href="/opil/hub/survey/?k=baseline" style="font-weight:700;color:var(--blue-deep);text-decoration:underline">Start it now</a></div>
 <div class="hub-note" id="noTeamNote" style="display:none">You&rsquo;re signed in but not matched to a registered team yet. Register at <a href="/opil/register/" style="font-weight:700;color:var(--gold-ink);text-decoration:underline">/opil/register/</a> with this email and your team appears here automatically.</div>
 
 <div class="hub-grid">
@@ -47,7 +48,7 @@
 <div class="bd" id="teamCard"><div class="empty">Loading&hellip;</div></div>
 </div>
 <div class="hcard">
-<div class="hd2"><h2>The year</h2></div>
+<div class="hd2"><h2>The year</h2><a href="/opil/hub/opil-lab.ics" style="font-size:12px;font-weight:600;color:var(--blue)">Add to calendar</a></div>
 <div class="bd" id="mileList"></div>
 </div>
 </div>
@@ -63,6 +64,11 @@ tabs('Home', isAdmin);
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
 
 if (!teamId) document.getElementById('noTeamNote').style.display = '';
+/* baseline survey nudge */
+try {
+  const { data: svy } = await sb.from('ea_opil_survey_responses').select('survey_key').eq('survey_key','baseline').eq('user_id', user.id).maybeSingle();
+  if (!svy) document.getElementById('svyNote').style.display = '';
+} catch (e) {}
 
 /* announcements */
 const { data: anns } = await sb.from('ea_opil_announcements').select('*').order('created_at', { ascending: false }).limit(6);

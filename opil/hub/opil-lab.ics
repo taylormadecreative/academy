@@ -1,0 +1,132 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Taylormade Academy//OPIL Lab Hub//EN
+X-WR-CALNAME:Open Payments Innovation Lab 2026-27
+X-WR-TIMEZONE:America/New_York
+BEGIN:VEVENT
+UID:opil-1@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260914
+DTEND;VALUE=DATE:20260915
+SUMMARY:AI Thread 01 · Your AI Toolkit
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-2@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260921
+DTEND;VALUE=DATE:20260922
+SUMMARY:AI Thread 02 · Your AI Research Team
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-3@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261005
+DTEND;VALUE=DATE:20261006
+SUMMARY:AI Thread 03 · The Synthesis Machine
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-4@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261019
+DTEND;VALUE=DATE:20261020
+SUMMARY:AI Thread 04 · Red-Team Your Model
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-5@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261102
+DTEND;VALUE=DATE:20261103
+SUMMARY:AI Thread 05 · Numbers Without Fear
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-6@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261109
+DTEND;VALUE=DATE:20261110
+SUMMARY:AI Thread 06 · Content Machine: Venture Edition
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-7@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261130
+DTEND;VALUE=DATE:20261201
+SUMMARY:AI Thread 07 · The Pitch Machine
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-8@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270201
+DTEND;VALUE=DATE:20270202
+SUMMARY:AI Thread 08 · Build With AI I
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-9@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270208
+DTEND;VALUE=DATE:20270209
+SUMMARY:AI Thread 09 · Build With AI II
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-10@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270215
+DTEND;VALUE=DATE:20270216
+SUMMARY:AI Thread 10 · Your First AI Agent: Venture Edition
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-11@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270222
+DTEND;VALUE=DATE:20270223
+SUMMARY:AI Thread 11 · Hackathon Power-Ups
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-12@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270301
+DTEND;VALUE=DATE:20270302
+SUMMARY:AI Thread 12 · Demo Day Films
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-13@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270308
+DTEND;VALUE=DATE:20270309
+SUMMARY:AI Thread 13 · The Final Polish
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-14@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270405
+DTEND;VALUE=DATE:20270406
+SUMMARY:AI Thread 14 · Beyond the Lab
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-101@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260914
+DTEND;VALUE=DATE:20260915
+SUMMARY:OPIL · Cohort Kickoff & Orientation
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-102@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261204
+DTEND;VALUE=DATE:20261205
+SUMMARY:OPIL · Business Idea Pitch
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-103@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270226
+DTEND;VALUE=DATE:20270227
+SUMMARY:OPIL · BHM Financial Inclusion Hackathon
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-104@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270319
+DTEND;VALUE=DATE:20270320
+SUMMARY:OPIL · Final Showcase & ILP Demo Day
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+END:VCALENDAR
