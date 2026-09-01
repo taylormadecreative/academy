@@ -452,10 +452,29 @@ document.getElementById('csvBtn').addEventListener('click', () => {
   dl('opil-cohort-summary.csv', 'question,answer,count', summary);
   dl('opil-attendance.csv', 'member,team,session_no,present_at',
     (att || []).map(a2 => [nm[a2.user_id] || a2.user_id, teamName[(mems || []).find(m => m.user_id === a2.user_id)?.team_id] || '', a2.session_no, a2.created_at]));
+  /* attendance the funder-facing way: a rate per session, not a list of who missed it */
+  const cohort = (mems || []).length;
+  dl('opil-attendance-summary.csv', 'session_no,present,cohort_size,rate',
+    (sess || []).map(s => { const p = (att || []).filter(a2 => a2.session_no === s.no).length;
+      return [s.no, p, cohort, cohort ? Math.round((p / cohort) * 100) + '%' : '—']; }));
   dl('opil-deliverables.csv', 'team,session_no,title,link,published,added',
     (dvs || []).map(d => [teamName[d.team_id] || '', d.session_no || '', d.title, d.link_url || (d.file_path ? 'file:' + d.file_path : ''), d.published ? 'yes' : 'no', d.created_at]));
-  dl('opil-surveys.csv', 'survey,member,' + Object.keys(ITEM_LABELS).join(',') + ',free_text,submitted',
-    svyRows.map(r => [r.survey_key, nm[r.user_id] || r.user_id, ...Object.keys(ITEM_LABELS).map(k => (r.answers || {})[k] ?? ''), (r.answers || {}).goal || (r.answers || {}).proud || '', r.created_at]));
+  /* surveys are self-rated confidence — pseudonymised, because a name attached to
+     "I am weak at pitching" has no business in an export that gets forwarded.
+     The stable Student NN still pairs each person's baseline to their post. */
+  const svyIds = [...new Set(svyRows.map(r => r.user_id))].sort();
+  const pseudo = {}; svyIds.forEach((id, i) => { pseudo[id] = 'Student ' + String(i + 1).padStart(2, '0'); });
+  dl('opil-surveys.csv', 'survey,student,' + Object.keys(ITEM_LABELS).join(',') + ',free_text,submitted',
+    svyRows.map(r => [r.survey_key, pseudo[r.user_id], ...Object.keys(ITEM_LABELS).map(k => (r.answers || {})[k] ?? ''), (r.answers || {}).goal || (r.answers || {}).proud || '', r.created_at]));
+  /* the actual grant evidence: movement per competency, no identifier at all */
+  const mean = (rows, k) => { const v = rows.map(x => Number((x.answers || {})[k])).filter(n => n > 0); return v.length ? v.reduce((a, b2) => a + b2, 0) / v.length : null; };
+  const base = svyRows.filter(r => r.survey_key === 'baseline'), post = svyRows.filter(r => r.survey_key === 'post');
+  dl('opil-survey-summary.csv', 'competency,baseline_mean,baseline_n,post_mean,post_n,change',
+    Object.entries(ITEM_LABELS).map(([k, label]) => { const b2 = mean(base, k), p = mean(post, k);
+      return [label, b2 == null ? '' : b2.toFixed(2), base.length, p == null ? '' : p.toFixed(2), post.length,
+              /* no leading "+": the injection guard would prefix it with an apostrophe
+                 and a funder would read "'+2.50". The sign lives in the number. */
+              (b2 == null || p == null) ? '' : (p - b2).toFixed(2)]; }));
 });
 </script>
 </body></html>
