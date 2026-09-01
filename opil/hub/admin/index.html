@@ -224,6 +224,7 @@ function sessRow(s) {
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
+      <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Live stream URL (YouTube Live link works as-is)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button></div>
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Check-in code (students self-mark attendance with this)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save session</button>
       ${matHtml}
@@ -252,6 +253,18 @@ mgr.addEventListener('click', async (ev) => {
   if (mf) { ev.preventDefault();
     const { data } = await sb.storage.from('opil-files').createSignedUrl(mf.dataset.matfile, 300);
     if (data && data.signedUrl) window.open(data.signedUrl, '_blank'); return; }
+  const gl = ev.target.closest('.goLive');
+  if (gl) { ev.preventDefault();
+    const no = Number(gl.dataset.s);
+    const s = (allSess || []).find(x => x.no === no);
+    const going = !s.is_live;
+    const streamVal = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`).value.trim() || null;
+    if (going && !streamVal) { alert('Paste the stream URL first.'); return; }
+    /* only one live session at a time */
+    if (going) { await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); (allSess||[]).forEach(x => x.is_live = false); }
+    const { error } = await sb.from('ea_opil_sessions').update({ is_live: going, stream_url: streamVal }).eq('no', no);
+    if (!error) { s.is_live = going; s.stream_url = streamVal; renderMgr(); }
+    return; }
   const gc = ev.target.closest('.genCode');
   if (gc) { ev.preventDefault();
     const inp = mgr.querySelector(`input[data-f="checkin"][data-s="${gc.dataset.s}"]`);
@@ -264,10 +277,11 @@ mgr.addEventListener('click', async (ev) => {
     const rec = mgr.querySelector(`input[data-f="recording"][data-s="${no}"]`).value.trim() || null;
     const pb = mgr.querySelector(`input[data-f="playbook"][data-s="${no}"]`).value.trim() || null;
     const cc = mgr.querySelector(`input[data-f="checkin"][data-s="${no}"]`).value.trim() || null;
+    const st = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`).value.trim() || null;
     sv.textContent = 'Saving…';
-    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb, checkin_code: cc }).eq('no', no);
+    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb, checkin_code: cc, stream_url: st }).eq('no', no);
     sv.textContent = error ? 'Retry' : 'Saved ✓';
-    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;s.checkin_code=cc;} setTimeout(renderMgr, 600); }
+    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;s.checkin_code=cc;s.stream_url=st;} setTimeout(renderMgr, 600); }
   }
 });
 mgr.addEventListener('submit', async (ev) => {

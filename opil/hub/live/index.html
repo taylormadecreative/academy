@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/opil/hub/hub.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+.live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
+@media(max-width:900px){.live-grid{grid-template-columns:1fr}}
+.player{background:#000;border-radius:16px;overflow:hidden;border:1px solid var(--hair);box-shadow:var(--shadow-card);aspect-ratio:16/9;position:relative}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.player .idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#9fb0d4;background:var(--navy);text-align:center;padding:20px}
+.player .idle b{font-family:var(--display);color:#fff;font-size:clamp(18px,2.2vw,26px)}
+.livebadge{display:inline-flex;align-items:center;gap:8px;background:#e8f8f0;color:#067a56;font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:980px}
+.livebadge i{width:8px;height:8px;border-radius:50%;background:#10b981;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media(prefers-reduced-motion:reduce){.livebadge i{animation:none}}
+</style>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head">
+<div><span class="kicker gold">Live session</span><h1 id="ttl" style="margin-top:10px">The live room</h1></div>
+<span class="livebadge" id="badge" style="display:none"><i></i>LIVE NOW</span>
+</div>
+<nav class="hub-tabs"></nav>
+
+<div class="live-grid">
+<div>
+<div class="player" id="player">
+<div class="idle" id="idle"><b>Nothing is streaming right now.</b><span>When a session goes live, the stream appears here and everyone sees the banner on their hub home.</span></div>
+</div>
+<p id="meta" style="font-size:14px;color:var(--muted);margin-top:14px"></p>
+</div>
+<div class="hcard chat" style="height:560px">
+<div class="hd2"><h2>Room chat</h2><span class="mono" style="font-size:11px;color:var(--emerald)">COHORT ONLY</span></div>
+<div class="scroll" id="lcScroll"><div class="empty">Say what you&rsquo;re seeing. The whole cohort is in here.</div></div>
+<form id="lcForm"><input id="lcInput" placeholder="Message the room" maxlength="1000" autocomplete="off"><button type="submit">Send</button></form>
+</div>
+</div>
+</main>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user, isAdmin } = ctx;
+tabs('', isAdmin);
+
+/* find the live session */
+const { data: liveSess } = await sb.from('ea_opil_sessions').select('*').eq('is_live', true).order('no').limit(1).maybeSingle();
+let sessionNo = liveSess ? liveSess.no : null;
+
+function embedUrl(u) {
+  if (!u) return null;
+  try {
+    const url = new URL(u);
+    if (url.hostname.includes('youtube.com') && url.searchParams.get('v'))
+      return 'https://www.youtube-nocookie.com/embed/' + url.searchParams.get('v') + '?autoplay=1';
+    if (url.hostname === 'youtu.be')
+      return 'https://www.youtube-nocookie.com/embed/' + url.pathname.slice(1) + '?autoplay=1';
+    if (url.hostname.includes('youtube.com') && url.pathname.startsWith('/live/'))
+      return 'https://www.youtube-nocookie.com/embed/' + url.pathname.split('/')[2] + '?autoplay=1';
+    return u; /* already an embeddable URL (Mux, Vimeo, etc.) */
+  } catch (e) { return null; }
+}
+if (liveSess && liveSess.stream_url) {
+  const src = embedUrl(liveSess.stream_url);
+  if (src) {
+    document.getElementById('idle').remove();
+    const f = document.createElement('iframe');
+    f.src = src; f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen = true;
+    document.getElementById('player').appendChild(f);
+    document.getElementById('badge').style.display = '';
+    document.getElementById('ttl').textContent = liveSess.title;
+    document.getElementById('meta').textContent = 'Session ' + String(liveSess.no).padStart(2, '0') + (liveSess.outcome ? ' · Today you leave with: ' + liveSess.outcome : '');
+  }
+}
+
+/* room chat (cohort-wide) */
+let nm = {};
+const scroll = document.getElementById('lcScroll');
+async function loadChat() {
+  let q = sb.from('ea_opil_live_chat').select('*').order('created_at', { ascending: false }).limit(200);
+  if (sessionNo) q = q.eq('session_no', sessionNo);
+  const { data: msgs } = await q;
+  if (msgs) msgs.reverse();
+  const missing = (msgs || []).map(m => m.user_id).filter(id => !nm[id]);
+  if (missing.length) Object.assign(nm, await names(sb, missing));
+  const nearBottom = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 60;
+  scroll.innerHTML = (msgs && msgs.length)
+    ? msgs.map(m => `<div class="bub${m.user_id === user.id ? ' me' : ''}">${m.user_id === user.id ? '' : `<div class="who">${esc(nm[m.user_id] || 'Member')}</div>`}<p>${esc(m.body)}</p><div class="w">${when(m.created_at)}</div></div>`).join('')
+    : '<div class="empty">Say what you&rsquo;re seeing. The whole cohort is in here.</div>';
+  if (nearBottom) scroll.scrollTop = scroll.scrollHeight;
+}
+await loadChat();
+try {
+  sb.channel('live-room')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_live_chat' }, loadChat)
+    .subscribe();
+} catch (e) {}
+setInterval(loadChat, 12000);
+document.getElementById('lcForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const input = document.getElementById('lcInput');
+  const body = input.value.trim(); if (!body) return;
+  const { error } = await sb.from('ea_opil_live_chat').insert({ session_no: sessionNo, user_id: user.id, body });
+  if (error) { input.setCustomValidity('Could not send.'); input.reportValidity(); setTimeout(() => input.setCustomValidity(''), 1500); return; }
+  input.value = ''; loadChat();
+});
+</script>
+</body></html>
