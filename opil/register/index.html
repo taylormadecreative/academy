@@ -103,6 +103,37 @@
 .commit .opts label:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep)}
 .commit .opts label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
 .commit .hint{font-size:12px;color:var(--muted);margin-top:7px}
+/* resume pickers */
+.fup{position:relative}
+.fup input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.fup .fbox{display:flex;align-items:center;gap:10px;border:1.5px dashed #c7d3e8;border-radius:12px;padding:11px 14px;background:#fff;font-size:14px;color:var(--muted);transition:border-color .16s var(--ease),background .16s var(--ease)}
+.fup .fbox svg{flex:0 0 auto}
+.fup:hover .fbox{border-color:var(--blue)}
+.fup input:focus-visible + .fbox{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,64,224,.14)}
+.fup.has .fbox{border-style:solid;border-color:#8fceaa;background:#f2fbf5;color:var(--ink-2)}
+.fup .fname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fup.has .fname{font-weight:600;color:var(--ink)}
+.fup input.badf + .fbox{border-color:#c4441c;box-shadow:0 0 0 3px rgba(196,68,28,.12)}
+/* background questions: checkbox + level-pill groups */
+.qs{margin-top:18px}
+.qs .q{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.45}
+.qs .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.qs .opts label{display:flex;align-items:center;gap:9px;border:1.5px solid #d5deee;border-radius:11px;padding:10px 12px;font-size:13.5px;font-weight:500;color:var(--ink-2);cursor:pointer;background:#fff;transition:border-color .16s var(--ease),background .16s var(--ease)}
+.qs .opts input{accent-color:var(--blue);width:15px;height:15px;flex:0 0 auto;margin:0}
+.qs .opts label:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep);font-weight:600}
+.qs .opts label:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
+.qs .opts.lvl{grid-template-columns:repeat(4,1fr)}
+.qs .opts.lvl label{justify-content:center;text-align:center;font-weight:600;padding:11px 8px}
+.qs .opts.lvl input{position:absolute;opacity:0;pointer-events:none}
+.qs .other{margin-top:8px}
+/* participation agreement */
+.agree{margin-top:22px;padding-top:16px;border-top:1px solid var(--hair-soft)}
+.agree .expect{font-size:13px;color:var(--ink-2);line-height:1.6;margin-top:8px}
+.agree .expect + .expect{margin-top:8px}
+.agreebox{display:flex;gap:11px;align-items:flex-start;border:1.5px solid #d5deee;border-radius:12px;padding:13px 15px;margin-top:12px;font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;background:#fff;transition:border-color .16s var(--ease),background .16s var(--ease)}
+.agreebox input{accent-color:var(--blue);width:16px;height:16px;flex:0 0 auto;margin-top:2px}
+.agreebox:has(input:checked){border-color:var(--blue);background:var(--blue-soft);color:var(--blue-deep)}
+.agreebox:has(input:focus-visible){box-shadow:0 0 0 3px rgba(11,64,224,.2)}
 /* submit */
 .osubmit{width:100%;margin-top:20px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font);font-weight:700;font-size:16px;color:#fff;background:var(--navy);border:0;border-radius:var(--pill);padding:16px 24px;cursor:pointer;box-shadow:0 14px 26px -12px rgba(4,18,58,.5);transition:background .16s var(--ease),transform .16s var(--ease)}
 .osubmit:hover:not([disabled]){background:#0a2058}
@@ -160,6 +191,8 @@
   .jsteps{grid-template-columns:1fr 1fr;gap:26px 14px}
   .jsteps::before{display:none}
   .ccard{grid-template-columns:1fr}
+  .qs .opts{grid-template-columns:1fr}
+  .qs .opts.lvl{grid-template-columns:1fr 1fr}
 }
 @media(max-width:519px){
   .htop{grid-template-columns:1fr;grid-template-areas:"copy" "duo" "stats" "dates"}
@@ -235,6 +268,9 @@
 <div class="f"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" required maxlength="40"></div>
 </div>
 <div class="f"><label for="pemail">Personal email <i>&middot; optional</i></label><input id="pemail" name="pemail" type="email" maxlength="200" aria-describedby="pemailHint"><p class="hint" id="pemailHint">A backup way to reach you.</p></div>
+<div class="f"><label for="resume">Resume <i>&middot; PDF &middot; max 2 pages</i></label>
+<div class="fup" data-fup><input id="resume" type="file" accept="application/pdf,.pdf" required aria-describedby="resumeHint"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div>
+<p class="hint" id="resumeHint">8.5&times;11 page size. We save it as LastName_FirstName_YourHBCU for the program team &mdash; no need to rename anything.</p></div>
 </fieldset>
 
 <div class="fsec">Teammates</div>
@@ -245,6 +281,8 @@
 <div class="f"><label for="m2email">HBCU email</label><input id="m2email" type="email" required aria-required="true" maxlength="200" autocomplete="section-mate2 email"></div>
 <div class="f"><label for="m2phone">Phone</label><input id="m2phone" type="tel" required aria-required="true" maxlength="40" autocomplete="section-mate2 tel"></div>
 <div class="f"><label for="m2class">Classification</label><select id="m2class" required aria-required="true"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+<div class="f"><label for="m2resume">Resume <i>&middot; PDF &middot; max 2 pages</i></label>
+<div class="fup" data-fup><input id="m2resume" type="file" accept="application/pdf,.pdf" required aria-required="true"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
 <fieldset class="fs mate" data-mate="3" hidden>
@@ -255,6 +293,8 @@
 <div class="f"><label for="m3email">HBCU email</label><input id="m3email" type="email" maxlength="200" autocomplete="section-mate3 email"></div>
 <div class="f"><label for="m3phone">Phone</label><input id="m3phone" type="tel" maxlength="40" autocomplete="section-mate3 tel"></div>
 <div class="f"><label for="m3class">Classification</label><select id="m3class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+<div class="f"><label for="m3resume">Resume <i>&middot; PDF &middot; optional</i></label>
+<div class="fup" data-fup><input id="m3resume" type="file" accept="application/pdf,.pdf"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
 <fieldset class="fs mate" data-mate="4" hidden>
@@ -265,6 +305,8 @@
 <div class="f"><label for="m4email">HBCU email</label><input id="m4email" type="email" maxlength="200" autocomplete="section-mate4 email"></div>
 <div class="f"><label for="m4phone">Phone</label><input id="m4phone" type="tel" maxlength="40" autocomplete="section-mate4 tel"></div>
 <div class="f"><label for="m4class">Classification</label><select id="m4class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
+<div class="f"><label for="m4resume">Resume <i>&middot; PDF &middot; optional</i></label>
+<div class="fup" data-fup><input id="m4resume" type="file" accept="application/pdf,.pdf"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
 <button type="button" class="addmate" id="addMate">+ Add teammate 3</button>
@@ -274,6 +316,103 @@
 <div class="f"><label for="project">What your team built <i>&middot; optional</i></label><textarea id="project" name="project" maxlength="500" placeholder="One or two lines about your Data Challenge solution"></textarea><div class="count" id="projCount">0/500</div></div>
 </fieldset>
 
+<fieldset class="fs">
+<legend class="fsec">Team lead background</legend>
+<p class="hint" style="margin-top:10px">Tell us more about your experience with data and fintech. Answered by the team lead completing this form &mdash; it helps the program team shape sessions. There are no wrong answers.</p>
+
+<div class="qs"><p class="q" id="bgQ">Which areas best describe your academic or professional background?</p>
+<div class="opts" role="group" aria-labelledby="bgQ" id="bgOpts">
+<label><input type="checkbox" name="bg" value="Data Science">Data Science</label>
+<label><input type="checkbox" name="bg" value="Computer Science">Computer Science</label>
+<label><input type="checkbox" name="bg" value="Artificial Intelligence/Machine Learning">AI / Machine Learning</label>
+<label><input type="checkbox" name="bg" value="Business Analytics">Business Analytics</label>
+<label><input type="checkbox" name="bg" value="Business">Business</label>
+<label><input type="checkbox" name="bg" value="Entrepreneurship">Entrepreneurship</label>
+<label><input type="checkbox" name="bg" value="Economics">Economics</label>
+<label><input type="checkbox" name="bg" value="Engineering">Engineering</label>
+<label><input type="checkbox" name="bg" value="Fintech">Fintech</label>
+<label><input type="checkbox" name="bg" value="Finance">Finance</label>
+<label><input type="checkbox" name="bg" value="Information Technology">Information Technology</label>
+<label><input type="checkbox" name="bg" value="Other" data-other="bgOtherWrap">Other</label>
+</div>
+<div class="f other" id="bgOtherWrap" hidden><label for="bgOther">Other <i>&middot; please specify</i></label><input id="bgOther" maxlength="120"></div>
+</div>
+
+<div class="qs"><p class="q" id="dsQ">How would you describe your current level of experience with data science?</p>
+<div class="opts lvl" role="radiogroup" aria-labelledby="dsQ">
+<label><input type="radio" name="ds_level" value="No prior experience">No prior experience</label>
+<label><input type="radio" name="ds_level" value="Beginner">Beginner</label>
+<label><input type="radio" name="ds_level" value="Intermediate">Intermediate</label>
+<label><input type="radio" name="ds_level" value="Advanced">Advanced</label>
+</div></div>
+
+<div class="qs"><p class="q" id="toolsQ">Which data science tools or skills have you worked with?</p>
+<div class="opts" role="group" aria-labelledby="toolsQ" id="toolsOpts">
+<label><input type="checkbox" name="tools" value="Excel / Google Sheets">Excel / Google Sheets</label>
+<label><input type="checkbox" name="tools" value="Python">Python</label>
+<label><input type="checkbox" name="tools" value="R">R</label>
+<label><input type="checkbox" name="tools" value="SQL">SQL</label>
+<label><input type="checkbox" name="tools" value="Tableau / Power BI">Tableau / Power BI</label>
+<label><input type="checkbox" name="tools" value="Data visualization">Data visualization</label>
+<label><input type="checkbox" name="tools" value="Statistical analysis">Statistical analysis</label>
+<label><input type="checkbox" name="tools" value="Machine learning / AI">Machine learning / AI</label>
+<label><input type="checkbox" name="tools" value="Google Colab / Jupyter">Google Colab / Jupyter</label>
+<label><input type="checkbox" name="tools" value="High-Performance Computing">High-Performance Computing</label>
+<label><input type="checkbox" name="tools" value="Other" data-other="toolsOtherWrap">Other</label>
+</div>
+<div class="f other" id="toolsOtherWrap" hidden><label for="toolsOther">Other <i>&middot; please specify</i></label><input id="toolsOther" maxlength="120"></div>
+</div>
+
+<div class="qs"><p class="q" id="entQ">How would you describe your current level of experience with entrepreneurship or business development?</p>
+<div class="opts lvl" role="radiogroup" aria-labelledby="entQ">
+<label><input type="radio" name="ent_level" value="No prior experience">No prior experience</label>
+<label><input type="radio" name="ent_level" value="Beginner">Beginner</label>
+<label><input type="radio" name="ent_level" value="Intermediate">Intermediate</label>
+<label><input type="radio" name="ent_level" value="Advanced">Advanced</label>
+</div></div>
+
+<div class="qs"><p class="q" id="actsQ">Which entrepreneurship or business activities have you previously participated in?</p>
+<div class="opts" role="group" aria-labelledby="actsQ" id="actsOpts">
+<label><input type="checkbox" name="acts" value="Business pitch competition">Business pitch competition</label>
+<label><input type="checkbox" name="acts" value="Entrepreneurship course">Entrepreneurship course</label>
+<label><input type="checkbox" name="acts" value="Business-plan development">Business-plan development</label>
+<label><input type="checkbox" name="acts" value="Customer discovery">Customer discovery</label>
+<label><input type="checkbox" name="acts" value="Market research">Market research</label>
+<label><input type="checkbox" name="acts" value="Financial modeling / unit economics">Financial modeling / unit economics</label>
+<label><input type="checkbox" name="acts" value="Startup or small-business experience">Startup or small-business experience</label>
+<label><input type="checkbox" name="acts" value="Social-impact entrepreneurship">Social-impact entrepreneurship</label>
+<label><input type="checkbox" name="acts" value="None yet">None yet</label>
+<label><input type="checkbox" name="acts" value="Other" data-other="actsOtherWrap">Other</label>
+</div>
+<div class="f other" id="actsOtherWrap" hidden><label for="actsOther">Other <i>&middot; please specify</i></label><input id="actsOther" maxlength="120"></div>
+</div>
+
+<div class="qs"><p class="q" id="finQ">How would you describe your current level of experience with fintech and digital payment technologies?</p>
+<div class="opts lvl" role="radiogroup" aria-labelledby="finQ">
+<label><input type="radio" name="fin_level" value="No prior experience">No prior experience</label>
+<label><input type="radio" name="fin_level" value="Beginner">Beginner</label>
+<label><input type="radio" name="fin_level" value="Intermediate">Intermediate</label>
+<label><input type="radio" name="fin_level" value="Advanced">Advanced</label>
+</div></div>
+
+<div class="qs"><p class="q" id="topQ">Which of the following have you previously explored or worked with?</p>
+<div class="opts" role="group" aria-labelledby="topQ" id="topOpts">
+<label><input type="checkbox" name="tops" value="Digital Wallets">Digital Wallets</label>
+<label><input type="checkbox" name="tops" value="Mobile Payments">Mobile Payments</label>
+<label><input type="checkbox" name="tops" value="Peer-to-Peer payment platforms">Peer-to-Peer payment platforms</label>
+<label><input type="checkbox" name="tops" value="Payment APIs">Payment APIs</label>
+<label><input type="checkbox" name="tops" value="Blockchain / Distributed technologies">Blockchain / Distributed technologies</label>
+<label><input type="checkbox" name="tops" value="Open banking">Open banking</label>
+<label><input type="checkbox" name="tops" value="Interledger / Open payments">Interledger / Open payments</label>
+<label><input type="checkbox" name="tops" value="Financial Inclusion">Financial Inclusion</label>
+<label><input type="checkbox" name="tops" value="Financial technology research">Financial technology research</label>
+<label><input type="checkbox" name="tops" value="None of the above">None of the above</label>
+<label><input type="checkbox" name="tops" value="Other" data-other="topOtherWrap">Other</label>
+</div>
+<div class="f other" id="topOtherWrap" hidden><label for="topOther">Other <i>&middot; please specify</i></label><input id="topOther" maxlength="120"></div>
+</div>
+</fieldset>
+
 <div class="commit">
 <p class="q" id="commitQ">Does every member plan to participate across both tracks &mdash; Business (Fall 2026) and FinTech (Spring 2027)?</p>
 <div class="opts" role="radiogroup" aria-labelledby="commitQ">
@@ -281,6 +420,15 @@
 <label><input type="radio" name="commit" value="no">Not sure yet</label>
 </div>
 <p class="hint">The Lab runs both tracks as one year; this helps the program team plan seats.</p>
+</div>
+
+<div class="agree">
+<p class="q" style="font-size:13px;font-weight:600;color:var(--ink)" id="agreeQ">Participation confirmation &amp; commitment</p>
+<p class="expect">The AUC Open Payments Innovation Lab is an academic-year program spanning Fall 2026 and Spring 2027, designed to build upon the solution your team previously developed through the AUC DSI Data Challenge.</p>
+<p class="expect">If selected, teams remain actively engaged: attend scheduled sessions and program activities, communicate consistently with program staff and teammates, contribute to project development and required milestones, and participate in final pitch, prototype, and showcase activities. Consistent participation matters &mdash; to your own experience, your team&rsquo;s progress, and the success of the overall cohort.</p>
+<label class="agreebox"><input type="checkbox" id="agree" aria-labelledby="agreeTxt"><span id="agreeTxt">I have read and agree to the participation expectations above.</span></label>
+<label class="agreebox"><input type="checkbox" id="agree2" aria-labelledby="agree2Txt"><span id="agree2Txt">I am able to commit to participating throughout Fall 2026 and Spring 2027.</span></label>
+<div class="f"><label for="sign">Type your full name to confirm</label><input id="sign" maxlength="120" autocomplete="off" aria-describedby="signHint"><p class="hint" id="signHint">Your typed name stands as the team lead&rsquo;s signature on the two statements above.</p></div>
 </div>
 
 <button class="osubmit" id="submitBtn" type="submit">Register your team <span aria-hidden="true">&rarr;</span></button>
@@ -384,15 +532,39 @@ document.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('cl
     /* keep numbering contiguous: move 4 down into 3 */
     ['name','email','phone','class'].forEach((k) => { const a = document.getElementById('m3'+k), c = document.getElementById('m4'+k); a.value = c.value; c.value = ''; });
     document.getElementById('m4class').selectedIndex = 0;
+    const r3 = document.getElementById('m3resume'), r4 = document.getElementById('m4resume');
+    r3.files = r4.files; r4.value = '';
+    r3.dispatchEvent(new Event('change')); r4.dispatchEvent(new Event('change'));
     mates[4].hidden = true;
   } else {
     mates[n].querySelectorAll('input').forEach((i) => i.value = '');
     mates[n].querySelector('select').selectedIndex = 0;
+    mates[n].querySelectorAll('input[type=file]').forEach((i) => i.dispatchEvent(new Event('change')));
     mates[n].hidden = true;
   }
   syncAdd(); addBtn.focus();
 }));
 syncAdd();
+
+/* resume pickers: reflect the chosen file in the styled box */
+document.querySelectorAll('[data-fup]').forEach((w) => {
+  const inp = w.querySelector('input[type=file]'), nameEl = w.querySelector('.fname'), idle = nameEl.textContent;
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0];
+    w.classList.toggle('has', !!f);
+    nameEl.textContent = f ? f.name : idle;
+  });
+});
+
+/* "Other" checkboxes reveal their text input */
+document.querySelectorAll('input[data-other]').forEach((cb) => {
+  const wrap = document.getElementById(cb.dataset.other);
+  cb.addEventListener('change', () => {
+    wrap.hidden = !cb.checked;
+    if (cb.checked) wrap.querySelector('input').focus();
+    else wrap.querySelector('input').value = '';
+  });
+});
 
 /* project counter */
 const proj = document.getElementById('project'), projCount = document.getElementById('projCount');
@@ -422,7 +594,7 @@ function fail(msg, el) {
   errBox.textContent = msg;
   btn.disabled = false; btn.innerHTML = 'Register your team <span aria-hidden="true">&rarr;</span>';
   if (el) {
-    const box = el.closest('.f') || el.closest('.commit') || el.parentElement;
+    const box = el.closest('.f') || el.closest('.qs') || el.closest('.commit') || el.closest('.agree') || el.parentElement;
     el.classList.add('badf'); el.setAttribute('aria-invalid', 'true');
     const p = document.createElement('p'); p.className = 'ferr'; p.textContent = msg;
     box.appendChild(p);
@@ -479,13 +651,81 @@ form.addEventListener('submit', async (ev) => {
   const dupAt = allEmails.findIndex((e, i) => allEmails.indexOf(e) !== i);
   if (dupAt > 0) return fail('Each person needs their own email — two entries share the same address.', document.getElementById('m' + (dupAt + 1) + 'email'));
   if (!commit) return fail('Answer the both-tracks question — it’s how the program team plans seats.', form.querySelector('input[name="commit"]'));
+  /* Q15-21: team lead background */
+  const picks = (nm) => [...form.querySelectorAll('input[name="' + nm + '"]:checked')].map((i) => i.value);
+  const otherOf = (id) => document.getElementById(id).value.trim();
+  const bg = picks('bg'), tools = picks('tools'), acts = picks('acts'), tops = picks('tops');
+  const dsLevel = form.querySelector('input[name="ds_level"]:checked'),
+        entLevel = form.querySelector('input[name="ent_level"]:checked'),
+        finLevel = form.querySelector('input[name="fin_level"]:checked');
+  if (!bg.length) return fail('Pick at least one background area.', document.querySelector('#bgOpts input'));
+  const bgOther = otherOf('bgOther');
+  if (bg.includes('Other') && !bgOther) return fail('Add your other background area.', document.getElementById('bgOther'));
+  if (!dsLevel) return fail('Pick your data science experience level.', form.querySelector('input[name="ds_level"]'));
+  if (!tools.length) return fail('Pick at least one data science tool or skill.', document.querySelector('#toolsOpts input'));
+  const toolsOther = otherOf('toolsOther');
+  if (tools.includes('Other') && !toolsOther) return fail('Add your other tool or skill.', document.getElementById('toolsOther'));
+  if (!entLevel) return fail('Pick your entrepreneurship experience level.', form.querySelector('input[name="ent_level"]'));
+  if (!acts.length) return fail('Pick at least one business activity — “None yet” counts.', document.querySelector('#actsOpts input'));
+  const actsOther = otherOf('actsOther');
+  if (acts.includes('Other') && !actsOther) return fail('Add your other business activity.', document.getElementById('actsOther'));
+  if (!finLevel) return fail('Pick your fintech experience level.', form.querySelector('input[name="fin_level"]'));
+  if (!tops.length) return fail('Pick what you’ve explored — “None of the above” counts.', document.querySelector('#topOpts input'));
+  const topOther = otherOf('topOther');
+  if (tops.includes('Other') && !topOther) return fail('Add what else you’ve explored.', document.getElementById('topOther'));
+  /* Q11-14: resumes */
+  const MB10 = 10 * 1024 * 1024;
+  function pdfOf(id, who, required) {
+    const inp = document.getElementById(id), f = inp.files && inp.files[0];
+    if (!f) { if (required) { fail('Attach ' + who + ' resume as a PDF.', inp); return false; } return null; }
+    if (!(f.type === 'application/pdf' || /\.pdf$/i.test(f.name))) { fail(who + ' resume needs to be a PDF.', inp); return false; }
+    if (f.size > MB10) { fail(who + ' resume is over 10 MB — export a smaller PDF.', inp); return false; }
+    return f;
+  }
+  const leadPdf = pdfOf('resume', 'the team lead’s', true); if (leadPdf === false) return;
+  const m2Pdf = pdfOf('m2resume', 'teammate 2’s', true); if (m2Pdf === false) return;
+  const m3Pdf = mates[3].hidden ? null : pdfOf('m3resume', 'teammate 3’s', false); if (m3Pdf === false) return;
+  const m4Pdf = mates[4].hidden ? null : pdfOf('m4resume', 'teammate 4’s', false); if (m4Pdf === false) return;
+  /* Q22: participation commitment — two affirmations + typed signature */
+  const agree = document.getElementById('agree'), agree2 = document.getElementById('agree2'),
+        sign = document.getElementById('sign').value.trim();
+  if (!agree.checked) return fail('Confirm you’ve read and agree to the participation expectations.', agree);
+  if (!agree2.checked) return fail('Confirm you can commit throughout Fall 2026 and Spring 2027.', agree2);
+  if (sign.length < 2) return fail('Type the team lead’s full name to confirm.', document.getElementById('sign'));
   btn.disabled = true; btn.textContent = 'Registering…';
   try {
     const supabase = await client();
+    /* resumes → private bucket, saved to AUC's LastName_FirstName_School convention */
+    btn.textContent = 'Uploading resumes…';
+    const folder = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
+    const pdfName = (person) => {
+      const parts = person.replace(/[^A-Za-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+      const first = parts[0] || 'Student', last = parts.length > 1 ? parts[parts.length - 1] : 'HBCU';
+      return last + '_' + first + '_' + (school.replace(/[^A-Za-z0-9]+/g, '') || 'HBCU') + '.pdf';
+    };
+    const resumes = [];
+    const toSend = [['lead', leadPdf, fname], ['m2', m2Pdf, document.getElementById('m2name').value]];
+    if (m3Pdf && document.getElementById('m3name').value.trim()) toSend.push(['m3', m3Pdf, document.getElementById('m3name').value]);
+    if (m4Pdf && document.getElementById('m4name').value.trim()) toSend.push(['m4', m4Pdf, document.getElementById('m4name').value]);
+    for (const [slot, f, person] of toSend) {
+      const path = folder + '/' + slot + '/' + pdfName(person.trim());
+      const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, f, { contentType: 'application/pdf', upsert: false });
+      if (upErr) return fail('Could not upload ' + (slot === 'lead' ? 'the team lead' : 'teammate ' + slot.slice(1)) + '’s resume. Try once more, or email taylormademd@gmail.com and we’ll take it by email.');
+      resumes.push({ slot, original: f.name, path, size: f.size });
+    }
+    btn.textContent = 'Registering…';
     const { error } = await supabase.from('ea_opil_registrations').insert({
       full_name: fname, email, school, team_name: team, project: project || null,
       major: major || null, phone, classification: cls, personal_email: pemail || null,
-      members, all_participating: commit.value === 'yes'
+      members, all_participating: commit.value === 'yes',
+      resumes,
+      background: {
+        areas: bg, areas_other: bgOther || null,
+        ds_level: dsLevel.value, ds_tools: tools, ds_tools_other: toolsOther || null,
+        ent_level: entLevel.value, ent_activities: acts, ent_activities_other: actsOther || null,
+        fin_level: finLevel.value, fin_topics: tops, fin_topics_other: topOther || null
+      },
+      agreed_expectations: true, agreed_commitment: true, commitment_signature: sign
     });
     if (error && !String(error.message || '').toLowerCase().includes('duplicate') && error.code !== '23505') {
       return fail('That didn’t save. Try once more, or email taylormademd@gmail.com and we’ll register your team by hand.');
