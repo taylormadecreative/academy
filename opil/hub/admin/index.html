@@ -407,7 +407,14 @@ document.getElementById('cvAllBtn').addEventListener('click', async (ev) => {
 
 /* report pack: roster + attendance + deliverables + surveys */
 document.getElementById('csvBtn').addEventListener('click', () => {
-  const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  /* Formula-injection guard. A plain signed decimal is never a formula, so it passes
+     through as a real number — otherwise a competency that DECLINED would open as
+     "'-1.50", and an honest decline is a finding a funder should read, not a broken
+     cell. Anything else leading with these characters ("-1+1", "-=cmd") still gets
+     the apostrophe. */
+  const cell = (v) => { let s = String(v ?? '');
+    if (/^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"'; };
   const dl = (name, head, rows) => {
     const blob = new Blob([head + '\n' + rows.map(r => r.map(cell).join(',')).join('\n')], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
