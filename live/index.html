@@ -74,10 +74,9 @@
 .lockroom .bb img{width:23px;height:23px}
 .lockroom .bb b{font-family:var(--display);font-weight:600;color:#fff;font-size:12.5px}
 .lockroom .bb .lv{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:var(--pill)}
-.lockroom .lk{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
-.lockroom .lk .ring{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(4,18,58,.72);border:1px solid rgba(253,201,33,.5);color:var(--gold)}
-.lockroom .lk span{font-size:12px;font-weight:700;letter-spacing:.05em;color:#e3e9f6;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.lockroom .cap{position:absolute;left:0;right:0;bottom:0;padding:20px 14px 12px;background:linear-gradient(transparent,rgba(4,18,58,.9));font-size:12px;color:#c3cee6}
+.lockroom .cap{position:absolute;left:0;right:0;bottom:0;padding:38px 15px 13px;background:linear-gradient(transparent,rgba(3,12,38,.94) 62%)}
+.lockroom .cap .lk{display:inline-flex;align-items:center;gap:7px;color:var(--gold);font-size:11.5px;font-weight:700;letter-spacing:.07em;margin-bottom:5px}
+.lockroom .cap p{margin:0;font-size:12.5px;line-height:1.45;color:#d5deef}
 
 /* ---- admin ---- */
 .adminbar{background:var(--gold-soft);border:1px solid #f4e2ac;border-radius:var(--r);padding:16px 18px;margin-bottom:22px}
@@ -286,8 +285,7 @@ if (isMember) {
     '<div class="lockroom">' +
       '<img class="fr" src="/assets/live-demo/poster.jpg" alt="Nelson teaching in the Taylormade Academy studio" loading="lazy">' +
       '<div class="bb"><img src="/assets/logo-nav.webp" alt=""><b>Taylormade Academy Live</b><span class="lv"><i></i>LIVE</span></div>' +
-      '<div class="lk"><span class="ring"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span>Members only</span></div>' +
-      '<div class="cap">The room, the chat, and the replay open the moment you join.</div>' +
+      '<div class="cap"><span class="lk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>MEMBERS ONLY</span><p>The room, the chat, and the replay open the moment you join.</p></div>' +
     '</div></div></div>';
 }
 
