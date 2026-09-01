@@ -54,6 +54,36 @@
 <div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Judges &amp; scores</h2><span class="mono" style="font-size:11px;color:var(--muted)">PITCH · SHOWCASE · RUBRICS</span></div>
+<div class="bd">
+<form id="judgeForm" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+<input id="judgeEmail" type="email" placeholder="judge@company.com" required style="flex:1;min-width:220px;font:inherit;font-size:14px;padding:11px 15px;border:1.5px solid var(--hair);border-radius:12px">
+<input id="judgeLabel" placeholder="Name / org (optional)" style="flex:1;min-width:180px;font:inherit;font-size:14px;padding:11px 15px;border:1.5px solid var(--hair);border-radius:12px">
+<button class="pillbtn" type="submit" style="padding:11px 20px">Add judge</button>
+</form>
+<div id="judgeList" style="font-size:13.5px;color:var(--ink-2);margin-bottom:14px"></div>
+<div id="scoreWrap"></div>
+<p style="font-size:12.5px;color:var(--muted);margin-top:10px;max-width:64ch">Judges sign in with the email above and score at <b>/opil/hub/judge/</b>. Scores land here as averages per team.</p>
+</div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Credentials</h2><span class="mono" style="font-size:11px;color:var(--muted)">VERIFIABLE · /OPIL/VERIFY/</span></div>
+<div class="bd">
+<button class="pillbtn" id="issueBtn" style="padding:11px 20px;font-size:14px">Issue completion credentials to all active members</button>
+<div id="credList" style="font-size:13.5px;color:var(--ink-2);margin-top:14px"></div>
+</div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Cohort digest</h2><span class="mono" style="font-size:11px;color:var(--muted)">EMAIL THE WHOLE COHORT</span></div>
+<div class="bd">
+<button class="pillbtn" id="digestBtn" style="padding:11px 20px;font-size:14px">Compose this week's digest</button>
+<p style="font-size:12.5px;color:var(--muted);margin-top:10px">Builds the email with the next session, newest materials, and the latest announcement, addressed to every registered member, and opens it in your mail app.</p>
+</div>
+</div>
+
 <div class="hcard" style="margin-bottom:60px">
 <div class="hd2"><h2>Post an announcement</h2></div>
 <div class="bd"><form id="annForm" style="display:flex;gap:10px;flex-wrap:wrap">
@@ -67,9 +97,14 @@
 <script type="module">
 import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
-const { sb, user, isAdmin } = ctx;
+const { sb, user, isAdmin, facSessions } = ctx;
 tabs('Coordinator view', isAdmin);
-if (!isAdmin) { location.replace('/opil/hub/'); throw new Error('not admin'); }
+const facOnly = !isAdmin && (facSessions || []).length > 0;
+if (!isAdmin && !facOnly) { location.replace('/opil/hub/'); throw new Error('not admin'); }
+if (facOnly) {
+  document.querySelector('.hub-head h1').textContent = 'My sessions';
+  document.getElementById('csvBtn').style.display = 'none';
+}
 
 const [{ data: regs }, { data: teams }, { data: mems }, { data: sess }, { data: att }, { data: dvs }] = await Promise.all([
   sb.from('ea_opil_registrations').select('*').order('created_at'),
@@ -189,7 +224,8 @@ function sessRow(s) {
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
-      <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save links</button>
+      <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Check-in code (students self-mark attendance with this)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
+      <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save session</button>
       ${matHtml}
       <form class="addMat" data-s="${s.no}" style="display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center;margin-top:4px">
         <select name="kind" style="font:inherit;font-size:12.5px;padding:8px 10px;border:1.5px solid var(--hair);border-radius:10px"><option value="assignment">Assignment</option><option value="resource">Resource</option></select>
@@ -202,7 +238,9 @@ function sessRow(s) {
   </details>`;
 }
 const mgr = document.getElementById('sessMgr');
-function renderMgr(){ mgr.innerHTML = (allSess || []).map(sessRow).join(''); }
+const visibleSess = () => facOnly ? (allSess || []).filter(s => (facSessions || []).includes(s.no)) : (allSess || []);
+function renderMgr(){ mgr.innerHTML = visibleSess().map(sessRow).join('') || '<div class="empty">No sessions assigned yet.</div>'; }
+if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr)) el.style.display = 'none'; });
 renderMgr();
 mgr.addEventListener('click', async (ev) => {
   const del = ev.target.closest('[data-delmat]');
@@ -214,15 +252,22 @@ mgr.addEventListener('click', async (ev) => {
   if (mf) { ev.preventDefault();
     const { data } = await sb.storage.from('opil-files').createSignedUrl(mf.dataset.matfile, 300);
     if (data && data.signedUrl) window.open(data.signedUrl, '_blank'); return; }
+  const gc = ev.target.closest('.genCode');
+  if (gc) { ev.preventDefault();
+    const inp = mgr.querySelector(`input[data-f="checkin"][data-s="${gc.dataset.s}"]`);
+    const words = ['LEDGER','RAFIKI','ATLANTA','BUILD','EQUITY','PAYMENT','COHORT','VENTURE'];
+    inp.value = words[Math.floor(Math.random()*words.length)] + '-' + String(Math.floor(100 + Math.random()*900));
+    return; }
   const sv = ev.target.closest('.saveSess');
   if (sv) { ev.preventDefault();
     const no = Number(sv.dataset.s);
     const rec = mgr.querySelector(`input[data-f="recording"][data-s="${no}"]`).value.trim() || null;
     const pb = mgr.querySelector(`input[data-f="playbook"][data-s="${no}"]`).value.trim() || null;
+    const cc = mgr.querySelector(`input[data-f="checkin"][data-s="${no}"]`).value.trim() || null;
     sv.textContent = 'Saving…';
-    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb }).eq('no', no);
+    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb, checkin_code: cc }).eq('no', no);
     sv.textContent = error ? 'Retry' : 'Saved ✓';
-    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;} setTimeout(renderMgr, 600); }
+    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;s.checkin_code=cc;} setTimeout(renderMgr, 600); }
   }
 });
 mgr.addEventListener('submit', async (ev) => {

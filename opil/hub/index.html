@@ -28,6 +28,9 @@
 <a class="hub-tab" id="adminTab" href="/opil/hub/admin/" style="display:none">Coordinator view</a>
 </nav>
 
+<div class="hub-note" id="checkinNote" style="display:none;background:var(--emerald-soft);border-color:#b7e8d4;color:#0b5e43"><b id="ciTitle">Session today:</b> enter the check-in code from the screen to mark yourself present.
+<form id="ciForm" style="display:inline-flex;gap:8px;margin-left:10px"><input id="ciCode" placeholder="CODE" maxlength="20" style="font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid #9fd8c2;border-radius:980px;width:130px;text-transform:uppercase"><button class="pillbtn" type="submit" style="background:#d9f3e8;color:#0b5e43">Check in</button></form>
+<span id="ciMsg" style="margin-left:8px;font-weight:700"></span></div>
 <div class="hub-note" id="svyNote" style="display:none;background:var(--blue-soft);border-color:#c9d7fb;color:var(--blue-deep)"><b>One minute before kickoff:</b> take the baseline survey so the program can measure what this year gives you. <a href="/opil/hub/survey/?k=baseline" style="font-weight:700;color:var(--blue-deep);text-decoration:underline">Start it now</a></div>
 <div class="hub-note" id="noTeamNote" style="display:none">You&rsquo;re signed in but not matched to a registered team yet. Register at <a href="/opil/register/" style="font-weight:700;color:var(--gold-ink);text-decoration:underline">/opil/register/</a> with this email and your team appears here automatically.</div>
 
@@ -64,6 +67,24 @@ tabs('Home', isAdmin);
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
 
 if (!teamId) document.getElementById('noTeamNote').style.display = '';
+/* self check-in for today's session */
+try {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todaySess = (sess || []).find(s => s.kind === 'thread' && s.session_date === todayStr);
+  if (todaySess && teamId) {
+    const { data: mine } = await sb.from('ea_opil_attendance').select('session_no').eq('session_no', todaySess.no).eq('user_id', user.id).maybeSingle();
+    if (!mine) {
+      document.getElementById('ciTitle').textContent = todaySess.title + ' is today:';
+      document.getElementById('checkinNote').style.display = '';
+      document.getElementById('ciForm').addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const { data: ok } = await sb.rpc('ea_opil_checkin', { p_no: todaySess.no, p_code: document.getElementById('ciCode').value });
+        document.getElementById('ciMsg').textContent = ok ? '✓ You are checked in.' : 'Code not right — check the screen.';
+        if (ok) setTimeout(() => document.getElementById('checkinNote').style.display = 'none', 2500);
+      });
+    }
+  }
+} catch (e) {}
 /* baseline survey nudge */
 try {
   const { data: svy } = await sb.from('ea_opil_survey_responses').select('survey_key').eq('survey_key','baseline').eq('user_id', user.id).maybeSingle();

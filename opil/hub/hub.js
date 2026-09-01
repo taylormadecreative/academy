@@ -14,12 +14,13 @@ export async function boot() {
     const { data } = await sb.rpc('ea_opil_claim_team');
     teamId = data || null;
   } catch (e) { /* not registered: hub still opens */ }
-  let isAdmin = false;
+  let isAdmin = false, isJudge = false, facSessions = [];
   try {
-    const { data } = await sb.from('ea_opil_admins').select('user_id').eq('user_id', user.id).maybeSingle();
-    isAdmin = !!data;
+    const { data: role } = await sb.rpc('ea_opil_my_role');
+    if (role) { isAdmin = !!role.admin; isJudge = !!role.judge; facSessions = role.facilitator_sessions || []; }
   } catch (e) {}
-  return { sb, user, teamId, isAdmin };
+  if (!isAdmin) { try { const { data } = await sb.from('ea_opil_admins').select('user_id').eq('user_id', user.id).maybeSingle(); isAdmin = !!data; } catch (e) {} }
+  return { sb, user, teamId, isAdmin, isJudge, facSessions };
 }
 
 export async function names(sb, ids) {
@@ -28,8 +29,8 @@ export async function names(sb, ids) {
   const map = {};
   if (!uniq.length) return map;
   try {
-    const { data } = await sb.from('ea_profiles').select('id, display_name').in('id', uniq);
-    (data || []).forEach((p) => { map[p.id] = p.display_name || 'Member'; });
+    const { data } = await sb.from('ea_profiles').select('user_id, display_name').in('user_id', uniq);
+    (data || []).forEach((p) => { map[p.user_id] = p.display_name || 'Member'; });
   } catch (e) {}
   uniq.forEach((id) => { if (!map[id]) map[id] = 'Member'; });
   return map;

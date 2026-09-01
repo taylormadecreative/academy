@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verify a Credential · Open Payments Innovation Lab</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<style>
+body{background:var(--navy,#04123a)}
+.vwrap{max-width:640px;margin:8vh auto;padding-inline:20px;text-align:center;color:#9fb0d4}
+.vwrap h1{color:#fff;font-size:clamp(26px,4vw,38px)}
+.vcard{background:#fff;border-radius:20px;padding:clamp(28px,5vw,48px);margin-top:28px;box-shadow:0 50px 100px -40px rgba(0,0,0,.8);text-align:center}
+.vcard .crest{width:56px;height:56px;margin:0 auto 16px}
+.vcard .nm{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,34px);color:var(--ink);letter-spacing:-.02em}
+.vcard .tt{font-size:15px;color:var(--ink-2);margin-top:8px}
+.vcard .mt{font-size:12.5px;color:var(--muted);margin-top:16px;letter-spacing:.06em;text-transform:uppercase}
+.vcard .ok{display:inline-flex;align-items:center;gap:8px;margin-top:18px;background:var(--emerald-soft);color:var(--emerald);font-weight:700;font-size:13px;padding:9px 16px;border-radius:980px}
+.vform{margin-top:26px;display:flex;gap:10px;justify-content:center}
+.vform input{font:inherit;font-size:15px;padding:13px 18px;border-radius:980px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);color:#fff;min-width:230px;outline:none;text-align:center}
+.vform button{font:inherit;font-weight:700;color:var(--navy);background:var(--gold);border:0;border-radius:980px;padding:13px 24px;cursor:pointer}
+.bad{margin-top:20px;color:#f0b9a0;font-size:14.5px}
+</style>
+</head><body>
+<div class="vwrap">
+<img src="/assets/logo-nav.webp" alt="Taylormade Academy" style="width:44px;height:44px;margin-inline:auto">
+<h1 style="margin-top:14px">Credential verification</h1>
+<p style="margin-top:10px;font-size:15px">Credentials issued through the Open Payments Innovation Lab hub verify here.</p>
+<form class="vform" id="vf"><input id="code" placeholder="Verification code" maxlength="60" autocomplete="off"><button type="submit">Verify</button></form>
+<div id="out"></div>
+</div>
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const out = document.getElementById('out');
+async function verify(code) {
+  out.innerHTML = '';
+  const { data } = await sb.rpc('ea_opil_verify_credential', { p_code: code });
+  if (!data) { out.innerHTML = '<div class="bad">No credential found for that code.</div>'; return; }
+  out.innerHTML = `<div class="vcard">
+    <img class="crest" src="/assets/logo-nav.webp" alt="">
+    <div class="nm">${esc(data.holder)}</div>
+    <div class="tt">${esc(data.title)}${data.team ? ' · ' + esc(data.team) : ''}</div>
+    <div class="mt">Issued ${esc(data.issued)} · Taylormade Academy for the AUC DSI</div>
+    <div class="ok">✓ Verified authentic</div>
+  </div>`;
+}
+document.getElementById('vf').addEventListener('submit', (ev) => { ev.preventDefault(); const c = document.getElementById('code').value.trim(); if (c) verify(c); });
+const q = new URLSearchParams(location.search).get('c');
+if (q) { document.getElementById('code').value = q; verify(q); }
+</script>
+</body></html>
