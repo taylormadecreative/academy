@@ -66,6 +66,18 @@
 .gatecard li{display:flex;gap:11px;align-items:flex-start;font-size:15px;color:#e3e9f6;line-height:1.5}
 .gatecard li svg{flex:none;margin-top:3px;color:var(--gold)}
 .gatecard .acts{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.gate-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:clamp(26px,4vw,54px);align-items:center;position:relative;z-index:1}
+@media(max-width:980px){.gate-grid{grid-template-columns:minmax(0,1fr)}}
+.lockroom{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 60px -26px rgba(0,0,0,.7);aspect-ratio:16/9;background:#000}
+.lockroom img.fr{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85) brightness(.62)}
+.lockroom .bb{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(rgba(4,18,58,.8),transparent)}
+.lockroom .bb img{width:23px;height:23px}
+.lockroom .bb b{font-family:var(--display);font-weight:600;color:#fff;font-size:12.5px}
+.lockroom .bb .lv{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:var(--pill)}
+.lockroom .lk{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+.lockroom .lk .ring{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(4,18,58,.72);border:1px solid rgba(253,201,33,.5);color:var(--gold)}
+.lockroom .lk span{font-size:12px;font-weight:700;letter-spacing:.05em;color:#e3e9f6;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.lockroom .cap{position:absolute;left:0;right:0;bottom:0;padding:20px 14px 12px;background:linear-gradient(transparent,rgba(4,18,58,.9));font-size:12px;color:#c3cee6}
 
 /* ---- admin ---- */
 .adminbar{background:var(--gold-soft);border:1px solid #f4e2ac;border-radius:var(--r);padding:16px 18px;margin-bottom:22px}
@@ -255,7 +267,7 @@ if (isMember) {
 } else {
   const signedOut = !me;
   stage.innerHTML =
-    '<div class="gatecard on-ink">' +
+    '<div class="gatecard on-ink"><div class="gate-grid"><div>' +
     '<span class="kicker gold">' + (liveNow ? "Happening right now" : "Members only") + '</span>' +
     '<h2>' + (liveNow ? esc(show.title) : "Live classes are part of the membership.") + '</h2>' +
     '<p class="lede">' + (liveNow
@@ -270,7 +282,13 @@ if (isMember) {
     '<div class="acts">' +
     '<a class="btn gold" href="/pricing/">' + (signedOut ? "See membership" : "Unlock live") + ' <span class="arr">&rarr;</span></a>' +
     (signedOut ? '<a class="btn ghost" href="/login/?next=/live/">I already have an account</a>' : '<a class="btn ghost" href="/dashboard/">Back to dashboard</a>') +
-    '</div></div>';
+    '</div></div>' +
+    '<div class="lockroom">' +
+      '<img class="fr" src="/assets/live-demo/poster.jpg" alt="Nelson teaching in the Taylormade Academy studio" loading="lazy">' +
+      '<div class="bb"><img src="/assets/logo-nav.webp" alt=""><b>Taylormade Academy Live</b><span class="lv"><i></i>LIVE</span></div>' +
+      '<div class="lk"><span class="ring"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span>Members only</span></div>' +
+      '<div class="cap">The room, the chat, and the replay open the moment you join.</div>' +
+    '</div></div></div>';
 }
 
 /* ---------- chat ---------- */
