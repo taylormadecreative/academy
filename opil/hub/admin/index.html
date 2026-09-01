@@ -35,6 +35,11 @@
 </div>
 
 <div class="hcard" style="margin-bottom:26px">
+<div class="hd2"><h2>Sessions &amp; content</h2><span class="mono" style="font-size:11px;color:var(--muted)">RECORDINGS · PLAYBOOKS · ASSIGNMENTS · NO DEVELOPER NEEDED</span></div>
+<div class="bd" id="sessMgr"><div class="empty">Loading&hellip;</div></div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Attendance &middot; the AI Thread</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLICK A CELL TO MARK</span></div>
 <div class="bd" style="overflow-x:auto" id="attWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
@@ -149,6 +154,87 @@ document.getElementById('dvWrap').addEventListener('click', async (ev) => {
   if (error) { alert('Could not update: ' + error.message); document.getElementById('dvWrap').innerHTML = dvRows(); return; }
   const d = (dvs || []).find(x => x.id === b.dataset.pub); if (d) d.published = to;
   document.getElementById('dvWrap').innerHTML = dvRows();
+});
+
+
+/* ---- sessions & content manager (LMS) ---- */
+const { data: mats } = await sb.from('ea_opil_materials').select('*').order('created_at');
+const matsBySess = {}; (mats || []).forEach(m => { (matsBySess[m.session_no || 0] = matsBySess[m.session_no || 0] || []).push(m); });
+const { data: allSess } = await sb.from('ea_opil_sessions').select('*').order('no');
+function sessRow(s) {
+  const items = matsBySess[s.no] || [];
+  const matHtml = items.map(m => `
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13.5px;color:var(--ink-2)">
+      <span style="font-family:var(--display);font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:var(--blue-soft);padding:3px 9px;border-radius:980px">${esc(m.kind)}</span>
+      <span style="flex:1">${esc(m.title)}</span>
+      ${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;font-size:12.5px">open</a>` : ''}
+      ${m.file_path ? `<a href="#" data-matfile="${esc(m.file_path)}" style="color:var(--blue);font-weight:600;font-size:12.5px">file</a>` : ''}
+      <button class="pillbtn" data-delmat="${m.id}" style="color:#b4451f;background:#fdf0e7">remove</button>
+    </div>`).join('');
+  return `<details style="border-top:1px solid var(--hair-soft);padding:12px 0">
+    <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px">
+      <span style="font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--blue);background:var(--blue-soft);border-radius:9px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center">${s.kind==='milestone'?'★':String(s.no).padStart(2,'0')}</span>
+      <span style="flex:1"><b style="color:var(--ink);font-size:14.5px">${esc(s.title)}</b><br><span style="font-size:12px;color:var(--muted)">${s.session_date||''} · ${items.length} material${items.length!==1?'s':''}${s.recording_url?' · recording ✓':''}${s.playbook_url?' · playbook ✓':''}</span></span>
+      <span style="color:var(--blue);font-weight:700">✎</span>
+    </summary>
+    <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
+      <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
+      <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
+      <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save links</button>
+      ${matHtml}
+      <form class="addMat" data-s="${s.no}" style="display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center;margin-top:4px">
+        <select name="kind" style="font:inherit;font-size:12.5px;padding:8px 10px;border:1.5px solid var(--hair);border-radius:10px"><option value="assignment">Assignment</option><option value="resource">Resource</option></select>
+        <input name="title" placeholder="Title" required maxlength="200" style="font:inherit;font-size:13px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px">
+        <input name="link" placeholder="Link, or choose a file →" style="font:inherit;font-size:13px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px">
+        <input name="file" type="file" style="font-size:11.5px;max-width:150px">
+        <button class="pillbtn" type="submit" style="grid-column:1/-1;justify-self:start">Add to session</button>
+      </form>
+    </div>
+  </details>`;
+}
+const mgr = document.getElementById('sessMgr');
+function renderMgr(){ mgr.innerHTML = (allSess || []).map(sessRow).join(''); }
+renderMgr();
+mgr.addEventListener('click', async (ev) => {
+  const del = ev.target.closest('[data-delmat]');
+  if (del) { ev.preventDefault();
+    const { error } = await sb.from('ea_opil_materials').delete().eq('id', del.dataset.delmat);
+    if (!error) { const m=(mats||[]).findIndex(x=>x.id===del.dataset.delmat); if(m>-1){const it=mats[m];(matsBySess[it.session_no||0]||[]).splice((matsBySess[it.session_no||0]||[]).indexOf(it),1);mats.splice(m,1);} renderMgr(); }
+    return; }
+  const mf = ev.target.closest('[data-matfile]');
+  if (mf) { ev.preventDefault();
+    const { data } = await sb.storage.from('opil-files').createSignedUrl(mf.dataset.matfile, 300);
+    if (data && data.signedUrl) window.open(data.signedUrl, '_blank'); return; }
+  const sv = ev.target.closest('.saveSess');
+  if (sv) { ev.preventDefault();
+    const no = Number(sv.dataset.s);
+    const rec = mgr.querySelector(`input[data-f="recording"][data-s="${no}"]`).value.trim() || null;
+    const pb = mgr.querySelector(`input[data-f="playbook"][data-s="${no}"]`).value.trim() || null;
+    sv.textContent = 'Saving…';
+    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb }).eq('no', no);
+    sv.textContent = error ? 'Retry' : 'Saved ✓';
+    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;} setTimeout(renderMgr, 600); }
+  }
+});
+mgr.addEventListener('submit', async (ev) => {
+  const f = ev.target.closest('.addMat'); if (!f) return;
+  ev.preventDefault();
+  const no = Number(f.dataset.s);
+  const kind = f.kind.value, title = f.title.value.trim(), link = f.link.value.trim();
+  if (!title) return;
+  let file_path = null;
+  if (f.file.files.length) {
+    const fl = f.file.files[0];
+    if (fl.size > 25*1024*1024) { alert('Files cap at 25 MB. Use a link.'); return; }
+    file_path = `materials/${no}/${Date.now()}-${fl.name.replace(/[^\w.\-]+/g,'_')}`;
+    const { error: ue } = await sb.storage.from('opil-files').upload(file_path, fl);
+    if (ue) { alert('Upload failed: ' + ue.message); return; }
+  }
+  if (!link && !file_path) { alert('Add a link or a file.'); return; }
+  const { data: ins, error } = await sb.from('ea_opil_materials').insert({ session_no: no, kind, title, link_url: link || null, file_path, uploaded_by: user.id }).select().single();
+  if (error) { alert('Could not save: ' + error.message); return; }
+  mats.push(ins); (matsBySess[no] = matsBySess[no] || []).push(ins);
+  renderMgr();
 });
 
 /* announcement */

@@ -17,7 +17,7 @@
 
 <main class="hub-wrap">
 <div class="hub-head">
-<div><span class="kicker gold">Open Payments Innovation Lab</span><h1 style="margin-top:10px">The Lab Hub</h1></div>
+<div><span class="kicker gold">Open Payments Innovation Lab</span><h1 style="margin-top:10px">The Lab Hub</h1><img src="/opil/partners-combo.png" alt="The AUC Data Science Initiative and the Interledger Foundation" style="height:30px;width:auto;margin-top:12px"></div>
 <div id="hello" class="mono" style="color:var(--muted)"></div>
 </div>
 <nav class="hub-tabs" id="tabs">
@@ -70,8 +70,12 @@ document.getElementById('annList').innerHTML = (anns && anns.length)
   ? anns.map(a => `<div class="ann"><span class="dot2"></span><div><p>${esc(a.body)}</p><div class="w">${when(a.created_at)}</div></div></div>`).join('')
   : '<div class="empty">No announcements yet.</div>';
 
-/* sessions */
-const { data: sess } = await sb.from('ea_opil_sessions').select('*').order('no');
+/* sessions + materials */
+const [{ data: sess }, { data: mats }] = await Promise.all([
+  sb.from('ea_opil_sessions').select('*').order('no'),
+  sb.from('ea_opil_materials').select('*').order('created_at'),
+]);
+const matsBy = {}; (mats || []).forEach(m => { (matsBy[m.session_no || 0] = matsBy[m.session_no || 0] || []).push(m); });
 const thread = (sess || []).filter(s => s.kind === 'thread');
 const miles = (sess || []).filter(s => s.kind === 'milestone');
 document.getElementById('sessList').innerHTML = thread.map(s => {
@@ -80,9 +84,10 @@ document.getElementById('sessList').innerHTML = thread.map(s => {
     s.recording_url ? `<a href="${esc(s.recording_url)}">Recording</a>` : '',
     s.playbook_url ? `<a href="${esc(s.playbook_url)}">Playbook</a>` : ''
   ].filter(Boolean).join('');
+  const mrows = (matsBy[s.no] || []).map(m => `<div style="display:flex;gap:8px;align-items:center;padding:3px 0 3px 52px;font-size:13px;color:var(--ink-2)"><span style="font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold-soft);padding:2px 8px;border-radius:980px">${esc(m.kind)}</span>${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">${esc(m.title)}</a>` : `<a href="#" data-matfile="${esc(m.file_path || '')}" style="color:var(--blue);font-weight:600">${esc(m.title)}</a>`}</div>`).join('');
   return `<div class="sess"><span class="no2">${String(s.no).padStart(2, '0')}</span>
     <div class="t2"><b>${esc(s.title)}</b><span>${d}${s.outcome ? ' · ' + esc(s.outcome) : ''}</span></div>
-    <div class="links">${links || '<span class="soon">after the session</span>'}</div></div>`;
+    <div class="links">${links || '<span class="soon">after the session</span>'}</div></div>${mrows}`;
 }).join('');
 document.getElementById('mileList').innerHTML = miles.map(s => {
   const d = s.session_date ? new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
@@ -105,5 +110,11 @@ if (teamId) {
 } else {
   tc.innerHTML = '<div class="empty">No team yet.</div>';
 }
+document.getElementById('sessList').addEventListener('click', async (ev) => {
+  const a = ev.target.closest('[data-matfile]'); if (!a) return;
+  ev.preventDefault();
+  const { data } = await sb.storage.from('opil-files').createSignedUrl(a.dataset.matfile, 300);
+  if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+});
 </script>
 </body></html>
