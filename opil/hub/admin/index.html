@@ -30,8 +30,8 @@
 <div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Registrations</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 7</span></div>
 <div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
-<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Status</th>
-</tr></thead><tbody><tr><td colspan="6" class="empty">Loading&hellip;</td></tr></tbody></table></div>
+<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Resumes</th><th>Status</th>
+</tr></thead><tbody><tr><td colspan="7" class="empty">Loading&hellip;</td></tr></tbody></table></div>
 </div>
 
 <div class="hcard" style="margin-bottom:26px">
@@ -136,12 +136,23 @@ function regRow(r){
   const status = r.approved
     ? '<span style="color:var(--emerald);font-weight:600">✓ approved</span>'
     : `<button class="pillbtn" data-approve="${r.id}">Approve</button>`;
-  return `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td>${status}</td></tr>`;
+  const label = { lead: 'Lead', m2: 'M2', m3: 'M3', m4: 'M4' };
+  const cvs = (r.resumes || []).map(x =>
+    `<button class="pillbtn" data-cv="${esc(x.path)}" title="${esc(x.original || '')}" style="padding:4px 9px;font-size:11px">${label[x.slot] || esc(x.slot)}</button>`).join(' ') || '<span style="color:var(--muted)">—</span>';
+  return `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td style="white-space:nowrap">${cvs}</td><td>${status}</td></tr>`;
 }
 document.querySelector('#regTbl tbody').innerHTML = (regs && regs.length)
   ? regs.map(regRow).join('')
-  : '<tr><td colspan="6" class="empty">No registrations yet. The pool opens Monday.</td></tr>';
+  : '<tr><td colspan="7" class="empty">No registrations yet. The pool opens Monday.</td></tr>';
 document.querySelector('#regTbl').addEventListener('click', async (ev) => {
+  const cv = ev.target.closest('[data-cv]');
+  if (cv) {
+    /* resumes live in a private bucket: mint a short signed URL, open in a new tab */
+    const { data, error } = await sb.storage.from('ea-opil-resumes').createSignedUrl(cv.dataset.cv, 600);
+    if (error || !data?.signedUrl) { alert('Could not open that resume: ' + (error?.message || 'no URL')); return; }
+    window.open(data.signedUrl, '_blank', 'noopener');
+    return;
+  }
   const b = ev.target.closest('[data-approve]'); if (!b) return;
   b.textContent = 'Approving…';
   const { error } = await sb.from('ea_opil_registrations').update({ approved: true }).eq('id', b.dataset.approve);
@@ -224,7 +235,7 @@ function sessRow(s) {
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
-      <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Taylormade Live playback URL (.m3u8) — any stream URL also works" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button></div>
+      <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Taylormade Live playback URL (.m3u8), or any stream URL" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn useDemo" data-s="${s.no}" title="Free rehearsal loop hosted on this site">Demo</button><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button></div>
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Check-in code (students self-mark attendance with this)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save session</button>
       ${matHtml}
@@ -253,6 +264,11 @@ mgr.addEventListener('click', async (ev) => {
   if (mf) { ev.preventDefault();
     const { data } = await sb.storage.from('opil-files').createSignedUrl(mf.dataset.matfile, 300);
     if (data && data.signedUrl) window.open(data.signedUrl, '_blank'); return; }
+  const ud = ev.target.closest('.useDemo');
+  if (ud) { ev.preventDefault();
+    const inp = mgr.querySelector(`input[data-f="stream"][data-s="${ud.dataset.s}"]`);
+    if (inp) { inp.value = '/assets/live-demo/stream.m3u8'; inp.focus(); }
+    return; }
   const gl = ev.target.closest('.goLive');
   if (gl) { ev.preventDefault();
     const no = Number(gl.dataset.s);
