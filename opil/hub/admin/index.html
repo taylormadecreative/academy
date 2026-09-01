@@ -28,7 +28,7 @@
 <div class="statrow" id="stats"></div>
 
 <div class="hcard" style="margin-bottom:26px">
-<div class="hd2"><h2>Registrations</h2><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 9</span></div>
+<div class="hd2"><h2>Registrations</h2><div style="display:flex;gap:10px;align-items:center"><button class="pillbtn" id="cvAllBtn" style="padding:7px 15px;font-size:12.5px">Download all resumes</button><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 9</span></div></div>
 <div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
 <th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Resumes</th><th>Status</th>
 </tr></thead><tbody><tr><td colspan="7" class="empty">Loading&hellip;</td></tr></tbody></table></div>
@@ -139,12 +139,54 @@ function regRow(r){
   const label = { lead: 'Lead', m2: 'M2', m3: 'M3', m4: 'M4' };
   const cvs = (r.resumes || []).map(x =>
     `<button class="pillbtn" data-cv="${esc(x.path)}" title="${esc(x.original || '')}" style="padding:4px 9px;font-size:11px">${label[x.slot] || esc(x.slot)}</button>`).join(' ') || '<span style="color:var(--muted)">—</span>';
-  return `<tr><td><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td style="white-space:nowrap">${cvs}</td><td>${status}</td></tr>`;
+  return `<tr><td><button class="pillbtn" data-open="${r.id}" title="See every answer" style="padding:3px 9px;font-size:11px;margin-right:8px">+</button><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td style="white-space:nowrap">${cvs}</td><td>${status}</td></tr>`
+    + `<tr class="regdetail" data-detail="${r.id}" hidden><td colspan="7" style="background:var(--paper-2,#f7f9fc);padding:18px 20px">${regDetail(r)}</td></tr>`;
+}
+/* everything the team submitted, laid out for the program team */
+function regDetail(r){
+  const dl2 = (label, val) => val ? `<div style="margin-bottom:7px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block">${label}</span><span style="font-size:13.5px;color:var(--ink)">${esc(val)}</span></div>` : '';
+  const list = (label, arr, other) => {
+    const all = [...(arr || [])].filter(x => x !== 'Other');
+    if (other) all.push(other + ' (other)');
+    return all.length ? `<div style="margin-bottom:9px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">${label}</span>${all.map(x => `<span style="display:inline-block;font-size:12.5px;background:#fff;border:1px solid var(--hair);border-radius:8px;padding:3px 9px;margin:0 5px 5px 0">${esc(x)}</span>`).join('')}</div>` : '';
+  };
+  const bg = r.background || {};
+  const people = [{ name: r.full_name, email: r.email, phone: r.phone, classification: r.classification, major: r.major, role: 'Team lead' },
+                  ...((r.members || []).map((m, i) => ({ ...m, role: 'Teammate ' + (i + 2) })))];
+  const card = (p) => `<div style="border:1px solid var(--hair);border-radius:12px;padding:12px 14px;background:#fff">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:5px">${esc(p.role)}</div>
+    <div style="font-weight:700;color:var(--ink);font-size:14.5px">${esc(p.name || '—')}</div>
+    <div style="font-size:13px;color:var(--ink-2);margin-top:3px">${esc(p.email || '')}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:2px">${[p.phone, p.classification, p.major].filter(Boolean).map(esc).join(' · ')}</div></div>`;
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px">${people.map(card).join('')}</div>
+    ${r.project ? `<div style="margin-bottom:16px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px">What the team built</span><p style="font-size:13.5px;color:var(--ink-2);line-height:1.55;max-width:80ch">${esc(r.project)}</p></div>` : ''}
+    <div style="border-top:1px solid var(--hair);padding-top:14px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:10px">Team lead background</div>
+    ${list('Academic / professional areas', bg.areas, bg.areas_other)}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0 12px">
+      ${dl2('Data science level', bg.ds_level)}${dl2('Entrepreneurship level', bg.ent_level)}${dl2('Fintech level', bg.fin_level)}</div>
+    ${list('Data science tools', bg.ds_tools, bg.ds_tools_other)}
+    ${list('Business activities', bg.ent_activities, bg.ent_activities_other)}
+    ${list('Fintech explored', bg.fin_topics, bg.fin_topics_other)}
+    </div>
+    <div style="border-top:1px solid var(--hair);padding-top:12px;margin-top:6px;display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)">
+      <span>Both tracks: <b>${r.all_participating === true ? 'Yes' : r.all_participating === false ? 'Not sure yet' : '—'}</b></span>
+      <span>Commitment agreed: <b>${r.agreed_expectations && r.agreed_commitment ? 'Yes' : r.agreed_expectations ? 'Partial' : '—'}</b></span>
+      ${r.commitment_signature ? `<span>Signed: <b>${esc(r.commitment_signature)}</b></span>` : ''}
+      <span>Registered: <b>${when ? when(r.created_at) : new Date(r.created_at).toLocaleDateString()}</b></span>
+    </div>`;
 }
 document.querySelector('#regTbl tbody').innerHTML = (regs && regs.length)
   ? regs.map(regRow).join('')
   : '<tr><td colspan="7" class="empty">No registrations yet. The pool opens Monday.</td></tr>';
 document.querySelector('#regTbl').addEventListener('click', async (ev) => {
+  const op = ev.target.closest('[data-open]');
+  if (op) {
+    const row = document.querySelector(`[data-detail="${op.dataset.open}"]`);
+    row.hidden = !row.hidden;
+    op.textContent = row.hidden ? '+' : '−';
+    return;
+  }
   const cv = ev.target.closest('[data-cv]');
   if (cv) {
     /* resumes live in a private bucket: mint a short signed URL, open in a new tab */
@@ -342,6 +384,27 @@ try { const { data } = await sb.from('ea_opil_survey_responses').select('*'); sv
     Object.entries(ITEM_LABELS).map(([k,l])=>`<tr><td><b>${l}</b></td><td>${avg(by.baseline,k)} / 5</td><td>${avg(by.post,k)} / 5</td></tr>`).join('') + '</tbody></table>';
 })();
 
+/* every resume, one at a time — signed URLs are per-object, so this walks them */
+document.getElementById('cvAllBtn').addEventListener('click', async (ev) => {
+  const b = ev.currentTarget;
+  const all = [];
+  (regs || []).forEach(r => (r.resumes || []).forEach(x => all.push({ team: r.team_name, path: x.path })));
+  if (!all.length) { alert('No resumes uploaded yet.'); return; }
+  b.disabled = true;
+  let done = 0, failed = 0;
+  for (const item of all) {
+    b.textContent = `Downloading ${done + 1} of ${all.length}…`;
+    const { data, error } = await sb.storage.from('ea-opil-resumes').createSignedUrl(item.path, 300, { download: item.team.replace(/[^A-Za-z0-9]+/g, '-') + '__' + item.path.split('/').pop() });
+    if (error || !data?.signedUrl) { failed++; continue; }
+    const a = document.createElement('a'); a.href = data.signedUrl; a.download = ''; document.body.appendChild(a); a.click(); a.remove();
+    done++;
+    await new Promise(res => setTimeout(res, 600)); /* browsers throttle rapid-fire downloads */
+  }
+  b.disabled = false;
+  b.textContent = 'Download all resumes';
+  if (failed) alert(`${done} downloaded, ${failed} failed. Try the failed ones from their row buttons.`);
+});
+
 /* report pack: roster + attendance + deliverables + surveys */
 document.getElementById('csvBtn').addEventListener('click', () => {
   const cell = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
@@ -349,8 +412,44 @@ document.getElementById('csvBtn').addEventListener('click', () => {
     const blob = new Blob([head + '\n' + rows.map(r => r.map(cell).join(',')).join('\n')], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
   };
-  dl('opil-roster.csv', 'team,lead,email,school,members,approved,registered',
-    (regs || []).map(r => [r.team_name, r.full_name, r.email, r.school, 1 + ((r.members || []).length || 0), r.approved ? 'yes' : 'no', r.created_at]));
+  const joined = (a, other) => [...(a || []).filter(x => x !== 'Other'), ...(other ? [other] : [])].join('; ');
+  /* 1. one row per TEAM — every registration answer, Q1-22 */
+  dl('opil-registrations-full.csv',
+    'team,lead,lead_email,school,major,classification,phone,personal_email,members,project,'
+    + 'both_tracks,background_areas,ds_level,ds_tools,ent_level,ent_activities,fin_level,fin_topics,'
+    + 'resumes_on_file,agreed_expectations,agreed_commitment,signature,approved,registered',
+    (regs || []).map(r => { const b = r.background || {}; return [
+      r.team_name, r.full_name, r.email, r.school, r.major, r.classification, r.phone, r.personal_email,
+      1 + ((r.members || []).length || 0), r.project,
+      r.all_participating === true ? 'yes' : r.all_participating === false ? 'not sure' : '',
+      joined(b.areas, b.areas_other), b.ds_level, joined(b.ds_tools, b.ds_tools_other),
+      b.ent_level, joined(b.ent_activities, b.ent_activities_other),
+      b.fin_level, joined(b.fin_topics, b.fin_topics_other),
+      (r.resumes || []).length, r.agreed_expectations ? 'yes' : 'no', r.agreed_commitment ? 'yes' : 'no',
+      r.commitment_signature, r.approved ? 'yes' : 'no', r.created_at]; }));
+  /* 2. one row per STUDENT — what evaluators and the grant report actually count */
+  const students = [];
+  (regs || []).forEach(r => {
+    students.push([r.team_name, r.school, 'Team lead', r.full_name, r.email, r.phone, r.classification, r.major, r.approved ? 'yes' : 'no']);
+    (r.members || []).forEach((m, i) => students.push([r.team_name, r.school, 'Teammate ' + (i + 2), m.name, m.email, m.phone, m.classification, '', r.approved ? 'yes' : 'no']));
+  });
+  dl('opil-students.csv', 'team,school,role,name,email,phone,classification,major,team_approved', students);
+  /* 3. aggregate counts only, NO personal data — the one that's safe to hand a funder */
+  const tally = (get) => { const c = {}; (regs || []).forEach(r => (get(r.background || {}) || []).forEach(v => { c[v] = (c[v] || 0) + 1; })); return c; };
+  const summary = [];
+  const push = (q, obj) => Object.entries(obj).sort((a, b2) => b2[1] - a[1]).forEach(([k, v]) => summary.push([q, k, v]));
+  push('Academic / professional areas', tally(b => b.areas));
+  push('Data science tools', tally(b => b.ds_tools));
+  push('Business activities', tally(b => b.ent_activities));
+  push('Fintech explored', tally(b => b.fin_topics));
+  ['ds_level', 'ent_level', 'fin_level'].forEach(k => {
+    const c = {}; (regs || []).forEach(r => { const v = (r.background || {})[k]; if (v) c[v] = (c[v] || 0) + 1; });
+    push({ ds_level: 'Data science level', ent_level: 'Entrepreneurship level', fin_level: 'Fintech level' }[k], c);
+  });
+  summary.push(['Totals', 'teams registered', (regs || []).length]);
+  summary.push(['Totals', 'students registered', students.length]);
+  summary.push(['Totals', 'schools represented', new Set((regs || []).map(r => r.school)).size]);
+  dl('opil-cohort-summary.csv', 'question,answer,count', summary);
   dl('opil-attendance.csv', 'member,team,session_no,present_at',
     (att || []).map(a2 => [nm[a2.user_id] || a2.user_id, teamName[(mems || []).find(m => m.user_id === a2.user_id)?.team_id] || '', a2.session_no, a2.created_at]));
   dl('opil-deliverables.csv', 'team,session_no,title,link,published,added',
