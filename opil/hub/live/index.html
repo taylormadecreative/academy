@@ -21,7 +21,7 @@
 .player .brandbar b{font-family:var(--display);font-weight:600;color:#fff;font-size:14px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
 .player .brandbar .lv{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:980px}
 .player .brandbar .lv i{width:7px;height:7px;border-radius:50%;background:#10b981;animation:pulse 1.6s ease-in-out infinite}
-.player .wm{position:absolute;right:14px;bottom:52px;z-index:5;pointer-events:none;opacity:.55}
+.player .wm{position:absolute;right:16px;bottom:72px;z-index:5;pointer-events:none;opacity:.5}
 .player .wm img{width:30px;height:30px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
 .player .idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#9fb0d4;background:var(--navy);text-align:center;padding:20px}
 .player .idle b{font-family:var(--display);color:#fff;font-size:clamp(18px,2.2vw,26px)}
@@ -69,18 +69,28 @@ tabs('', isAdmin);
 const { data: liveSess } = await sb.from('ea_opil_sessions').select('*').eq('is_live', true).order('no').limit(1).maybeSingle();
 let sessionNo = liveSess ? liveSess.no : null;
 
+function safeUrl(u) {
+  let url; try { url = new URL(u); } catch (e) { return null; }
+  return url.protocol === 'https:' ? url : null;   /* no javascript:, data:, http: */
+}
 function embedUrl(u) {
-  if (!u) return null;
-  try {
-    const url = new URL(u);
-    if (url.hostname.includes('youtube.com') && url.searchParams.get('v'))
-      return 'https://www.youtube-nocookie.com/embed/' + url.searchParams.get('v') + '?autoplay=1';
-    if (url.hostname === 'youtu.be')
-      return 'https://www.youtube-nocookie.com/embed/' + url.pathname.slice(1) + '?autoplay=1';
-    if (url.hostname.includes('youtube.com') && url.pathname.startsWith('/live/'))
-      return 'https://www.youtube-nocookie.com/embed/' + url.pathname.split('/')[2] + '?autoplay=1';
-    return u; /* already an embeddable URL (Mux, Vimeo, etc.) */
-  } catch (e) { return null; }
+  const url = safeUrl(u); if (!url) return null;
+  const host = url.hostname.toLowerCase();
+  const yt = (id) => 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1';
+  if (host === 'youtube.com' || host === 'www.youtube.com') {
+    if (url.searchParams.get('v')) return yt(url.searchParams.get('v'));
+    if (url.pathname.startsWith('/live/')) return yt(url.pathname.split('/')[2] || '');
+  }
+  if (host === 'youtu.be') return yt(url.pathname.slice(1));
+  return url.href; /* already an embeddable player URL (Mux, Vimeo, etc.) */
+}
+function playerFail(player, msg) {
+  player.querySelectorAll('video,iframe,.brandbar,.wm').forEach(el => el.remove());
+  player.classList.remove('playing');
+  const d = document.createElement('div');
+  d.className = 'idle';
+  d.innerHTML = '<b>This stream will not play here.</b><span>' + msg + '</span>';
+  player.appendChild(d);
 }
 function brandChrome(player, title) {
   const bar = document.createElement('div');
@@ -91,40 +101,53 @@ function brandChrome(player, title) {
   wm.className = 'wm'; wm.innerHTML = '<img src="/assets/logo-nav.webp" alt="">';
   player.appendChild(wm);
 }
+const DEMO_URL = '/assets/live-demo/stream.m3u8';
 async function mountStream(u, title) {
   const player = document.getElementById('player');
-  document.getElementById('idle').remove();
-  const isHls = /\.m3u8(\?|$)/i.test(u);
-  if (isHls) {
+  const isDemo = (u === DEMO_URL);
+  const abs = isDemo ? new URL(u, location.origin).href : (safeUrl(u) ? u : null);
+  if (!abs) { playerFail(player, 'That playback link is not a secure https address.'); return; }
+  const idle = document.getElementById('idle'); if (idle) idle.remove();
+  if (/\.m3u8(\?|$)/i.test(abs)) {
     const v = document.createElement('video');
     v.controls = true; v.playsInline = true; v.autoplay = true;
+    v.loop = isDemo;   /* looping the tail of a finished class would still read LIVE */
+    v.addEventListener('error', () => playerFail(player, 'The stream stopped responding.'));
     player.appendChild(v);
     if (v.canPlayType('application/vnd.apple.mpegurl')) {
-      v.src = u;
+      v.src = abs;
     } else {
-      const { default: Hls } = await import('https://cdn.jsdelivr.net/npm/hls.js@1.5.13/+esm');
+      let Hls;
+      try { ({ default: Hls } = await import('https://cdn.jsdelivr.net/npm/hls.js@1.5.13/+esm')); }
+      catch (e) { playerFail(player, 'The video player could not load. Check your connection or any blocker.'); return; }
       if (Hls.isSupported()) {
         const h = new Hls({ liveSyncDurationCount: 3 });
-        h.loadSource(u); h.attachMedia(v);
-        h.on(Hls.Events.ERROR, (ev, data) => { if (data.fatal) { try { h.recoverMediaError(); } catch (e) {} } });
-      } else { v.src = u; }
+        h.loadSource(abs); h.attachMedia(v);
+        h.on(Hls.Events.ERROR, (ev, data) => {
+          if (!data.fatal) return;
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { try { h.startLoad(); } catch (e) {} }
+          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { h.recoverMediaError(); } catch (e) {} }
+          else { try { h.destroy(); } catch (e) {} playerFail(player, 'The stream stopped responding.'); }
+        });
+      } else { playerFail(player, 'This browser cannot play live video. Try Chrome, Safari, or Edge.'); return; }
     }
     v.addEventListener('playing', () => player.classList.add('playing'));
     v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
     brandChrome(player, title);
   } else {
-    const src = embedUrl(u);
-    if (!src) return;
+    const src = embedUrl(abs);
+    if (!src) { playerFail(player, 'That playback link is not one this player can open.'); return; }
     const f = document.createElement('iframe');
     f.src = src; f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     f.allowFullscreen = true;
     player.appendChild(f);
+    brandChrome(player, title);
   }
   document.getElementById('badge').style.display = '';
   document.getElementById('ttl').textContent = title;
 }
 if (liveSess && liveSess.stream_url) {
-  mountStream(liveSess.stream_url, liveSess.title);
+  mountStream(liveSess.stream_url, liveSess.title).catch(() => {});
   document.getElementById('meta').textContent = 'Session ' + String(liveSess.no).padStart(2, '0') + (liveSess.outcome ? ' · Today you leave with: ' + liveSess.outcome : '');
 }
 
