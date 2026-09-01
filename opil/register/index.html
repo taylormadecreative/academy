@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Register · Open Payments Innovation Lab</title>
-<meta name="description" content="Team registration for the AUC Open Payments Innovation Lab 2026-27. One submission per team of 2-4 HBCU students. Closes Wednesday, September 9.">
+<meta name="description" content="Student application for the AUC Open Payments Innovation Lab 2026-27. Each student applies individually; teams of 2-4 HBCU students. Closes Wednesday, September 9.">
 <link rel="canonical" href="https://taylormadeacademy.com/opil/register/">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta name="theme-color" content="#fcfdff">
@@ -31,15 +31,23 @@
 /* hero + page grid: form is a right rail spanning hero, journey, and collab rows */
 .ohero{position:relative;padding-bottom:clamp(48px,6vw,84px)}
 .ohero .wrap{position:relative}
-.ogrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(350px,432px);grid-template-rows:auto auto 1fr;grid-template-areas:"top rail" "journey rail" "collab rail";gap:0 clamp(24px,3vw,48px);align-items:start;padding-top:clamp(30px,3.6vw,54px)}
+.ogrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(350px,432px);grid-template-areas:"top rail";gap:0 clamp(24px,3vw,48px);align-items:start;padding-top:clamp(30px,3.6vw,54px)}
 .htop{grid-area:top;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.94fr);grid-template-areas:"copy duo" "stats duo" "dates duo";gap:0 clamp(10px,1.4vw,22px);align-items:end}
 .hcopy{grid-area:copy;align-self:start}
 .htop .stats{grid-area:stats}
 .htop .dates{grid-area:dates}
 .duo{grid-area:duo}
-.jcard{grid-area:journey}
-.ccard{grid-area:collab;align-self:start}
 .rcard{grid-area:rail;align-self:start}
+/* the application continues full-width below the hero rail */
+.rcont{position:relative;z-index:2;margin-top:clamp(20px,2.2vw,30px);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(22px,2.6vw,34px)}
+.rcont .contsec{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:clamp(18px,2.4vw,40px);align-items:start;padding-top:clamp(20px,2.2vw,28px);margin-top:clamp(20px,2.2vw,28px);border-top:1px solid var(--hair-soft)}
+.rcont .contsec:first-child{padding-top:0;margin-top:0;border-top:0}
+.rcont .contsec > .lede h3{font-family:var(--display);font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.02em;line-height:1.15}
+.rcont .contsec > .lede p{font-size:13.5px;color:var(--muted);line-height:1.6;margin-top:8px;max-width:38ch}
+.rcont .contsec > .body{min-width:0}
+.rcont .contsec > .body > .fs:first-child .fsec,.rcont .contsec > .body > .fsec:first-child{margin-top:0;padding-top:0;border-top:0}
+.contfoot{max-width:640px;margin-inline:auto;padding-top:clamp(20px,2.2vw,28px);margin-top:clamp(20px,2.2vw,28px);border-top:1px solid var(--hair-soft)}
+.railnext{display:flex;align-items:center;gap:9px;justify-content:center;margin-top:18px;font-size:13px;font-weight:600;color:var(--muted)}
 #register{scroll-margin-top:84px}
 .ohero h1{font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.04;color:var(--ink);font-size:clamp(34px,3.4vw,54px);margin-top:18px;text-wrap:balance}
 .ohero .sub{font-size:clamp(15.5px,1.35vw,18px);color:var(--muted);max-width:44ch;margin-top:16px}
@@ -147,6 +155,7 @@
 /* success */
 .done{display:none}
 .done.show{display:block}
+.donecard{margin-top:clamp(20px,2.2vw,30px);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:clamp(24px,2.8vw,38px);max-width:720px;margin-inline:auto}
 .done .big{font-family:var(--display);font-weight:700;color:var(--ink);font-size:clamp(24px,2.2vw,30px);line-height:1.12;letter-spacing:-.02em}
 .done .step{display:flex;gap:13px;margin-top:18px;align-items:flex-start;font-size:14.5px;color:var(--ink-2)}
 .done .step .tick{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;font-size:13px;font-weight:700}
@@ -174,11 +183,22 @@
 .ccard blockquote{border-left:3px solid var(--gold);padding-left:18px;font-size:15.5px;line-height:1.6;color:var(--ink-2)}
 .ccard blockquote footer{font-size:13px;font-weight:600;color:var(--muted);margin-top:10px}
 .ccard .more{margin-top:18px}
+/* funder card — Interledger, after the AUC DSI section */
+.ilfcard{margin-top:clamp(20px,2.2vw,30px);background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-lg);padding:clamp(22px,2.6vw,34px)}
+.ilfcard .lg{display:flex;align-items:center;gap:16px}
+.ilfcard .lg img{width:clamp(120px,13vw,164px);height:auto}
+.ilfcard .lg .t em{display:block;font-style:normal;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ilfcard .lg .t b{display:block;font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:-.02em;margin-top:3px}
+.ilfcard p{font-size:13.5px;color:var(--ink-2);line-height:1.65;margin-top:14px;max-width:78ch}
+.ilfcard p + p{margin-top:10px}
+@media(max-width:519px){.ilfcard .lg{flex-direction:column;align-items:flex-start;gap:10px}}
 
 /* responsive */
 @media(max-width:1023px){
-  .ogrid{grid-template-columns:1fr;grid-template-areas:"top" "rail" "journey" "collab"}
+  .ogrid{grid-template-columns:1fr;grid-template-areas:"top" "rail"}
   .rcard{max-width:720px;width:100%;margin:clamp(22px,4vw,34px) auto 0}
+  .rcont{max-width:720px;margin-inline:auto}
+  .rcont .contsec{grid-template-columns:1fr;gap:14px}
   .jcard{margin-top:clamp(28px,5vw,40px)}
   .duo img{margin-bottom:0;-webkit-mask-image:linear-gradient(#000 84%,rgba(0,0,0,0) 98%);mask-image:linear-gradient(#000 84%,rgba(0,0,0,0) 98%)}
 }
@@ -213,6 +233,7 @@
 
 <main>
 <section class="ohero"><div class="wrap">
+<form id="regForm" novalidate onsubmit="return false">
 <div class="ogrid">
 
 <div class="htop">
@@ -248,17 +269,12 @@
 </div>
 
 <div class="rcard" id="register">
-<form id="regForm" novalidate onsubmit="return false">
 <div class="rhead"><span class="ic"><svg class="hx" viewBox="0 0 46 46" aria-hidden="true"><polygon points="23,2.5 41,13 41,33 23,43.5 5,33 5,13" fill="none" stroke="#f2b705" stroke-width="2.6"/></svg><span class="gi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span></span>
-<div><h2>Team registration</h2><p class="rsub">One submission per team &middot; 2&ndash;4 HBCU students &middot; every Data Challenge team welcome</p></div></div>
+<div><h2>Your application</h2><p class="rsub">Each student applies individually &middot; teams of 2&ndash;4 &middot; every Data Challenge team welcome</p></div></div>
 
 <fieldset class="fs">
-<legend class="fsec">Your team</legend>
-<div class="f"><label for="team">Team name <i>&middot; from the Data Challenge</i></label><input id="team" name="team" required maxlength="160" autocomplete="off"></div>
-</fieldset>
-
-<fieldset class="fs">
-<legend class="fsec">Team lead</legend>
+<legend class="fsec">Your Team (My Contact Info)</legend>
+<div class="f"><label for="team">Team name <i>&middot; from the Data Challenge</i></label><input id="team" name="team" required maxlength="160" autocomplete="off" aria-describedby="teamHint"><p class="hint" id="teamHint">Everyone on your team enters the same name &mdash; it is how the program team connects your applications.</p></div>
 <div class="rgrid2">
 <div class="f"><label for="fname">Full name</label><input id="fname" name="fname" autocomplete="name" required maxlength="120"></div>
 <div class="f"><label for="school">HBCU institution</label><input id="school" name="school" list="schools" required maxlength="120"><datalist id="schools"><option value="Clark Atlanta University"><option value="Spelman College"><option value="Morehouse College"><option value="Morehouse School of Medicine"></datalist></div>
@@ -272,53 +288,57 @@
 <div class="fup" data-fup><input id="resume" type="file" accept="application/pdf,.pdf" required aria-describedby="resumeHint"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div>
 <p class="hint" id="resumeHint">8.5&times;11 page size. We save it as LastName_FirstName_YourHBCU for the program team &mdash; no need to rename anything.</p></div>
 </fieldset>
+<p class="railnext"><span aria-hidden="true">&darr;</span> The rest of your application continues below</p>
+</div>
+</div>
 
-<div class="fsec">Teammates</div>
+<div class="rcont">
+<div class="contsec">
+<div class="lede"><h3>Your teammates</h3><p>Name, HBCU email and classification only &mdash; enough for the program team to connect your applications. Each teammate completes their own application, including their own resume.</p></div>
+<div class="body">
 <fieldset class="fs mate" data-mate="2">
-<legend class="mlg">Teammate 2 &middot; required</legend>
+<legend class="mlg">Teammate 1 &middot; required</legend>
 <div class="rgrid2">
 <div class="f"><label for="m2name">Full name</label><input id="m2name" required aria-required="true" maxlength="120" autocomplete="section-mate2 name"></div>
 <div class="f"><label for="m2email">HBCU email</label><input id="m2email" type="email" required aria-required="true" maxlength="200" autocomplete="section-mate2 email"></div>
-<div class="f"><label for="m2phone">Phone</label><input id="m2phone" type="tel" required aria-required="true" maxlength="40" autocomplete="section-mate2 tel"></div>
 <div class="f"><label for="m2class">Classification</label><select id="m2class" required aria-required="true"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
-<div class="f"><label for="m2resume">Resume <i>&middot; PDF &middot; max 2 pages</i></label>
-<div class="fup" data-fup><input id="m2resume" type="file" accept="application/pdf,.pdf" required aria-required="true"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
 <fieldset class="fs mate" data-mate="3" hidden>
-<legend class="mlg">Teammate 3</legend>
+<legend class="mlg">Teammate 2</legend>
 <button type="button" class="rm" data-remove="3">Remove</button>
 <div class="rgrid2">
 <div class="f"><label for="m3name">Full name</label><input id="m3name" maxlength="120" autocomplete="section-mate3 name"></div>
 <div class="f"><label for="m3email">HBCU email</label><input id="m3email" type="email" maxlength="200" autocomplete="section-mate3 email"></div>
-<div class="f"><label for="m3phone">Phone</label><input id="m3phone" type="tel" maxlength="40" autocomplete="section-mate3 tel"></div>
 <div class="f"><label for="m3class">Classification</label><select id="m3class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
-<div class="f"><label for="m3resume">Resume <i>&middot; PDF &middot; optional</i></label>
-<div class="fup" data-fup><input id="m3resume" type="file" accept="application/pdf,.pdf"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
 <fieldset class="fs mate" data-mate="4" hidden>
-<legend class="mlg">Teammate 4</legend>
+<legend class="mlg">Teammate 3</legend>
 <button type="button" class="rm" data-remove="4">Remove</button>
 <div class="rgrid2">
 <div class="f"><label for="m4name">Full name</label><input id="m4name" maxlength="120" autocomplete="section-mate4 name"></div>
 <div class="f"><label for="m4email">HBCU email</label><input id="m4email" type="email" maxlength="200" autocomplete="section-mate4 email"></div>
-<div class="f"><label for="m4phone">Phone</label><input id="m4phone" type="tel" maxlength="40" autocomplete="section-mate4 tel"></div>
 <div class="f"><label for="m4class">Classification</label><select id="m4class"><option value="" selected disabled>Select one</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option>Master's</option><option>Doctorate</option><option>Professional or other terminal degree</option></select></div>
-<div class="f"><label for="m4resume">Resume <i>&middot; PDF &middot; optional</i></label>
-<div class="fup" data-fup><input id="m4resume" type="file" accept="application/pdf,.pdf"><div class="fbox" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span class="fname">Choose a PDF&hellip;</span></div></div></div>
 </div>
 </fieldset>
-<button type="button" class="addmate" id="addMate">+ Add teammate 3</button>
+<button type="button" class="addmate" id="addMate">+ Add another teammate</button>
+</div>
+</div>
 
+<div class="contsec">
+<div class="lede"><h3>Your project</h3><p>The solution your team built in the Data Challenge. The Lab picks up from here.</p></div>
+<div class="body">
 <fieldset class="fs">
-<legend class="fsec">Your project</legend>
 <div class="f"><label for="project">What your team built <i>&middot; optional</i></label><textarea id="project" name="project" maxlength="500" placeholder="One or two lines about your Data Challenge solution"></textarea><div class="count" id="projCount">0/500</div></div>
 </fieldset>
+</div>
+</div>
 
+<div class="contsec">
+<div class="lede"><h3>Your background</h3><p>Your own experience with data and fintech &mdash; it helps the program team shape sessions. There are no wrong answers, and no prior experience is a perfectly good answer.</p></div>
+<div class="body">
 <fieldset class="fs">
-<legend class="fsec">Team lead background</legend>
-<p class="hint" style="margin-top:10px">Tell us more about your experience with data and fintech. Answered by the team lead completing this form &mdash; it helps the program team shape sessions. There are no wrong answers.</p>
 
 <div class="qs"><p class="q" id="bgQ">Which areas best describe your academic or professional background?</p>
 <div class="opts" role="group" aria-labelledby="bgQ" id="bgOpts">
@@ -413,8 +433,12 @@
 </div>
 </fieldset>
 
+</div>
+</div>
+
+<div class="contfoot">
 <div class="commit">
-<p class="q" id="commitQ">Does every member plan to participate across both tracks &mdash; Business (Fall 2026) and FinTech (Spring 2027)?</p>
+<p class="q" id="commitQ">Do you plan to participate across both tracks &mdash; Business (Fall 2026) and FinTech (Spring 2027)?</p>
 <div class="opts" role="radiogroup" aria-labelledby="commitQ">
 <label><input type="radio" name="commit" value="yes">Yes</label>
 <label><input type="radio" name="commit" value="no">Not sure yet</label>
@@ -428,20 +452,21 @@
 <p class="expect">If selected, teams remain actively engaged: attend scheduled sessions and program activities, communicate consistently with program staff and teammates, contribute to project development and required milestones, and participate in final pitch, prototype, and showcase activities. Consistent participation matters &mdash; to your own experience, your team&rsquo;s progress, and the success of the overall cohort.</p>
 <label class="agreebox"><input type="checkbox" id="agree" aria-labelledby="agreeTxt"><span id="agreeTxt">I have read and agree to the participation expectations above.</span></label>
 <label class="agreebox"><input type="checkbox" id="agree2" aria-labelledby="agree2Txt"><span id="agree2Txt">I am able to commit to participating throughout Fall 2026 and Spring 2027.</span></label>
-<div class="f"><label for="sign">Type your full name to confirm</label><input id="sign" maxlength="120" autocomplete="off" aria-describedby="signHint"><p class="hint" id="signHint">Your typed name stands as the team lead&rsquo;s signature on the two statements above.</p></div>
+<div class="f"><label for="sign">Type your full name to confirm</label><input id="sign" maxlength="120" autocomplete="off" aria-describedby="signHint"><p class="hint" id="signHint">Your typed name stands as your signature on the two statements above.</p></div>
 </div>
 
-<button class="osubmit" id="submitBtn" type="submit">Register your team <span aria-hidden="true">&rarr;</span></button>
+<button class="osubmit" id="submitBtn" type="submit">Submit my application <span aria-hidden="true">&rarr;</span></button>
 <div class="assure"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>No cost, no card</span><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>Limited spaces &middot; 10 teams</span></div>
 <div class="err" id="errBox" role="alert"></div>
-<p class="legal">Submitting registers your team with the AUC DSI Open Payments Innovation Lab and creates the team lead&rsquo;s program-hub account on Taylormade Academy &mdash; where every session and playbook lives all year. One email to activate it; that link is your login.</p>
+<p class="legal">Submitting registers you with the AUC DSI Open Payments Innovation Lab and creates your program-hub account on Taylormade Academy &mdash; where every session and playbook lives all year. One email to activate it; that link is your login.</p>
+</div>
+</div>
 </form>
-<div class="done" id="doneBox" aria-live="polite">
-<p class="big" tabindex="-1">Your team is registered. One tap left.</p>
-<div class="step"><span class="tick">1</span><span><b style="color:var(--ink)">Registered.</b> <span id="doneTeam">Your team&rsquo;s registration</span> is with the program team for review.</span></div>
+<div class="done donecard" id="doneBox" aria-live="polite">
+<p class="big" tabindex="-1">Your application is in. One tap left.</p>
+<div class="step"><span class="tick">1</span><span><b style="color:var(--ink)">Submitted.</b> <span id="doneTeam">Your application</span> is with the program team for review. Make sure each teammate submits their own.</span></div>
 <div class="step"><span class="tick">2</span><span id="doneStep2"><b style="color:var(--ink)">Check your HBCU email.</b> Tap the activation link inside to open your program hub on Taylormade Academy. That link is your login &mdash; no password to remember.</span></div>
 <div class="step"><span class="tick">3</span><span><b style="color:var(--ink)">Orientation &amp; kickoff.</b> The evening of Wednesday, Sep 16. Accepted teams get the full schedule and onboarding by email.</span></div>
-</div>
 </div>
 
 <div class="jcard rv">
@@ -483,6 +508,12 @@
 </div>
 
 </div>
+
+<div class="ilfcard rv">
+<div class="lg"><img src="/opil/interledger.png" alt="Interledger Foundation" width="150" height="auto"><div class="t"><em>Supported by</em><b>The Interledger Foundation</b></div></div>
+<p>The Interledger Foundation is a nonprofit working to make digital payments reach everyone &mdash; including the people the current financial system leaves out. It stewards the Interledger Protocol, an open standard that lets money move between different payment networks the way email moves between different providers, and funds work that puts open payments to practical use.</p>
+<p>It supports the AUC Open Payments Innovation Lab through the grant <i>Building Digital Pathways for Financial Equity</i>, awarded to the Atlanta University Center Consortium Data Science Initiative. Your team&rsquo;s work in the FinTech track builds directly on that open-payments technology.</p>
+</div>
 </div></section>
 </main>
 
@@ -516,8 +547,8 @@ mnav.addEventListener('click', (e) => {
 const addBtn = document.getElementById('addMate');
 const mates = { 3: document.querySelector('[data-mate="3"]'), 4: document.querySelector('[data-mate="4"]') };
 function syncAdd() {
-  if (mates[3].hidden) { addBtn.textContent = '+ Add teammate 3'; addBtn.hidden = false; }
-  else if (mates[4].hidden) { addBtn.textContent = '+ Add teammate 4'; addBtn.hidden = false; }
+  if (mates[3].hidden) { addBtn.textContent = '+ Add teammate 2'; addBtn.hidden = false; }
+  else if (mates[4].hidden) { addBtn.textContent = '+ Add teammate 3'; addBtn.hidden = false; }
   else addBtn.hidden = true;
 }
 addBtn.addEventListener('click', () => {
@@ -530,16 +561,12 @@ document.querySelectorAll('[data-remove]').forEach((b) => b.addEventListener('cl
   const n = +b.dataset.remove;
   if (n === 3 && !mates[4].hidden) {
     /* keep numbering contiguous: move 4 down into 3 */
-    ['name','email','phone','class'].forEach((k) => { const a = document.getElementById('m3'+k), c = document.getElementById('m4'+k); a.value = c.value; c.value = ''; });
+    ['name','email','class'].forEach((k) => { const a = document.getElementById('m3'+k), c = document.getElementById('m4'+k); a.value = c.value; c.value = ''; });
     document.getElementById('m4class').selectedIndex = 0;
-    const r3 = document.getElementById('m3resume'), r4 = document.getElementById('m4resume');
-    r3.files = r4.files; r4.value = '';
-    r3.dispatchEvent(new Event('change')); r4.dispatchEvent(new Event('change'));
     mates[4].hidden = true;
   } else {
     mates[n].querySelectorAll('input').forEach((i) => i.value = '');
     mates[n].querySelector('select').selectedIndex = 0;
-    mates[n].querySelectorAll('input[type=file]').forEach((i) => i.dispatchEvent(new Event('change')));
     mates[n].hidden = true;
   }
   syncAdd(); addBtn.focus();
@@ -592,7 +619,7 @@ function clearErrs() {
 }
 function fail(msg, el) {
   errBox.textContent = msg;
-  btn.disabled = false; btn.innerHTML = 'Register your team <span aria-hidden="true">&rarr;</span>';
+  btn.disabled = false; btn.innerHTML = 'Submit my application <span aria-hidden="true">&rarr;</span>';
   if (el) {
     const box = el.closest('.f') || el.closest('.qs') || el.closest('.commit') || el.closest('.agree') || el.parentElement;
     el.classList.add('badf'); el.setAttribute('aria-invalid', 'true');
@@ -608,16 +635,15 @@ function fail(msg, el) {
 function mate(n) {
   const name = document.getElementById('m'+n+'name').value.trim();
   const email = document.getElementById('m'+n+'email').value.trim().toLowerCase();
-  const phone = document.getElementById('m'+n+'phone').value.trim();
   const cls = document.getElementById('m'+n+'class').value;
-  if (!name && !email && !phone && !cls) return null;
-  return { name, email, phone, classification: cls };
+  if (!name && !email && !cls) return null;
+  return { name, email, classification: cls };
 }
 function validMate(n, m) {
-  if (m.name.length < 2) return fail('Add teammate ' + n + '’s full name' + (n > 2 ? ', or remove that teammate.' : '.'), document.getElementById('m'+n+'name'));
-  if (!EMAIL_RE.test(m.email)) return fail('Teammate ' + n + '’s HBCU email does not look right.', document.getElementById('m'+n+'email'));
-  if (m.phone.replace(/\D/g, '').length < 7) return fail('Add teammate ' + n + '’s phone number.', document.getElementById('m'+n+'phone'));
-  if (!m.classification) return fail('Pick teammate ' + n + '’s classification.', document.getElementById('m'+n+'class'));
+  const lbl = n - 1; /* the fieldset legends count the applicant's teammates from 1 */
+  if (m.name.length < 2) return fail('Add teammate ' + lbl + '’s full name' + (n > 2 ? ', or remove that teammate.' : '.'), document.getElementById('m'+n+'name'));
+  if (!EMAIL_RE.test(m.email)) return fail('Teammate ' + lbl + '’s HBCU email does not look right.', document.getElementById('m'+n+'email'));
+  if (!m.classification) return fail('Pick teammate ' + lbl + '’s classification.', document.getElementById('m'+n+'class'));
   return true;
 }
 form.addEventListener('submit', async (ev) => {
@@ -630,14 +656,14 @@ form.addEventListener('submit', async (ev) => {
         project = form.project.value.trim(),
         commit = form.querySelector('input[name="commit"]:checked');
   if (!team) return fail('Add your team name from the Data Challenge.', form.team);
-  if (fname.length < 2) return fail('Add the team lead’s full name.', form.fname);
-  if (school.length < 2) return fail('Add the team lead’s HBCU institution.', form.school);
-  if (!cls) return fail('Pick the team lead’s classification.', form.classification);
-  if (!EMAIL_RE.test(email)) return fail('The team lead’s HBCU email does not look right.', form.email);
-  if (phone.replace(/\D/g, '').length < 7) return fail('Add the team lead’s phone number.', form.phone);
+  if (fname.length < 2) return fail('Add your full name.', form.fname);
+  if (school.length < 2) return fail('Add your HBCU institution.', form.school);
+  if (!cls) return fail('Pick your classification.', form.classification);
+  if (!EMAIL_RE.test(email)) return fail('Your HBCU email does not look right.', form.email);
+  if (phone.replace(/\D/g, '').length < 7) return fail('Add your phone number.', form.phone);
   if (pemail && !EMAIL_RE.test(pemail)) return fail('The personal email does not look right.', form.pemail);
   const m2 = mate(2);
-  if (!m2) return fail('Teams are 2–4 students — add teammate 2.', document.getElementById('m2name'));
+  if (!m2) return fail('Teams are 2–4 students — add at least one teammate.', document.getElementById('m2name'));
   if (validMate(2, m2) !== true) return;
   const members = [m2];
   for (const n of [3, 4]) {
@@ -651,7 +677,7 @@ form.addEventListener('submit', async (ev) => {
   const dupAt = allEmails.findIndex((e, i) => allEmails.indexOf(e) !== i);
   if (dupAt > 0) return fail('Each person needs their own email — two entries share the same address.', document.getElementById('m' + (dupAt + 1) + 'email'));
   if (!commit) return fail('Answer the both-tracks question — it’s how the program team plans seats.', form.querySelector('input[name="commit"]'));
-  /* Q15-21: team lead background */
+  /* Q15-21: applicant background */
   const picks = (nm) => [...form.querySelectorAll('input[name="' + nm + '"]:checked')].map((i) => i.value);
   const otherOf = (id) => document.getElementById(id).value.trim();
   const bg = picks('bg'), tools = picks('tools'), acts = picks('acts'), tops = picks('tops');
@@ -678,25 +704,22 @@ form.addEventListener('submit', async (ev) => {
   function pdfOf(id, who, required) {
     const inp = document.getElementById(id), f = inp.files && inp.files[0];
     if (!f) { if (required) { fail('Attach ' + who + ' resume as a PDF.', inp); return false; } return null; }
-    if (!(f.type === 'application/pdf' || /\.pdf$/i.test(f.name))) { fail(who + ' resume needs to be a PDF.', inp); return false; }
-    if (f.size > MB10) { fail(who + ' resume is over 10 MB — export a smaller PDF.', inp); return false; }
+    if (!(f.type === 'application/pdf' || /\.pdf$/i.test(f.name))) { fail('That resume needs to be a PDF.', inp); return false; }
+    if (f.size > MB10) { fail('That resume is over 10 MB — export a smaller PDF.', inp); return false; }
     return f;
   }
-  const leadPdf = pdfOf('resume', 'the team lead’s', true); if (leadPdf === false) return;
-  const m2Pdf = pdfOf('m2resume', 'teammate 2’s', true); if (m2Pdf === false) return;
-  const m3Pdf = mates[3].hidden ? null : pdfOf('m3resume', 'teammate 3’s', false); if (m3Pdf === false) return;
-  const m4Pdf = mates[4].hidden ? null : pdfOf('m4resume', 'teammate 4’s', false); if (m4Pdf === false) return;
+  const myPdf = pdfOf('resume', 'your', true); if (myPdf === false) return;
   /* Q22: participation commitment — two affirmations + typed signature */
   const agree = document.getElementById('agree'), agree2 = document.getElementById('agree2'),
         sign = document.getElementById('sign').value.trim();
   if (!agree.checked) return fail('Confirm you’ve read and agree to the participation expectations.', agree);
   if (!agree2.checked) return fail('Confirm you can commit throughout Fall 2026 and Spring 2027.', agree2);
-  if (sign.length < 2) return fail('Type the team lead’s full name to confirm.', document.getElementById('sign'));
-  btn.disabled = true; btn.textContent = 'Registering…';
+  if (sign.length < 2) return fail('Type your full name to confirm.', document.getElementById('sign'));
+  btn.disabled = true; btn.textContent = 'Submitting…';
   try {
     const supabase = await client();
     /* resumes → private bucket, saved to AUC's LastName_FirstName_School convention */
-    btn.textContent = 'Uploading resumes…';
+    btn.textContent = 'Uploading your resume…';
     const folder = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
     const pdfName = (person) => {
       const parts = person.replace(/[^A-Za-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
@@ -704,16 +727,13 @@ form.addEventListener('submit', async (ev) => {
       return last + '_' + first + '_' + (school.replace(/[^A-Za-z0-9]+/g, '') || 'HBCU') + '.pdf';
     };
     const resumes = [];
-    const toSend = [['lead', leadPdf, fname], ['m2', m2Pdf, document.getElementById('m2name').value]];
-    if (m3Pdf && document.getElementById('m3name').value.trim()) toSend.push(['m3', m3Pdf, document.getElementById('m3name').value]);
-    if (m4Pdf && document.getElementById('m4name').value.trim()) toSend.push(['m4', m4Pdf, document.getElementById('m4name').value]);
-    for (const [slot, f, person] of toSend) {
-      const path = folder + '/' + slot + '/' + pdfName(person.trim());
-      const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, f, { contentType: 'application/pdf', upsert: false });
-      if (upErr) return fail('Could not upload ' + (slot === 'lead' ? 'the team lead' : 'teammate ' + slot.slice(1)) + '’s resume. Try once more, or email taylormademd@gmail.com and we’ll take it by email.');
-      resumes.push({ slot, original: f.name, path, size: f.size });
+    {
+      const path = folder + '/self/' + pdfName(fname.trim());
+      const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, myPdf, { contentType: 'application/pdf', upsert: false });
+      if (upErr) return fail('Could not upload your resume. Try once more, or email taylormademd@gmail.com and we’ll take it by email.');
+      resumes.push({ slot: 'self', original: myPdf.name, path, size: myPdf.size });
     }
-    btn.textContent = 'Registering…';
+    btn.textContent = 'Submitting…';
     const { error } = await supabase.from('ea_opil_registrations').insert({
       full_name: fname, email, school, team_name: team, project: project || null,
       major: major || null, phone, classification: cls, personal_email: pemail || null,

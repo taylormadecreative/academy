@@ -30,7 +30,7 @@
 <div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Registrations</h2><div style="display:flex;gap:10px;align-items:center"><button class="pillbtn" id="cvAllBtn" style="padding:7px 15px;font-size:12.5px">Download all resumes</button><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 9</span></div></div>
 <div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
-<th>Team</th><th>Lead</th><th>Email</th><th>School</th><th>Members</th><th>Resumes</th><th>Status</th>
+<th>Team</th><th>Student</th><th>Email</th><th>School</th><th>Names teammates</th><th>Resume</th><th>Status</th>
 </tr></thead><tbody><tr><td colspan="7" class="empty">Loading&hellip;</td></tr></tbody></table></div>
 </div>
 
@@ -118,28 +118,28 @@ const teamName = {}; (teams || []).forEach(t => { teamName[t.id] = t.name; });
 const nm = await names(sb, (mems || []).map(m => m.user_id));
 
 /* stats */
-const seatCount = (regs || []).reduce((a, r) => a + 1 + ((r.members || []).length || 0), 0);
+const teamCount = new Set((regs || []).map(r => (r.team_name || '').trim().toLowerCase()).filter(Boolean)).size;
 const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <= new Date().toISOString().slice(0,10)).length;
 const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
 const teamsWithWork = new Set((dvs || []).map(d => d.team_id)).size;
 const complRate = (teams || []).length ? Math.round((teamsWithWork / (teams || []).length) * 100) + '%' : '—';
 document.getElementById('stats').innerHTML = [
-  [`${(regs || []).length}`, 'teams registered'],
-  [`${seatCount}`, 'students (of 25)'],
+  [`${teamCount}`, 'teams forming'],
+  [`${(regs || []).length}`, 'students applied (of 25)'],
   [attRate, 'attendance rate to date'],
   [complRate, 'teams with work in the locker'],
 ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
 
 /* registrations table */
 function regRow(r){
-  const seats = 1 + ((r.members || []).length || 0);
+  const named = ((r.members || []).length || 0);
   const status = r.approved
     ? '<span style="color:var(--emerald);font-weight:600">✓ approved</span>'
     : `<button class="pillbtn" data-approve="${r.id}">Approve</button>`;
-  const label = { lead: 'Lead', m2: 'M2', m3: 'M3', m4: 'M4' };
+  const label = { self: 'Resume', lead: 'Lead', m2: 'M2', m3: 'M3', m4: 'M4' };
   const cvs = (r.resumes || []).map(x =>
     `<button class="pillbtn" data-cv="${esc(x.path)}" title="${esc(x.original || '')}" style="padding:4px 9px;font-size:11px">${label[x.slot] || esc(x.slot)}</button>`).join(' ') || '<span style="color:var(--muted)">—</span>';
-  return `<tr><td><button class="pillbtn" data-open="${r.id}" title="See every answer" style="padding:3px 9px;font-size:11px;margin-right:8px">+</button><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${seats}</td><td style="white-space:nowrap">${cvs}</td><td>${status}</td></tr>`
+  return `<tr><td><button class="pillbtn" data-open="${r.id}" title="See every answer" style="padding:3px 9px;font-size:11px;margin-right:8px">+</button><b>${esc(r.team_name)}</b></td><td>${esc(r.full_name)}</td><td>${esc(r.email)}</td><td>${esc(r.school)}</td><td>${named}</td><td style="white-space:nowrap">${cvs}</td><td>${status}</td></tr>`
     + `<tr class="regdetail" data-detail="${r.id}" hidden><td colspan="7" style="background:var(--paper-2,#f7f9fc);padding:18px 20px">${regDetail(r)}</td></tr>`;
 }
 /* everything the team submitted, laid out for the program team */
@@ -151,8 +151,8 @@ function regDetail(r){
     return all.length ? `<div style="margin-bottom:9px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">${label}</span>${all.map(x => `<span style="display:inline-block;font-size:12.5px;background:#fff;border:1px solid var(--hair);border-radius:8px;padding:3px 9px;margin:0 5px 5px 0">${esc(x)}</span>`).join('')}</div>` : '';
   };
   const bg = r.background || {};
-  const people = [{ name: r.full_name, email: r.email, phone: r.phone, classification: r.classification, major: r.major, role: 'Team lead' },
-                  ...((r.members || []).map((m, i) => ({ ...m, role: 'Teammate ' + (i + 2) })))];
+  const people = [{ name: r.full_name, email: r.email, phone: r.phone, classification: r.classification, major: r.major, role: 'This applicant' },
+                  ...((r.members || []).map((m, i) => ({ ...m, role: 'Teammate named ' + (i + 1) })))];
   const card = (p) => `<div style="border:1px solid var(--hair);border-radius:12px;padding:12px 14px;background:#fff">
     <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:5px">${esc(p.role)}</div>
     <div style="font-weight:700;color:var(--ink);font-size:14.5px">${esc(p.name || '—')}</div>
@@ -161,7 +161,7 @@ function regDetail(r){
   return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:18px">${people.map(card).join('')}</div>
     ${r.project ? `<div style="margin-bottom:16px"><span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px">What the team built</span><p style="font-size:13.5px;color:var(--ink-2);line-height:1.55;max-width:80ch">${esc(r.project)}</p></div>` : ''}
     <div style="border-top:1px solid var(--hair);padding-top:14px">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:10px">Team lead background</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:10px">Applicant background</div>
     ${list('Academic / professional areas', bg.areas, bg.areas_other)}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0 12px">
       ${dl2('Data science level', bg.ds_level)}${dl2('Entrepreneurship level', bg.ent_level)}${dl2('Fintech level', bg.fin_level)}</div>
@@ -420,27 +420,33 @@ document.getElementById('csvBtn').addEventListener('click', () => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
   };
   const joined = (a, other) => [...(a || []).filter(x => x !== 'Other'), ...(other ? [other] : [])].join('; ');
-  /* 1. one row per TEAM — every registration answer, Q1-22 */
+  /* 1. one row per APPLICATION — every answer, Q1-22 */
   dl('opil-registrations-full.csv',
-    'team,lead,lead_email,school,major,classification,phone,personal_email,members,project,'
+    'team,student,email,school,major,classification,phone,personal_email,teammates_named,project,'
     + 'both_tracks,background_areas,ds_level,ds_tools,ent_level,ent_activities,fin_level,fin_topics,'
     + 'resumes_on_file,agreed_expectations,agreed_commitment,signature,approved,registered',
     (regs || []).map(r => { const b = r.background || {}; return [
       r.team_name, r.full_name, r.email, r.school, r.major, r.classification, r.phone, r.personal_email,
-      1 + ((r.members || []).length || 0), r.project,
+      ((r.members || []).length || 0), r.project,
       r.all_participating === true ? 'yes' : r.all_participating === false ? 'not sure' : '',
       joined(b.areas, b.areas_other), b.ds_level, joined(b.ds_tools, b.ds_tools_other),
       b.ent_level, joined(b.ent_activities, b.ent_activities_other),
       b.fin_level, joined(b.fin_topics, b.fin_topics_other),
       (r.resumes || []).length, r.agreed_expectations ? 'yes' : 'no', r.agreed_commitment ? 'yes' : 'no',
       r.commitment_signature, r.approved ? 'yes' : 'no', r.created_at]; }));
-  /* 2. one row per STUDENT — what evaluators and the grant report actually count */
+  /* 2. the team roster: who applied, grouped by team, plus anyone named as a
+     teammate who has NOT applied yet — the list the program team chases. */
+  const applied = new Set((regs || []).map(r => (r.email || '').toLowerCase()));
   const students = [];
-  (regs || []).forEach(r => {
-    students.push([r.team_name, r.school, 'Team lead', r.full_name, r.email, r.phone, r.classification, r.major, r.approved ? 'yes' : 'no']);
-    (r.members || []).forEach((m, i) => students.push([r.team_name, r.school, 'Teammate ' + (i + 2), m.name, m.email, m.phone, m.classification, '', r.approved ? 'yes' : 'no']));
-  });
-  dl('opil-students.csv', 'team,school,role,name,email,phone,classification,major,team_approved', students);
+  (regs || []).forEach(r => students.push([r.team_name, r.school, r.full_name, r.email, r.phone, r.classification, r.major, 'applied', r.approved ? 'yes' : 'no']));
+  const chased = new Set();
+  (regs || []).forEach(r => (r.members || []).forEach(m => {
+    const e = (m.email || '').toLowerCase();
+    if (!e || applied.has(e) || chased.has(e)) return;
+    chased.add(e);
+    students.push([r.team_name, r.school, m.name, m.email, '', m.classification, '', 'named, not applied yet', '']);
+  }));
+  dl('opil-students.csv', 'team,school,name,email,phone,classification,major,status,approved', students);
   /* 3. aggregate counts only, NO personal data — the one that's safe to hand a funder */
   const tally = (get) => { const c = {}; (regs || []).forEach(r => (get(r.background || {}) || []).forEach(v => { c[v] = (c[v] || 0) + 1; })); return c; };
   const summary = [];
@@ -453,8 +459,9 @@ document.getElementById('csvBtn').addEventListener('click', () => {
     const c = {}; (regs || []).forEach(r => { const v = (r.background || {})[k]; if (v) c[v] = (c[v] || 0) + 1; });
     push({ ds_level: 'Data science level', ent_level: 'Entrepreneurship level', fin_level: 'Fintech level' }[k], c);
   });
-  summary.push(['Totals', 'teams registered', (regs || []).length]);
-  summary.push(['Totals', 'students registered', students.length]);
+  summary.push(['Totals', 'students applied', (regs || []).length]);
+  summary.push(['Totals', 'teams forming', teamCount]);
+  summary.push(['Totals', 'named but not yet applied', chased.size]);
   summary.push(['Totals', 'schools represented', new Set((regs || []).map(r => r.school)).size]);
   dl('opil-cohort-summary.csv', 'question,answer,count', summary);
   dl('opil-attendance.csv', 'member,team,session_no,present_at',
