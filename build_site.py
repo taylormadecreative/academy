@@ -923,7 +923,7 @@ def not_found():
 
 SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
-                 "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
+                 "/live/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
 def write_meta():
     (ROOT / "404.html").write_text(not_found())
