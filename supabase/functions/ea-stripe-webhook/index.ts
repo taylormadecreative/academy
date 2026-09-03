@@ -8,11 +8,14 @@
 //
 // Deployed with verify_jwt = false. The signature check below is the auth.
 //
-// Runtime secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, STRIPE_SECRET_KEY,
-// STRIPE_WEBHOOK_SECRET.
+// Runtime secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, STRIPE_SECRET_KEY.
+// The webhook signing secret is read from STRIPE_WEBHOOK_SECRET (env) when set,
+// otherwise from the ea_config table (key='stripe_webhook_secret'), which is
+// provisioned automatically when the webhook endpoint is created.
 
 import Stripe from "npm:stripe@17";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { fulfillOrder, voidOrderBySession } from "../_shared/tickets.ts";
 
 // ------------------------------------------------------------------ config
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -37,6 +40,24 @@ function admin() {
   return createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+// Resolve the Stripe webhook signing secret: prefer the env var, fall back to
+// the ea_config table (key='stripe_webhook_secret'), which is provisioned
+// automatically when the webhook endpoint is created. Read with the service
+// role, which bypasses RLS. (the table is locked to service-role only.)
+async function getWebhookSecret(sb: ReturnType<typeof admin>): Promise<string> {
+  if (STRIPE_WEBHOOK_SECRET) return STRIPE_WEBHOOK_SECRET;
+  const { data, error } = await sb
+    .from("ea_config")
+    .select("value")
+    .eq("key", "stripe_webhook_secret")
+    .maybeSingle();
+  if (error) {
+    console.error("ea_config read error", error.message);
+    return "";
+  }
+  return (data?.value as string | undefined) ?? "";
 }
 
 // ------------------------------------------------------------------ helpers
@@ -211,6 +232,13 @@ async function handleCheckoutCompleted(
     return;
   }
 
+  // Workshop seats (ea-ticket-checkout stamps kind=ticket). Fulfilment lives in
+  // _shared/tickets.ts and is idempotent; a DB failure throws so Stripe retries.
+  if (session.metadata?.kind === "ticket") {
+    await handleTicketPaid(sb, session);
+    return;
+  }
+
   const email =
     normEmail(session.customer_email) ??
     normEmail(session.customer_details?.email);
@@ -254,6 +282,28 @@ async function handleCheckoutCompleted(
   for (const productId of productIds) {
     await grantEntitlement(sb, userId, productId, session.id, "purchase");
   }
+}
+
+// A paid workshop-seat session -> mark the order paid, issue seats, email the ticket.
+async function handleTicketPaid(
+  sb: ReturnType<typeof admin>,
+  session: Stripe.Checkout.Session,
+) {
+  let orderId = typeof session.metadata?.order_id === "string" ? session.metadata.order_id : "";
+  if (!orderId) {
+    const { data, error } = await sb.from("ea_orders").select("id").eq("stripe_session_id", session.id).maybeSingle();
+    if (error) throw new Error(`order lookup failed: ${error.message}`);
+    orderId = data?.id ?? "";
+  }
+  if (!orderId) {
+    // Not retryable: the session points at an order we do not have. Log and ack.
+    console.error("ticket session without order", session.id);
+    return;
+  }
+  const pi = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null;
+  // Idempotent in Postgres: a duplicate Stripe delivery issues no extra seats and sends
+  // no second email. Throws on a DB error so this handler returns 500 and Stripe retries.
+  await fulfillOrder(sb, orderId, { sessionId: session.id, paymentIntent: pi });
 }
 
 // Resolve a user id from a Stripe customer (by email on the customer record).
@@ -397,6 +447,8 @@ async function handleRevoke(
       .eq("stripe_session_id", sid)
       .is("revoked_at", null);
     if (error) console.error("revoke error", sid, error.message);
+    // Workshop seats bought in this session are void too.
+    await voidOrderBySession(sb, sid);
   }
 }
 
@@ -424,9 +476,9 @@ Deno.serve(async (req) => {
   // Server-to-server only (Stripe -> us). No CORS / preflight handling. (H-3)
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
-  if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+  if (!STRIPE_SECRET_KEY) {
     // Misconfiguration. 500 (not 400) so Stripe retries after secrets are set.
-    console.error("missing Stripe secrets");
+    console.error("missing Stripe secret key");
     return json({ error: "not_configured" }, 500);
   }
 
@@ -434,12 +486,21 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
   if (!sig) return json({ error: "missing_signature" }, 400);
 
+  const sb = admin();
+
+  // Signing secret: env var if present, else the auto-provisioned ea_config row.
+  const webhookSecret = await getWebhookSecret(sb);
+  if (!webhookSecret) {
+    console.error("missing Stripe webhook secret");
+    return json({ error: "not_configured" }, 500);
+  }
+
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(
       rawBody,
       sig,
-      STRIPE_WEBHOOK_SECRET,
+      webhookSecret,
       undefined,
       cryptoProvider,
     );
@@ -447,8 +508,6 @@ Deno.serve(async (req) => {
     console.error("signature verification failed", (err as Error).message);
     return json({ error: "invalid_signature" }, 400);
   }
-
-  const sb = admin();
 
   // Handle inside a try so a downstream error never turns into a 400 (which
   // would tell Stripe the signature was bad). On a handler/DB failure we return

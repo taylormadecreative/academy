@@ -1,0 +1,277 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Founder · Taylormade Academy</title>
+<meta name="description" content="Founder dashboard for Taylormade Academy.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="canonical" href="https://taylormadeacademy.com/founder/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#04123a">
+<link rel="stylesheet" href="/css/build-mode.css?v=4fb9f41945">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+  /* ---- app chrome (matches /dashboard/) ---- */
+  .appbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.88);backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--hair);}
+  .appbar .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;}
+  .appbar .who{display:flex;align-items:center;gap:10px;}
+  .appbar .email{font-size:13px;color:var(--muted);max-width:22vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .appbar .brand .mark b{color:var(--blue);}
+  body{background:var(--bg-soft);}
+  main.fd{padding:clamp(18px,3vw,36px) 0 clamp(60px,8vw,100px);}
+  .fd-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  .fd-head h1{font-size:clamp(26px,3vw,38px);letter-spacing:-.03em;}
+  .fd-head p{color:var(--muted);font-size:14.5px;margin-top:4px;}
+  .fd-tabs-wrap{position:relative;margin-bottom:22px;}
+  .fd-tabs-wrap::after{content:"";position:absolute;right:0;top:0;bottom:4px;width:44px;pointer-events:none;background:linear-gradient(90deg,rgba(245,247,252,0),var(--bg-soft) 72%);opacity:0;transition:opacity .2s var(--ease);}
+  .fd-tabs-wrap.more::after{opacity:1;}
+  .fd-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .fd-tabs::-webkit-scrollbar{display:none;}
+  .fd-tabs a{flex:0 0 auto;font-weight:600;font-size:14.5px;color:var(--muted);padding:10px 16px;border-radius:var(--pill);border:1px solid transparent;transition:background .16s var(--ease),color .16s var(--ease);}
+  .fd-tabs a:hover{color:var(--ink);background:#fff;}
+  .fd-tabs a.on{background:var(--ink);color:#fff;}
+  .fd-tabs a .n{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;background:rgba(255,255,255,.18);padding:1px 7px;border-radius:var(--pill);}
+  .fd-tabs a:not(.on) .n{background:var(--bg-soft2);color:var(--muted);}
+  .panel{display:none;}
+  .panel.on{display:block;}
+
+  /* ---- surfaces ---- */
+  .card{background:#fff;border:1px solid var(--hair);border-radius:20px;padding:clamp(16px,2vw,24px);box-shadow:var(--shadow-sm);}
+  .card+.card{margin-top:16px;}
+  .card h2{font-size:18px;letter-spacing:-.02em;}
+  .card h2 small{font-family:var(--font);font-weight:500;color:var(--muted);font-size:13.5px;margin-left:8px;}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .row.between{justify-content:space-between;}
+  .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+  @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:minmax(0,1fr);}}
+
+  /* ---- stat tiles: number in ink, label in muted, never colored by series ---- */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+  .tile{background:#fff;border:1px solid var(--hair);border-radius:16px;padding:16px 18px;}
+  .tile .v{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:-.04em;line-height:1;color:var(--ink);}
+  .tile .l{font-size:13px;color:var(--muted);margin-top:8px;}
+  .tile .d{font-size:12.5px;color:var(--ink-2);margin-top:4px;}
+  .tile.hero{background:var(--navy);border-color:var(--navy);}
+  .tile.hero .v{color:#fff;}
+  .tile.hero .l{color:#9fb0d4;}
+  .tile.hero .d{color:var(--gold);}
+
+  /* ---- 14-day signups (single series, thin bars, recessive axis) ---- */
+  .spark{margin-top:14px;}
+  .spark svg{width:100%;height:120px;display:block;overflow:visible;}
+  .spark rect{fill:var(--blue);}
+  .spark rect:hover{fill:var(--blue-deep);}
+  .spark .axis{stroke:var(--hair);stroke-width:1;}
+  .spark text{font-family:var(--font);font-size:11px;fill:var(--muted);}
+  .spark .lbl{fill:var(--ink);font-weight:600;}
+
+  /* ---- tables ---- */
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px;}
+  table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px;}
+  .tbl th{text-align:left;font-size:12px;font-weight:700;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--hair);white-space:nowrap;}
+  .tbl td{padding:11px 10px;border-bottom:1px solid var(--hair-soft);vertical-align:top;color:var(--ink-2);}
+  .tbl td.strong{color:var(--ink);font-weight:600;}
+  .tbl td .sub{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .tbl tr:hover td{background:#fafbfe;}
+  .tbl .nowrap{white-space:nowrap;}
+  .st{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--pill);background:var(--bg-soft2);color:var(--ink-2);}
+  .st.on_sale,.st.paid,.st.valid{background:var(--emerald-soft);color:#067a56;}
+  .st.announced,.st.invited{background:var(--blue-soft);color:var(--blue-deep);}
+  .st.sold_out,.st.purchased{background:var(--gold-soft);color:var(--gold-ink);}
+  .st.refunded,.st.void,.st.canceled,.st.unsubscribed{background:#fff1f0;color:#b42318;}
+  .st.draft,.st.pending,.st.past,.st.waiting{background:var(--bg-soft2);color:var(--muted);}
+
+  /* ---- controls ---- */
+  .fi{font:inherit;font-weight:400;font-size:14.5px;color:var(--ink);background:#fff;border:1px solid #c9d3e6;border-radius:12px;padding:10px 13px;outline:none;min-width:0;transition:border-color .16s var(--ease),box-shadow .16s var(--ease);}
+  .fi:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(11,64,224,.12);}
+  textarea.fi{min-height:96px;resize:vertical;line-height:1.5;width:100%;}
+  select.fi{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235d6b84' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+  label.f{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);}
+  label.f span{color:var(--muted);font-weight:500;}
+  label.f .fi{display:block;width:100%;margin-top:6px;}
+  .fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .fgrid .full{grid-column:1/-1;}
+  @media(max-width:640px){.fgrid{grid-template-columns:minmax(0,1fr);}}
+  .btn.xs{padding:7px 12px;font-size:13px;}
+  .btn.danger{color:#b42318;border-color:#f5c2c0;background:#fff;}
+  .btn.danger:hover{background:#fff1f0;}
+  .muted-sm{font-size:13px;color:var(--muted);line-height:1.5;}
+  .empty{padding:26px 10px;text-align:center;color:var(--muted);font-size:14.5px;line-height:1.6;}
+  .empty b{color:var(--ink);display:block;font-family:var(--display);font-size:17px;margin-bottom:4px;}
+  .note-edit{width:100%;min-height:40px;font-size:13px;padding:8px 10px;}
+  .codes{display:flex;flex-wrap:wrap;gap:10px;}
+  .code{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:14px;font-weight:700;letter-spacing:.04em;border:1px solid #c9d3e6;border-radius:12px;padding:8px 14px;background:#fff;cursor:pointer;color:var(--ink);transition:background .16s var(--ease),border-color .16s var(--ease);}
+  .code:hover{border-color:var(--muted-ink);background:var(--bg-soft);}
+  .code:active{transform:scale(.97);}
+  .code.done{background:var(--emerald-soft);border-color:#a7e3cb;color:#067a56;}
+  .code.void{opacity:.5;text-decoration:line-through;cursor:default;}
+  .ev{border:1px solid var(--hair);border-radius:16px;padding:16px 18px;background:#fff;}
+  .ev+.ev{margin-top:12px;}
+  .ev h3{font-size:17px;letter-spacing:-.02em;}
+  .ev .meta{font-size:13.5px;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .ev .tierlist{margin-top:12px;border-top:1px solid var(--hair-soft);padding-top:12px;}
+  .tier-row{display:grid;grid-template-columns:1.4fr .7fr .6fr .9fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--hair-soft);font-size:14px;}
+  .tier-row .nm{font-weight:600;color:var(--ink);}
+  .tier-row .nm small{display:block;font-weight:500;color:var(--muted);font-size:12.5px;}
+  @media(max-width:700px){.tier-row{grid-template-columns:1fr 1fr;}.tier-row .acts{grid-column:1/-1;}}
+  .preview{border:1px solid var(--hair);border-radius:16px;overflow:hidden;background:#f5f7fc;}
+  .preview iframe{width:100%;height:760px;border:0;display:block;background:#f5f7fc;}
+  .gate{max-width:560px;margin:12vh auto;text-align:center;}
+  .gate h1{font-size:clamp(26px,3vw,36px);letter-spacing:-.03em;}
+  .gate p{color:var(--muted);margin-top:10px;font-size:15.5px;line-height:1.6;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease);z-index:99;max-width:min(92vw,520px);text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  dialog.fd-dlg{border:0;border-radius:20px;padding:0;max-width:min(94vw,560px);width:100%;box-shadow:var(--shadow-float);}
+  dialog.fd-dlg::backdrop{background:rgba(4,18,58,.55);}
+  dialog.fd-dlg .in-dlg{padding:24px;}
+  @media(max-width:640px){.appbar .navlink,.appbar .email{display:none;}}
+</style>
+<!--PWA:start-->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Academy">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width:360px) and (device-height:780px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1080x2340.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
+<script src="/js/pwa.js?v=4fb9f41945" defer></script>
+<script src="/js/native.js?v=4fb9f41945" defer></script>
+<script src="/js/meta-pixel.js?v=4fb9f41945" defer></script>
+<!--PWA:end-->
+</head><body>
+<header class="appbar"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy <b>Founder</b></span></a>
+<div class="who"><a class="navlink" href="/agent/" target="_blank" rel="noopener">Workshop page</a><a class="navlink" href="/live/">Live</a><a class="navlink" href="/dashboard/">Member view</a><span class="email" id="ue"></span><button class="btn ghost sm" id="so">Sign out</button></div>
+</div></div></header>
+
+<main class="fd"><div class="wrap">
+<div id="boot" class="gate"><h1 style="font-size:22px;color:var(--muted);font-family:var(--font);font-weight:600">Loading your numbers</h1><p>One moment.</p></div>
+<div id="gate" class="gate" hidden><h1 id="gateH">Signing you in...</h1><p id="gateP"></p><div class="row" style="justify-content:center;margin-top:18px" id="gateA"></div></div>
+
+<div id="app" hidden>
+<div class="fd-head"><div><h1>Good to see you, Nelson.</h1><p id="asof">Live numbers from the Academy.</p></div>
+<div class="row"><a class="btn ghost sm" href="#events" data-go="events">Add a date</a><a class="btn gold sm" href="#announce" data-go="announce">Announce to the list</a></div></div>
+
+<div class="fd-tabs-wrap" id="tabsWrap">
+<nav class="fd-tabs" id="tabs" role="tablist" aria-label="Founder sections">
+<a href="#overview" data-tab="overview" role="tab" id="tab-overview" aria-controls="p-overview" aria-selected="false">Overview</a>
+<a href="#waitlist" data-tab="waitlist" role="tab" id="tab-waitlist" aria-controls="p-waitlist" aria-selected="false">Waitlist<span class="n" id="nWait">0</span></a>
+<a href="#events" data-tab="events" role="tab" id="tab-events" aria-controls="p-events" aria-selected="false">Dates &amp; tickets<span class="n" id="nEv">0</span></a>
+<a href="#orders" data-tab="orders" role="tab" id="tab-orders" aria-controls="p-orders" aria-selected="false">Orders<span class="n" id="nOrd">0</span></a>
+<a href="#announce" data-tab="announce" role="tab" id="tab-announce" aria-controls="p-announce" aria-selected="false">Announce</a>
+</nav></div>
+
+<!-- ---------------- overview ---------------- -->
+<section class="panel" id="p-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+<div class="tiles" id="tiles"></div>
+<div class="grid-2" style="margin-top:16px">
+  <div class="card"><h2>Waitlist, last 14 days<small id="sparkSum"></small></h2><div class="spark" id="spark"></div></div>
+  <div class="card"><h2>Next date</h2><div id="nextEv" class="muted-sm" style="margin-top:10px"></div></div>
+</div>
+<div class="card" style="margin-top:16px"><div class="row between"><h2>Newest on the list</h2><a class="textlink" href="#waitlist" data-go="waitlist" style="font-size:14px">See everyone</a></div><div class="tblwrap" style="margin-top:8px"><table class="tbl" id="recentTbl"></table></div></div>
+</section>
+
+<!-- ---------------- waitlist ---------------- -->
+<section class="panel" id="p-waitlist" role="tabpanel" aria-labelledby="tab-waitlist" tabindex="0">
+<div class="card">
+<div class="row between">
+  <div class="row"><input class="fi" id="wlQ" type="search" placeholder="Search name, email, city, goal" style="min-width:260px"><select class="fi" id="wlStatus" style="min-width:150px"><option value="">Every status</option><option value="waiting">Waiting</option><option value="invited">Invited</option><option value="purchased">Purchased</option><option value="unsubscribed">Unsubscribed</option></select></div>
+  <div class="row"><span class="muted-sm" id="wlCount"></span><button class="btn ghost xs" id="wlCopy">Copy emails</button><button class="btn ghost xs" id="wlCsv">Download CSV</button></div>
+</div>
+<div class="tblwrap" style="margin-top:12px"><table class="tbl" id="wlTbl"></table></div>
+</div>
+</section>
+
+<!-- ---------------- events + tiers ---------------- -->
+<section class="panel" id="p-events" role="tabpanel" aria-labelledby="tab-events" tabindex="0">
+<div class="card">
+<div class="row between"><h2>Dates<small>Draft stays private. Announced shows on the page. On sale opens checkout.</small></h2><button class="btn gold sm" id="evNew">New date</button></div>
+<div id="evList" style="margin-top:14px"></div>
+</div>
+</section>
+
+<!-- ---------------- orders ---------------- -->
+<section class="panel" id="p-orders" role="tabpanel" aria-labelledby="tab-orders" tabindex="0">
+<div class="card">
+<div class="row between">
+  <div class="row"><input class="fi" id="orQ" type="search" placeholder="Search name, email, or seat code" style="min-width:260px"><select class="fi" id="orEv" style="max-width:340px"><option value="">Every date</option></select><select class="fi" id="orStatus"><option value="">Every status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="refunded">Refunded</option><option value="canceled">Canceled</option></select></div>
+  <div class="row"><span class="muted-sm" id="orSum"></span><button class="btn ghost xs" id="orCsv">Download CSV</button></div>
+</div>
+<p class="muted-sm" style="margin-top:10px">Tap a seat code to check that person in. Tap again to undo.</p>
+<div class="tblwrap" style="margin-top:8px"><table class="tbl" id="orTbl"></table></div>
+</div>
+</section>
+
+<!-- ---------------- announce ---------------- -->
+<section class="panel" id="p-announce" role="tabpanel" aria-labelledby="tab-announce" tabindex="0">
+<div class="grid-2">
+<div class="card">
+<h2>Tell the list</h2>
+<p class="muted-sm" style="margin-top:6px">Everyone waiting or already invited gets this, each with their own early-bird button. Send yourself a test first.</p>
+<div class="fgrid" style="margin-top:14px">
+  <label class="f full">Which date <select class="fi" id="anEv"></select></label>
+  <label class="f full">Subject <input class="fi" id="anSubject" maxlength="160"></label>
+  <label class="f full">Message <span>({name} becomes their first name)</span><textarea class="fi" id="anBody" style="min-height:220px"></textarea></label>
+  <label class="f">Button label <input class="fi" id="anCta" maxlength="60" value="Open my early-bird link"></label>
+</div>
+<div class="row" style="margin-top:16px"><button class="btn ghost" id="anTest">Send me a test</button><button class="btn gold" id="anSend">Send to the list</button></div>
+<p class="muted-sm" id="anResult" style="margin-top:12px"></p>
+</div>
+<div class="card"><h2>Preview</h2><div class="preview" style="margin-top:12px"><iframe id="anPreview" title="Email preview"></iframe></div></div>
+</div>
+</section>
+</div>
+</div></main>
+
+<dialog class="fd-dlg" id="evDlg"><form class="in-dlg" id="evForm" method="dialog">
+<h2 id="evDlgH" style="font-size:20px;letter-spacing:-.02em">New date</h2>
+<div class="fgrid" style="margin-top:14px">
+  <label class="f full">Title <input class="fi" name="title" required maxlength="160" value="Build Your First AI Agent"></label>
+  <label class="f">Starts <input class="fi" name="starts" type="datetime-local" required></label>
+  <label class="f">Ends <span>(optional)</span> <input class="fi" name="ends" type="datetime-local"></label>
+  <label class="f">Time zone <select class="fi" name="tz"><option value="America/Chicago">Central (Dallas)</option><option value="America/New_York">Eastern</option><option value="America/Denver">Mountain</option><option value="America/Los_Angeles">Pacific</option></select></label>
+  <label class="f">Format <select class="fi" name="format"><option value="in_person">In person</option><option value="virtual">Online</option></select></label>
+  <label class="f">Seats (capacity) <input class="fi" name="capacity" type="number" min="1" max="5000" value="15"></label>
+  <label class="f">Status <select class="fi" name="status"><option value="draft">Draft (private)</option><option value="announced">Announced (shows on the page)</option><option value="on_sale">On sale (checkout open)</option><option value="sold_out">Sold out</option><option value="past">Past</option><option value="canceled">Canceled</option></select></label>
+  <label class="f full">Public location line <span>(shown on the page, e.g. "Private studio, Dallas")</span><input class="fi" name="venue_label" maxlength="160"></label>
+  <label class="f full">Private address <span>(only in the ticket email)</span><input class="fi" name="venue_address" maxlength="400"></label>
+  <label class="f full">Join link <span>(online only, only in the ticket email)</span><input class="fi" name="join_url" maxlength="400" inputmode="url"></label>
+  <label class="f full">Short blurb <span>(optional, shows under the date)</span><textarea class="fi" name="blurb" maxlength="1000" style="min-height:70px"></textarea></label>
+</div>
+<div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" type="button" id="evCancel">Cancel</button><button class="btn gold" type="submit" id="evSave">Save date</button></div>
+</form></dialog>
+
+<dialog class="fd-dlg" id="tierDlg"><form class="in-dlg" id="tierForm" method="dialog">
+<h2 id="tierDlgH" style="font-size:20px;letter-spacing:-.02em">New ticket tier</h2>
+<div class="fgrid" style="margin-top:14px">
+  <label class="f">Name <input class="fi" name="name" required maxlength="80" placeholder="Early bird"></label>
+  <label class="f">Price (USD) <input class="fi" name="price" type="number" min="0" max="10000" step="0.01" required placeholder="0.00"></label>
+  <label class="f">Seats in this tier <input class="fi" name="qty" type="number" min="1" max="5000" required value="5"></label>
+  <label class="f">Who can buy <select class="fi" name="access"><option value="public">Anyone</option><option value="waitlist">Waitlist link only</option></select></label>
+  <label class="f">Sales open <span>(optional)</span> <input class="fi" name="sales_start" type="datetime-local"></label>
+  <label class="f">Sales close <span>(optional)</span> <input class="fi" name="sales_end" type="datetime-local"></label>
+  <label class="f full">What it includes <span>(optional)</span><input class="fi" name="description" maxlength="400" placeholder="Seat, the playbook, and the replay"></label>
+  <label class="f">Order on the page <input class="fi" name="sort" type="number" value="0"></label>
+  <label class="f">Shown <select class="fi" name="status"><option value="active">Shown</option><option value="hidden">Hidden</option></select></label>
+</div>
+<div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" type="button" id="tierCancel">Cancel</button><button class="btn gold" type="submit">Save tier</button></div>
+</form></dialog>
+
+<dialog class="fd-dlg" id="confirmDlg"><div class="in-dlg"><h2 id="cfH" style="font-size:20px;letter-spacing:-.02em"></h2><p class="muted-sm" id="cfP" style="margin-top:8px"></p><div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" id="cfNo">Cancel</button><button class="btn gold" id="cfYes">Yes</button></div></div></dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/js/config.js?v=4fb9f41945"></script>
+<script type="module" src="/js/founder.js?v=4fb9f41945"></script>
+</body></html>

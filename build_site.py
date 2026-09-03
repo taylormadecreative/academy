@@ -12,7 +12,8 @@ def _asset_ver():
     browsers (and the GitHub Pages CDN) fetch a fresh copy the instant the file changes,
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
-    for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js"):
+    for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
+                "css/agent.css", "js/agent.js", "js/founder.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -40,7 +41,7 @@ PWA_TAGS = (
     f'<script src="/js/meta-pixel.js?v={ASSET_VER}" defer></script>'
 )
 
-NAV = [("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Workshop", "/agent/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -207,8 +208,8 @@ def render(path, html):
 # string on the asset links, leaving the rest of each file untouched.
 # NOTE: playbook/ai-avatar is intentionally NOT listed — it is web-only (no PWA/Capacitor
 # head injection) and pins its asset ?v= manually in the page itself.
-APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course")
-_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js))(?:\?v=[a-z0-9]+)?')
+APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course", "founder")
+_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js|js/founder\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):
     """Insert (or refresh) the PWA <head> block in a hand-maintained app page, guarded by a
@@ -921,7 +922,7 @@ def not_found():
 <a class="btn ghost" href="/store/">Browse the store</a></div>
 </div></section></main>""" + footer()
 
-SITEMAP_PATHS = ["/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
+SITEMAP_PATHS = ["/", "/agent/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
                  "/live/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
@@ -1015,6 +1016,9 @@ if __name__ == "__main__":
     render("/pricing/", pricing())
     render("/about/", about())
     render("/join/", community_landing())
+    from build_agent import agent_page, agent_thanks_page
+    render("/agent/", agent_page(head, header, footer, ASSET_VER))
+    render("/agent/thanks/", agent_thanks_page(head, header, footer, ASSET_VER))
     # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.

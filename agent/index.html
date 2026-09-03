@@ -1,0 +1,299 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build Your First AI Agent — a one-night workshop by Taylormade Academy</title>
+<meta name="description" content="Build a working AI agent in one night, no code, and leave with the playbook to build the next one. First taught for AUC's Data Science Institute and Johns Hopkins. Join the waitlist: dates and the early-bird rate go to the list first.">
+<link rel="canonical" href="https://taylormadeacademy.com/agent/">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<meta name="theme-color" content="#04123a">
+<meta property="og:type" content="website"><meta property="og:title" content="Build Your First AI Agent — a one-night workshop by Taylormade Academy">
+<meta property="og:description" content="Build a working AI agent in one night, no code, and leave with the playbook to build the next one. First taught for AUC's Data Science Institute and Johns Hopkins. Join the waitlist: dates and the early-bird rate go to the list first."><meta property="og:url" content="https://taylormadeacademy.com/agent/">
+<meta property="og:image" content="https://taylormadeacademy.com/assets/og-agent.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
+
+<link rel="stylesheet" href="/css/build-mode.css?v=4fb9f41945">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Academy">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width:360px) and (device-height:780px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1080x2340.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
+<script src="/js/pwa.js?v=4fb9f41945" defer></script>
+<script src="/js/native.js?v=4fb9f41945" defer></script>
+<script src="/js/meta-pixel.js?v=4fb9f41945" defer></script>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="stylesheet" href="/css/agent.css?v=4fb9f41945">
+<link rel="preload" as="image" href="/assets/agent-nelson.webp" type="image/webp" fetchpriority="high">
+</head><body><header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<nav class="nav"><a class="navlink active" href="/agent/">Workshop</a><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a>
+<button class="btn ghost sm cart-btn" data-open-cart aria-label="Cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 7h14l1 13H4z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="cc" id="cartCount" style="display:none">0</span></button>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
+</div></div><div class="mobile-nav" id="mnav"><a href="/agent/">Workshop</a><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>
+<main>
+<section class="ag-hero"><div class="wrap"><div class="ag-grid">
+<div class="ag-copy">
+<span class="kicker gold">Taylormade Academy workshop</span>
+<h1 class="display-xl">Build your first<br>AI <span class="u-gold">agent</span>.</h1>
+<p class="lead">One night. No code. You leave with an agent that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
+<div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
+</div>
+<div class="ag-sheet"><div class="ag-form">
+<div class="ag-live">
+<div class="ag-form-h">Put your name on the list</div>
+<p class="ag-form-p">Dates go to the list first, with a personal link that opens the waitlist rate before seats go on public sale.</p>
+<form id="wlForm" data-source="agent-hero" novalidate>
+<div class="ag-fields">
+<div class="ag-field"><label for="wlForm-name">Your name</label><input id="wlForm-name" name="name" type="text" autocomplete="name" placeholder="First and last" required maxlength="120"></div>
+<div class="ag-field"><label for="wlForm-email">Email</label><input id="wlForm-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required maxlength="200"></div>
+<div class="ag-field"><label for="wlForm-phone">Phone <span>(optional, for a text the day before)</span></label><input id="wlForm-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(214) 555-0100" maxlength="40"></div>
+<div class="ag-field"><label>Where are you with AI?</label><div class="ag-seg">
+<label><input type="radio" name="experience" value="new" checked><span>Brand new</span></label>
+<label><input type="radio" name="experience" value="some"><span>I use ChatGPT</span></label>
+<label><input type="radio" name="experience" value="building"><span>Already building</span></label></div></div>
+<div class="ag-field full"><label for="wlForm-goal">What should your agent handle? <span>(optional)</span></label><textarea id="wlForm-goal" name="goal" rows="2" maxlength="500" placeholder="Follow up with new leads, answer the same five questions, write captions from my photos..."></textarea></div></div>
+<div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email when the date drops, one when seats open.</span></div>
+<div class="err" role="alert"></div>
+</form></div>
+<div class="ag-done" aria-live="polite"></div>
+</div></div>
+<div class="ag-roster">
+<span class="ag-stamp">First public run</span>
+<span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
+<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Ran the first version of this workshop for about fifty HBCU students with AUC's Data Science Institute and Johns Hopkins.</p></div></div>
+</div>
+</div></div></section>
+
+<section class="ag-band on-ink" id="outcomes"><div class="wrap">
+<span class="kicker gold">What you walk out with</span>
+<h2 class="ag-band-h" style="margin-top:12px">Not notes about agents. An agent.</h2>
+<div class="ag-out">
+<div class="ag-out-lead">
+<div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M8 12h.01M16 12h.01M9 16h6"/></svg></div>
+<h3>A working agent</h3>
+<p>Built by you, on the night, doing one real task from your business or your craft. Not a demo you watched. Yours, running when you get home.</p>
+<div class="ag-out-mock" aria-hidden="true">
+<div class="ao-bar"><span class="ao-dot"></span><span class="ao-dot"></span><span class="ao-dot"></span><b>Your agent</b></div>
+<div class="ao-line"><span class="ao-tag">Reads</span> New inquiry from Danielle</div>
+<div class="ao-line"><span class="ao-tag">Decides</span> Pricing question, consult not booked</div>
+<div class="ao-line done"><span class="ao-tag">Acts</span> Replied and offered Thursday at 2</div>
+</div>
+</div>
+<div class="ag-out-rest">
+<div class="ag-out-item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/><path d="M9 7h6"/></svg></div><div><h3>The playbook</h3><p>A step-by-step guide built from the AUC run, prompts included, so you can build the second one on your own.</p></div></div>
+<div class="ag-out-item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></div><div><h3>A room that answers</h3><p>A small room. Questions answered while you are stuck instead of three days later, and the Academy community afterwards.</p></div></div>
+</div>
+</div></div></section>
+
+<section class="ag-define"><div class="wrap"><div class="ag-define-grid">
+<div>
+<span class="kicker gold">Start here</span>
+<h2 style="margin-top:12px">First, what is an AI agent?</h2>
+<p class="ag-def">An <b>AI agent</b> is a helper you set up once that does a task for you every time after that. You describe the job in plain English and give it what it needs. It reads, decides, and acts. No code, no engineering degree, no waiting on a developer.</p>
+<div class="ag-eg">Picture a salon owner's agent: it reads every new inquiry, answers the three questions everyone asks, and offers a consult time. She checks what it did over coffee.</div>
+</div>
+<div class="ag-diagram"><svg class="dg-h" viewBox="0 0 640 300" role="img" aria-labelledby="agdt">
+<title id="agdt">How an agent works: you describe the job once, the agent reads, decides and acts, you check the result, and it repeats every time without you.</title>
+<defs><marker id="agArr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0b40e0"/></marker></defs>
+<g font-family="Inter,system-ui,sans-serif" font-size="14">
+  <rect x="12" y="70" width="176" height="96" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
+  <text x="100" y="105" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="15">You describe the job</text>
+  <text x="100" y="128" text-anchor="middle" fill="#5d6b84">in plain English,</text>
+  <text x="100" y="146" text-anchor="middle" fill="#5d6b84">one time</text>
+  <line x1="190" y1="118" x2="228" y2="118" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#agArr)"/>
+  <rect x="232" y="56" width="176" height="124" rx="18" fill="#04123a"/>
+  <text x="320" y="92" text-anchor="middle" font-weight="700" fill="#ffffff" font-size="15">The agent</text>
+  <text x="320" y="118" text-anchor="middle" fill="#fdc921" font-weight="600">reads</text>
+  <text x="320" y="138" text-anchor="middle" fill="#fdc921" font-weight="600">decides</text>
+  <text x="320" y="158" text-anchor="middle" fill="#fdc921" font-weight="600">acts</text>
+  <line x1="410" y1="118" x2="448" y2="118" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#agArr)"/>
+  <rect x="452" y="70" width="176" height="96" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
+  <text x="540" y="105" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="15">You check the result</text>
+  <text x="540" y="128" text-anchor="middle" fill="#5d6b84">a minute, not</text>
+  <text x="540" y="146" text-anchor="middle" fill="#5d6b84">an afternoon</text>
+  <path d="M540 170 V228 H320 V184" fill="none" stroke="#c9d3e6" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#agArr)"/>
+  <rect x="332" y="238" width="196" height="30" rx="15" fill="#fff6da" stroke="#f3dfa0"/>
+  <text x="430" y="258" text-anchor="middle" fill="#4a3700" font-weight="700" font-size="13">every new task, without you</text>
+</g></svg><svg class="dg-v" viewBox="0 0 360 560" role="img" aria-hidden="true">
+<defs><marker id="agArrV" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0b40e0"/></marker></defs>
+<g font-family="Inter,system-ui,sans-serif" font-size="16">
+  <rect x="40" y="12" width="280" height="92" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
+  <text x="180" y="48" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="17">You describe the job</text>
+  <text x="180" y="76" text-anchor="middle" fill="#5d6b84">in plain English, one time</text>
+  <line x1="180" y1="106" x2="180" y2="144" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#agArrV)"/>
+  <rect x="40" y="150" width="280" height="140" rx="18" fill="#04123a"/>
+  <text x="180" y="188" text-anchor="middle" font-weight="700" fill="#ffffff" font-size="17">The agent</text>
+  <text x="180" y="218" text-anchor="middle" fill="#fdc921" font-weight="600">reads</text>
+  <text x="180" y="242" text-anchor="middle" fill="#fdc921" font-weight="600">decides</text>
+  <text x="180" y="266" text-anchor="middle" fill="#fdc921" font-weight="600">acts</text>
+  <line x1="180" y1="292" x2="180" y2="330" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#agArrV)"/>
+  <rect x="40" y="336" width="280" height="92" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
+  <text x="180" y="372" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="17">You check the result</text>
+  <text x="180" y="400" text-anchor="middle" fill="#5d6b84">a minute, not an afternoon</text>
+  <path d="M320 382 H344 V220 H326" fill="none" stroke="#c9d3e6" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#agArrV)"/>
+  <rect x="60" y="470" width="240" height="34" rx="17" fill="#fff6da" stroke="#f3dfa0"/>
+  <text x="180" y="493" text-anchor="middle" fill="#4a3700" font-weight="700" font-size="14">every new task, without you</text>
+</g></svg></div>
+</div></div></section>
+
+<section class="ag-night"><div class="wrap"><div class="ag-night-grid">
+<div class="ag-night-intro">
+<span class="kicker gold">The night</span>
+<h2 style="margin-top:12px">How the evening runs.</h2>
+<p class="lead">Bring a laptop and a charger. The tools are free to start and I walk you through the accounts. We build in three moves.</p>
+</div>
+<ol class="ag-steps">
+<li class="ag-step"><span class="t"><b>1</b> Frame</span><h3>Pick the one task that eats your week.</h3><p>We write the job description your agent will follow, in plain words. If you can explain it to a new hire, you can explain it to an agent.</p></li>
+<li class="ag-step"><span class="t"><b>2</b> Build</span><h3>Build it live, on the same screen as me.</h3><p>Step by step, click by click. We feed it real examples and test it until it behaves the way you would.</p></li>
+<li class="ag-step"><span class="t"><b>3</b> Show</span><h3>Run it for the room.</h3><p>Everyone shows their agent doing its job. You leave with it working, and the playbook to build the next one.</p></li>
+</ol></div></div></section>
+
+<section class="ag-dates" id="dates"><div class="wrap">
+<span class="kicker gold">Dates</span>
+<h2 style="margin-top:12px">Upcoming dates.</h2>
+<p class="ag-empty" id="datesEmpty"><b>No public date yet.</b> The first run is being scheduled now. The waitlist hears the date before it appears here, with the link that opens the waitlist rate.</p>
+<div class="ag-datelist" id="datesList" style="display:none"></div>
+</div></section>
+
+<section class="ag-seats" id="seats" hidden><div class="wrap">
+<span class="kicker gold">Seats</span>
+<h2 style="margin-top:12px">Get your seat.</h2>
+<p class="lead">Small room on purpose. Checkout is secure and handled by Stripe; your seat code comes straight to your email.</p>
+<div class="ag-early" id="earlyNote">You came from your waitlist link, so the waitlist rate is showing below.</div>
+<div class="ag-tiers" id="tiers"></div>
+</div></section>
+
+<section class="ag-note"><div class="wrap"><div class="ag-note-grid">
+<div>
+<h2>Why I am opening this up.</h2>
+<div class="who"><img src="/assets/agent-nelson-sm.webp" alt="" width="48" height="48"><div><b>Nelson Taylor</b><span>Founder, Taylormade Academy</span></div></div>
+<div class="letter" style="margin-top:22px">
+<p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
+<p>The question I get most is not "what is AI". It is "what do I actually do with it". This is my answer. One night, one agent, built by you, doing a job you are tired of doing.</p>
+<p>If that is what you have been waiting for, put your name down. I will tell you the date before anyone else, and the first seats are yours.</p>
+<a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Put my name down <span class="arr">&rarr;</span></a>
+</div>
+</div>
+<div class="ag-faq">
+<details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
+<details><summary>What do I bring?</summary><p>A laptop and a charger. The tools are free to start, and I walk you through the accounts on the night. Phones are fine for following along but not for building.</p></details>
+<details><summary>What does it cost?</summary><p>Pricing is announced with the date. The waitlist gets a lower rate before seats go on public sale, and that rate is only ever offered through the link in your waitlist email.</p></details>
+<details><summary>Is it online or in person?</summary><p>The first public run is being scheduled now, and the format goes out with the date. If it is in person, it is in Dallas-Fort Worth.</p></details>
+<details><summary>What if I cannot make the first date?</summary><p>Stay on the list. Every date goes to the list first, and your personal link keeps working for the next one.</p></details>
+<details><summary>What is the refund policy?</summary><p>Seven days, no questions, as long as it is before the workshop date. The full policy is on the <a class="textlink" href="/refunds/">refunds page</a>.</p></details>
+</div>
+</div></div></section>
+
+<section class="ag-close on-ink"><div class="wrap">
+<h2>The first seats go to the list.</h2>
+<p class="lead">Dates first. Early bird first. One email when it drops.</p>
+<div class="ag-form on-paper">
+<div class="ag-live">
+<div class="ag-form-h">Put your name on the list</div>
+<p class="ag-form-p">Dates go to the list first, with a personal link that opens the waitlist rate before seats go on public sale.</p>
+<form id="wlForm2" data-source="agent-close" novalidate>
+<div class="ag-fields">
+<div class="ag-field"><label for="wlForm2-name">Your name</label><input id="wlForm2-name" name="name" type="text" autocomplete="name" placeholder="First and last" required maxlength="120"></div>
+<div class="ag-field"><label for="wlForm2-email">Email</label><input id="wlForm2-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required maxlength="200"></div></div>
+<div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email when the date drops, one when seats open.</span></div>
+<div class="err" role="alert"></div>
+</form></div>
+<div class="ag-done" aria-live="polite"></div>
+</div>
+</div></section>
+</main>
+
+<dialog class="ag-dialog" id="buyDlg" aria-labelledby="bdTitle">
+<form class="in" id="bdForm" method="dialog" novalidate>
+<h3 id="bdTitle">Seat</h3>
+<p class="sub" id="bdSub"></p>
+<div class="ag-fields">
+<div class="ag-field"><label for="bd-name">Name on the seat</label><input id="bd-name" name="name" type="text" autocomplete="name" required maxlength="120"></div>
+<div class="ag-field"><label for="bd-email">Email for the ticket</label><input id="bd-email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="200"></div>
+<div class="ag-field"><label>Seats</label><div class="qty"><button type="button" id="bdMinus" aria-label="One fewer seat">&minus;</button><output id="bdQty" aria-live="polite">1</output><button type="button" id="bdPlus" aria-label="One more seat">+</button></div></div>
+</div>
+<div class="tot" id="bdTot"></div>
+<p class="bd-fine">Payment is handled by Stripe. Your seat code and the address arrive by email straight after.</p>
+<div class="err" role="alert" id="bdErr"></div>
+<div class="row"><button class="btn ghost" type="button" id="bdClose">Not now</button><button class="btn gold" type="submit" id="bdGo">Continue to checkout <span class="arr">&rarr;</span></button></div>
+</form>
+</dialog>
+<script src="/js/agent.js?v=4fb9f41945" defer></script>
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
+<div style="display:flex;flex-wrap:wrap;margin-top:16px;font-size:14px;font-weight:600"><a href="https://instagram.com/taylormade_creative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Instagram</a><a href="https://tiktok.com/@taylormadecreative" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">TikTok</a><a href="https://linkedin.com/in/taylormademd" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">LinkedIn</a><a href="https://taylormadecreative.net" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">Portfolio</a></div></div>
+<div class="foot-col"><h4>Explore</h4><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a><a href="/course/">Preview a course</a></div><div class="foot-col"><h4>Community</h4><a href="/community/">The feed</a><a href="https://www.facebook.com/groups/taylormadeacademy" target="_blank" rel="noopener">Facebook group</a><a href="/login/">Sign in</a><a href="/login/?mode=join">Join free</a></div>
+<div class="foot-col"><h4>Stay in the loop</h4>
+<p style="font-size:14px;color:#8fa0c7;margin-bottom:14px;max-width:30ch">New courses, ebooks, and community drops, straight to your inbox.</p>
+<form onsubmit="return BM.subscribe(event,'footer')" style="display:flex;gap:8px;flex-wrap:wrap">
+<input type="email" name="email" placeholder="you@email.com" required aria-label="Email address" style="flex:1;min-width:150px;padding:12px 18px;border:1px solid rgba(255,255,255,.16);border-radius:980px;font-family:inherit;font-size:14px;background:rgba(255,255,255,.06);color:#fff;outline-offset:2px">
+<button class="btn gold sm" type="submit">Subscribe</button></form></div>
+</div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a><a href="/refunds/" style="color:#8fa0c7">Refunds</a></span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
+</div></footer>
+<div class="cart-backdrop" id="cartBackdrop" data-close-cart></div>
+<aside class="cart-drawer" id="cartDrawer" role="dialog" aria-modal="true" aria-label="Your cart" aria-hidden="true">
+<div class="cart-head"><span>Your cart</span><button class="ci-x" data-close-cart aria-label="Close">&times;</button></div>
+<div class="cart-items" id="cartItems"></div>
+<div class="cart-foot">
+<div class="cart-sub"><span>Subtotal</span><span id="cartSubtotal">$0</span></div>
+<button class="btn gold" id="cartCheckout" data-checkout-cart style="width:100%" disabled>Checkout Securely <span class="arr">&rarr;</span></button>
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">7-day refund guarantee</p>
+<div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
+</div></aside>
+<div class="pop-back" id="popBack" aria-hidden="true">
+<div class="pop" role="dialog" aria-modal="true" aria-label="Get the free AI Playbook ebook">
+<button class="pop-x" data-pop-close aria-label="Close">&times;</button>
+<div class="pop-top">
+<div class="pop-left">
+<div class="pop-brand"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span>Taylormade Academy</span></div>
+<div class="pop-eyebrow">Join free</div>
+<h2 class="pop-title">The Creator's<br><span class="blue">AI</span> <span class="u-gold">Playbook</span></h2>
+<p class="pop-sub">Create your free account and the Playbook is waiting inside, plus the community, members, and DMs. 100% free.</p>
+<ul class="pop-bullets">
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M21 9v5"/><path d="M7 11v4c0 1 2.2 2.2 5 2.2s5-1.2 5-2.2v-4"/></svg></span> Learn AI skills</li>
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 4l6 6L9 21H3v-6z"/><path d="M12.5 6.5l5 5"/></svg></span> Create amazing content</li>
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.2c0-1.2 1.2-2 2.7-2s2.7.8 2.7 2-1.2 1.8-2.7 1.8-2.7.7-2.7 1.9 1.2 2 2.7 2 2.7-.8 2.7-2"/></svg></span> Earn &amp; build income</li>
+<li><span class="bi"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17.5" cy="9" r="2.2"/><path d="M16.5 13.6A4.6 4.6 0 0 1 21 18"/></svg></span> Meet builders like you</li>
+</ul>
+</div>
+<div class="pop-art">
+<img class="pop-book" src="/assets/ebook-book.webp" alt="The Creator's AI Playbook ebook cover">
+<img class="pop-photo" src="/assets/hero-nelson.webp" alt="Nelson Taylor">
+</div>
+</div>
+<div class="pop-bottom">
+<div class="pop-bottom-copy">
+<div class="pob-h">Join the Taylormade Academy community</div>
+<p>Get the Playbook and weekly <span class="gold">exclusive tips</span>, free.</p>
+<form class="pop-form" onsubmit="return BM.getEbook(event)">
+<span class="pf-input"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><input type="email" name="email" placeholder="Enter your email address" required></span>
+<button class="btn gold" type="submit">Create my free account</button>
+</form>
+<div class="pob-fine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> No spam. Unsubscribe anytime.</div>
+</div>
+<div class="pop-free"><span class="gift"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4.5 9 8 12 8zM12 8s2-5 4.5-3.5S15 8 12 8z"/></svg></span><strong>Free</strong><span>No card. No spam.</span></div>
+</div>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script src="/js/config.js?v=4fb9f41945"></script><script src="/js/site.js?v=4fb9f41945"></script></body></html>

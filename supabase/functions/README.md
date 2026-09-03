@@ -68,3 +68,22 @@ supabase secrets set \
 The service role key never reaches the browser. When `STRIPE_SECRET_KEY` is absent,
 the payment functions return `503 {"error":"payments_not_configured"}`, which the
 front-end already handles as a graceful "payments switch on soon" state.
+
+## Workshop waitlist + tickets (added 2026-09-03)
+
+| Function | verify_jwt | What it does | Secrets it reads |
+| --- | --- | --- | --- |
+| `ea-waitlist-join` | false | Public waitlist for /agent/ (POST), one-click leave (GET `?unsub=`). Rate limited, honeypot, sends the confirmation + a founder notice via Resend. | `RESEND_API_KEY` |
+| `ea-ticket-checkout` | false | Sells a seat: holds a pending `ea_orders` row, then Stripe Checkout (30-min expiry, `metadata.kind=ticket`). `$0` tiers fulfil immediately. GET `?session_id=` feeds /agent/thanks/. | `STRIPE_SECRET_KEY`, `RESEND_API_KEY` |
+| `ea-waitlist-announce` | false (checks the caller's JWT itself, admin only) | Emails the waitlist a date with each person's early-bird link; `test_to` sends one preview. | `SUPABASE_ANON_KEY`, `RESEND_API_KEY` |
+| `ea-stripe-webhook` | false | Extended: `kind=ticket` sessions fulfil through `_shared/tickets.ts`; full refunds void seats. | as before |
+
+Shared code lives in `_shared/email.ts` (Resend + branded layout) and `_shared/tickets.ts` (the
+single fulfilment path). Run the helper tests with `deno test -A _shared/email_test.ts`.
+
+**The repo copy of `ea-stripe-webhook` now matches the LIVE source** (signing secret comes from
+`ea_config` when `STRIPE_WEBHOOK_SECRET` is unset). Deploy it with:
+
+```bash
+supabase functions deploy ea-stripe-webhook --project-ref pgqdmnmessbbzyszjfvr --no-verify-jwt
+```
