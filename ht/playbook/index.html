@@ -69,6 +69,8 @@
 .job .note{margin-top:14px;padding-top:12px;border-top:1px dashed var(--ht-hair);font-size:13px;color:var(--muted);line-height:1.5}
 .job .note b{color:var(--ht-maroon)}
 .job code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--ht-ember);color:var(--ht-mahogany);padding:2px 7px;border-radius:6px;font-weight:700}
+.fh{font-family:var(--font);font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--ht-maroon);margin-top:40px}
+.fh+.pt{margin-top:14px}
 /* who publishes what */
 .pt{width:100%;border-collapse:separate;border-spacing:0;margin-top:30px;background:#fff;border:1px solid var(--ht-hair);border-radius:17px;overflow:hidden}
 .pt th{font-family:var(--font);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:14px 18px;border-bottom:1px solid var(--ht-hair)}
@@ -85,6 +87,8 @@
   .pt td{display:block;border:0;padding:3px 18px}
   .pt td:nth-child(2)::before{content:"Who: ";font-weight:700;color:var(--ht-maroon)}
   .pt td:nth-child(3)::before{content:"How: ";font-weight:700;color:var(--ht-maroon)}
+  .pt.ft td:nth-child(2)::before{content:"What: "}
+  .pt.ft td:nth-child(3)::before{content:"Who: "}
 }
 /* rules */
 .rules-band{background:var(--ht-mahogany);color:#f3e6dc}
@@ -152,7 +156,8 @@
 <li><a href="#rules"><b>04</b>The four rules</a></li>
 <li><a href="#rhythm"><b>05</b>The rhythm of a term</a></li>
 <li><a href="#map"><b>06</b>Where everything lives</a></li>
-<li><a href="#help"><b>07</b>When you are stuck</a></li>
+<li><a href="#features"><b>07</b>Every feature</a></li>
+<li><a href="#help"><b>08</b>When you are stuck</a></li>
 </ol>
 <div class="printbar"><button class="btn ht sm" type="button" onclick="window.print()">Print the playbook</button><a class="btn ht-line sm" href="/ht/hub/">Open the hub</a></div>
 </div></section>
@@ -316,8 +321,93 @@
 <div class="map2" id="map2"></div>
 </div></section>
 
+<section id="features"><div class="wrap">
+<span class="kick">07 &middot; Every feature</span>
+<h2 style="margin-top:15px">Everything the hub does, and who touches it.</h2>
+<p class="lead" style="margin-top:15px">The complete list. Anything marked <span class="tag self">In the hub</span> works right now on a member's own phone. Anything marked <span class="tag pub">Send it</span> is published for you the same day.</p>
+
+<h3 class="fh">On every space</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>The space home</td><td>Your office's front page: what the space is for, what is next, and who to reach.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+<tr><td>Announcements</td><td>Short notes in date order, newest first. Old ones slide down on their own.</td><td>Editor <span class="tag pub">Send it</span></td></tr>
+<tr><td>The calendar</td><td>What is coming, with the date, the room, and a live tag when it streams.</td><td>Editor <span class="tag pub">Send it</span></td></tr>
+<tr><td>Notices</td><td>A standing note that is not news: a rule, a deadline, a caution. It stays until you pull it.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+<tr><td>The tab strip</td><td>All thirteen spaces on every page. One sign-in covers all of them.</td><td>Built in</td></tr>
+<tr><td>Print</td><td>Every page prints without the navigation, ready for a folder.</td><td>Anyone <span class="tag self">In the hub</span></td></tr>
+</tbody></table>
+
+<h3 class="fh">Events, and who came</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>The agenda</td><td>The running order by time, room and lead. Guests add every day of it to their own calendar in one tap.</td><td>Editor <span class="tag pub">Send it</span></td></tr>
+<tr><td>Check-in</td><td>A short code on the screen at the front. A guest types it and is marked present.</td><td>Host reads it, member types it <span class="tag self">In the hub</span></td></tr>
+<tr><td>Undo a check-in</td><td>Anyone who taps by mistake can take it back. Nobody is stuck.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>The host line</td><td>A private message to whoever is running the day, from the bottom of the space.</td><td>Member writes, host reads <span class="tag self">In the hub</span></td></tr>
+<tr><td>Where it runs</td><td>Events, Board, Students, Learn and Outreach all have check-in. Events, Board and Students carry agendas.</td><td>&mdash;</td></tr>
+</tbody></table>
+
+<h3 class="fh">Live, and after</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>The live room</td><td>HT's own player. Anyone with the link can watch, with no account and no app to download.</td><td>Host goes live <span class="tag pub">Send it</span></td></tr>
+<tr><td>Room chat</td><td>Questions beside the picture while a session runs, so the room and the people at home hear the same answer.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>Replays</td><td>The recording lands on the shelf the same afternoon, on the same page.</td><td>Posts itself</td></tr>
+<tr><td>When a stream fails</td><td>The room says so and offers a retry. It never sits there as a black box.</td><td>Built in</td></tr>
+<tr><td>Where it runs</td><td>The Live room, the President's space, Career replays, and Admissions.</td><td>&mdash;</td></tr>
+</tbody></table>
+
+<h3 class="fh">Learning and materials</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>Tracks</td><td>A named run of sessions with real dates, like AI Literacy or the summer bridge. A gift can fund a block of seats on one.</td><td>The office that runs it <span class="tag pub">Send it</span></td></tr>
+<tr><td>Materials</td><td>Slides, handouts and links on one shelf, with a title a stranger would understand.</td><td>Editor <span class="tag pub">Send it</span></td></tr>
+<tr><td>Restricted materials</td><td>The title shows, the contents do not, so people know it exists and know to ask.</td><td>Editor marks it <span class="tag pub">Send it</span></td></tr>
+<tr><td>Steps</td><td>A numbered how-to on the page itself, for the one thing that space asks people to do.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+<tr><td>Questions</td><td>The short answers people actually ask, written on the page instead of in an inbox.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+</tbody></table>
+
+<h3 class="fh">People</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>The team list</td><td>Who runs the space, with a role, so a member knows who to reach.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+<tr><td>Message someone</td><td>A direct message that reaches a person, not a form. Turned on per space.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>The directory</td><td>A list you can search by name, program or skill. Alumni and Career both carry one.</td><td>Member searches <span class="tag self">In the hub</span></td></tr>
+<tr><td>The numbers</td><td>A few honest counts for that office. They are only as good as the day you last sent them.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+</tbody></table>
+
+<h3 class="fh">Community and student work</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>Channels and the feed</td><td>Posts by class year, org and office. The library posts its hours, a sophomore posts a study group.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>Likes and replies</td><td>The two things that keep a channel alive. A channel nobody replies in is a noticeboard.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>The leaderboard</td><td>Who showed up this month. Five points a post, four a reply. It rewards answering, not just posting.</td><td>Counts itself</td></tr>
+<tr><td>The Showcase</td><td>Student projects and research posters. When a donor funded that cohort, the same card lands on their page.</td><td>Faculty send, with permission <span class="tag pub">Send it</span></td></tr>
+<tr><td>Judges' scoring</td><td>Entries are anonymous to the judges and scored out of ten on clarity, impact and craft. It is a showcase score, never a grade.</td><td>Judges <span class="tag pub">Send it</span></td></tr>
+<tr><td>The timeline</td><td>How a thing got here, in order. The President's space and the Showcase both use one.</td><td>Space owner <span class="tag pub">Send it</span></td></tr>
+</tbody></table>
+
+<h3 class="fh">On a phone</h3>
+<table class="pt ft">
+<thead><tr><th>Feature</th><th>What it does</th><th>Who touches it</th></tr></thead>
+<tbody>
+<tr><td>Put it on the phone</td><td>Open the hub in Safari, tap Share, then Add to Home Screen. It opens like an app, with no app store.</td><td>Anyone <span class="tag self">In the hub</span></td></tr>
+<tr><td>Sign in</td><td>An HT email. Every page reads without it; signing in greets the member by name.</td><td>Member <span class="tag self">In the hub</span></td></tr>
+<tr><td>No account needed</td><td>Live sessions, replays, agendas and a donor's own page open for anyone with the link.</td><td>Built in</td></tr>
+<tr><td>In this preview</td><td>Check-ins, posts and messages are kept on the phone that made them, so you can try every feature without touching a real record.</td><td>&mdash;</td></tr>
+</tbody></table>
+
+<div class="note" style="margin-top:26px"><b>Next, not yet:</b> a certificate issued by HT at the end of a track, RSVP and a scannable code at the door, push notifications, and self-serve publishing so your editor posts without sending it over. Anything on this page that is not built yet says so where it appears.</div>
+</div></section>
+
 <section class="help" id="help"><div class="wrap">
-<span class="kick">07 &middot; Help</span>
+<span class="kick">08 &middot; Help</span>
 <h2 style="margin-top:15px">When you are stuck.</h2>
 <div class="help-grid">
 <div class="help-c"><b>Something is wrong on a page</b><p>Send the link and one sentence on what is wrong. Corrections go up the same day.</p></div>
