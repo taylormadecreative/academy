@@ -13,7 +13,8 @@ def _asset_ver():
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
-                "css/agent.css", "js/agent.js", "js/founder.js"):
+                "css/agent.css", "js/agent.js", "js/founder.js",
+                "opil/hub/hub.css", "opil/hub/hub.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -220,6 +221,27 @@ def _ensure_pwa_head(html):
     if "</head>" in html:
         return html.replace("</head>", block + "\n</head>", 1)
     return html
+
+# OPIL Lab Hub surfaces have the same stale-cache problem: hub.css and hub.js were
+# referenced with no ?v= at all, so a browser (and sw.js, which is cache-first on static
+# assets) could serve a months-old copy forever. They stamp separately from APP_PAGES
+# because these are program surfaces and must NOT get the PWA/Capacitor head block.
+HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
+             "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase")
+_HUB_ASSET_RX = re.compile(r'(/opil/hub/hub\.(?:css|js))(?:\?v=[a-z0-9]+)?')
+
+def stamp_hub_pages(ver):
+    stamped = []
+    for name in HUB_PAGES:
+        f = ROOT / name / "index.html"
+        if not f.exists():
+            continue
+        html = f.read_text()
+        new = _HUB_ASSET_RX.sub(rf'\1?v={ver}', html)
+        if new != html:
+            f.write_text(new)
+            stamped.append(name)
+    return stamped
 
 def stamp_app_pages(ver):
     stamped = []
@@ -1031,7 +1053,9 @@ if __name__ == "__main__":
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
     write_meta()
     stamped = stamp_app_pages(ASSET_VER)
+    hub_stamped = stamp_hub_pages(ASSET_VER)
     print("built: home, store, 2 product pages, pricing, about, community, + 4 stubs")
     print("built: 404.html, robots.txt, sitemap.xml")
     print(f"asset cache-bust version: {ASSET_VER}")
     print(f"stamped app pages (asset ?v= only, bodies untouched): {', '.join(stamped) or 'none'}")
+    print(f"stamped hub pages (hub.css/hub.js ?v= only): {', '.join(hub_stamped) or 'none'}")
