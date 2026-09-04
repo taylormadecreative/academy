@@ -1,5 +1,6 @@
 # HT Hub content schema (for anyone adding a space)
 
+NOTE: this doc lives OUTSIDE the served tree on purpose (it carries the internal never-say list).
 Every space is ONE file: `ht/hub/data/<key>.js` that sets `HT.spaces.<key> = {...}`. Shells load `/ht/hub/data.js`
 (core) then `/ht/hub/data/<key>.js` then `/ht/hub/ht.js`. The runtime renders `document.body[data-space]`.
 
@@ -27,7 +28,7 @@ HT.spaces.alumni = {
 - `tracks` {items:[{title,text,tag,sessions:[{no,title,date,done,status}],cert:{title,text,status,cls}}]}
 - `feed`   {channels:['Class of 2027',...], posts:[{who,chan,when,text,likes}]}
 - `chat`   {room:'unique-key', seed:[{who,text,when,me}]}
-- `checkin`{session,sub,code:'RAMS26',hint}
+- `checkin`{session,sub,code:'HILL26',hint}
 - `replays`{items:[{title,date,len,poster,tag}]}
 - `player` {cardTitle,title,live:false,stream,poster,now:{title,who,when}}   (stream defaults to the $0 rehearsal loop)
 - `timeline` {items:[{when,title,text,done}]}

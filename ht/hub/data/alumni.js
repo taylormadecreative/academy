@@ -44,14 +44,14 @@ HT.spaces.alumni = {
           { no: '02', title: 'Writing, email, and the report you dread', date: 'Sep 22 · 6:30 PM CT', status: 'Next' },
           { no: '03', title: 'Spreadsheets, research, and the numbers you present', date: 'Oct 13 · 6:30 PM CT', status: 'Upcoming' },
           { no: '04', title: 'Your own small automation, built in the room', date: 'Nov 3 · 6:30 PM CT', status: 'Upcoming' } ],
-        cert: { title: 'Certificate of completion', text: 'Issued by Alumni Relations with Taylormade Academy after all four sessions and one finished task from your own work.', status: 'Sample', cls: 'sample' } } ] },
+        cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on your page after all four sessions and one finished task from your own work', status: 'Next', cls: 'soft' } } ] },
     { type: 'calendar', side: true, title: 'The alumni calendar', meta: 'Sample', items: [
       { date: '2026-09-17', title: 'Austin chapter meetup', where: 'Near campus · 6:30 PM' },
       { date: '2026-09-22', title: 'AI for alumni professionals · Session 02', where: 'Live in the hub · 6:30 PM CT', tag: 'Live', tagCls: 'live' },
       { date: '2026-10-15', title: 'Mentor matching opens for spring', where: 'Mentors · Alumni Relations' },
       { date: '2026-11-17', title: 'Alumni giving update goes out from each page', where: 'Alumni Relations with Advancement' },
       { date: '2026-12-10', title: 'Class of 2017 reunion planning call', where: 'Class of 2017 channel' },
-      { date: '2027-02-12', title: 'Homecoming 2027', where: 'Campus · final dates announced by HT', tag: 'Save the month', tagCls: 'soft' } ] },
+      { day: 'Feb', mon: '2027', title: 'Homecoming 2027', where: 'Campus · dates announced by HT', tag: 'Save the month', tagCls: 'soft' } ] },
     { type: 'announcements', side: true, title: 'From Alumni Relations', meta: 'Sample', items: [
       { who: 'Alumni Relations', when: 'Today', text: 'Reunion class channels for 1977, 1997, 2002, 2017, and 2022 are open. Class agents have the keys.' },
       { who: 'Mentorship', when: 'Yesterday', text: 'Five mentors are taking mentees this fall. Students find you by program and skill, and you say yes or not yet.' },

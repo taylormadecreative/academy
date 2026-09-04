@@ -19,8 +19,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
-<link rel="stylesheet" href="/ht/ht.css?v=1">
+<link rel="stylesheet" href="/ht/ht.css?v=1ff8f1fd">
 <script>document.documentElement.classList.add('js')</script>
+<script src="/js/pwa.js" defer></script>
 <style>
 .pg{--pad:clamp(20px,4.6vw,54px)}
 .pg .wrap{max-width:1440px;margin-inline:auto;padding-inline:var(--pad)}
@@ -30,7 +31,7 @@
 .pg .kick::after{content:"";display:block;width:44px;height:3px;background:var(--ht-gold);margin-top:10px}
 .pg .lead{font-size:clamp(16.5px,1.5vw,19px);line-height:1.6;color:var(--ink-2);max-width:58ch}
 /* hero: maroon field, Ada cutout large, flush bottom, masking the tail of the display line */
-.hero{background:var(--ht-maroon);color:#fff;position:relative;overflow:hidden;padding-block:clamp(56px,7vw,110px) 0}
+.pg section.hero{background:var(--ht-maroon);color:#fff;position:relative;overflow:hidden;padding-block:clamp(56px,7vw,110px) 0}
 .hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:clamp(20px,3vw,40px);align-items:end;min-height:min(78vh,760px)}
 .hero .copy{padding-bottom:clamp(56px,7vw,110px);position:relative;z-index:2}
 .hero .lock{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -70,6 +71,17 @@
 .rt .st{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:980px;padding:3px 9px;margin-left:8px;vertical-align:1px}
 .rt .st.b{background:#e6f4ec;color:#0f5c3a}.rt .st.r{background:#fff3c4;color:#6b4d00}
 .rt-wrap{overflow-x:auto}
+@media(max-width:700px){
+  .rt thead{display:none}
+  .rt tr{display:block;padding:14px 0;border-bottom:1px solid var(--ht-hair)}
+  .rt tr:last-child{border-bottom:0}
+  .rt td{display:block;width:auto;border:0;padding:3px 16px}
+  .rt td:first-child{font-size:15.5px;padding-top:4px;width:auto}
+  .rt td:nth-child(2){color:var(--muted);font-size:13.5px}
+  .rt td:nth-child(2)::before{content:"Usually: ";font-weight:700}
+  .rt td:nth-child(3)::before{content:"In the HT Hub: ";font-weight:700;color:var(--ht-maroon)}
+  .rt-wrap{overflow-x:visible}
+}
 .honest{margin-top:22px;font-size:14px;color:var(--muted);max-width:70ch}
 /* ada band */
 .ada-band{background:var(--ht-mahogany);color:#f3e6dc}
@@ -77,14 +89,15 @@
 .ada-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,72px);align-items:center}
 .ada-frame{position:relative;border-radius:22px;overflow:hidden;aspect-ratio:4/5;max-width:440px;background:#000;box-shadow:0 40px 80px -34px rgba(0,0,0,.7)}
 .ada-frame video,.ada-frame img{width:100%;height:100%;object-fit:cover;display:block}
-.ada-frame .ring{position:absolute;inset:auto auto 16px 16px;display:inline-flex;align-items:center;gap:8px;background:rgba(59,0,0,.75);border:1px solid rgba(255,204,0,.4);border-radius:980px;padding:7px 12px;font-size:12px;font-weight:700;color:#fff}
+.ada-frame .ring{position:absolute;inset:auto auto 16px 16px;display:inline-flex;align-items:center;gap:8px;background:rgba(59,0,0,.8);border:1px solid rgba(255,204,0,.45);border-radius:980px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;font-family:inherit;cursor:pointer}
+.ada-frame .ring:hover{background:rgba(59,0,0,.95)}
 .ada-frame .ring i{width:8px;height:8px;border-radius:50%;background:var(--ht-gold);box-shadow:0 0 0 4px rgba(255,204,0,.25);animation:htpulse 1.6s infinite}
 .jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
 .job{border-top:2px solid var(--ht-gold);padding-top:12px}
 .job em{font-style:normal;font-family:var(--font);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#e2b9aa}
 .job b{display:block;color:#fff;font-size:16px;margin-top:6px}
 .job p{font-size:13.5px;color:#e6cfc4;margin-top:6px;max-width:none}
-.rule{margin-top:26px;padding:14px 18px;border:1px solid rgba(255,204,0,.3);border-radius:14px;background:rgba(255,204,0,.07);font-size:14px;color:#fbe9b3;max-width:62ch}
+.ada-rule{margin-top:26px;padding:14px 18px;border:1px solid rgba(255,204,0,.3);border-radius:14px;background:rgba(255,204,0,.07);font-size:14px;line-height:1.55;color:#fbe9b3;max-width:62ch}
 @media(max-width:860px){.ada-grid{grid-template-columns:1fr}.jobs{grid-template-columns:1fr}}
 /* proof */
 .proof{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
@@ -116,9 +129,9 @@
 .close h2{color:#fff}.close .kick{color:var(--ht-gold)}.close .kick::after{background:#fff;opacity:.5}
 .close p{color:#f3d9cf}
 .close .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-.rv{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.js .rv{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
 </style>
 </head><body class="ht pg">
 
@@ -151,23 +164,23 @@
 <div class="rv"><span class="kick">One platform</span><h2 style="margin-top:16px">The jobs that usually run<br>on six subscriptions.</h2>
 <p class="lead" style="margin-top:16px">Most campuses rent these one at a time. The hub runs them together, under HT&rsquo;s brand, with one login and one place to look. What is built today is marked built. What is next is marked next.</p></div>
 <div class="rt-wrap rv"><table class="rt">
-<thead><tr><th>What a campus needs</th><th>How it usually gets done</th><th>In the HT Hub</th></tr></thead>
+<thead><tr><th>What a campus needs</th><th>Usually</th><th>In the HT Hub</th></tr></thead>
 <tbody>
-<tr><td>Event app: agenda, speakers, announcements, check-in, attendee messages</td><td>A rented event app per event</td><td>The Events space <span class="st b">Built</span></td></tr>
-<tr><td>Live seminars, town halls, donor briefings, with chat and replays</td><td>A webinar tool, then a video host for the recording</td><td>The live room on HT&rsquo;s own player <span class="st b">Built</span></td></tr>
-<tr><td>Community: channels, feed, direct messages</td><td>A chat app the students picked, and a second one for alumni</td><td>The Community space <span class="st b">Built</span></td></tr>
-<tr><td>Cohort programs: applications, teams, assignments, surveys, judging, showcase</td><td>Forms, spreadsheets, and email threads</td><td>The program pattern already running for the Atlanta University Center <span class="st b">Built</span></td></tr>
-<tr><td>Sponsored seats: a named cohort, one invoice, no student pays</td><td>A giving-page vendor plus a manual list</td><td>Fund a cohort <span class="st b">Built</span></td></tr>
-<tr><td>A phone app with HT&rsquo;s icon on the home screen</td><td>A custom app vendor, or nothing</td><td>The HT Hub installs from Safari today; the store app rides the Academy app <span class="st b">Built</span></td></tr>
+<tr><td>An events page: agenda, speakers, check-in, a line to the host</td><td>A separate event app</td><td>The Events space, and it plugs into whatever Marketing builds <span class="st b">Built</span></td></tr>
+<tr><td>Live seminars, town halls, donor briefings, with chat and replays</td><td>A webinar tool plus a video host</td><td>The live room on HT&rsquo;s own player <span class="st b">Built</span></td></tr>
+<tr><td>Community: channels, feed, direct messages</td><td>A separate community app</td><td>The Community space <span class="st b">Built</span></td></tr>
+<tr><td>Cohort programs: applications, teams, assignments, surveys, judging, showcase</td><td>Forms and spreadsheets</td><td>The program pattern already running for the Atlanta University Center <span class="st b">Built</span></td></tr>
+<tr><td>Sponsored seats: a named cohort, one gift to the University, no student pays</td><td>A giving page plus a list</td><td>Fund a cohort <span class="st b">Built</span></td></tr>
+<tr><td>A phone app with HT&rsquo;s icon on the home screen</td><td>A custom app vendor, or none</td><td>The HT Hub installs from the phone&rsquo;s browser today <span class="st b">Built</span><br>A store listing rides the Academy app&rsquo;s own release <span class="st r">Next</span></td></tr>
 <tr><td>Certificates for co-curricular tracks</td><td>A credential vendor</td><td>Issued from a track, landing on the student&rsquo;s page and the donor&rsquo;s <span class="st r">Next</span></td></tr>
 <tr><td>Ticketing, RSVP, and a code at the door</td><td>A ticketing site</td><td>RSVP and QR check-in in Events <span class="st r">Next</span></td></tr>
-<tr><td>Push notifications</td><td>Whatever the rented app offered</td><td>From the hub, per space <span class="st r">Next</span></td></tr>
+<tr><td>Push notifications</td><td>A separate app</td><td>From the hub, per space <span class="st r">Next</span></td></tr>
 </tbody></table></div>
 <p class="honest rv">This is everything <b>around</b> the classroom. The University&rsquo;s course system stays exactly where it is.</p>
 </div></section>
 
 <section class="ada-band" id="ada"><div class="wrap"><div class="ada-grid">
-<div class="rv"><div class="ada-frame"><video muted loop playsinline autoplay preload="metadata" poster="/ht/img/ada-idle-poster.jpg" aria-label="Ada, the HT student ambassador"><source src="/ht/img/ada-idle-loop.mp4" type="video/mp4"></video><span class="ring"><i></i>Ada &middot; living portrait</span></div></div>
+<div class="rv"><div class="ada-frame"><video muted loop playsinline autoplay preload="metadata" poster="/ht/img/ada-idle-poster.jpg" aria-label="Ada, the HT student ambassador"><source src="/ht/img/ada-idle-loop.mp4" type="video/mp4"></video><button type="button" class="ring" aria-pressed="true" onclick="var v=this.parentNode.querySelector('video');var p=v.paused;p?v.play():v.pause();this.setAttribute('aria-pressed',String(p));this.querySelector('span').textContent=p?'Ada · living portrait':'Paused'"><i></i><span>Ada &middot; living portrait</span></button></div></div>
 <div class="rv"><span class="kick">Meet Ada</span><h2 style="margin-top:16px">She opens the door.<br>The University does the talking.</h2>
 <p class="lead" style="margin-top:16px;color:#e6cfc4">Ada is HT&rsquo;s student ambassador, built for the University and licensed to it. She greets each member by name, tells the week, and introduces the students a gift reached. She never makes the ask. The President does.</p>
 <div class="jobs">
@@ -175,7 +188,7 @@
 <div class="job"><em>Job two</em><b>Tells the week</b><p>Announcements from every office, read once, in one place.</p></div>
 <div class="job"><em>Job three</em><b>Introduces the students</b><p>First names, with permission. The faces behind a fund.</p></div>
 </div>
-<div class="rule">Every word Ada says is approved by the University before it is produced. She is the voice of the students a gift reaches, never the voice of the University.</div>
+<div class="ada-rule">Every word Ada says is approved by the University before it is produced. She is the voice of the students a gift reaches, never the voice of the University.</div>
 </div>
 </div></div></section>
 
@@ -184,14 +197,14 @@
 <div class="proof rv">
 <article class="pf"><div class="img"><img src="/opil/dasci-card.jpg" alt="Da'Sci, the AI host of the AUC Data Challenge Finale" loading="lazy"></div><div class="b"><em>Atlanta University Center</em><b>The AI Thread &middot; Open Payments Innovation Lab</b><p>Registration, a lab hub, sessions, check-in, materials, surveys, a live room, messages, judging, and a showcase, for the AUC Data Science Initiative.</p><a href="/opil/">See the program &rarr;</a></div></article>
 <article class="pf"><div class="img"><img src="/ht/img/cover-dais.jpg" alt="Dr. Wallace at commencement" loading="lazy"></div><div class="b"><em>Huston-Tillotson</em><b>The ask and the thank-you, by name</b><p>Personal donor pages for the solicitation and the follow-up after, prepared for Institutional Advancement, with Ada throughout.</p><a href="https://taylormadecreative.github.io/ht-advancement/">Open the donor deck &rarr;</a></div></article>
-<article class="pf"><div class="img"><img src="/assets/live-demo/poster.jpg" alt="Nelson Taylor teaching live in the Taylormade Academy studio" loading="lazy"></div><div class="b"><em>Taylormade Academy</em><b>The live room</b><p>A branded player with chat, an upcoming shelf, and replays. It is the same room the HT Hub uses, rehearsing today at no cost until the first real broadcast.</p><a href="/ht/hub/live/">Step into the HT live room &rarr;</a></div></article>
+<article class="pf"><div class="img"><img src="/assets/live-demo/poster.jpg" alt="Nelson Taylor teaching live in the Taylormade Academy studio" loading="lazy"></div><div class="b"><em>Taylormade Academy</em><b>The live room</b><p>A branded player with chat, an upcoming shelf, and replays. It is the same room the HT Hub uses, rehearsing today until the first real broadcast is booked.</p><a href="/ht/hub/live/">Step into the HT live room &rarr;</a></div></article>
 </div>
 </div></section>
 
 <section class="phone-band"><div class="wrap"><div class="phone-grid">
 <div class="rv"><span class="kick">The HT app</span><h2 style="margin-top:16px">On the phone they already carry.</h2>
-<p class="lead" style="margin-top:16px">The hub installs from Safari with HT&rsquo;s own icon and opens like an app: the agenda at a donor weekend, the check-in code at orientation, the live room at noon. No app store visit needed. The store version rides the Academy&rsquo;s own app.</p>
-<div class="install"><img src="/ht/img/icon-192.png" alt="HT Hub app icon"><div><b>Add to Home Screen</b><span>Open <a href="/ht/hub/" style="color:var(--ht-maroon);font-weight:700">taylormadeacademy.com/ht/hub</a> in Safari, tap Share, then Add to Home Screen.</span></div></div>
+<p class="lead" style="margin-top:16px">The hub installs from the phone&rsquo;s browser with HT&rsquo;s own icon and opens like an app: the agenda at a donor weekend, the check-in code at orientation, the live room at noon. No app store visit needed. A store listing would ride the Academy app&rsquo;s own release.</p>
+<div class="install"><img src="/ht/img/icon-192.png" alt="HT Hub app icon"><div><b>Add to Home Screen</b><span>On an iPhone, open <a href="/ht/hub/" style="color:var(--ht-maroon);font-weight:700">taylormadeacademy.com/ht/hub</a> in Safari, tap Share, then Add to Home Screen. On Android, open the browser menu and tap Add to Home screen.</span></div></div>
 </div>
 <div class="shot rv"><img src="/ht/img/shot-hub-phone.jpg" alt="The HT Hub home on a phone" width="780" height="1200" loading="lazy"></div>
 </div></div></section>
@@ -220,14 +233,14 @@
 <div class="foot-col"><h4>The partnership</h4><a href="/ht/fund/">Fund a cohort</a><a href="/opil/">The AUC program</a><a href="/login/">Sign in</a></div>
 </div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. Huston-Tillotson University marks are the property of the University.</span>
-<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a></span>
-<span class="mono">WHERE EVERY SOUL FINDS ITS STRENGTH</span></div>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7;display:inline-block;padding:8px 0">Privacy</a><a href="/terms/" style="color:#8fa0c7;display:inline-block;padding:8px 0">Terms</a></span>
+<span class="mono">PREPARED FOR HUSTON-TILLOTSON UNIVERSITY</span></div>
 </div></footer>
 
 <script src="/js/config.js?v=3b7d540f53"></script>
-<script src="/ht/hub/data.js?v=1"></script>
-<script src="/ht/hub/data/all.js?v=1"></script>
-<script src="/ht/hub/ht.js?v=1"></script>
+<script src="/ht/hub/data.js?v=1ff8f1fd"></script>
+<script src="/ht/hub/data/all.js?v=1ff8f1fd"></script>
+<script src="/ht/hub/ht.js?v=1ff8f1fd"></script>
 <script>
 (function(){
   /* offices map from the hub data */

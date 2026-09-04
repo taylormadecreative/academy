@@ -10,18 +10,18 @@ HT.spaces.career = {
       text: 'Every student has a page with their projects on it. Employers search the directory by program and skill, the employer showcase brings them to campus, and the mock interview seminars replay the same afternoon. The desk reads resumes by appointment and answers the same day.',
       ctas: [{ label: 'Search the directory', href: '#directory', style: 'ht' }, { label: 'Employer showcase', href: '#employers', style: 'ht-line' }],
       image: '/ht/img/r-student-center.jpg', imageAlt: 'Rendering of the student center',
-      ada: { text: 'Three internship postings went up this week, all from employers who came to the fall showcase. Your portfolio page is current as of Session 07. Want the mock interview slot on the 14th?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on October 26. Want the mock interview slot on the 14th?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'directory', id: 'directory', title: 'Student portfolio directory', meta: 'Sample · first names only', search: true, items: [
-      { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2027', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },
-      { name: 'Maribel A.', program: 'Biology', year: 'Class of 2028', skills: ['Lab methods', 'Data entry', 'Tutoring'], tag: 'Open to internships', tagCls: 'green' },
-      { name: 'Jalen W.', program: 'Communication', year: 'Class of 2027', skills: ['Video', 'Social content', 'Writing'] },
+      { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2029', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },
+      { name: 'Maribel A.', program: 'Biology', year: 'Class of 2029', skills: ['Lab methods', 'Data entry', 'Tutoring'], tag: 'Open to internships', tagCls: 'green' },
+      { name: 'Jalen W.', program: 'Communication', year: 'Class of 2029', skills: ['Video', 'Social content', 'Writing'] },
       { name: 'Jasmine C.', program: 'Biology, pre-nursing', year: 'Class of 2027', skills: ['Patient care', 'Scheduling', 'Spanish'], tag: 'Open to internships', tagCls: 'green' },
-      { name: 'Marcus T.', program: 'Business Administration', year: 'Class of 2026', skills: ['Sales', 'Spreadsheets', 'Pitching'], tag: 'Graduating May', tagCls: 'soft' },
+      { name: 'Marcus T.', program: 'Business Administration', year: 'Class of 2027', skills: ['Sales', 'Spreadsheets', 'Pitching'], tag: 'Graduating May', tagCls: 'soft' },
       { name: 'Aaliyah R.', program: 'Kinesiology', year: 'Class of 2028', skills: ['Coaching', 'Event setup', 'First aid'] },
       { name: 'Tre J.', program: 'Computer Science', year: 'Class of 2030', skills: ['Web pages', 'Python', 'Accessibility'], tag: 'Open to internships', tagCls: 'green' },
       { name: 'Simone A.', program: 'Computer Science', year: 'Class of 2029', skills: ['Data', 'Maps', 'Presenting'] },
       { name: 'Kiana M.', program: 'Biology', year: 'Class of 2028', skills: ['Field sampling', 'Reports', 'Photography'], tag: 'Open to internships', tagCls: 'green' },
-      { name: 'Devon C.', program: 'Education', year: 'Class of 2027', skills: ['Tutoring', 'Lesson planning', 'Public speaking'], tag: 'Graduating May', tagCls: 'soft' } ] },
+      { name: 'Devon C.', program: 'Education', year: 'Class of 2027', skills: ['Tutoring', 'Lesson planning', 'Public speaking'], tag: 'Open to internships', tagCls: 'green' } ] },
     { type: 'cards', id: 'employers', title: 'Employer showcase', meta: 'Sample employers · never a real name here', items: [
       { meta: 'Technology · Austin', title: 'An Austin technology employer (sample)', text: 'Two summer internships in support and one in design. They read the directory first.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'Sample', foot: 'Posting in the hub' },
       { meta: 'Health · Central Texas', title: 'A regional health system (sample)', text: 'Patient-care assistant roles for nursing and kinesiology students, with a spring session on campus.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Posting in the hub' },
@@ -49,7 +49,7 @@ HT.spaces.career = {
       { kind: 'DOC', title: 'The HT resume template', sub: 'One page, in the University\'s type', restricted: true }, { kind: 'DOC', title: 'Interview guide', sub: 'Twelve questions and how to answer them', restricted: true },
       { kind: 'PLAY', title: 'Your portfolio page', sub: 'AI Literacy · Session 07', href: '/ht/hub/learn/' } ] },
     { type: 'announcements', side: true, title: 'Career desk', meta: 'Sample', items: [
-      { who: 'Career Services', when: 'Today', text: 'Three internship postings from the fall showcase employers are open in the hub.' },
+      { who: 'Career Services', when: 'Today', text: 'Three internship postings from last spring\'s showcase employers are open in the hub.' },
       { who: 'Career Services', when: 'Yesterday', text: 'Mock interview slots for the 14th are open. Book from the calendar.' },
       { who: 'Alumni Relations', when: 'Monday', text: 'Alumni-owned businesses posted two part-time roles in the Alumni channel.' } ] }
   ]

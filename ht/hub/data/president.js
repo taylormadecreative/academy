@@ -34,7 +34,7 @@ HT.spaces.president = {
       cta: { label: 'See how a donor page carries it', href: '/ht/hub/advancement/#pages', style: 'ht' } },
     { type: 'chat', id: 'room', title: 'The town hall room', meta: 'Open now · questions read Thursday', room: 'townhall', seed: [
       { who: 'Ada · HT student ambassador', text: 'Welcome to the town hall room. Leave your question here before noon on Thursday and the office pulls it into the run of show.', when: 'Sample · Tuesday' },
-      { who: 'Jasmine R. · junior (sample)', text: 'Will the evening shuttle come up? The last loop leaves before the library closes.', when: 'Tuesday' },
+      { who: 'Jasmine R. · junior (sample)', text: 'Will the campus plan come up? I want to hear about the new student center.', when: 'Tuesday' },
       { who: 'Faculty · Business (sample)', text: 'Asking about the faculty development series and whether those sessions get recorded.', when: 'Tuesday' },
       { who: 'Marcus T. · first-year (sample)', text: 'First town hall for me. Do we ask here or stand up in the room?', when: 'Wednesday' },
       { who: 'Office of the President', text: 'Both. The room gets the mic first, then we read from here. The replay lands the same afternoon.', when: 'Wednesday' } ] },

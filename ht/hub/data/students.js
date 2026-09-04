@@ -7,7 +7,7 @@ HT.spaces.students = {
   stamp: 'Preview · sample content', headCta: { label: 'Orientation Week', href: '#orientation', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'Student Affairs', title: 'Your first week, and every week after.',
-      text: 'Orientation Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs that end in a certificate. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
+      text: 'Orientation Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
       ctas: [{ label: 'Orientation Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
       image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus',
       ada: { text: 'Welcome to the Hill, Class of 2030. Tuesday starts at 8:30 with check-in and welcome bags at the main entrance. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
@@ -32,14 +32,14 @@ HT.spaces.students = {
       { meta: 'STEM · 33 members', title: 'STEM club', text: 'Study groups, the research showcase, and a build night each month.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Media · 22 members', title: 'Creative media collective', text: 'Photo, video, and the campus channel\'s weekly recap.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Service · 36 members', title: 'Service society', text: 'Saturday service in East Austin. Hours logged in the hub.', foot: 'Join the channel →', href: '/ht/hub/community/' } ] },
-    { type: 'tracks', title: 'Leadership programs', meta: 'Certificates issued by HT · sample', items: [
+    { type: 'tracks', title: 'Leadership programs', meta: 'Certificate from HT at the end · next', items: [
       { title: 'Emerging Leaders', text: 'Six sessions for first- and second-year students who want to run something.', tag: 'Fall 2026', sessions: [
-        { no: '01', title: 'What a leader on the Hill does', date: 'Sep 22 · done', done: true }, { no: '02', title: 'Running a meeting people come back to', date: 'Oct 6', status: 'Next' }, { no: '03', title: 'Money and a budget', date: 'Oct 20', status: 'Upcoming' },
+        { no: '01', title: 'What a leader on the Hill does', date: 'Sep 22 · 5:00 PM', status: 'Next' }, { no: '02', title: 'Running a meeting people come back to', date: 'Oct 6', status: 'Upcoming' }, { no: '03', title: 'Money and a budget', date: 'Oct 20', status: 'Upcoming' },
         { no: '04', title: 'Asking for help', date: 'Nov 3', status: 'Upcoming' }, { no: '05', title: 'Your org\'s channel', date: 'Nov 17', status: 'Upcoming' }, { no: '06', title: 'Passing it on', date: 'Dec 1', status: 'Upcoming' } ],
-        cert: { title: 'Certificate of completion, issued by HT', text: 'Lands on the student\'s page when the program ends', status: 'Sample', cls: 'sample' } },
+        cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } },
       { title: 'Peer mentors', text: 'Four sessions for the students who run Orientation Week.', tag: 'Summer 2026', sessions: [
         { no: '01', title: 'The first week, from their side', date: 'Aug 18 · done', done: true }, { no: '02', title: 'When someone is struggling', date: 'Aug 20 · done', done: true }, { no: '03', title: 'The hub, the codes, the calendar', date: 'Aug 25 · done', done: true }, { no: '04', title: 'Day-of rehearsal', date: 'Sep 4', status: 'Next' } ],
-        cert: { title: 'Certificate of completion, issued by HT', text: 'Lands on the student\'s page when the program ends', status: 'Sample', cls: 'sample' } } ] },
+        cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Seminar series with attendance', meta: 'Check-in code on screen', items: [
       { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', foot: 'Check-in code on screen' },
       { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', foot: 'Check-in code on screen' },
@@ -48,7 +48,7 @@ HT.spaces.students = {
     { type: 'cta', title: 'Everything on the Hill, one sign-in.', text: 'Your orgs, your seminars, your first week, and the campus channel, all in the same place as the live room.', primary: { label: 'Open the Community', href: '/ht/hub/community/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Student Affairs desk', meta: 'Sample', items: [
       { who: 'Student Affairs', when: 'Today', text: 'Orientation Week codes are shown on the screen at each session. One tap marks you present.' },
-      { who: 'Residence life', when: 'Yesterday', text: 'Hall meetings are Tuesday at 5. Bring your ID.' },
+      { who: 'Residence life', when: 'Yesterday', text: 'Hall meetings are Tuesday at 7. Bring your ID.' },
       { who: 'Student orgs', when: 'Monday', text: 'The clubs fair is Wednesday at 2:30 on the library lawn. Every org has a table and a channel.' } ] },
     { type: 'calendar', side: true, title: 'This month', meta: 'Sample', items: [
       { date: '2026-09-08', title: 'Orientation Week begins', where: 'Main entrance · 8:30 AM' }, { date: '2026-09-09', title: 'Clubs and organizations fair', where: 'The library lawn · 2:30 PM' },

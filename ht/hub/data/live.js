@@ -11,8 +11,8 @@ HT.spaces.live = {
       ctas: [{ label: 'Open the room', href: '#room', style: 'ht' }, { label: 'The replay shelf', href: '#replays', style: 'ht-line' }],
       image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais in the auditorium at Huston-Tillotson',
       ada: { text: 'The next live session is the fall town hall, Thursday at noon. Open the room a few minutes early. The rehearsal loop is playing so you can check your sound.', when: 'Ada · HT student ambassador · sample line' } },
-    { type: 'player', id: 'room', cardTitle: 'The live room', meta: 'Rehearsal loop now · the real broadcast goes here', title: 'The HT live room', live: false, poster: '/ht/img/hero-flyover-poster.jpg',
-      now: { title: 'President\'s Fall Briefing for donors', who: 'Dr. Melva K. Wallace · for the people behind each gift', when: 'Thursday, Oct 8 · 12:00 PM CT' } },
+    { type: 'player', id: 'room', cardTitle: 'The live room', meta: 'The real broadcast goes here', title: 'The HT live room', live: false, poster: '/ht/img/hero-flyover-poster.jpg',
+      now: { title: 'Fall town hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, Sep 10 · 12:00 PM CT' } },
     { type: 'stats', items: [{ n: '8', label: 'Live sessions on the calendar (sample)' }, { n: '6', label: 'Replays on the shelf (sample)' }, { n: 'Same day', label: 'The replay lands after each session' }, { n: '5', label: 'Offices using the room (sample)' }] },
     { type: 'replays', id: 'replays', title: 'The replay shelf', meta: 'Sample recordings · captioned', items: [
       { title: 'Fall Convocation address', date: 'Aug 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Office of the President' },

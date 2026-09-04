@@ -1,5 +1,5 @@
 /* The HT Hub — Huston-Tillotson × Taylormade Academy. Shared runtime.
-   Renders a space from window.HT (see SCHEMA.md), then tries to greet a signed-in Academy member.
+   Renders a space from window.HT (see docs/superpowers/specs/ht-hub-schema.md), then tries to greet a signed-in Academy member.
    Everything renders for everyone (preview with sample content); auth is additive, never blocking. */
 (function () {
   'use strict';
@@ -208,8 +208,7 @@
   function render(key) {
     var space = key === 'home' ? HT.home : HT.spaces[key];
     var root = document.getElementById('htRoot'); if (!root || !space) return;
-    var head = '<a class="ht-skip" href="#htMain">Skip to content</a>' +
-      '<div class="ht-head"><div class="hub-wrap"><div>' +
+    var head = '<div class="ht-head"><div class="hub-wrap"><div>' +
       '<div class="ht-lockup"><img src="/ht/img/ht-wordmark-maroon.png" alt="Huston-Tillotson University"><span class="x" aria-hidden="true">×</span><span class="tma"><img src="/assets/logo-nav.webp" alt="">Taylormade Academy</span></div>' +
       h`<h1>${space.title === 'Home' ? 'The HT Hub' : space.title}</h1>` + (space.office ? h`<div class="kick" style="margin-top:8px">${space.office}</div>` : h`<div class="kick" style="margin-top:8px">${space.kicker || 'One campus, one hub'}</div>`) + (space.sub ? h`<p class="sub">${space.sub}</p>` : '') +
       '</div><div class="side"><span class="mono">' + esc(space.stamp || 'Preview · sample content') + '</span>' + (space.headCta ? btn(space.headCta) : '') + '</div></div></div>' +
@@ -222,8 +221,11 @@
     wire(root, space);
     /* external links leave the hub in a new tab so the demo stays put */
     root.querySelectorAll('a[href^="http"]').forEach(function (a) { if (a.hostname !== location.hostname) { a.target = '_blank'; a.rel = 'noopener'; } });
-    /* keep the active tab in view on a phone */
-    var on = root.querySelector('.ht-tab.on'); if (on && on.scrollIntoView) { try { on.scrollIntoView({ inline: 'center', block: 'nearest' }); window.scrollTo(0, 0); } catch (e) {} }
+    /* keep the active tab in view without moving the keyboard tab order */
+    var on = root.querySelector('.ht-tab.on'), strip = root.querySelector('.ht-tabs .hub-wrap');
+    if (on && strip && strip.scrollWidth > strip.clientWidth) {
+      try { strip.scrollLeft = Math.max(0, on.offsetLeft - (strip.clientWidth - on.offsetWidth) / 2); } catch (e) {}
+    }
     document.title = (space.title === 'Home' ? 'The HT Hub' : space.title + ' · The HT Hub') + ' · Huston-Tillotson × Taylormade Academy';
   }
 

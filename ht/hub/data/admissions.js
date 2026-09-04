@@ -16,7 +16,7 @@ HT.spaces.admissions = {
       { who: 'Nia B.', chan: 'Admitted 2031', when: 'Today', text: 'Just got my letter. From Houston, thinking biology. Who else is coming from Houston?', likes: 38 },
       { who: 'Andre K.', chan: 'Admitted 2031', when: 'Yesterday', text: 'Dallas here, business. Is the gospel choir open to first-years? Asking for me.', likes: 27 },
       { who: 'Residence life desk (sample)', chan: 'Housing', when: 'Yesterday', text: 'Housing forms open April 1. You pick a hall and a roommate preference in the hub. We answer here the same day.', likes: 41 },
-      { who: 'Financial aid desk (sample)', chan: 'Financial aid Q&A', when: 'Monday', text: 'Award letters go out the last week of March. If yours has a line you do not understand, post it here and we will read it with you.', likes: 52 },
+      { who: 'Financial aid desk (sample)', chan: 'Financial aid Q&A', when: 'Monday', text: 'Award letters go out the last week of March. If yours has a line you do not understand, message your counselor and we will read it with you.', likes: 52 },
       { who: 'Ms. Robinson (parent, sample)', chan: 'Parents', when: 'Monday', text: 'Is there a session for parents who have never done this before? First one in our family.', likes: 33 },
       { who: 'Admissions', chan: 'Parents', when: 'Monday', text: 'Yes. First-generation family night is March 18, live in the hub and in the auditorium. Bring every question.', likes: 45 },
       { who: 'Tasha L.', chan: 'Admitted 2031', when: 'Sunday', text: 'Toured the campus today. The bell tower is real and the library is quiet. See you all in August.', likes: 71 } ] },
@@ -44,7 +44,7 @@ HT.spaces.admissions = {
     { type: 'announcements', side: true, title: 'Admissions desk', meta: 'Sample', items: [
       { who: 'Admissions', when: 'Today', text: 'Admitted Student Night is March 4 at 6, live in the hub.' },
       { who: 'Residence life', when: 'Yesterday', text: 'Housing forms open April 1 in the hub.' },
-      { who: 'Financial aid', when: 'Monday', text: 'Award letters go out the last week of March. Questions in the Financial aid Q&A channel.' } ] },
+      { who: 'Financial aid', when: 'Monday', text: 'Award letters go out the last week of March. Message your counselor with questions about your own letter.' } ] },
     { type: 'people', side: true, title: 'Your admissions counselors (sample)', meta: 'A message reaches a person', dm: true, items: [
       { name: 'Counselor, Houston and Gulf Coast (sample)', role: 'Admissions', org: 'Replies same day' }, { name: 'Counselor, Dallas-Fort Worth (sample)', role: 'Admissions', org: 'Replies same day' },
       { name: 'Counselor, Austin and Central Texas (sample)', role: 'Admissions', org: 'Replies same day' }, { name: 'Transfer counselor (sample)', role: 'Admissions', org: 'Credits and the transfer path' } ] },

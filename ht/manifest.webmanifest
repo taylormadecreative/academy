@@ -1,26 +1,86 @@
 {
-  "name": "HT Hub · Huston-Tillotson × Taylormade Academy",
+  "name": "HT Hub \u00b7 Huston-Tillotson \u00d7 Taylormade Academy",
   "short_name": "HT Hub",
   "description": "Huston-Tillotson University on Taylormade Academy: events, live seminars, learning, community, and more, in one place.",
   "id": "/ht/hub/",
   "start_url": "/ht/hub/?utm_source=homescreen",
-  "scope": "/ht/",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
-  "orientation": "portrait",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#660100",
   "theme_color": "#660100",
   "lang": "en-US",
-  "categories": ["education"],
+  "categories": [
+    "education"
+  ],
   "icons": [
-    { "src": "/ht/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/ht/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/ht/img/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/ht/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/ht/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ht/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/ht/img/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/ht/img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Events", "url": "/ht/hub/events/?utm_source=homescreen", "icons": [{ "src": "/ht/img/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Live", "url": "/ht/hub/live/?utm_source=homescreen", "icons": [{ "src": "/ht/img/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Community", "url": "/ht/hub/community/?utm_source=homescreen", "icons": [{ "src": "/ht/img/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Events",
+      "url": "/ht/hub/events/?utm_source=homescreen",
+      "icons": [
+        {
+          "src": "/ht/img/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Live",
+      "url": "/ht/hub/live/?utm_source=homescreen",
+      "icons": [
+        {
+          "src": "/ht/img/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "url": "/ht/hub/community/?utm_source=homescreen",
+      "icons": [
+        {
+          "src": "/ht/img/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/ht/img/shot-hub-phone.jpg",
+      "sizes": "780x1200",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "The HT Hub home"
+    }
   ]
 }
