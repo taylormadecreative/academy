@@ -329,7 +329,8 @@ else {
     })();
 
     // admin check + preview toggle
-    const { data: isAdmin } = await supabase.rpc("ea_is_admin").catch(()=>({data:false}));
+    let isAdmin = false;
+    try { const { data } = await supabase.rpc("ea_is_admin"); isAdmin = !!data; } catch(_) {}
     const asFree = () => !!isAdmin && localStorage.getItem("ea_preview_free") === "1";
     if (isAdmin) {
       const t = document.createElement("button");
