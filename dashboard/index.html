@@ -60,6 +60,20 @@
   .libcard .cvph::after{content:"";width:30px;height:4px;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));}
   .libcard .m{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1;}
   .libcard h3{font-size:15.5px;font-weight:700;letter-spacing:-.01em;}
+  /* ---- program front door ---- */
+  .progcard{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 12% -20%,#12306c,var(--ink-panel));border:1px solid #1b3a78;border-radius:var(--r);box-shadow:var(--shadow-card);padding:clamp(18px,2.4vw,24px);display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+  .progcard::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-deep));}
+  .progcard .ptx{flex:1;min-width:240px;}
+  .progcard .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);}
+  .progcard .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(253,201,33,.18);}
+  .progcard h3{font-family:var(--display);font-size:clamp(19px,2.2vw,23px);font-weight:700;letter-spacing:-.02em;color:#fff;margin-top:8px;}
+  .progcard p{font-size:14px;color:#c7d4f5;margin-top:5px;max-width:52ch;}
+  .progcard .pacts{display:flex;gap:10px;flex-wrap:wrap;}
+  .progcard .btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold-deep));border-color:var(--gold-deep);color:var(--ink);box-shadow:0 10px 22px -10px rgba(253,201,33,.5);}
+  @media(hover:hover) and (pointer:fine){.progcard .btn.gold:hover{filter:brightness(1.06);box-shadow:0 12px 26px -10px rgba(253,201,33,.6);}}
+  .progcard .btn.ghost{border-color:rgba(255,255,255,.3);color:#fff;background:transparent;}
+  @media(hover:hover) and (pointer:fine){.progcard .btn.ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.5);}}
+  @media(max-width:640px){.progcard .pacts{width:100%}.progcard .pacts .btn{flex:1;justify-content:center}}
   /* ---- quick actions ---- */
   .quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
   .qtile{display:flex;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--hair);border-radius:16px;padding:14px 15px;box-shadow:var(--shadow-sm);transition:transform .18s var(--ease),border-color .18s var(--ease),box-shadow .18s var(--ease);}
@@ -213,6 +227,9 @@
       </div>
     </div>
 
+    <div class="sec-title hide" id="progTitle"><h2>Your programs</h2></div>
+    <div id="progWrap" class="hide"></div>
+
     <div class="sec-title" id="library"><h2>Your library</h2><a class="textlink" href="/store/">Browse the store &rarr;</a></div>
     <div id="libLoading" class="libgrid">
       <div class="skel"><div class="sk cvr"></div><div class="sk l1"></div><div class="sk l2"></div></div>
@@ -329,6 +346,37 @@ else {
     $("hi").textContent = "Welcome back, " + name + ".";
     document.getElementById("ava").innerHTML = BM.avatarHtml(name, prof && prof.avatar_url, '');
     if(me.created_at){ const d=new Date(me.created_at); if(!isNaN(d)) $("stSince").textContent = d.toLocaleDateString(undefined,{month:"short",year:"numeric"}); }
+
+    // program front door (OPIL): cohort members and program staff get a way in
+    (async()=>{
+      try{
+        const [roleRes, teamRes] = await Promise.all([
+          supabase.rpc("ea_opil_my_role"),
+          supabase.rpc("ea_opil_claim_team"),
+        ]);
+        const role = (roleRes && roleRes.data) || {};
+        const fac = Array.isArray(role.facilitator_sessions) ? role.facilitator_sessions : [];
+        const staff = !!role.admin, judge = !!role.judge;
+        if(!(staff || judge || fac.length || (teamRes && teamRes.data))) return;
+        const acts = [];
+        if(staff) acts.push(["/opil/hub/admin/","gold","Coordinator view"]);
+        else if(fac.length) acts.push(["/opil/hub/admin/","gold","My sessions"]);
+        acts.push(["/opil/hub/", acts.length ? "ghost" : "gold", "Open the Lab Hub"]);
+        if(judge) acts.push(["/opil/hub/judge/","ghost","Judge view"]);
+        const blurb = staff ? "Roster and approvals, resumes, CSV exports, and the sessions and content manager."
+          : fac.length ? "Your sessions: post recordings, playbooks, assignments, and resources."
+          : judge ? "Score team pitches and showcase submissions against the rubric."
+          : "Your sessions, your team space, materials, and the showcase.";
+        $("progWrap").innerHTML =
+          '<div class="progcard"><div class="ptx">'
+          + '<span class="eyebrow"><span class="dot"></span>AUC DSI &middot; Interledger</span>'
+          + '<h3>Open Payments Innovation Lab</h3><p>' + esc(blurb) + '</p></div><div class="pacts">'
+          + acts.map(a => '<a class="btn ' + a[1] + '" href="' + a[0] + '">' + esc(a[2]) + ' <span class="arr">&rarr;</span></a>').join('')
+          + '</div></div>';
+        $("progWrap").classList.remove("hide");
+        $("progTitle").classList.remove("hide");
+      }catch(_){}
+    })();
 
     // library
     (async()=>{
