@@ -20,10 +20,7 @@
 <div><span class="kicker gold">For the program team</span><h1 style="margin-top:10px">Coordinator view</h1></div>
 <button class="pillbtn" id="csvBtn" style="padding:11px 22px;font-size:14px">Export report pack</button>
 </div>
-<nav class="hub-tabs">
-<a class="hub-tab" href="/opil/hub/">Home</a>
-<a class="hub-tab on" href="/opil/hub/admin/">Coordinator view</a>
-</nav>
+<div class="hub-tabs"></div>
 
 <div class="statrow" id="stats"></div>
 
@@ -95,10 +92,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
-tabs('Coordinator view', isAdmin);
+nav(ctx, 'admin');
 const facOnly = !isAdmin && (facSessions || []).length > 0;
 if (!isAdmin && !facOnly) { location.replace('/opil/hub/'); throw new Error('not admin'); }
 if (facOnly) {

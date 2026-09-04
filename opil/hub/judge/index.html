@@ -37,6 +37,7 @@
 
 <main class="hub-wrap">
 <div class="hub-head"><div><span class="kicker gold" id="evKick">Business Idea Pitch</span><h1 style="margin-top:10px">Score the teams.</h1></div>
+<div class="hub-tabs"></div>
 <div style="display:flex;gap:8px">
 <button class="pillbtn" id="evPitch">Pitch · Dec 4</button>
 <button class="pillbtn" id="evShow" style="background:var(--bg-soft);color:var(--muted)">Showcase · Mar 19</button>
@@ -47,10 +48,11 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, esc } from '/opil/hub/hub.js';
+import { boot, esc, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isJudge, isAdmin } = ctx;
 if (!isJudge && !isAdmin) { location.replace('/opil/hub/'); throw new Error('not judge'); }
+nav(ctx, 'judge');
 
 const CRITERIA = [
   ['problem', 'Problem and customer: is it real, and do they know who pays?'],

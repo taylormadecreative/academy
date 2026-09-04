@@ -19,12 +19,7 @@
 <div class="hub-head">
 <div><span class="kicker gold">Direct messages</span><h1 style="margin-top:10px">Messages</h1></div>
 </div>
-<nav class="hub-tabs">
-<a class="hub-tab" href="/opil/hub/">Home</a>
-<a class="hub-tab" href="/opil/hub/team/">My team</a>
-<a class="hub-tab on" href="/opil/hub/messages/">Messages</a>
-<a class="hub-tab" href="/opil/showcase/">Showcase</a>
-</nav>
+<div class="hub-tabs"></div>
 
 <div class="hub-grid dm">
 <div class="hcard">
@@ -41,10 +36,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin } = ctx;
-tabs('Messages', isAdmin);
+nav(ctx, 'messages');
 
 /* cohort directory: everyone with a team membership */
 const { data: mems } = await sb.from('ea_opil_team_members').select('user_id, team_id');

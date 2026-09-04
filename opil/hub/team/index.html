@@ -19,12 +19,7 @@
 <div class="hub-head">
 <div><span class="kicker gold">Team space</span><h1 id="teamName" style="margin-top:10px">My team</h1></div>
 </div>
-<nav class="hub-tabs">
-<a class="hub-tab" href="/opil/hub/">Home</a>
-<a class="hub-tab on" href="/opil/hub/team/">My team</a>
-<a class="hub-tab" href="/opil/hub/messages/">Messages</a>
-<a class="hub-tab" href="/opil/showcase/">Showcase</a>
-</nav>
+<div class="hub-tabs"></div>
 
 <div class="hub-grid">
 <div>
@@ -60,10 +55,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin } = ctx;
-tabs('My team', isAdmin);
+nav(ctx, 'team');
 if (!teamId) { location.replace('/opil/hub/'); throw new Error('no team'); }
 
 const { data: team } = await sb.from('ea_opil_teams').select('*').eq('id', teamId).single();

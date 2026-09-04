@@ -41,7 +41,7 @@
 <div><span class="kicker gold">Live session</span><h1 id="ttl" style="margin-top:10px">The live room</h1></div>
 <span class="livebadge" id="badge" style="display:none"><i></i>LIVE NOW</span>
 </div>
-<nav class="hub-tabs"></nav>
+<div class="hub-tabs"></div>
 
 <div class="live-grid">
 <div>
@@ -60,10 +60,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, names, esc, when, tabs } from '/opil/hub/hub.js';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin } = ctx;
-tabs('', isAdmin);
+nav(ctx, '');
 
 /* find the live session */
 const { data: liveSess } = await sb.from('ea_opil_sessions').select('*').eq('is_live', true).order('no').limit(1).maybeSingle();

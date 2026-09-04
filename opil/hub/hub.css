@@ -2,10 +2,64 @@
 .hub-wrap{max-width:1280px;margin-inline:auto;padding-inline:clamp(20px,4vw,48px)}
 .hub-head{padding-block:clamp(28px,4vw,48px) clamp(18px,2.6vw,28px);display:flex;flex-wrap:wrap;gap:18px;align-items:end;justify-content:space-between}
 .hub-head h1{font-size:clamp(28px,3.6vw,44px)}
-.hub-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--hair);padding-bottom:0;margin-bottom:clamp(22px,3vw,34px)}
-.hub-tab{font-weight:600;font-size:14.5px;color:var(--muted);padding:11px 16px;border-radius:12px 12px 0 0;border-bottom:2px solid transparent}
-.hub-tab.on{color:var(--blue);border-bottom-color:var(--blue)}
-.hub-tab:hover{color:var(--ink)}
+/* ---- Lab navigation -------------------------------------------------------
+   Deliberately NOT sticky: .site-header already pins to top:0 and a second
+   sticky bar swallows the row beneath it. Desktop keeps both planes on one
+   line; mobile splits them, student surfaces to the thumb, roles to the top. */
+.labnav{margin-bottom:clamp(20px,2.8vw,30px)}
+.ln-bar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  border-bottom:1px solid var(--hair)}
+.ln-primary{display:flex;gap:2px;min-width:0}
+.ln-tab{position:relative;font-weight:600;font-size:14.5px;color:var(--muted);
+  padding:12px 15px;border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .16s var(--ease),border-color .16s var(--ease)}
+.ln-tab .ln-ico{display:none}
+.ln-tab:hover{color:var(--ink)}
+.ln-tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.ln-tab:focus-visible,.ln-role:focus-visible,.ln-dock-a:focus-visible{
+  outline:2px solid var(--blue);outline-offset:2px;border-radius:8px}
+
+/* The other hat. Set apart on its own ground so it never reads as a fifth tab. */
+.ln-team{display:flex;align-items:center;gap:3px;background:var(--bg-soft);
+  border:1px solid var(--hair);border-radius:var(--pill);padding:4px;margin-bottom:8px}
+.ln-team-lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:0 10px 0 12px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.ln-team-lbl::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.ln-role{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px;
+  color:var(--ink-2);padding:8px 14px;border-radius:var(--pill);white-space:nowrap;
+  transition:background .16s var(--ease),color .16s var(--ease),box-shadow .16s var(--ease)}
+.ln-role .ln-ico{width:16px;height:16px;flex:0 0 auto}
+.ln-role:hover{color:var(--ink);background:rgba(255,255,255,.7)}
+.ln-role.on{background:#fff;color:var(--blue);box-shadow:var(--shadow-sm)}
+.ln-role:active{transform:scale(.97)}
+
+/* Standing in the student view with a way back. */
+.ln-ctx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;justify-content:space-between;
+  background:var(--blue-soft);border:1px solid #c9d7fb;border-radius:14px;
+  padding:12px 18px;margin:-6px 0 22px;font-size:13.5px;color:var(--blue-deep)}
+.ln-ctx a{font-weight:700;color:var(--blue-deep);text-decoration:underline;text-underline-offset:3px}
+
+/* Bottom bar: mobile only. Four surfaces, never a fifth, never a hamburger. */
+.ln-dock{display:none}
+@media(max-width:720px){
+  .ln-primary{display:none}
+  .ln-bar{border-bottom:0;justify-content:flex-start}
+  .ln-team{margin-bottom:0;max-width:100%;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch}
+  .ln-team::-webkit-scrollbar{display:none}
+  .ln-ctx{margin-top:16px}
+  .ln-dock{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;
+    left:0;right:0;bottom:0;z-index:70;background:var(--paper);
+    border-top:1px solid var(--hair);box-shadow:0 -8px 24px -14px rgba(4,18,58,.28);
+    padding-bottom:env(safe-area-inset-bottom)}
+  .ln-dock-a{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;min-height:56px;padding:9px 4px 8px;font-size:10.5px;font-weight:600;
+    letter-spacing:.01em;color:var(--muted);transition:color .16s var(--ease)}
+  .ln-dock-a .ln-ico{width:21px;height:21px}
+  .ln-dock-a.on{color:var(--blue)}
+  .ln-dock-a:active{transform:scale(.96)}
+  body.has-dock{padding-bottom:calc(58px + env(safe-area-inset-bottom))}
+}
 .hub-note{background:var(--gold-soft);border:1px solid #f0dfa4;color:var(--gold-ink);border-radius:14px;padding:14px 18px;font-size:14px;margin-bottom:22px}
 .hub-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(20px,3vw,36px);align-items:start;padding-bottom:clamp(48px,6vw,80px)}
 @media(max-width:900px){.hub-grid{grid-template-columns:1fr}}

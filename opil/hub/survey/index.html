@@ -33,7 +33,7 @@
 
 <main class="hub-wrap">
 <div class="hub-head"><div><span class="kicker gold" id="kick">Baseline survey</span><h1 id="ttl" style="margin-top:10px">Where are you starting from?</h1></div></div>
-<nav class="hub-tabs"></nav>
+<div class="hub-tabs"></div>
 <div class="svy">
 <p id="lede" style="font-size:15px;color:var(--muted);margin-bottom:22px;max-width:64ch">Six quick questions, one minute. Your answers are how the program measures what the year gave you: you take this now, and again at the end. Be honest, not impressive.</p>
 <form id="svyForm"></form>
@@ -43,10 +43,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, tabs } from '/opil/hub/hub.js';
+import { boot, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin } = ctx;
-tabs('', isAdmin);
+nav(ctx, '');
 
 const KEY = new URLSearchParams(location.search).get('k') === 'post' ? 'post' : 'baseline';
 if (KEY === 'post') {

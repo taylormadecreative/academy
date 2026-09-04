@@ -20,13 +20,7 @@
 <div><span class="kicker gold">Open Payments Innovation Lab</span><h1 style="margin-top:10px">The Lab Hub</h1><img src="/opil/partners-combo.png" alt="The AUC Data Science Initiative and the Interledger Foundation" style="height:30px;width:auto;margin-top:12px"></div>
 <div id="hello" class="mono" style="color:var(--muted)"></div>
 </div>
-<nav class="hub-tabs" id="tabs">
-<a class="hub-tab on" href="/opil/hub/">Home</a>
-<a class="hub-tab" href="/opil/hub/team/">My team</a>
-<a class="hub-tab" href="/opil/hub/messages/">Messages</a>
-<a class="hub-tab" href="/opil/showcase/">Showcase</a>
-<a class="hub-tab" id="adminTab" href="/opil/hub/admin/" style="display:none">Coordinator view</a>
-</nav>
+<div class="hub-tabs"></div>
 
 <div class="hub-note" id="liveNote" style="display:none;background:#e8f8f0;border-color:#b7e8d4;color:#067a56"><b id="liveTitle">A session is live right now.</b> <a href="/opil/hub/live/" style="font-weight:700;color:#067a56;text-decoration:underline">Join the live room &rarr;</a></div>
 <div class="hub-note" id="checkinNote" style="display:none;background:var(--emerald-soft);border-color:#b7e8d4;color:#0b5e43"><b id="ciTitle">Session today:</b> enter the check-in code from the screen to mark yourself present.
@@ -61,10 +55,10 @@
 
 <script src="/js/config.js?v=3b7d540f53"></script>
 <script type="module">
-import { boot, esc, when, tabs } from '/opil/hub/hub.js';
+import { boot, esc, when, nav } from '/opil/hub/hub.js';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin } = ctx;
-tabs('Home', isAdmin);
+nav(ctx, 'home');
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
 
 if (!teamId) document.getElementById('noTeamNote').style.display = '';
