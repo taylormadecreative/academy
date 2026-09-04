@@ -88,7 +88,7 @@ export function nav(ctx, active) {
   const team = teamLinks(ctx);
   const onTeamPage = team.some(([k]) => k === active);
 
-  let mount = document.querySelector('.hub-tabs');
+  let mount = document.querySelector('.labnav, .hub-tabs');
   if (!mount) {
     mount = document.createElement('div');
     const head = document.querySelector('.hub-head');
@@ -118,7 +118,7 @@ export function nav(ctx, active) {
   document.querySelector('.ln-dock')?.remove();
   const dock = document.createElement('nav');
   dock.className = 'ln-dock';
-  dock.setAttribute('aria-label', 'Lab sections');
+  dock.setAttribute('aria-label', 'Lab sections, bottom bar');
   dock.innerHTML = STUDENT.map(([key, label, href]) =>
     '<a class="ln-dock-a' + (key === active ? ' on' : '') + '" href="' + href + '"'
     + (key === active ? ' aria-current="page"' : '') + '>' + svg(key) + '<span>' + esc(label) + '</span></a>').join('');
