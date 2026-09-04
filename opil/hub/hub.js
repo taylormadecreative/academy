@@ -130,9 +130,15 @@ export function nav(ctx, active) {
   document.querySelector('.ln-ctx')?.remove();
   if (team.length && !onTeamPage) {
     const [, label, href] = team[0];
+    /* Name the surface you are actually standing in, not just "not yours". An admin
+       previewing the judge screen is not looking at the student view. */
+    const where = STUDENT.some(([k]) => k === active)
+      ? 'Student view. This is what the cohort sees.'
+      : active === 'judge' ? 'Judge view. This is what your judges score from.'
+      : 'You are previewing another role.';
     const band = document.createElement('div');
     band.className = 'ln-ctx';
-    band.innerHTML = '<span>Student view. This is what the cohort sees.</span>'
+    band.innerHTML = '<span>' + where + '</span>'
       + '<a href="' + href + '">Back to ' + esc(label) + '</a>';
     mount.parentNode.insertBefore(band, mount.nextSibling);
   }
