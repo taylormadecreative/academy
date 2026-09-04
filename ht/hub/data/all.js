@@ -70,7 +70,7 @@ HT.spaces.events = {
   sub: 'Advancement\'s own events on one page: the agenda, the people, the rooms, and the door. The same page is there for any office that wants it, and it plugs into whatever Marketing builds.',
   stamp: 'Preview · sample events', headCta: { label: 'Open the weekend agenda', href: '#weekend', style: 'ht-gold' },
   blocks: [
-    { type: 'intro', kicker: 'Campus events', title: 'The whole event, in your pocket. No app to download.',
+    { type: 'intro', kicker: 'Institutional Advancement · events', title: 'The whole event, in your pocket. No app to download.',
       text: 'One link opens the agenda, the speakers, the rooms, a line to your host, and the check-in at the door. Add it to your calendar in a tap. Print it if you like paper. Built for Advancement\'s own events, from the donor weekend to the fall briefing, and ready for any office that wants the same page.',
       ctas: [{ label: 'Donor Appreciation Weekend', href: '#weekend', style: 'ht' }, { label: 'Orientation Week', href: '/ht/hub/students/#orientation', style: 'ht-line' }],
       image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus in Austin',

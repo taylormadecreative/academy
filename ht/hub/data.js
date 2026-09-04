@@ -26,6 +26,8 @@ HT.home = {
       { date: '2026-09-14', title: 'AI Literacy · Session 01', where: 'Learn · Track one' },
       { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Advancement · Live room' } ] },
     { type: 'install', side: true },
+    { type: 'cards', side: true, title: 'Running a space?', meta: 'Start here', items: [
+      { meta: 'The playbook', title: 'How your office runs its space', text: 'Who does what, the ten jobs step by step, the four rules that never bend, and the rhythm of a term. Built to print.', href: '/ht/playbook/', foot: 'Open the playbook →' } ] },
     { type: 'cards', side: true, title: 'Already running', meta: 'Built the same way', items: [
       { meta: 'Atlanta University Center', title: 'The AI Thread · Open Payments Innovation Lab', text: 'Registration, a lab hub, sessions, check-in, materials, live room, showcase, and judging, for the AUC Data Science Initiative.', href: '/opil/', foot: 'See the program →' } ] }
   ]

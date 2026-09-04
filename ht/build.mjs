@@ -47,4 +47,5 @@ shell('home', 'Home', global.HT.home.sub || '', HUB);
 for (const k of present) { const s = global.HT.spaces[k]; shell(k, s.title, s.sub || s.blurb || '', path.join(HUB, k)); }
 stampPage(path.join(ROOT, 'index.html'));
 stampPage(path.join(ROOT, 'fund', 'index.html'));
+stampPage(path.join(ROOT, 'playbook', 'index.html'));
 console.log('all.js:', Math.round(fs.statSync(path.join(HUB, 'data', 'all.js')).size / 1024) + 'KB', '| stamp:', V, '| spaces:', present.join(', '));
