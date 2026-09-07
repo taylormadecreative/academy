@@ -79,6 +79,7 @@
 .rcard .rhead .ic .gi{position:relative;display:inline-flex}
 .rcard h2{font-family:var(--display);font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:23px;line-height:1.1}
 .rcard .rsub{font-size:13px;color:var(--muted);margin-top:3px}
+[hidden]{display:none!important}
 .notice{display:flex;gap:12px;align-items:flex-start;margin-top:18px;padding:14px 16px;background:var(--gold-soft);border:1px solid rgba(242,183,5,.5);border-left:4px solid var(--gold);border-radius:var(--r);font-size:14px;line-height:1.55;color:var(--ink)}
 .notice svg{flex:0 0 auto;color:var(--gold-ink);margin-top:2px}
 .notice b{color:var(--ink)}
@@ -236,6 +237,7 @@
 
 <main>
 <section class="ohero"><div class="wrap">
+<div class="notice" id="closedNote" role="status" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>Applications closed Wednesday, September 9.</b> Accepted teams hear from the program team by email, and orientation is the evening of Wednesday, September 16. Questions or a late team: <a href="mailto:taylormademd@gmail.com" style="font-weight:700;color:inherit">taylormademd@gmail.com</a>.</div></div>
 <form id="regForm" novalidate onsubmit="return false">
 <div class="ogrid">
 
@@ -604,6 +606,12 @@ proj.addEventListener('input', () => projCount.textContent = proj.value.length +
 /* one-step team registration: insert row + fire Academy magic link */
 const form = document.getElementById('regForm');
 const btn = document.getElementById('submitBtn');
+/* applications close end of day Wed Sep 9 (Central); after that the form is gone, not just the date */
+const CLOSES_AT = Date.UTC(2026, 8, 10, 5, 0, 0);
+if (Date.now() >= CLOSES_AT) {
+  document.getElementById('regForm').hidden = true;
+  document.getElementById('closedNote').hidden = false;
+}
 const errBox = document.getElementById('errBox');
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 let sb = null;
