@@ -170,13 +170,52 @@
     var inner = '<div class="tl">' + b.items.map(function (t) { return '<div class="tli' + (t.done ? ' done' : '') + '">' + h`<em>${t.when}</em>` + (t.done ? '<span class="chip green" style="margin-left:8px;vertical-align:middle">Done</span>' : '') + h`<b>${t.title}</b>` + (t.text ? h`<p>${t.text}</p>` : '') + '</div>'; }).join('') + '</div>';
     return card(b, inner);
   };
+  /* Integer yyyymmdd comparison: no Date parsing, so no timezone drift on "is this past?". */
+  function dnum(v) { return +String(v || '').replace(/-/g, '') || 0; }
+  function today() { var d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+  var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var KIND = { exam: ['Exams', 'live'], deadline: ['Deadline', ''], closed: ['No classes', 'soft'], ceremony: ['Ceremony', 'green'], registration: ['Registration', 'soft'], advising: ['Advising', 'soft'], housing: ['Housing', 'soft'], term: ['Term', 'soft'] };
+  /* past | now (today falls inside it) | ahead */
+  function whenOf(d, end) { var t = today(), a = dnum(d), b = dnum(end) || a; return b < t ? 'past' : (a <= t ? 'now' : 'ahead'); }
+  function longDate(d, end) {
+    var a = new Date(d + 'T12:00:00');
+    var txt = DAYS[a.getDay()] + ', ' + MON[a.getMonth()] + ' ' + a.getDate();
+    if (end && end !== d) { var b = new Date(end + 'T12:00:00'); txt += ' to ' + DAYS[b.getDay()] + ', ' + MON[b.getMonth()] + ' ' + b.getDate(); }
+    return txt;
+  }
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   R.calendar = function (b) {
+    var flagged = false;
     var inner = b.items.map(function (c) {
       var d = c.date ? new Date(c.date + 'T12:00:00') : null;
-      return '<div class="cal"><div class="d">' + (d ? h`<b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span>` : h`<b>${c.day || ''}</b><span>${c.mon || ''}</span>`) + '</div><div class="b">' + h`<b>${c.title}</b>` + (c.where ? h`<span>${c.where}</span>` : '') + '</div>' + (c.tag ? '<span style="margin-left:auto">' + chipHtml(c.tag, c.tagCls || 'soft') + '</span>' : '') + '</div>';
+      var w = c.date ? whenOf(c.date, c.end) : '';
+      var flag = '';
+      if (w === 'now') flag = '<span class="chip live"><i></i>Today</span>';
+      else if (w === 'ahead' && !flagged) { flagged = true; flag = '<span class="chip nextup">Next</span>'; }
+      return '<div class="cal' + (w ? ' is-' + w : '') + '"><div class="d">' + (d ? h`<b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span>` : h`<b>${c.day || ''}</b><span>${c.mon || ''}</span>`) + '</div><div class="b">' + h`<b>${c.title}</b>` + (c.where ? h`<span>${c.where}</span>` : '') + '</div>' + ((c.tag || flag) ? '<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + flag + (c.tag ? chipHtml(c.tag, c.tagCls || 'soft') : '') + '</span>' : '') + '</div>';
     }).join('');
     return card(b, inner);
+  };
+  /* The published academic year: one live list, filtered by term, that knows what today is. */
+  R.year = function (b) {
+    var items = (b.items || []).slice().sort(function (x, y) { return dnum(x.d) - dnum(y.d); });
+    var nextSeen = false;
+    var rows = items.map(function (c) {
+      var w = whenOf(c.d, c.end), a = new Date(c.d + 'T12:00:00');
+      var isNext = w === 'ahead' && !nextSeen; if (isNext) nextSeen = true;
+      var k = KIND[c.kind] || KIND.term;
+      var span = c.end && c.end !== c.d;
+      var flag = w === 'now' ? '<span class="chip live"><i></i>' + (span ? 'On now' : 'Today') + '</span>' : (isNext ? '<span class="chip nextup">Next up</span>' : '');
+      return '<div class="yr is-' + w + (isNext ? ' nx' : '') + '" data-term="' + esc(c.term) + '" data-when="' + w + '">' +
+        '<div class="d">' + h`<b>${a.getDate()}</b><span>${MON[a.getMonth()]}</span>` + '</div>' +
+        '<div class="b">' + h`<b>${c.t}</b><span>${longDate(c.d, c.end)}${c.note ? ' · ' + c.note : ''}</span>` + '</div>' +
+        '<div class="f">' + flag + chipHtml(k[0], k[1]) + '</div></div>';
+    }).join('');
+    var terms = (b.terms || []).map(function (t) { return '<button class="pill ghost" type="button" data-yr="' + esc(t.key) + '">' + esc(t.label) + '</button>'; }).join('');
+    var head = '<div class="yrbar"><button class="pill on" type="button" data-yr="next">What\u2019s next</button>' + terms + '</div>';
+    var tools = '<div class="yrtools"><button class="pill" type="button" data-yics>' + ICONS.calendar.replace('viewBox', 'width="14" height="14" viewBox') + ' Add these to your calendar</button><button class="pill ghost" type="button" data-print>Print this list</button></div>';
+    var src = b.source ? '<p class="yrsrc">' + h`${b.source}` + (b.sourceHref ? h` <a href="${b.sourceHref}" target="_blank" rel="noopener">View the published calendar</a>` : '') + '</p>' : '';
+    return card(b, head + '<div class="yrlist" data-yearlist>' + rows + '</div><div class="empty" data-yrnone hidden role="status">Nothing left on the calendar for that term.</div>' + tools + src, 'year');
   };
   R.split = function (b) {
     var inner = '<div class="split' + (b.side === 'left' ? ' r' : '') + '"><div>' + (b.kicker ? h`<div class="k" style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ht-maroon);margin-bottom:8px">${b.kicker}</div>` : '') + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') +
@@ -309,6 +348,32 @@
       var count = wrap.querySelector('[data-count]');
       inp.addEventListener('input', function () { var q = inp.value.trim().toLowerCase(), n = 0; rows.forEach(function (r) { var ok = !q || r.getAttribute('data-q').indexOf(q) > -1; r.hidden = !ok; if (ok) n++; }); none.hidden = n > 0; if (count) count.textContent = n + (n === 1 ? ' person matches' : ' people match'); });
     });
+    /* the academic year: term filter, and the whole visible list as all-day calendar events */
+    root.querySelectorAll('[data-yearlist]').forEach(function (list) {
+      var wrap = list.closest('.bd'); if (!wrap) return;
+      var rows = list.querySelectorAll('.yr'), btns = wrap.querySelectorAll('[data-yr]'), none = wrap.querySelector('[data-yrnone]');
+      var view = 'next', AHEAD = 8;
+      function apply() {
+        var shown = 0, n = 0;
+        rows.forEach(function (r) {
+          var ok;
+          if (view === 'next') { ok = r.getAttribute('data-when') !== 'past' && n < AHEAD; if (ok) n++; }
+          else ok = r.getAttribute('data-term') === view;
+          r.hidden = !ok; if (ok) shown++;
+        });
+        if (none) none.hidden = shown > 0;
+        btns.forEach(function (b) { var on = b.getAttribute('data-yr') === view; b.classList.toggle('on', on); b.classList.toggle('ghost', !on); b.setAttribute('aria-pressed', String(on)); });
+      }
+      btns.forEach(function (b) { b.addEventListener('click', function () { view = b.getAttribute('data-yr'); apply(); }); });
+      apply();
+      var dl = wrap.querySelector('[data-yics]');
+      if (dl) dl.addEventListener('click', function () {
+        var blk = (space.blocks || []).filter(function (x) { return x.type === 'year'; })[0]; if (!blk) return;
+        var keep = {}; rows.forEach(function (r, i) { if (!r.hidden) keep[i] = 1; });
+        var items = (blk.items || []).slice().sort(function (x, y) { return dnum(x.d) - dnum(y.d); }).filter(function (_, i) { return keep[i]; });
+        downloadYearICS(blk, items, view);
+      });
+    });
     /* ics */
     root.querySelectorAll('[data-ics]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -349,7 +414,42 @@
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function parseTime(t) { var m = /(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i.exec(t || ''); if (!m) return [9, 0]; var hh = +m[1], mm = +(m[2] || 0); var ap = (m[3] || '').toUpperCase(); if (ap === 'PM' && hh < 12) hh += 12; if (ap === 'AM' && hh === 12) hh = 0; return [hh, mm]; }
+  /* RFC 5545: content lines fold at 75 octets, continuation lines start with a space.
+     Counted in UTF-8 bytes, never splitting a character or a surrogate pair. */
+  function icsFold(line) {
+    if (line.length < 60) return line;
+    var enc = window.TextEncoder ? new TextEncoder() : null, out = '', cur = '', n = 0;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (ch >= '\uD800' && ch <= '\uDBFF' && i + 1 < line.length) ch += line[++i];
+      var b = enc ? enc.encode(ch).length : 1;
+      if (n + b > 73) { out += cur + '\r\n '; cur = ''; n = 1; }
+      cur += ch; n += b;
+    }
+    return out + cur;
+  }
+  function icsJoin(lines) { return lines.map(icsFold).join('\r\n'); }
   function icsText(v) { return String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+  function nextDay(d) { var x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + 1); return x.getFullYear() + pad(x.getMonth() + 1) + pad(x.getDate()); }
+  /* Academic dates are all-day events: DATE values, DTEND exclusive. */
+  function downloadYearICS(blk, items, view) {
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Huston-Tillotson x Taylormade Academy//HT Hub//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + icsText(blk.calName || 'Huston-Tillotson academic calendar')];
+    items.forEach(function (c, i) {
+      lines.push('BEGIN:VEVENT',
+        'UID:' + c.d.replace(/-/g, '') + '-' + i + '-htyear@ht.taylormadeacademy.com',
+        'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
+        'DTSTART;VALUE=DATE:' + c.d.replace(/-/g, ''),
+        'DTEND;VALUE=DATE:' + nextDay(c.end || c.d),
+        'SUMMARY:' + icsText(c.t),
+        'DESCRIPTION:' + icsText((c.note ? c.note + '. ' : '') + 'Huston-Tillotson University published academic calendar. Dates and events are subject to change.'),
+        'TRANSP:TRANSPARENT',
+        'END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    var blob = new Blob([icsJoin(lines)], { type: 'text/calendar' }); var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'ht-academic-calendar-' + (view || 'all') + '.ics';
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
   function downloadICS(blk) {
     var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Huston-Tillotson x Taylormade Academy//HT Hub//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
       'BEGIN:VTIMEZONE', 'TZID:America/Chicago',
@@ -370,7 +470,7 @@
         'DESCRIPTION:' + icsText('Sample schedule prepared for Huston-Tillotson University.'),
         'END:VEVENT'); }); });
     lines.push('END:VCALENDAR');
-    var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = ((blk.event && blk.event.name) || 'ht-hub').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.ics'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    var blob = new Blob([icsJoin(lines)], { type: 'text/calendar' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = ((blk.event && blk.event.name) || 'ht-hub').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.ics'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
   function startPlayer(p) {
     var src = p.getAttribute('data-stream'), poster = p.querySelector('.poster');

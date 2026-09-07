@@ -384,3 +384,37 @@ button.rep{font:inherit;text-align:left;padding:0;cursor:pointer}
 button.rep:hover{border-color:#d9bfae}
 .player .fail{flex-direction:column;gap:12px}
 @media print{body.print-one .ht-main .ht-col>*:not(.print-target){display:none!important}body.print-one .print-target{display:block!important}}
+
+/* ---- The published academic year (block type: year) --------------------- */
+/* Rows carry a live state computed at render: past, now (today falls inside), ahead. */
+.chip.nextup{background:var(--ht-maroon);color:#fff}
+.yrbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.yrlist{max-height:min(64vh,640px);overflow:auto;overscroll-behavior:contain;margin:0 -4px;padding:0 4px}
+.yr{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--ht-hair-soft)}
+.yr:first-child{border-top:0;padding-top:0}
+.yr .d{width:46px;text-align:center;background:var(--ht-sand);border:1px solid var(--ht-hair);border-radius:10px;padding:4px 0}
+.yr .d b{display:block;font-family:var(--display);font-size:17px;line-height:1;color:var(--ht-maroon)}
+.yr .d span{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.yr .b{min-width:0}
+.yr .b b{display:block;font-size:14px;color:var(--ht-ink)}
+.yr .b span{display:block;font-size:12px;color:var(--muted)}
+.yr .f{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+/* what has already happened stays readable, just stands back */
+.yr.is-past{opacity:.5}
+.yr.is-past .d{background:transparent}
+.yr.is-now .d,.cal.is-now .d{background:var(--ht-maroon);border-color:var(--ht-maroon)}
+.yr.is-now .d b,.cal.is-now .d b{color:#fff}
+.yr.is-now .d span,.cal.is-now .d span{color:var(--ht-gold)}
+.yr.nx .d,.cal.is-ahead:first-of-type .d{border-color:var(--ht-maroon)}
+.cal.is-past{opacity:.5}
+.yrtools{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.yrsrc{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
+.yrsrc a{color:var(--ht-maroon)}
+@media(max-width:560px){
+  /* no nested scroll on a phone: let the page carry the list */
+  .yrlist{max-height:none;overflow:visible}
+  .yr{grid-template-columns:40px minmax(0,1fr);row-gap:6px}
+  .yr .d{width:40px}
+  .yr .f{grid-column:2;justify-content:flex-start}
+}
+@media print{.yrbar,.yrtools{display:none!important}.yrlist{max-height:none;overflow:visible}.yr{break-inside:avoid}.yr.is-past{opacity:1}}
