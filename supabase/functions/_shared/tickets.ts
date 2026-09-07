@@ -91,7 +91,7 @@ async function notifyFulfilled(order: OrderRow, ev: EventRow | null, tier: TierR
 export async function sendTicketEmail(order: OrderRow, ev: EventRow | null, tier: TierRow | null, codes: string[]) {
   const title = ev?.title ?? WORKSHOP.title;
   const where = ev?.format === "virtual"
-    ? `<b>Where:</b> Online. ${ev?.join_url ? `Your link: <a href="${esc(ev.join_url)}" style="color:#0b40e0">${esc(ev.join_url)}</a>` : "The join link comes by email the day before."}`
+    ? `<b>Where:</b> Online, in the Taylormade Academy room. ${ev?.join_url ? `Open <a href="${esc(ev.join_url)}" style="color:#0b40e0">${esc(ev.join_url)}</a> and sign in with this email (a free Academy account, one minute to create). Signed in under a different email? Paste your seat code there once.` : "The room link comes by email the day before."}`
     : `<b>Where:</b> ${esc(ev?.venue_address || ev?.venue_label || "Details follow by email.")}`;
   const codeHtml = codes.map((c) =>
     `<div style="display:inline-block;margin:6px 8px 6px 0;padding:12px 18px;border:2px dashed #c9d3e6;border-radius:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:20px;letter-spacing:.08em;color:#0a1733;font-weight:700">${esc(c)}</div>`
@@ -104,7 +104,7 @@ export async function sendTicketEmail(order: OrderRow, ev: EventRow | null, tier
     `${where}<br>` +
     `<b>Seats:</b> ${order.qty} &middot; <b>Paid:</b> ${money(order.amount_cents)}</div>` +
     `<p style="margin:0 0 8px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#5d6b84">Your seat code${codes.length > 1 ? "s" : ""}</p>${codeHtml}` +
-    `<p style="margin:16px 0 0;font-size:15px;line-height:1.62;color:#33415b">Bring a laptop and a charger. You will leave with a working agent and the playbook to build the next one. Reply to this email with any question, it comes straight to me.</p>` +
+    `<p style="margin:16px 0 0;font-size:15px;line-height:1.62;color:#33415b">Have your laptop open and a second tab ready for Claude or ChatGPT. You will leave with a working agent and the playbook to build the next one. Reply to this email with any question, it comes straight to me.</p>` +
     button(`${SITE}/login/?mode=join`, "Join the Academy free before the night");
   return await sendEmail({
     to: order.email,

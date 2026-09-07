@@ -1,0 +1,456 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workshop room · Taylormade Academy</title>
+<meta name="description" content="The live room for Build Your First AI Agent. Ticket holders sign in, watch the build, and ask questions in the chat.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+.live-shell{padding-block:clamp(26px,4vw,52px) clamp(50px,7vw,90px)}
+.live-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,30px)}
+.live-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27%,380px);gap:clamp(18px,2.4vw,28px);align-items:stretch}
+@media(max-width:1024px){.live-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* ---- player ---- */
+.player{background:#000;border-radius:var(--r);overflow:hidden;border:1px solid var(--hair);box-shadow:var(--shadow-card);aspect-ratio:16/9;position:relative}
+.player iframe,.player video{width:100%;height:100%;border:0;display:block;background:#000}
+.player .brandbar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(rgba(4,18,58,.78),transparent);z-index:5;pointer-events:none;opacity:1;transition:opacity .4s var(--ease)}
+.player.playing .brandbar{opacity:0}
+.player:hover .brandbar{opacity:1}
+.player .brandbar img{width:26px;height:26px}
+.player .brandbar b{font-family:var(--display);font-weight:600;color:#fff;font-size:14px;text-shadow:0 1px 6px rgba(0,0,0,.5);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:700px){.player .brandbar b{font-size:12.5px}}
+@media(max-width:520px){.player .brandbar b{display:none}}
+.player .brandbar .lv{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:var(--pill)}
+.player .brandbar .lv i{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:lvpulse 1.6s ease-in-out infinite}
+.player .wm{position:absolute;right:16px;bottom:72px;z-index:5;pointer-events:none;opacity:.5}
+.player.muted::after{content:"Tap for sound";position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:6;background:var(--gold);color:var(--navy);font-weight:700;font-size:13px;padding:9px 18px;border-radius:var(--pill);pointer-events:none}
+.player .wm img{width:30px;height:30px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
+.player .idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--navy);color:#9fb0d4;text-align:center;padding:clamp(20px,4vw,44px)}
+.player .idle b{font-family:var(--display);color:#fff;font-size:clamp(19px,2.4vw,30px);letter-spacing:-.01em}
+.player .idle p{max-width:44ch;font-size:14.5px;line-height:1.55}
+@keyframes lvpulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.airchip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:var(--pill)}
+.airchip.live{background:var(--emerald-soft);color:#067a56}
+.airchip.live i{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:lvpulse 1.6s ease-in-out infinite}
+.airchip.off{background:var(--bg-soft);color:var(--muted)}
+
+.nowline{margin-top:16px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.nowline h2{font-family:var(--display);font-size:clamp(19px,2.2vw,25px);letter-spacing:-.015em;margin:0}
+.nowline p{color:var(--muted);font-size:14.5px;margin:0;max-width:62ch;line-height:1.6}
+
+/* ---- chat ---- */
+.roomchat{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;height:100%;max-height:min(72vh,620px);min-height:380px;overflow:hidden}
+@media(max-width:1024px){.roomchat{height:min(58vh,460px)}}
+.roomchat .rh{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--hair-soft)}
+.roomchat .rh h3{font-family:var(--display);font-size:15px;margin:0}
+.roomchat .rs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.roomchat .empty{color:var(--muted);font-size:14px;margin:auto 0;text-align:center;line-height:1.6}
+.bub{max-width:88%;background:var(--bg-soft);border-radius:14px;padding:9px 13px;align-self:flex-start}
+.bub.me{background:var(--blue-soft);align-self:flex-end}
+.bub .who{font-size:11.5px;font-weight:700;color:var(--blue-deep);margin-bottom:3px}
+.bub p{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2);word-wrap:break-word}
+.bub .w{font-size:11.5px;color:var(--muted);margin-top:4px}
+.roomchat form{display:flex;gap:8px;padding:13px 14px;border-top:1px solid var(--hair-soft)}
+.roomchat input{flex:1;min-width:0;padding:11px 15px;border:1px solid var(--hair);border-radius:var(--pill);font:inherit;font-size:14px;outline-offset:2px}
+.roomchat button{border:0;background:var(--blue);color:#fff;font:inherit;font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--pill);cursor:pointer;transition:transform .16s var(--ease)}
+.roomchat button:active{transform:scale(.97)}
+
+/* ---- upsell / signed-out ---- */
+.gatecard{background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:clamp(26px,4vw,46px);box-shadow:var(--shadow-float);position:relative;overflow:hidden}
+.gatecard::after{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(253,201,33,.16),transparent 68%);pointer-events:none}
+.gatecard h2{font-family:var(--display);font-size:clamp(24px,3.4vw,38px);letter-spacing:-.02em;margin:12px 0 0;max-width:20ch;line-height:1.1}
+.gatecard p.lede{color:#c3cee6;font-size:16px;line-height:1.65;max-width:52ch;margin:16px 0 0}
+.gatecard ul{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:11px;max-width:54ch}
+.gatecard li{display:flex;gap:11px;align-items:flex-start;font-size:15px;color:#e3e9f6;line-height:1.5}
+.gatecard li svg{flex:none;margin-top:3px;color:var(--gold)}
+.gate-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:clamp(26px,4vw,54px);align-items:center;position:relative;z-index:1}
+@media(max-width:980px){.gate-grid{grid-template-columns:minmax(0,1fr)}}
+.lockroom{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 60px -26px rgba(0,0,0,.7);aspect-ratio:16/9;background:#000}
+.lockroom img.fr{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.9) brightness(.82)}
+.lockroom .bb{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(rgba(4,18,58,.8),transparent)}
+.lockroom .bb img{width:23px;height:23px}
+.lockroom .bb b{font-family:var(--display);font-weight:600;color:#fff;font-size:12.5px}
+.lockroom .bb .lv{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:var(--pill)}
+.lockroom .bb .lv i{width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:lvpulse 1.6s ease-in-out infinite}
+.lockroom .bb .lv.off{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#c3cfe8}
+.lockcap{margin-top:13px}
+.lockcap .lk{display:inline-flex;align-items:center;gap:7px;color:var(--gold);font-size:11.5px;font-weight:700;letter-spacing:.07em;margin-bottom:5px}
+.lockcap p{margin:0;font-size:13px;line-height:1.5;color:#c3cfe8}
+@media(max-width:980px){.lockshell{order:-1;margin-bottom:6px}}
+
+/* ---- admin ---- */
+.adminbar{background:var(--gold-soft);border:1px solid #f4e2ac;border-radius:var(--r);padding:16px 18px;margin-bottom:22px}
+.adminbar .ah{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.adminbar .ah b{font-family:var(--display);font-size:14px;color:var(--gold-ink)}
+.adminbar .ah span{font-size:11.5px;font-weight:700;letter-spacing:.07em;color:#8a6d00;background:#fff;padding:3px 9px;border-radius:var(--pill)}
+.adminrow{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.adminrow input{flex:1;min-width:210px;padding:10px 14px;border:1px solid #eacf85;border-radius:10px;font:inherit;font-size:13.5px;background:#fff;outline-offset:2px}
+.adminrow button{border:0;font:inherit;font-weight:600;font-size:13.5px;padding:10px 16px;border-radius:var(--pill);cursor:pointer;transition:transform .16s var(--ease)}
+.adminrow button:active{transform:scale(.97)}
+.adminrow .go{background:var(--navy);color:#fff}
+.adminrow .end{background:var(--clay);color:#fff}
+.adminrow .demo{background:#fff;color:var(--gold-ink);border:1px solid #eacf85}
+.adminnote{font-size:12.5px;color:#8a6d00;margin:11px 0 0;line-height:1.5}
+
+/* ---- how it works ---- */
+.hiw{margin-top:clamp(46px,6vw,78px);border-top:1px solid var(--hair);padding-top:clamp(30px,4vw,46px)}
+.hiw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,2.6vw,34px);margin-top:26px}
+@media(max-width:900px){.hiw-grid{grid-template-columns:1fr;gap:22px}}
+.hiw-grid h3{font-family:var(--display);font-size:19.5px;margin:0 0 8px;letter-spacing:-.015em}
+.hiw-grid p{color:var(--muted);font-size:14.5px;line-height:1.65;margin:0}
+.hiw-grid .n{font-family:var(--display);font-size:13px;color:var(--gold-ink);font-weight:700;letter-spacing:.06em;display:block;margin-bottom:11px}
+</style>
+</head><body><header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<nav class="nav"><a class="navlink" href="/live/">Live</a><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
+<div class="nav-cta"><a class="navlink" href="/login/">Sign in</a><a class="btn gold sm" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a>
+<button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
+</div></div><div class="mobile-nav" id="mnav"><a href="/live/">Live</a><a href="/join/">Community</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About</a><a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>
+
+<main><section class="section tight"><div class="wrap live-shell">
+
+<div class="live-head">
+  <div>
+    <span class="kicker gold">Build Your First AI Agent</span>
+    <h1 class="display-l" style="margin-top:11px" id="hTitle">The workshop room</h1>
+  </div>
+  <span class="airchip off" id="hChip">Off air</span>
+</div>
+
+<div id="admin"></div>
+<div id="stage"></div>
+
+<div class="hiw">
+  <span class="kicker gold">How live works</span>
+  <div class="hiw-grid">
+    <div><span class="n">01</span><h3>You watch it get built</h3><p>Not a polished course. The real thing, in real time, including the parts that break and how I get out of them.</p></div>
+    <div><span class="n">02</span><h3>You ask while it matters</h3><p>The room chat sits next to the video. Ask when you are stuck, not three days later in a comment section.</p></div>
+    <div><span class="n">03</span><h3>The replay stays yours</h3><p>Every session lands in your library afterward, so missing one costs you nothing but the questions.</p></div>
+  </div>
+</div>
+
+</div></section></main>
+
+<footer class="site-footer"><div class="wrap">
+<div class="foot-top">
+<div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
+<p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p></div>
+<div class="foot-col"><h4>Explore</h4><a href="/live/">Live</a><a href="/store/">Store</a><a href="/pricing/">Pricing</a><a href="/about/">About Nelson</a></div>
+<div class="foot-col"><h4>Community</h4><a href="/community/">The feed</a><a href="/login/">Sign in</a><a href="/login/?mode=join">Join free</a></div>
+<div class="foot-col"><h4>Account</h4><a href="/dashboard/">Dashboard</a><a href="/library/">My library</a></div>
+</div>
+<div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. All rights reserved.</span>
+<span style="display:flex;gap:18px;font-size:13px"><a href="/privacy/" style="color:#8fa0c7">Privacy</a><a href="/terms/" style="color:#8fa0c7">Terms</a><a href="/refunds/" style="color:#8fa0c7">Refunds</a></span>
+<span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
+</div></footer>
+
+<script src="/js/config.js?v=3b7d540f53"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const CFG = window.BM_CONFIG || {};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const DEMO_URL = "/assets/live-demo/stream.m3u8";
+
+function when(iso){
+  const d = new Date(iso), s = Math.floor((Date.now() - d.getTime())/1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s/60); if (m < 60) return m + "m";
+  const h = Math.floor(m/60); if (h < 24) return h + "h";
+  return d.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+}
+function whenFull(iso){
+  if (!iso) return "";
+  return new Date(iso).toLocaleString(undefined, { weekday:"long", month:"long", day:"numeric", hour:"numeric", minute:"2-digit" });
+}
+
+const sb = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
+let me = null, isAdmin = false, canEnter = false, ev = null, evs = [], show = null, bootError = false;
+
+/* Pick the event whose room this visit is for: a live/next one first, else the most
+   recent one that just ended (so the replay line still makes sense right after). */
+function pickEvent(list){
+  const now = Date.now();
+  const soon = list.filter(e => new Date(e.ends_at || e.starts_at).getTime() > now - 4*3600e3);
+  return soon[0] || list[list.length - 1] || null;
+}
+
+try {
+  const { data:{ session } } = await sb.auth.getSession();
+  me = session ? session.user : null;
+  if (me) {
+    const { data } = await sb.rpc("ea_my_ticket_events");
+    evs = data || [];
+    isAdmin = !!(evs[0] && evs[0].is_admin);
+    if (!isAdmin && evs.length === 0) {
+      const { data: adm } = await sb.rpc("ea_is_admin"); isAdmin = !!adm;
+    }
+    const want = new URLSearchParams(location.search).get("ev");
+  ev = (want && evs.find(e => e.id === want)) || pickEvent(evs);
+    canEnter = isAdmin || !!ev;
+  }
+  /* The broadcast for this event. RLS on ea_live already limits the row to members,
+     admins, and valid ticket holders of ev.event_id, so a row coming back with a
+     stream_url IS the entitlement. */
+  if (canEnter && ev) {
+    const { data } = await sb.from("ea_live").select("*").eq("event_id", ev.id)
+      .order("is_live", { ascending:false }).order("created_at", { ascending:false })
+      .limit(1).maybeSingle();
+    show = data || null;
+  }
+} catch (e) { bootError = true; }
+
+/* ---------- the branded player ---------- */
+function brandChrome(player, title){
+  const bar = document.createElement("div");
+  bar.className = "brandbar";
+  bar.innerHTML = '<img src="/assets/logo-nav.webp" alt=""><b>Taylormade Academy Live &middot; ' + esc(title) + '</b><span class="lv"><i></i>LIVE</span>';
+  player.appendChild(bar);
+  const wm = document.createElement("div");
+  wm.className = "wm"; wm.innerHTML = '<img src="/assets/logo-nav.webp" alt="">';
+  player.appendChild(wm);
+}
+/* Only https gets near a player. new URL() with no base throws on anything
+   relative, and the protocol check kills javascript: and data:. */
+function safeUrl(u){
+  let url; try { url = new URL(u); } catch (e) { return null; }
+  return url.protocol === "https:" ? url : null;
+}
+function embedUrl(u){
+  const url = safeUrl(u); if (!url) return null;
+  const host = url.hostname.toLowerCase();
+  const yt = (id) => "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(id) + "?autoplay=1";
+  if ((host === "youtube.com" || host === "www.youtube.com")) {
+    if (url.searchParams.get("v")) return yt(url.searchParams.get("v"));
+    if (url.pathname.startsWith("/live/")) return yt(url.pathname.split("/")[2] || "");
+  }
+  if (host === "youtu.be") return yt(url.pathname.slice(1));
+  return url.href;
+}
+function playerFail(player, msg){
+  player.querySelectorAll("video,iframe,.brandbar,.wm").forEach(el => el.remove());
+  player.classList.remove("playing");
+  const d = document.createElement("div");
+  d.className = "idle";
+  d.innerHTML = "<b>This stream will not play here.</b><p>" + esc(msg) + "</p>";
+  player.appendChild(d);
+}
+async function mountStream(player, u, title){
+  const isDemo = (u === DEMO_URL);
+  const abs = isDemo ? new URL(u, location.origin).href : (safeUrl(u) ? u : null);
+  if (!abs) { playerFail(player, "That playback link is not a secure https address."); return; }
+  const idle = player.querySelector(".idle"); if (idle) idle.remove();
+
+  if (/\.m3u8(\?|$)/i.test(abs)) {
+    const v = document.createElement("video");
+    v.controls = true; v.playsInline = true; v.autoplay = true;
+    /* loop is for the looping demo clip only. On a real broadcast it would replay
+       the tail forever once the encoder stops, with the LIVE chip still lit. */
+    v.loop = isDemo;
+    v.addEventListener("error", () => playerFail(player, "The stream stopped responding."));
+    player.appendChild(v);
+    if (v.canPlayType("application/vnd.apple.mpegurl")) {
+      v.src = abs;
+    } else {
+      let Hls;
+      try { ({ default: Hls } = await import("https://cdn.jsdelivr.net/npm/hls.js@1.5.13/+esm")); }
+      catch (e) { playerFail(player, "The video player could not load. Check your connection or any blocker."); return; }
+      if (Hls.isSupported()) {
+        const h = new Hls({ liveSyncDurationCount: 3 });
+        h.loadSource(abs); h.attachMedia(v);
+        h.on(Hls.Events.ERROR, (ev, data) => {
+          if (!data.fatal) return;
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { try { h.startLoad(); } catch (e) {} }
+          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { h.recoverMediaError(); } catch (e) {} }
+          else { try { h.destroy(); } catch (e) {} playerFail(player, "The stream stopped responding."); }
+        });
+      } else { playerFail(player, "This browser cannot play live video. Try Chrome, Safari, or Edge."); return; }
+    }
+    v.addEventListener("playing", () => player.classList.add("playing"));
+    v.play().catch(() => { v.muted = true; player.classList.add("muted"); v.play().catch(() => {}); });
+    v.addEventListener("volumechange", () => { if (!v.muted) player.classList.remove("muted"); });
+  } else {
+    const src = embedUrl(abs);
+    if (!src) { playerFail(player, "That playback link is not one this player can open."); return; }
+    const f = document.createElement("iframe");
+    f.src = src; f.title = "Live class video"; f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
+    player.appendChild(f);
+  }
+  brandChrome(player, title);
+}
+
+/* ---------- states ---------- */
+const stage = $("stage");
+const liveNow = !!(show && show.is_live);
+if (ev) $("hTitle").textContent = ev.title;
+$("hChip").className = liveNow ? "airchip live" : "airchip off";
+$("hChip").innerHTML = liveNow ? "<i></i>LIVE NOW" : "Off air";
+
+/* ---------- admin control (broadcast is tied to THIS event) ---------- */
+if (isAdmin) {
+  const opts = evs.map(e => '<option value="' + esc(e.id) + '"' + (ev && e.id === ev.id ? ' selected' : '') + '>' + esc(e.title) + ' · ' + esc(whenFull(e.starts_at)) + '</option>').join("");
+  $("admin").innerHTML =
+    '<div class="adminbar">' +
+    '<div class="ah"><b>Broadcast control</b><span>ADMIN ONLY</span></div>' +
+    '<div class="adminrow" style="margin-bottom:9px"><select id="aEv" aria-label="Workshop date" style="flex:1;min-width:0">' + (opts || '<option value="">No workshop date yet. Create one in the founder dashboard.</option>') + '</select></div>' +
+    '<div class="adminrow" style="margin-bottom:9px"><input id="aTitle" placeholder="Broadcast title" aria-label="Broadcast title" value="' + esc(show ? show.title : (ev ? ev.title : "")) + '"></div>' +
+    '<div class="adminrow"><input id="aUrl" placeholder="Playback URL (.m3u8)" aria-label="Playback URL" value="' + esc(show && show.stream_url ? show.stream_url : "") + '">' +
+    '<button class="demo" id="aDemo" type="button">Use demo stream</button>' +
+    '<button class="' + (liveNow ? "end" : "go") + '" id="aGo" type="button">' + (liveNow ? "End broadcast" : "Go live") + '</button></div>' +
+    '<p class="adminnote" id="aNote">Ticket holders for the selected date get this broadcast and the chat. Rehearse with the demo loop, then paste the Cloudflare Stream playback URL.</p>' +
+    '</div>';
+  $("aDemo").addEventListener("click", () => { $("aUrl").value = DEMO_URL; });
+  $("aEv").addEventListener("change", () => { location.href = "/agent/live/?ev=" + encodeURIComponent($("aEv").value); });
+  $("aGo").addEventListener("click", async () => {
+    const btn = $("aGo"), label = btn.textContent, note = $("aNote");
+    const url = $("aUrl").value.trim(), evId = $("aEv").value;
+    if (!evId) { note.textContent = "Create the workshop date in the founder dashboard first."; return; }
+    if (!liveNow && !url) { note.textContent = "Paste a playback URL first, or click Use demo stream."; return; }
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payload = { title: $("aTitle").value.trim() || "Build Your First AI Agent", stream_url: url || null, is_live: !liveNow, event_id: evId, access: "members" };
+    if (!liveNow) await sb.from("ea_live").update({ is_live:false }).eq("is_live", true);
+    const res = show && show.id
+      ? await sb.from("ea_live").update(payload).eq("id", show.id)
+      : await sb.from("ea_live").insert(payload);
+    if (res.error) { btn.disabled = false; btn.textContent = label; note.textContent = "Could not save: " + res.error.message; return; }
+    location.reload();
+  });
+}
+
+function shellHTML(bodyRight){
+  return '<div class="live-grid"><div>' +
+    '<div class="player" id="player"><div class="idle" id="idle"><b id="idleT">Nothing is streaming right now.</b><p id="idleP">The room opens when the workshop starts.</p></div></div>' +
+    (show && show.blurb ? '<div class="nowline"><p>' + esc(show.blurb) + '</p></div>' : '') +
+    (ev && !liveNow ? '<div class="nowline"><p><b>Workshop:</b> ' + esc(whenFull(ev.starts_at)) + '. Sign in a few minutes early with your laptop open.</p></div>' : '') +
+    '</div>' + bodyRight + '</div>';
+}
+
+const chatHTML =
+  '<div class="roomchat">' +
+  '<div class="rh"><h3>Room chat</h3><span class="mono" style="font-size:11px;color:var(--emerald)">TICKET HOLDERS</span></div>' +
+  '<div class="rs" id="rs" role="log" aria-live="polite" aria-label="Room chat"><div class="empty">Ask when you get stuck. Paste a link to your agent when it is time to show it.</div></div>' +
+  '<form id="cForm"><input id="cIn" placeholder="Message the room" aria-label="Message the room" maxlength="1000" autocomplete="off"><button type="submit">Send</button></form>' +
+  '</div>';
+
+const check = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function gate(kicker, h2, lede, actsHTML){
+  return '<div class="gatecard on-ink"><div class="gate-grid"><div>' +
+    '<span class="kicker gold">' + kicker + '</span><h2>' + h2 + '</h2><p class="lede">' + lede + '</p>' + actsHTML + '</div>' +
+    '<div class="lockshell"><div class="lockroom">' +
+      '<img class="fr" src="/assets/live-demo/poster.jpg" alt="Nelson teaching in the Taylormade Academy studio" loading="lazy">' +
+      '<div class="bb"><img src="/assets/logo-nav.webp" alt=""><b>Build Your First AI Agent</b><span class="lv off">TICKET</span></div>' +
+    '</div>' +
+    '<div class="lockcap"><span class="lk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>TICKET HOLDERS</span><p>Your seat code is in your ticket email.</p></div>' +
+    '</div></div></div>';
+}
+
+if (bootError) {
+  stage.innerHTML = '<div class="gatecard on-ink"><span class="kicker gold">Hold on</span>' +
+    '<h2>The room could not load.</h2>' +
+    '<p class="lede">That is on us, not you. Refresh in a moment. If the workshop is running and this keeps happening, reply to your ticket email and I will get you in.</p>' +
+    '<div class="acts"><a class="btn gold" href="/agent/live/">Try again <span class="arr">&rarr;</span></a></div></div>';
+} else if (!me) {
+  stage.innerHTML = gate("Ticket holders",
+    "Sign in with the email on your ticket.",
+    "Your seat is tied to the email you bought with. Create a free Academy account with that email, or sign in if you already have one, and the room opens. Bought under a different email? Sign in with any account and paste your seat code.",
+    '<div class="cta-row"><a class="btn gold" href="/login/?mode=join&next=/agent/live/">Create my free account <span class="arr">&rarr;</span></a>' +
+    '<a class="btn ghost" href="/login/?next=/agent/live/">I already have an account</a></div>' +
+    '<p style="margin-top:14px;font-size:14px;color:var(--muted)">No ticket yet? <a href="/agent/#seats" style="color:var(--gold)">Get a seat</a>.</p>');
+} else if (!canEnter) {
+  stage.innerHTML = gate("One more step",
+    "Paste your seat code.",
+    "You are signed in as <b>" + esc(me.email) + "</b>, and no ticket is on that email. Paste the code from your ticket email (it looks like TMA-XXXXXX) and this account is in.",
+    '<form id="claim" class="adminrow" style="margin-top:6px"><input id="claimIn" placeholder="TMA-XXXXXX" aria-label="Seat code" maxlength="12" autocomplete="off" style="text-transform:uppercase;letter-spacing:.08em"><button class="btn gold" type="submit">Open the room</button></form>' +
+    '<p id="claimNote" style="margin-top:12px;font-size:14px;color:var(--muted)">No ticket yet? <a href="/agent/#seats" style="color:var(--gold)">Get a seat</a>.</p>');
+  $("claim").addEventListener("submit", async (ev2) => {
+    ev2.preventDefault();
+    const note = $("claimNote"), btn = $("claim").querySelector("button");
+    btn.disabled = true; note.textContent = "Checking...";
+    const { data, error } = await sb.rpc("ea_claim_ticket", { p_code: $("claimIn").value });
+    const err = error ? "server" : (data && data.error);
+    if (!err) { note.textContent = "You are in. Opening the room."; location.reload(); return; }
+    btn.disabled = false;
+    note.textContent = ({
+      bad_code: "That does not look like a seat code. It is TMA- followed by six letters or numbers.",
+      not_found: "No seat matches that code. Check the ticket email for a typo.",
+      void: "That seat was refunded or voided. Reply to your ticket email if that is wrong.",
+      already_claimed: "That code is already attached to another account. Sign in with that one, or reply to your ticket email.",
+      server: "Could not check the code right now. Try again in a moment."
+    })[err] || "Could not check the code.";
+  });
+} else {
+  stage.innerHTML = shellHTML(chatHTML);
+  if (liveNow && show.stream_url) {
+    mountStream($("player"), show.stream_url, show.title).catch(() => {});
+  } else if (ev) {
+    $("idleT").textContent = "The room opens when the workshop starts.";
+    $("idleP").textContent = whenFull(ev.starts_at) + ". Keep this tab open; the video starts here by itself.";
+  }
+  wireChat();
+}
+
+/* ---------- chat ---------- */
+let nm = {}, seq = 0, poll = null;
+function wireChat(){
+  const rs = $("rs");
+  /* no room means no room. Without a live_id filter the query would return the
+     last 200 messages from every class ever held. */
+  if (!show || !show.id) {
+    rs.innerHTML = '<div class="empty">The room opens when the next class starts.</div>';
+    const f = $("cForm"); f.querySelector("input").disabled = true;
+    f.querySelector("button").disabled = true;
+    f.addEventListener("submit", ev => ev.preventDefault());
+    return;
+  }
+  async function names(ids){
+    const need = [...new Set(ids.filter(id => !nm[id]))];
+    if (!need.length) return;
+    const { data } = await sb.from("ea_profiles").select("user_id, display_name").in("user_id", need);
+    /* cache the misses too, otherwise a member with no display name is re-queried
+       on every tick for the life of the tab */
+    need.forEach(id => { nm[id] = "Member"; });
+    (data || []).forEach(r => { if (r.display_name) nm[r.user_id] = r.display_name; });
+  }
+  async function load(){
+    const mine = ++seq;
+    const { data, error } = await sb.from("ea_live_chat").select("*")
+      .eq("live_id", show.id).order("created_at", { ascending:false }).limit(200);
+    if (mine !== seq) return;                       /* a newer load already won */
+    if (error) { rs.innerHTML = '<div class="empty">Could not load the room. Retrying.</div>'; return; }
+    const msgs = (data || []).reverse();
+    await names(msgs.map(m => m.user_id));
+    if (mine !== seq) return;
+    const near = rs.scrollHeight - rs.scrollTop - rs.clientHeight < 60;
+    const prev = rs.scrollTop;
+    rs.innerHTML = msgs.length
+      ? msgs.map(m => '<div class="bub' + (m.user_id === me.id ? ' me' : '') + '">' +
+          (m.user_id === me.id ? '' : '<div class="who">' + esc(nm[m.user_id] || "Member") + '</div>') +
+          '<p>' + esc(m.body) + '</p><div class="w">' + when(m.created_at) + '</div></div>').join("")
+      : '<div class="empty">Say what you are seeing. Ask when you get stuck.</div>';
+    rs.scrollTop = near ? rs.scrollHeight : prev;   /* do not yank people out of history */
+  }
+  load();
+  try {
+    sb.channel("agent-room").on("postgres_changes", { event:"INSERT", schema:"public", table:"ea_live_chat" }, load).subscribe();
+  } catch (e) {}
+  if (liveNow) poll = setInterval(load, 12000);     /* no reason to poll an empty room */
+  $("cForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const input = $("cIn"), body = input.value.trim();
+    if (!body) return;
+    const { error } = await sb.from("ea_live_chat").insert({ live_id: show ? show.id : null, user_id: me.id, body });
+    if (error) { input.setCustomValidity("Could not send."); input.reportValidity(); setTimeout(() => input.setCustomValidity(""), 1500); return; }
+    input.value = ""; load();
+  });
+}
+
+
+</script>
+</body></html>

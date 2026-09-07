@@ -339,6 +339,7 @@ $("tierForm").addEventListener("submit", async (ev) => {
 
 /* ---------- orders + check-in ---------- */
 function renderOrders() {
+  fillImport();
   const sel = $("orEv"), cur = sel.value;
   sel.innerHTML = `<option value="">Every date</option>` + events.map((e) => `<option value="${esc(e.id)}"${cur === e.id ? " selected" : ""}>${esc(e.title)} · ${esc(when(e.starts_at, e.tz, { short: true }))}</option>`).join("");
   const q = ($("orQ").value || "").trim().toLowerCase(), ev = sel.value, st = $("orStatus").value;
@@ -349,7 +350,7 @@ function renderOrders() {
     ? `<thead><tr><th>When</th><th>Buyer</th><th>Date</th><th>Tier</th><th>Seats</th><th>Paid</th><th>Status</th><th>Seat codes</th></tr></thead><tbody>` +
       list.map((o) => {
         const e = events.find((x) => x.id === o.event_id), t = tiers.find((x) => x.id === o.tier_id), ks = tickets.filter((k) => k.order_id === o.id);
-        return `<tr><td class="nowrap">${esc(ago(o.created_at))}</td><td class="strong">${esc(o.full_name || "")}<span class="sub">${esc(o.email)}</span></td><td>${e ? esc(when(e.starts_at, e.tz, { short: true })) : ""}</td><td>${t ? esc(t.name) : ""}</td><td>${o.qty}</td><td>${money(o.amount_cents)}</td><td><span class="st ${esc(o.status)}">${esc(label(o.status))}</span></td>` +
+        return `<tr><td class="nowrap">${esc(ago(o.created_at))}</td><td class="strong">${esc(o.full_name || "")}<span class="sub">${esc(o.email)}</span></td><td>${e ? esc(when(e.starts_at, e.tz, { short: true })) : ""}</td><td>${t ? esc(t.name) : ""}</td><td>${o.qty}</td><td>${money(o.amount_cents)}${o.source && o.source !== "academy" ? `<span class="sub">${esc(o.source === "comp" ? "comp" : "Eventbrite")}</span>` : ""}</td><td><span class="st ${esc(o.status)}">${esc(label(o.status))}</span></td>` +
           `<td><div class="codes">${ks.map((k) => `<button class="code${k.status === "void" ? " void" : k.checked_in_at ? " done" : ""}" data-ticket="${esc(k.id)}" title="${k.checked_in_at ? "Checked in " + esc(ago(k.checked_in_at)) : "Tap to check in"}"${k.status === "void" ? " disabled" : ""}>${esc(k.code)}${k.checked_in_at ? " ✓" : ""}</button>`).join("") || `<span class="muted-sm">${o.status === "pending" ? "Waiting on Stripe" : ""}</span>`}</div></td></tr>`;
       }).join("") + `</tbody>`
     : `<tbody><tr><td><div class="empty"><b>No orders yet.</b>Seats sold through the page land here, with their codes for check-in on the night.</div></td></tr></tbody>`;
@@ -368,6 +369,83 @@ $("orCsv").onclick = () => {
   const rows = [["created", "name", "email", "event", "tier", "seats", "amount", "status", "codes", "checked_in"]];
   orders.forEach((o) => { const e = events.find((x) => x.id === o.event_id), t = tiers.find((x) => x.id === o.tier_id), ks = tickets.filter((k) => k.order_id === o.id); rows.push([o.created_at, o.full_name, o.email, e ? e.title + " " + when(e.starts_at, e.tz, { short: true, year: true }) : "", t ? t.name : "", o.qty, (o.amount_cents / 100).toFixed(2), o.status, ks.map((k) => k.code).join(" "), ks.filter((k) => k.checked_in_at).length]); });
   download("agent-orders-" + new Date().toISOString().slice(0, 10) + ".csv", csv(rows));
+};
+
+/* ---------- import seats sold elsewhere (Eventbrite) ---------- */
+function fillImport() {
+  const evSel = $("imEv"), cur = evSel.value;
+  const live = events.filter((e) => e.status !== "canceled" && e.status !== "past");
+  evSel.innerHTML = live.map((e) => `<option value="${esc(e.id)}"${cur === e.id ? " selected" : ""}>${esc(e.title)} · ${esc(when(e.starts_at, e.tz, { short: true }))}</option>`).join("") || `<option value="">No date yet</option>`;
+  fillImportTiers();
+}
+function fillImportTiers() {
+  const ev = $("imEv").value, sel = $("imTier"), cur = sel.value;
+  const list = tiers.filter((t) => t.event_id === ev);
+  sel.innerHTML = list.map((t) => `<option value="${esc(t.id)}"${cur === t.id ? " selected" : ""}>${esc(t.name)} · ${money(t.price_cents)}</option>`).join("") || `<option value="">No tiers on this date</option>`;
+}
+/* Eventbrite's attendee export is a CSV with a header row. Find the columns by name and
+   tolerate the plain "name, email" form and bare emails. Tabs count as separators too. */
+function parseAttendees(text) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const splitLine = (l) => {
+    const out = []; let cur = "", q = false;
+    for (const ch of l) {
+      if (ch === '"') { q = !q; continue; }
+      if (!q && (ch === "," || ch === "\t")) { out.push(cur.trim()); cur = ""; continue; }
+      cur += ch;
+    }
+    out.push(cur.trim()); return out;
+  };
+  const head = splitLine(lines[0]).map((h) => h.toLowerCase());
+  const col = (...names) => head.findIndex((h) => names.some((n) => h === n || h.includes(n)));
+  const iEmail = col("email"), iFirst = col("first name"), iLast = col("last name"), iName = col("attendee name", "name"), iPaid = col("total paid", "order total", "ticket price", "paid"), iOrder = col("order #", "order id", "order no");
+  const rows = [];
+  const emailRx = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  if (iEmail >= 0 && lines.length > 1) {
+    for (const l of lines.slice(1)) {
+      const c = splitLine(l);
+      const email = (c[iEmail] || "").toLowerCase();
+      if (!emailRx.test(email)) continue;
+      const name = iFirst >= 0 ? [c[iFirst], iLast >= 0 ? c[iLast] : ""].filter(Boolean).join(" ") : (iName >= 0 ? c[iName] : "");
+      const paid = iPaid >= 0 ? Math.round(parseFloat(String(c[iPaid]).replace(/[^0-9.]/g, "")) * 100) : NaN;
+      rows.push({ name, email, amount_cents: Number.isFinite(paid) ? paid : undefined, ref: iOrder >= 0 ? c[iOrder] : undefined });
+    }
+    return rows;
+  }
+  for (const l of lines) {
+    const c = splitLine(l);
+    const email = c.find((x) => emailRx.test(x));
+    if (!email) continue;
+    rows.push({ name: c.filter((x) => x !== email).join(" ").trim(), email: email.toLowerCase() });
+  }
+  return rows;
+}
+$("imEv").addEventListener("change", fillImportTiers);
+$("imRows").addEventListener("input", () => {
+  const rows = parseAttendees($("imRows").value);
+  $("imPreview").textContent = rows.length ? rows.length + " attendee" + (rows.length === 1 ? "" : "s") + " found: " + rows.slice(0, 3).map((r) => r.email).join(", ") + (rows.length > 3 ? "..." : "") : "";
+});
+$("imGo").onclick = async () => {
+  const rows = parseAttendees($("imRows").value), ev = $("imEv").value, tier = $("imTier").value, source = $("imSource").value;
+  if (!ev || !tier) return toast("Pick a date and a tier first.");
+  if (!rows.length) return toast("Paste at least one attendee with an email.");
+  const e = events.find((x) => x.id === ev);
+  if (!(await confirmDlg("Issue " + rows.length + " seat code" + (rows.length === 1 ? "" : "s") + "?", "Each person gets a ticket email with their code and the room link for " + (e ? e.title : "this date") + ". People who already hold a seat are skipped.", "Issue codes"))) return;
+  const btn = $("imGo"), res = $("imResult");
+  btn.disabled = true; res.textContent = "Issuing...";
+  try {
+    const { data: { session: s } } = await sb.auth.getSession();
+    const r = await fetch(CFG.FUNCTIONS_BASE + "/ea-import-tickets", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + s.access_token }, body: JSON.stringify({ event_id: ev, tier_id: tier, source, rows }) });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || ("HTTP " + r.status));
+    const bad = (d.results || []).filter((x) => x.error);
+    res.textContent = d.issued + " issued, " + d.skipped + " already had a seat" + (d.failed ? ", " + d.failed + " failed: " + bad.map((x) => x.email + " (" + x.error + ")").join("; ") : ".");
+    toast(d.issued + " seat code" + (d.issued === 1 ? "" : "s") + " issued");
+    if (d.issued) $("imRows").value = "";
+    await loadAll();
+  } catch (err) { res.textContent = "Could not import: " + err.message; }
+  btn.disabled = false;
 };
 
 /* ---------- announce ---------- */

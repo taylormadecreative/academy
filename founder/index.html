@@ -212,6 +212,19 @@
 <p class="muted-sm" style="margin-top:10px">Tap a seat code to check that person in. Tap again to undo.</p>
 <div class="tblwrap" style="margin-top:8px"><table class="tbl" id="orTbl"></table></div>
 </div>
+
+<div class="card" style="margin-top:18px">
+<h2>Import seats sold on Eventbrite</h2>
+<p class="muted-sm" style="margin-top:6px">Eventbrite buyers need a seat code to get into the room. Export the attendee list from Eventbrite (Manage attendees, Export) and paste it here, or paste one person per line as <b>name, email</b>. Each new person gets a seat code and the same ticket email as an Academy buyer. Anyone who already holds a seat on that date is skipped, so pasting the full export again is safe.</p>
+<div class="fgrid" style="margin-top:14px">
+  <label class="f">Which date <select class="fi" id="imEv"></select></label>
+  <label class="f">Count them under <select class="fi" id="imTier"></select></label>
+  <label class="f">Sold on <select class="fi" id="imSource"><option value="eventbrite">Eventbrite</option><option value="comp">Comp (free seat)</option></select></label>
+  <label class="f full">Attendees <textarea class="fi" id="imRows" style="min-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px" placeholder="Paste the Eventbrite export, or:&#10;Jane Doe, jane@example.com&#10;sam@example.com"></textarea></label>
+</div>
+<div class="row" style="margin-top:14px"><span class="muted-sm" id="imPreview"></span><button class="btn gold" id="imGo">Issue seat codes</button></div>
+<p class="muted-sm" id="imResult" style="margin-top:12px"></p>
+</div>
 </section>
 
 <!-- ---------------- announce ---------------- -->
