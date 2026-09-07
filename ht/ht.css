@@ -134,6 +134,8 @@ a.card:hover{transform:translateY(-3px);box-shadow:0 22px 40px -24px rgba(41,28,
 .evt-head{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:10px;font-size:13.5px;color:var(--ink-2)}
 .evt-head b{color:var(--ht-ink)}
 /* people / directory */
+/* the hidden attribute has to win: .person{display:flex} and friends out-rank the UA sheet */
+[hidden]{display:none!important}
 .person{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--ht-hair-soft)}
 .person:first-child{border-top:0;padding-top:0}
 .av{flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:var(--ht-maroon);color:var(--ht-gold);font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;letter-spacing:.02em}

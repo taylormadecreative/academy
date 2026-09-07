@@ -240,7 +240,9 @@
     root.querySelectorAll('.prog i[data-w]').forEach(function (i) { requestAnimationFrame(function () { setTimeout(function () { i.style.width = i.getAttribute('data-w') + '%'; }, 150); }); });
     /* check-in */
     root.querySelectorAll('[data-checkin]').forEach(function (box) {
-      var btnEl = box.querySelector('button'), inp = box.querySelector('input'), msg = box.querySelector('.msg'); if (!btnEl) return;
+      var btnEl = box.querySelector('button:not([data-uncheck])'), inp = box.querySelector('input'), msg = box.querySelector('.msg');
+      /* already checked in: the box holds only the Undo button, so there is nothing here to wire */
+      if (!inp || !btnEl || !msg) return;
       function bad(t) { msg.textContent = t; msg.style.color = '#8f0000'; inp.setAttribute('aria-invalid', 'true'); }
       function go() { var v = (inp.value || '').trim().toUpperCase(); if (!v) { bad('Type the code from the screen.'); return; }
         if (v === String(box.getAttribute('data-code')).toUpperCase()) {
