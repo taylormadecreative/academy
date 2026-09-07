@@ -12,7 +12,7 @@ HT.spaces.live = {
       image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais in the auditorium at Huston-Tillotson',
       ada: { text: 'The next live session is the fall town hall, Thursday at noon. Open the room a few minutes early. The rehearsal loop is playing so you can check your sound.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'player', id: 'room', cardTitle: 'The live room', meta: 'The real broadcast goes here', title: 'The HT live room', live: false, poster: '/ht/img/hero-flyover-poster.jpg',
-      now: { title: 'Fall town hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, Sep 10 · 12:00 PM CT' } },
+      now: { title: 'Fall town hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, Sep 17 · 12:00 PM CT' } },
     { type: 'stats', items: [{ n: '8', label: 'Live sessions on the calendar (sample)' }, { n: '6', label: 'Replays on the shelf (sample)' }, { n: 'Same day', label: 'The replay lands after each session' }, { n: '5', label: 'Offices using the room (sample)' }] },
     { type: 'replays', id: 'replays', title: 'The replay shelf', meta: 'Sample recordings · captioned', items: [
       { title: 'Fall Convocation address', date: 'Aug 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Office of the President' },
@@ -26,7 +26,7 @@ HT.spaces.live = {
       { em: 'Step two', h: 'Go live from any camera', p: 'A phone on a stand, the auditorium camera, or a laptop. The room opens fifteen minutes early with the chat on, and the host reads questions from the floor first.' },
       { em: 'Step three', h: 'The replay lands on the shelf', p: 'Captioned and trimmed, the same afternoon, next to the last one. Slides and materials sit beside it. Nothing to upload, nothing to forward.' } ] },
     { type: 'calendar', side: true, id: 'calendar', title: 'Coming up live', meta: 'Sample · every office', items: [
-      { date: '2026-09-10', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
+      { date: '2026-09-17', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
       { date: '2026-09-24', title: 'Faculty development · teaching with the hub', where: 'Academic Affairs · 3:00 PM CT' },
       { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Institutional Advancement · 12:00 PM CT' },
       { date: '2026-10-22', title: 'Guest lecture · Business program', where: 'Academic Affairs · 6:00 PM CT' },

@@ -34,7 +34,7 @@ HT.spaces.admissions = {
     { type: 'split', kicker: 'Move-in weekend', title: 'The move-in weekend, in their pocket.',
       text: 'The schedule, the hall check-in, the family sessions, and the first campus walk, on the same phone that opened the acceptance letter. Parents see the same schedule in their own space.',
       bullets: ['Hall check-in by code, no line at a table', 'Family sessions Saturday morning, live for anyone who could not travel', 'Orientation Week starts in the same place Monday'],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See Orientation Week', href: '/ht/hub/students/#orientation', style: 'ht' } },
+      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See Welcome Week', href: '/ht/hub/students/#orientation', style: 'ht' } },
     { type: 'faq', title: 'What families ask', items: [
       { q: 'Do parents get their own space?', a: 'Yes. The Parents channel opens the day of admission, and the parent session is live in April.' },
       { q: 'Is this on my phone?', a: 'Yes. It installs from Safari with the HT icon and opens like an app.' },
