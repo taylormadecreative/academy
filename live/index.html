@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/css/build-mode.css?v=1025ab6423">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-shell{padding-block:clamp(26px,4vw,52px) clamp(50px,7vw,90px)}
@@ -149,8 +149,10 @@
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
-<script src="/js/config.js?v=3b7d540f53"></script>
+<link rel="stylesheet" href="/css/broadcast.css?v=1025ab6423">
+<script src="/js/config.js?v=1025ab6423"></script>
 <script type="module">
+import { panelHTML, wirePanel, play } from "/js/broadcast.js?v=1025ab6423";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
@@ -247,6 +249,30 @@ async function mountStream(player, u, title){
   if (!abs) { playerFail(player, "That playback link is not a secure https address."); return; }
   const idle = player.querySelector(".idle"); if (idle) idle.remove();
 
+  if (/\/webRTC\/play(\?|$)/i.test(abs)) {
+    /* a browser broadcast: watched over WebRTC, under a second behind. Cloudflare answers
+       409 until the broadcaster is connected, so keep knocking; reconnect if the link drops. */
+    const v = document.createElement("video");
+    v.controls = true; v.playsInline = true; v.autoplay = true;
+    player.appendChild(v);
+    let stopped = false;
+    const connect = async () => {
+      if (stopped) return;
+      try {
+        const s = await play(abs, v);
+        v.play().catch(() => { v.muted = true; player.classList.add("muted"); v.play().catch(() => {}); });
+        s.pc.addEventListener("connectionstatechange", () => {
+          if (["failed", "disconnected", "closed"].includes(s.pc.connectionState) && !stopped) { try { s.stop(); } catch (e) {} setTimeout(connect, 3000); }
+        });
+      } catch (e) { setTimeout(connect, e && e.status === 409 ? 4000 : 6000); }
+    };
+    connect();
+    window.addEventListener("pagehide", () => { stopped = true; });
+    v.addEventListener("playing", () => player.classList.add("playing"));
+    v.addEventListener("volumechange", () => { if (!v.muted) player.classList.remove("muted"); });
+    brandChrome(player, title);
+    return;
+  }
   if (/\.m3u8(\?|$)/i.test(abs)) {
     const v = document.createElement("video");
     v.controls = true; v.playsInline = true; v.autoplay = true;
@@ -303,27 +329,42 @@ if (isAdmin) {
     '<div class="adminrow"><input id="aUrl" placeholder="Playback URL (.m3u8)" aria-label="Playback URL" value="' + esc(show && show.stream_url ? show.stream_url : "") + '">' +
     '<button class="demo" id="aDemo" type="button">Use demo stream</button>' +
     '<button class="' + (liveNow ? "end" : "go") + '" id="aGo" type="button">' + (liveNow ? "End broadcast" : "Go live") + '</button></div>' +
-    '<p class="adminnote" id="aNote">Rehearse with the demo loop. It is hosted here and costs nothing. Paste your real playback URL when you go live.</p>' +
+    '<p class="adminnote" id="aNote">Rehearse with the demo loop. It is hosted here and costs nothing. Paste a playback URL and Go live, or use the camera below and it fills itself in.</p>' +
+    panelHTML("bcPanel") +
     '</div>';
+  /* the DB enforces one live broadcast; clear the others first or the write trips the unique index */
+  async function setLive(payload) {
+    if (payload.is_live) await sb.from("ea_live").update({ is_live:false }).eq("is_live", true);
+    const res = show && show.id
+      ? await sb.from("ea_live").update(payload).eq("id", show.id)
+      : await sb.from("ea_live").insert(payload);
+    if (res.error) throw new Error(res.error.message);
+  }
   $("aDemo").addEventListener("click", () => { $("aUrl").value = DEMO_URL; });
   $("aGo").addEventListener("click", async () => {
     const btn = $("aGo"), label = btn.textContent, note = $("aNote");
     const url = $("aUrl").value.trim();
     if (!liveNow && !url) { note.textContent = "Paste a playback URL first, or click Use demo stream."; return; }
     btn.disabled = true; btn.textContent = "Saving...";
-    const payload = { title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: url || null, is_live: !liveNow };
-    /* the DB enforces one live broadcast; clear the others first or the write
-       trips the unique index */
-    if (!liveNow) await sb.from("ea_live").update({ is_live:false }).eq("is_live", true);
-    const res = show && show.id
-      ? await sb.from("ea_live").update(payload).eq("id", show.id)
-      : await sb.from("ea_live").insert(payload);
-    if (res.error) {
+    try {
+      await setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: url || null, is_live: !liveNow });
+    } catch (e) {
       btn.disabled = false; btn.textContent = label;
-      note.textContent = "Could not save: " + res.error.message;
+      note.textContent = "Could not save: " + e.message;
       return;
     }
     location.reload();
+  });
+  /* Go live from this device: camera → Cloudflare → the room, no software. The server
+     hands out the address only to an admin, at the moment they tap. */
+  const { data: { session: adminSession } } = await sb.auth.getSession();
+  wirePanel($("bcPanel"), {
+    cfg: window.BM_CONFIG, token: adminSession ? adminSession.access_token : "", room: "academy",
+    title: () => $("aTitle").value.trim() || "Taylormade Academy Live",
+    go: (watch) => { $("aUrl").value = watch; return setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: watch, is_live: true }); },
+    end: () => setLive({ is_live: false }),
+    /* the replay: Cloudflare's hosted watch page for the uploaded recording */
+    saved: async (d) => { if (show && show.id) { const r = await sb.from("ea_live").update({ replay_url: d.watch }).eq("id", show.id); if (r.error) throw new Error(r.error.message); } },
   });
 }
 

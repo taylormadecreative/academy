@@ -6,8 +6,9 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=0efbbc168f">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=0efbbc168f">
+<link rel="stylesheet" href="/css/build-mode.css?v=1025ab6423">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=1025ab6423">
+<link rel="stylesheet" href="/css/broadcast.css?v=1025ab6423">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -90,9 +91,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=0efbbc168f"></script>
+<script src="/js/config.js?v=1025ab6423"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=0efbbc168f';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=1025ab6423';
+import { panelHTML, wirePanel } from '/js/broadcast.js?v=1025ab6423';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
@@ -277,7 +279,7 @@ function sessRow(s) {
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
-      <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Taylormade Live playback URL (.m3u8), or any stream URL" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn useDemo" data-s="${s.no}" title="Free rehearsal loop hosted on this site">Demo</button><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button></div>
+      <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Taylormade Live playback URL (.m3u8), or any stream URL" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn useDemo" data-s="${s.no}" title="Free rehearsal loop hosted on this site">Demo</button><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button><button type="button" class="pillbtn camBtn" data-s="${s.no}" title="Stream from this device's camera, nothing to install">Camera</button></div>
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Check-in code (students self-mark attendance with this)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save session</button>
       ${matHtml}
@@ -296,7 +298,42 @@ const visibleSess = () => facOnly ? (allSess || []).filter(s => (facSessions || 
 function renderMgr(){ mgr.innerHTML = visibleSess().map(sessRow).join('') || '<div class="empty">No sessions assigned yet.</div>'; }
 if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr)) el.style.display = 'none'; });
 renderMgr();
+/* Go live from this device: one camera panel, docked under the session list (outside the
+   re-rendered manager so a save or a re-render can never kill a broadcast in progress).
+   The server hands the address only to an admin or that session's facilitator. */
+const camDock = document.createElement('div'); camDock.id = 'camDock';
+mgr.parentNode.insertBefore(camDock, mgr.nextSibling);
+const { data: { session: mySession } } = await sb.auth.getSession();
+let camNo = null;
+async function flipLive(no, on, hls) {
+  if (on) { const c = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); if (c.error) throw new Error(c.error.message); }
+  const r = await sb.from('ea_opil_sessions').update(on ? { is_live: true, stream_url: hls } : { is_live: false }).eq('no', no);
+  if (r.error) throw new Error(r.error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : r.error.message);
+  (allSess || []).forEach(x => { if (x.no === no) { x.is_live = on; if (hls) x.stream_url = hls; } else if (on) x.is_live = false; });
+  renderMgr();
+}
+function openCamera(no) {
+  const s = (allSess || []).find(x => x.no === no); if (!s) return;
+  if (camNo === no && camDock.innerHTML) { camDock.innerHTML = ''; camNo = null; return; }
+  camNo = no;
+  camDock.innerHTML = `<div style="margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Camera · ${String(no).padStart(2, '0')} ${esc(s.title)}</div>` + panelHTML('camPanel');
+  wirePanel(document.getElementById('camPanel'), {
+    cfg: window.BM_CONFIG, token: mySession ? mySession.access_token : '', room: 'opil', sessionNo: no,
+    title: () => String(no).padStart(2, '0') + ' · ' + s.title,
+    go: (watch) => flipLive(no, true, watch),
+    end: () => flipLive(no, false),
+    /* the replay lands on the session as its recording link */
+    saved: async (d) => {
+      const r = await sb.from('ea_opil_sessions').update({ recording_url: d.watch }).eq('no', no);
+      if (r.error) throw new Error(r.error.message);
+      s.recording_url = d.watch; renderMgr();
+    },
+  });
+  camDock.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
 mgr.addEventListener('click', async (ev) => {
+  const cam = ev.target.closest('.camBtn');
+  if (cam) { ev.preventDefault(); openCamera(Number(cam.dataset.s)); return; }
   const del = ev.target.closest('[data-delmat]');
   if (del) { ev.preventDefault();
     const { error } = await sb.from('ea_opil_materials').delete().eq('id', del.dataset.delmat);

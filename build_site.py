@@ -14,7 +14,8 @@ def _asset_ver():
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
                 "css/agent.css", "js/agent.js", "js/founder.js",
-                "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js"):
+                "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js",
+                "js/broadcast.js", "css/broadcast.css"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -210,7 +211,7 @@ def render(path, html):
 # NOTE: playbook/ai-avatar is intentionally NOT listed — it is web-only (no PWA/Capacitor
 # head injection) and pins its asset ?v= manually in the page itself.
 APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course", "founder")
-_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|js/site\.js|js/config\.js|js/founder\.js))(?:\?v=[a-z0-9]+)?')
+_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|css/broadcast\.css|js/site\.js|js/config\.js|js/founder\.js|js/broadcast\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):
     """Insert (or refresh) the PWA <head> block in a hand-maintained app page, guarded by a
@@ -230,7 +231,8 @@ def _ensure_pwa_head(html):
 # every other page, and nothing else was ever bumping those pins.
 HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
              "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase",
-             "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal")
+             "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
+             "live")   # the Academy live room: hand-maintained, stamped like the hub pages
 _HUB_ASSET_RX = re.compile(r'(/opil/hub/hub\.(?:css|js))(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
