@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=58fae5b211">
+<link rel="stylesheet" href="/css/build-mode.css?v=0903dcfbcb">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=0903dcfbcb">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -90,9 +90,9 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=3b7d540f53"></script>
+<script src="/js/config.js?v=0903dcfbcb"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=58fae5b211';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=0903dcfbcb';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
@@ -102,6 +102,9 @@ if (facOnly) {
   document.querySelector('.hub-head h1').textContent = 'My sessions';
   document.getElementById('csvBtn').style.display = 'none';
 }
+
+/* local calendar date as YYYY-MM-DD: toISOString() is UTC and rolls over at 7pm Central */
+const localDate = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 const [{ data: regs }, { data: teams }, { data: mems }, { data: sess }, { data: att }, { data: dvs }] = await Promise.all([
   sb.from('ea_opil_registrations').select('*').order('created_at'),
@@ -116,7 +119,7 @@ const nm = await names(sb, (mems || []).map(m => m.user_id));
 
 /* stats */
 const teamCount = new Set((regs || []).map(r => (r.team_name || '').trim().toLowerCase()).filter(Boolean)).size;
-const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <= new Date().toISOString().slice(0,10)).length;
+const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <= localDate()).length;
 const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
 const teamsWithWork = new Set((dvs || []).map(d => d.team_id)).size;
 const complRate = (teams || []).length ? Math.round((teamsWithWork / (teams || []).length) * 100) + '%' : '—';
@@ -315,10 +318,17 @@ mgr.addEventListener('click', async (ev) => {
     const going = !s.is_live;
     const streamVal = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`).value.trim() || null;
     if (going && !streamVal) { alert('Paste the stream URL first.'); return; }
-    /* only one live session at a time */
-    if (going) { await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); (allSess||[]).forEach(x => x.is_live = false); }
-    const { error } = await sb.from('ea_opil_sessions').update({ is_live: going, stream_url: streamVal }).eq('no', no);
-    if (!error) { s.is_live = going; s.stream_url = streamVal; renderMgr(); }
+    /* only one live session at a time: clear the current one first. A facilitator's RLS
+       only reaches their own sessions, so that clear can touch 0 rows and the second
+       update then trips the one-live unique index (23505) — say so instead of going quiet. */
+    let error = null;
+    if (going) ({ error } = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true));
+    if (!error) ({ error } = await sb.from('ea_opil_sessions').update({ is_live: going, stream_url: streamVal }).eq('no', no));
+    if (error) alert(error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : error.message);
+    /* re-read either way so the buttons show what the database actually holds */
+    const { data: fresh } = await sb.from('ea_opil_sessions').select('no, is_live, stream_url');
+    (fresh || []).forEach(f => { const x = (allSess || []).find(y => y.no === f.no); if (x) { x.is_live = f.is_live; x.stream_url = f.stream_url; } });
+    renderMgr();
     return; }
   const gc = ev.target.closest('.genCode');
   if (gc) { ev.preventDefault();
@@ -366,6 +376,99 @@ document.getElementById('annForm').addEventListener('submit', async (ev) => {
   const body = document.getElementById('annBody').value.trim(); if (!body) return;
   const { error } = await sb.from('ea_opil_announcements').insert({ author: user.id, body });
   if (!error) { document.getElementById('annBody').value = ''; alert('Posted to the cohort.'); }
+});
+
+/* judges */
+async function renderJudges(){
+  const { data: judges } = await sb.from('ea_opil_judge_emails').select('*').order('created_at');
+  document.getElementById('judgeList').innerHTML = (judges || []).length
+    ? judges.map(j => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--hair-soft)"><span style="flex:1"><b>${esc(j.email)}</b>${j.label ? ` <span style="color:var(--muted)">· ${esc(j.label)}</span>` : ''}</span><button class="pillbtn" data-deljudge="${esc(j.email)}" style="padding:4px 10px;font-size:11.5px;color:#b4451f;background:#fdf0e7">Remove</button></div>`).join('')
+    : '<div class="empty">No judges yet. Add one above.</div>';
+}
+renderJudges();
+document.getElementById('judgeForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const email = document.getElementById('judgeEmail').value.trim().toLowerCase();
+  const label = document.getElementById('judgeLabel').value.trim() || null;
+  if (!email) return;
+  const { error } = await sb.from('ea_opil_judge_emails').insert({ email, label });
+  if (error) { alert('Could not add judge: ' + error.message); return; }
+  document.getElementById('judgeEmail').value = ''; document.getElementById('judgeLabel').value = '';
+  renderJudges();
+});
+document.getElementById('judgeList').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-deljudge]'); if (!b) return;
+  /* two clicks to remove — no confirm(): browser dialogs block automation */
+  if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Sure?'; return; }
+  const { error } = await sb.from('ea_opil_judge_emails').delete().eq('email', b.dataset.deljudge);
+  if (error) { alert('Could not remove: ' + error.message); return; }
+  renderJudges();
+});
+
+/* scores: per judge a team totals the four rubric values (max 20); shown as the average per event */
+const RUBRIC = ['problem', 'model', 'prototype', 'presentation'];
+async function renderScores(){
+  const { data: scores } = await sb.from('ea_opil_scores').select('*');
+  const wrap = document.getElementById('scoreWrap');
+  if (!(scores || []).length) { wrap.innerHTML = '<div class="empty">No scores yet. Judges score at /opil/hub/judge/.</div>'; return; }
+  const by = {};
+  scores.forEach(sc => { const t = RUBRIC.reduce((a, k) => a + (Number((sc.rubric || {})[k]) || 0), 0); const ev = by[sc.team_id] = by[sc.team_id] || {}; (ev[sc.event] = ev[sc.event] || []).push(t); });
+  const cell = (arr) => arr && arr.length ? `<b>${(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)}</b> / 20 <span style="color:var(--muted)">(${arr.length} judge${arr.length !== 1 ? 's' : ''})</span>` : '<span style="color:var(--muted)">—</span>';
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Team</th><th>Pitch</th><th>Showcase</th></tr></thead><tbody>` +
+    Object.entries(by).sort((a, b) => (teamName[a[0]] || '').localeCompare(teamName[b[0]] || ''))
+      .map(([tid, ev]) => `<tr><td><b>${esc(teamName[tid] || '')}</b></td><td>${cell(ev.pitch)}</td><td>${cell(ev.showcase)}</td></tr>`).join('') + '</tbody></table>';
+}
+renderScores();
+
+/* credentials: one per member, verifiable at /opil/verify/?c=CODE */
+async function renderCreds(){
+  const { data: creds } = await sb.from('ea_opil_credentials').select('*').order('issued_at');
+  const cn = await names(sb, (creds || []).map(c => c.user_id));
+  document.getElementById('credList').innerHTML = (creds || []).length
+    ? creds.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--hair-soft)"><span style="flex:1"><b>${esc(cn[c.user_id])}</b></span><span class="mono" style="font-size:12px">${esc(c.code)}</span><a href="/opil/verify/?c=${encodeURIComponent(c.code)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;font-size:12.5px">verify</a></div>`).join('')
+    : '<div class="empty">No credentials issued yet.</div>';
+}
+renderCreds();
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; /* 32 chars, no 0/O/1/I: these get read out loud */
+const newCode = () => 'OPIL-' + [...crypto.getRandomValues(new Uint8Array(6))].map(v => CODE_CHARS[v % 32]).join('');
+document.getElementById('issueBtn').addEventListener('click', async (ev) => {
+  const b = ev.currentTarget;
+  b.disabled = true; /* before any await — a second click mid-flight would run a duplicate loop over the same list */
+  const [{ data: all, error: e1 }, { data: have, error: e2 }] = await Promise.all([
+    sb.from('ea_opil_team_members').select('user_id'),
+    sb.from('ea_opil_credentials').select('user_id'),
+  ]);
+  if (e1 || e2) { b.disabled = false; alert('Could not load members: ' + (e1 || e2).message); return; }
+  const has = new Set((have || []).map(c => c.user_id));
+  const todo = [...new Set((all || []).map(m => m.user_id))].filter(u => !has.has(u));
+  const ins = (user_id) => sb.from('ea_opil_credentials').insert({ user_id, code: newCode(), issued_by: user.id });
+  let issued = 0, failed = 0, last = '';
+  for (const uid of todo) {
+    b.textContent = `Issuing ${issued + failed + 1} of ${todo.length}…`;
+    /* one at a time: a code collision (23505) gets a single retry with a fresh code */
+    let r = await ins(uid);
+    if (r.error && r.error.code === '23505') r = await ins(uid);
+    if (r.error) { failed++; last = r.error.message; continue; }
+    issued++;
+  }
+  b.disabled = false; b.textContent = 'Issue completion credentials to all active members';
+  alert(`Issued ${issued}, ${has.size} already had one` + (failed ? `, ${failed} failed (${last})` : ''));
+  renderCreds();
+});
+
+/* digest: a mailto so it goes out from the coordinator's own mail app — members ride in BCC */
+document.getElementById('digestBtn').addEventListener('click', async () => {
+  const bcc = [...new Set((regs || []).map(r => (r.email || '').trim().toLowerCase()).filter(Boolean))];
+  if (!bcc.length) { alert('No registered members yet.'); return; }
+  const next = (sess || []).filter(s => s.session_date && s.session_date >= localDate()).sort((a, b) => a.session_date.localeCompare(b.session_date))[0];
+  const { data: ann } = await sb.from('ea_opil_announcements').select('body').order('created_at', { ascending: false }).limit(1).maybeSingle();
+  const lines = ['Hi all,', ''];
+  if (next) lines.push('NEXT SESSION', `${String(next.no).padStart(2, '0')} · ${next.title} · ${new Date(next.session_date + 'T12:00:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`, ...(next.outcome ? ['Outcome: ' + next.outcome] : []), '');
+  const newest = (mats || []).slice(-5).reverse();
+  if (newest.length) lines.push('NEWEST MATERIALS', ...newest.map(m => `· ${m.title} (${m.session_no ? 'session ' + String(m.session_no).padStart(2, '0') : 'general'})${m.link_url ? ' ' + m.link_url : ''}`), '');
+  if (ann && ann.body) lines.push('LATEST ANNOUNCEMENT', ann.body.slice(0, 300), '');
+  lines.push('Everything lives at https://taylormadeacademy.com/opil/hub/');
+  window.location.href = 'mailto:taylormademd@gmail.com?bcc=' + encodeURIComponent(bcc.join(',')) + '&subject=' + encodeURIComponent('OPIL Lab · this week') + '&body=' + encodeURIComponent(lines.join('\n'));
 });
 
 /* surveys summary */

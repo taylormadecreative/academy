@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://esm.sh" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
+<link rel="stylesheet" href="/css/build-mode.css?v=0903dcfbcb">
 <link rel="preload" as="image" href="/opil/duo.webp" fetchpriority="high">
 <script>document.documentElement.classList.add('js')</script>
 <style>
@@ -535,7 +535,7 @@
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
-<script src="/js/config.js?v=3b7d540f53"></script>
+<script src="/js/config.js?v=0903dcfbcb"></script>
 <script type="module">
 /* reveals */
 if ('IntersectionObserver' in window) {
@@ -644,6 +644,13 @@ function fail(msg, el) {
     }, { once: true });
   }
 }
+const done = document.getElementById('doneBox');
+function showDone() {
+  form.style.display = 'none';
+  done.classList.add('show');
+  document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  done.querySelector('.big').focus({ preventScroll: true });
+}
 function mate(n) {
   const name = document.getElementById('m'+n+'name').value.trim();
   const email = document.getElementById('m'+n+'email').value.trim().toLowerCase();
@@ -730,22 +737,16 @@ form.addEventListener('submit', async (ev) => {
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
     const supabase = await client();
-    /* resumes → private bucket, saved to AUC's LastName_FirstName_School convention */
-    btn.textContent = 'Uploading your resume…';
+    /* resume → private bucket, AUC's LastName_FirstName_School convention. The path is fixed before the insert so the
+       row goes in first and the PDF is uploaded only once it exists — a rejected insert then leaves nothing orphaned */
     const folder = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
     const pdfName = (person) => {
       const parts = person.replace(/[^A-Za-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
       const first = parts[0] || 'Student', last = parts.length > 1 ? parts[parts.length - 1] : 'HBCU';
       return last + '_' + first + '_' + (school.replace(/[^A-Za-z0-9]+/g, '') || 'HBCU') + '.pdf';
     };
-    const resumes = [];
-    {
-      const path = folder + '/self/' + pdfName(fname.trim());
-      const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, myPdf, { contentType: 'application/pdf', upsert: false });
-      if (upErr) return fail('Could not upload your resume. Try once more, or email taylormademd@gmail.com and we’ll take it by email.');
-      resumes.push({ slot: 'self', original: myPdf.name, path, size: myPdf.size });
-    }
-    btn.textContent = 'Submitting…';
+    const path = folder + '/self/' + pdfName(fname);
+    const resumes = [{ slot: 'self', original: myPdf.name, path, size: myPdf.size }];
     const { error } = await supabase.from('ea_opil_registrations').insert({
       full_name: fname, email, school, team_name: team, project: project || null,
       major: major || null, phone, classification: cls, personal_email: pemail || null,
@@ -759,31 +760,48 @@ form.addEventListener('submit', async (ev) => {
       },
       agreed_expectations: true, agreed_commitment: true, commitment_signature: sign
     });
-    if (error && !String(error.message || '').toLowerCase().includes('duplicate') && error.code !== '23505') {
+    const OTP = { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' };
+    if (error) {
+      /* the insert policy enforces the deadline too — a submit that outlives the page's own gate lands here */
+      if (error.code === '42501') {
+        form.hidden = true;
+        const note = document.getElementById('closedNote');
+        note.hidden = false; note.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      /* duplicate email: the first application stands, so never present a re-submit as a saved correction */
+      if (error.code === '23505' || String(error.message || '').toLowerCase().includes('duplicate')) {
+        const { error: otpErr } = await supabase.auth.signInWithOtp({ email, options: OTP });
+        done.querySelector('.big').textContent = 'This email already has an application in.';
+        const steps = ['We kept your original submission.',
+          otpErr ? 'The activation link did not re-send just now — email taylormademd@gmail.com and the program team will activate you by hand.'
+                 : 'We re-sent your activation link — check your HBCU email.',
+          'Need to change your team name, teammates, or resume? Email taylormademd@gmail.com and the program team will fix it by hand.'];
+        done.querySelectorAll('.step > span + span').forEach((el, i) => el.textContent = steps[i]);
+        showDone();
+        return;
+      }
       return fail('That didn’t save. Try once more, or email taylormademd@gmail.com and we’ll register your team by hand.');
     }
-    /* duplicate = already registered: still (re)send the activation link */
-    const { error: otpErr } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' }
-    });
-    form.style.display = 'none';
+    btn.textContent = 'Uploading your resume…';
+    const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, myPdf, { contentType: 'application/pdf', upsert: false });
+    const { error: otpErr } = await supabase.auth.signInWithOtp({ email, options: OTP });
     document.getElementById('doneTeam').innerHTML = '<b style="color:var(--ink)">' +
       team.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>’s registration';
-    const done = document.getElementById('doneBox');
+    const s2 = document.getElementById('doneStep2');
+    const resumeNote = upErr ? '<b style="color:var(--ink)">Your application is saved</b>, but your resume did not upload. Email the PDF to taylormademd@gmail.com and the program team will attach it. ' : '';
+    if (upErr && !otpErr) s2.innerHTML = resumeNote + 'Then check your HBCU email and tap the activation link to open your program hub.';
     if (otpErr) {
-      const s2 = document.getElementById('doneStep2');
-      s2.innerHTML = '<b style="color:var(--ink)">Your registration is saved</b>, but the activation email did not send just now. <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
+      const lead = upErr ? '<b style="color:var(--ink)">The activation email also did not send</b> just now.'
+                         : '<b style="color:var(--ink)">Your registration is saved</b>, but the activation email did not send just now.';
+      s2.innerHTML = resumeNote + lead + ' <button type="button" id="resendBtn" style="font:inherit;font-weight:700;color:#0b40e0;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0">Tap to resend</button> in a minute, or email taylormademd@gmail.com and we will activate you by hand.';
       s2.querySelector('#resendBtn').addEventListener('click', async () => {
-        const { error: again } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' } });
-        if (!again) s2.innerHTML = '<b style="color:var(--ink)">Sent.</b> Check your HBCU email and tap the activation link.';
-        else s2.innerHTML = '<b style="color:var(--ink)">Still not sending.</b> Email taylormademd@gmail.com and we will activate you by hand — your registration is already saved.';
+        const { error: again } = await supabase.auth.signInWithOtp({ email, options: OTP });
+        if (!again) s2.innerHTML = resumeNote + '<b style="color:var(--ink)">Sent.</b> Check your HBCU email and tap the activation link.';
+        else s2.innerHTML = resumeNote + '<b style="color:var(--ink)">Still not sending.</b> Email taylormademd@gmail.com and we will activate you by hand — your registration is already saved.';
       });
     }
-    done.classList.add('show');
-    const big = done.querySelector('.big');
-    document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    big.focus({ preventScroll: true });
+    showDone();
   } catch (e) {
     fail('Could not reach the registration service. Check your connection and try again.');
   }

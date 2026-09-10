@@ -131,11 +131,12 @@ export function nav(ctx, active) {
   if (team.length && !onTeamPage) {
     const [, label, href] = team[0];
     /* Name the surface you are actually standing in, not just "not yours". An admin
-       previewing the judge screen is not looking at the student view. */
-    const where = STUDENT.some(([k]) => k === active)
-      ? 'Student view. This is what the cohort sees.'
-      : active === 'judge' ? 'Judge view. This is what your judges score from.'
-      : 'You are previewing another role.';
+       previewing the judge screen is not looking at the student view. Every other
+       page (home, team, messages, showcase, the live room, a survey) is one the
+       cohort uses, so it reads as the student view even when its nav key is blank. */
+    const where = active === 'judge'
+      ? 'Judge view. This is what your judges score from.'
+      : 'Student view. This is what the cohort sees.';
     const band = document.createElement('div');
     band.className = 'ln-ctx';
     band.innerHTML = '<span>' + where + '</span>'

@@ -226,8 +226,11 @@ def _ensure_pwa_head(html):
 # referenced with no ?v= at all, so a browser (and sw.js, which is cache-first on static
 # assets) could serve a months-old copy forever. They stamp separately from APP_PAGES
 # because these are program surfaces and must NOT get the PWA/Capacitor head block.
+# The public OPIL pages stamp here too: they carry build-mode.css and config.js like
+# every other page, and nothing else was ever bumping those pins.
 HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
-             "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase")
+             "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase",
+             "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal")
 _HUB_ASSET_RX = re.compile(r'(/opil/hub/hub\.(?:css|js))(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
@@ -237,7 +240,9 @@ def stamp_hub_pages(ver):
         if not f.exists():
             continue
         html = f.read_text()
-        new = _HUB_ASSET_RX.sub(rf'\1?v={ver}', html)
+        # hub.css/hub.js AND the shared assets: a hub page that pins hub.js at today's hash
+        # but config.js at a months-old one still serves a stale config.js from sw.js.
+        new = _ASSET_RX.sub(rf'\1?v={ver}', _HUB_ASSET_RX.sub(rf'\1?v={ver}', html))
         if new != html:
             f.write_text(new)
             stamped.append(name)

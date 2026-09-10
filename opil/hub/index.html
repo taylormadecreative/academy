@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=3b7d540f53">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=58fae5b211">
+<link rel="stylesheet" href="/css/build-mode.css?v=0903dcfbcb">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=0903dcfbcb">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -27,7 +27,7 @@
 <form id="ciForm" style="display:inline-flex;gap:8px;margin-left:10px"><input id="ciCode" placeholder="CODE" maxlength="20" style="font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid #9fd8c2;border-radius:980px;width:130px;text-transform:uppercase"><button class="pillbtn" type="submit" style="background:#d9f3e8;color:#0b5e43">Check in</button></form>
 <span id="ciMsg" style="margin-left:8px;font-weight:700"></span></div>
 <div class="hub-note" id="svyNote" style="display:none;background:var(--blue-soft);border-color:#c9d7fb;color:var(--blue-deep)"><b>One minute before kickoff:</b> take the baseline survey so the program can measure what this year gives you. <a href="/opil/hub/survey/?k=baseline" style="font-weight:700;color:var(--blue-deep);text-decoration:underline">Start it now</a></div>
-<div class="hub-note" id="noTeamNote" style="display:none">You&rsquo;re signed in but not matched to a registered team yet. Register at <a href="/opil/register/" style="font-weight:700;color:var(--gold-ink);text-decoration:underline">/opil/register/</a> with this email and your team appears here automatically.</div>
+<div class="hub-note" id="noTeamNote" style="display:none"></div>
 
 <div class="hub-grid">
 <div>
@@ -53,15 +53,32 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=3b7d540f53"></script>
+<script src="/js/config.js?v=0903dcfbcb"></script>
 <script type="module">
-import { boot, esc, when, nav } from '/opil/hub/hub.js?v=58fae5b211';
+import { boot, esc, when, nav } from '/opil/hub/hub.js?v=0903dcfbcb';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
-const { sb, user, teamId, isAdmin } = ctx;
+const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
 nav(ctx, 'home');
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
 
-if (!teamId) document.getElementById('noTeamNote').style.display = '';
+/* no-team note — claim_team seats approved registrations only, so say where the application stands.
+   Staff (coordinators, judges, facilitators) have no team by design — skip the note and the RPC for them. */
+if (!teamId && !isAdmin && !isJudge && !facSessions.length) {
+  const mail = '<a href="mailto:taylormademd@gmail.com" style="font-weight:700;color:var(--gold-ink);text-decoration:underline">taylormademd@gmail.com</a>';
+  const copy = {
+    pending: 'Your application is in. The program team is reviewing it &mdash; your team space opens here the moment it&rsquo;s approved.',
+    approved: `You&rsquo;re approved but not seated on a team yet. Reload in a minute; if this persists, email ${mail}.`,
+    none: `You&rsquo;re signed in but not registered for the Lab. Applications closed Wednesday, September 9 &mdash; if you&rsquo;re on a team, email ${mail} and we&rsquo;ll seat you by hand.`,
+  };
+  let st = 'none';
+  try { const { data } = await sb.rpc('ea_opil_my_registration_status'); if (copy[data]) st = data; } catch (e) {}
+  const nt = document.getElementById('noTeamNote'); nt.innerHTML = copy[st]; nt.style.display = '';
+}
+/* sessions + materials — must stay above the live banner and check-in blocks, which read `sess` */
+const [{ data: sess }, { data: mats }] = await Promise.all([
+  sb.from('ea_opil_sessions').select('*').order('no'),
+  sb.from('ea_opil_materials').select('*').order('created_at'),
+]);
 /* live banner */
 try {
   const live = (sess || []).find(s => s.is_live);
@@ -72,7 +89,7 @@ try {
 } catch (e) {}
 /* self check-in for today's session */
 try {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const n = new Date(), todayStr = [n.getFullYear(), n.getMonth() + 1, n.getDate()].map(x => String(x).padStart(2, '0')).join('-'); // local date — toISOString() is UTC and rolls to tomorrow at 7pm Central
   const todaySess = (sess || []).find(s => s.kind === 'thread' && s.session_date === todayStr);
   if (todaySess && teamId) {
     const { data: mine } = await sb.from('ea_opil_attendance').select('session_no').eq('session_no', todaySess.no).eq('user_id', user.id).maybeSingle();
@@ -100,11 +117,7 @@ document.getElementById('annList').innerHTML = (anns && anns.length)
   ? anns.map(a => `<div class="ann"><span class="dot2"></span><div><p>${esc(a.body)}</p><div class="w">${when(a.created_at)}</div></div></div>`).join('')
   : '<div class="empty">No announcements yet.</div>';
 
-/* sessions + materials */
-const [{ data: sess }, { data: mats }] = await Promise.all([
-  sb.from('ea_opil_sessions').select('*').order('no'),
-  sb.from('ea_opil_materials').select('*').order('created_at'),
-]);
+/* session list + milestones */
 const matsBy = {}; (mats || []).forEach(m => { (matsBy[m.session_no || 0] = matsBy[m.session_no || 0] || []).push(m); });
 const thread = (sess || []).filter(s => s.kind === 'thread');
 const miles = (sess || []).filter(s => s.kind === 'milestone');
@@ -131,7 +144,7 @@ if (teamId) {
     sb.from('ea_opil_teams').select('*').eq('id', teamId).single(),
     sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId),
   ]);
-  const { names } = await import('/opil/hub/hub.js?v=58fae5b211');
+  const { names } = await import('/opil/hub/hub.js?v=0903dcfbcb');
   const nm = await names(sb, (members || []).map(m => m.user_id));
   tc.innerHTML = `<b style="font-family:var(--display);font-size:19px;color:var(--ink)">${esc(team.name)}</b>
     <div style="font-size:13px;color:var(--muted);margin:4px 0 12px">${esc(team.school || '')}</div>
