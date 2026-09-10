@@ -6,8 +6,9 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=1025ab6423">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=1025ab6423">
+<link rel="stylesheet" href="/css/build-mode.css?v=cbb6236ad0">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=cbb6236ad0">
+<link rel="stylesheet" href="/css/broadcast.css?v=cbb6236ad0">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -31,6 +32,14 @@
 @media(prefers-reduced-motion:reduce){.livebadge i{animation:none}}
 .chat input:disabled,.chat button:disabled{opacity:.55;cursor:not-allowed}
 .chat .note{align-self:center;font-size:12.5px;font-weight:600;color:#b4451f;background:#fdf0e7;border-radius:980px;padding:6px 12px}
+/* broadcast control (program team only) */
+#bc .hcard{margin-bottom:22px}
+.bc-ctl-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bc-ctl-row+.bc-ctl-row{margin-top:9px}
+.bc-ctl-row select,.bc-ctl-row input{flex:1;min-width:0;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px;background:#fff;color:var(--ink)}
+.bc-ctl-row input{min-width:220px}
+#bcNote{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+#bc select:disabled,#bc input:disabled,#bc .pillbtn:disabled{opacity:.55;cursor:not-allowed}
 </style>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -44,6 +53,7 @@
 <span class="livebadge" id="badge" style="display:none"><i></i>LIVE NOW</span>
 </div>
 <div class="hub-tabs"></div>
+<div id="bc"></div>
 
 <div class="live-grid">
 <div>
@@ -60,12 +70,13 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=1025ab6423"></script>
+<script src="/js/config.js?v=cbb6236ad0"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=1025ab6423';
-import { play } from '/js/broadcast.js?v=1025ab6423';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=cbb6236ad0';
+import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=cbb6236ad0';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
-const { sb, user, isAdmin } = ctx;
+const { sb, user, isAdmin, facSessions } = ctx;
+const staff = isAdmin || (facSessions || []).length > 0;   /* coordinators and facilitators get the Broadcast control */
 nav(ctx, '');
 
 /* find the live session */
@@ -105,6 +116,10 @@ function brandChrome(player, title) {
   player.appendChild(wm);
 }
 const DEMO_URL = '/assets/live-demo/stream.m3u8';
+const IDLE_HTML = document.getElementById('player').innerHTML;   /* kept verbatim so a broadcaster can put it back on End */
+let selfBroadcast = false;   /* this page is the broadcaster: it watches its own feed muted (or hears itself a beat late) and the wake poll must not reload it */
+let unmount = null;          /* stops whatever mountStream started (WebRTC retries, hls.js) before the player is cleared */
+const metaLine = (s) => 'Session ' + String(s.no).padStart(2, '0') + (s.outcome ? ' · Today you leave with: ' + s.outcome : '');
 async function mountStream(u, title) {
   const player = document.getElementById('player');
   const isDemo = (u === DEMO_URL);
@@ -116,12 +131,15 @@ async function mountStream(u, title) {
        broadcaster is not connected yet, so keep knocking; reconnect if the link drops. */
     const v = document.createElement('video');
     v.controls = true; v.playsInline = true; v.autoplay = true;
+    if (selfBroadcast) v.muted = true;   /* the autoplay fallback below only ever mutes, so this sticks */
     player.appendChild(v);
-    let stopped = false;
+    let stopped = false, link = null;
     const connect = async () => {
       if (stopped) return;
       try {
         const s = await play(abs, v);
+        if (stopped) { s.stop(); return; }   /* torn down while the handshake was in flight */
+        link = s;
         v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
         s.pc.addEventListener('connectionstatechange', () => {
           if (['failed', 'disconnected', 'closed'].includes(s.pc.connectionState) && !stopped) { try { s.stop(); } catch (e) {} setTimeout(connect, 3000); }
@@ -129,6 +147,7 @@ async function mountStream(u, title) {
       } catch (e) { setTimeout(connect, e && e.status === 409 ? 4000 : 6000); }
     };
     connect();
+    unmount = () => { stopped = true; if (link) { try { link.stop(); } catch (e) {} } };
     window.addEventListener('pagehide', () => { stopped = true; });
     v.addEventListener('playing', () => player.classList.add('playing'));
     brandChrome(player, title);
@@ -151,6 +170,7 @@ async function mountStream(u, title) {
       if (Hls.isSupported()) {
         const h = new Hls({ liveSyncDurationCount: 3 });
         h.loadSource(abs); h.attachMedia(v);
+        unmount = () => { try { h.destroy(); } catch (e) {} };
         h.on(Hls.Events.ERROR, (ev, data) => {
           if (!data.fatal) return;
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { try { h.startLoad(); } catch (e) {} }
@@ -176,7 +196,7 @@ async function mountStream(u, title) {
 }
 if (liveSess && liveSess.stream_url) {
   mountStream(liveSess.stream_url, liveSess.title).catch(() => {});
-  document.getElementById('meta').textContent = 'Session ' + String(liveSess.no).padStart(2, '0') + (liveSess.outcome ? ' · Today you leave with: ' + liveSess.outcome : '');
+  document.getElementById('meta').textContent = metaLine(liveSess);
 }
 
 /* room chat (cohort-wide, scoped to the one live session) */
@@ -198,24 +218,33 @@ function note(msg) {   /* system line at the foot of the room; the next repaint 
   scroll.insertAdjacentHTML('beforeend', `<div class="note">${esc(msg)}</div>`);
   scroll.scrollTop = scroll.scrollHeight;
 }
-if (liveSess) {
+let chatWired = false;   /* one realtime channel and one refresh timer per page, however many times the room opens */
+async function openChat() {
   await loadChat();
+  if (chatWired) return; chatWired = true;
   try {
     sb.channel('live-room')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_live_chat' }, loadChat)
       .subscribe();
   } catch (e) {}
   setInterval(loadChat, 12000);
+}
+let wakePoll = null;   /* kept so a broadcaster can stop it: a reload under a live camera ends the broadcast */
+function armWake() {
+  wakePoll = setInterval(async () => {
+    const { data } = await sb.from('ea_opil_sessions').select('no').eq('is_live', true).limit(1);
+    if (data && data.length && !selfBroadcast) location.reload();
+  }, 30000);
+}
+if (liveSess) {
+  await openChat();
 } else {
   /* no session_no to read or write under (the insert policy rejects null), so the room stays shut
      and reopens itself the moment a session flips live */
   scroll.innerHTML = '<div class="empty">Chat opens when a session goes live.</div>';
   input.disabled = true; input.placeholder = 'Room opens with the session';
   document.getElementById('lcSend').disabled = true;
-  setInterval(async () => {
-    const { data } = await sb.from('ea_opil_sessions').select('no').eq('is_live', true).limit(1);
-    if (data && data.length) location.reload();
-  }, 30000);
+  armWake();
 }
 document.getElementById('lcForm').addEventListener('submit', async (ev) => {
   ev.preventDefault();
@@ -234,5 +263,105 @@ document.getElementById('lcForm').addEventListener('submit', async (ev) => {
   }
   input.value = ''; loadChat();
 });
+
+/* Broadcast control: a coordinator or a facilitator goes live from the room itself, the way
+   /live/ works for the Academy, instead of digging through the coordinator page. Everyone
+   else gets an empty mount and nothing else changes. */
+if (staff) {
+  const { data: all } = await sb.from('ea_opil_sessions').select('*').eq('kind', 'thread').order('no');
+  const sessions = (all || []).filter(s => isAdmin || (facSessions || []).includes(s.no));
+  const bc = document.getElementById('bc');
+  if (!sessions.length) {
+    bc.innerHTML = '<div class="hub-note">No sessions to broadcast yet. Ask the coordinator to put you on one.</div>';
+  } else {
+    const n = new Date(), today = [n.getFullYear(), n.getMonth() + 1, n.getDate()].map(x => String(x).padStart(2, '0')).join('-');   /* local date; toISOString() is UTC and rolls to tomorrow at 7pm Central */
+    const pick = sessions.find(s => s.is_live)
+      || sessions.find(s => s.session_date === today)
+      || sessions.filter(s => s.session_date && s.session_date > today).sort((a, b) => a.session_date.localeCompare(b.session_date))[0]
+      || sessions[0];
+    const label = (s) => String(s.no).padStart(2, '0') + ' · ' + s.title + (s.session_date ? ' · ' + new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '');
+    bc.innerHTML = `<div class="hcard"><div class="hd2"><h2>Broadcast control</h2><span class="mono" style="font-size:11px;color:var(--gold-ink)">PROGRAM TEAM ONLY</span></div>
+<div class="bd">
+<div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
+<div class="bc-ctl-row"><input id="bcUrl" placeholder="Playback URL (.m3u8 or WebRTC), or use the camera below" aria-label="Playback URL"><button type="button" class="pillbtn" id="bcDemo" title="Free rehearsal loop hosted on this site">Use demo stream</button><button type="button" class="pillbtn" id="bcGo">Go live</button></div>
+<p id="bcNote">Paste a playback URL and Go live, or use the camera below and it fills itself in. The demo loop is free and safe to rehearse with.</p>
+<div id="bcCam"></div>
+</div></div>`;
+    const sel = document.getElementById('bcSess'), url = document.getElementById('bcUrl'), demo = document.getElementById('bcDemo'),
+          goBtn = document.getElementById('bcGo'), bnote = document.getElementById('bcNote'), cam = document.getElementById('bcCam');
+    const cur = () => sessions.find(s => s.no === Number(sel.value));
+    function syncCtl() { const s = cur(); url.value = s.stream_url || ''; goBtn.textContent = s.is_live ? 'End session' : 'Go live'; }
+    const onAir = (on) => [sel, url, demo, goBtn].forEach(el => { el.disabled = on; });
+    /* wirePanel's own idle label: anything else means the camera is starting, on air, or saving the recording */
+    const camIdle = () => { const b = cam.querySelector('.bc-status b'); return !b || b.textContent === 'Camera off'; };
+    /* only one live session at a time: clear the current one first. A facilitator's RLS
+       only reaches their own sessions, so that clear can touch 0 rows and the second
+       update then trips the one-live unique index (23505) — say so instead of going quiet. */
+    async function flipLive(no, on, u) {
+      if (on) { const c = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); if (c.error) throw new Error(c.error.message); }
+      const r = await sb.from('ea_opil_sessions').update(on ? { is_live: true, stream_url: u } : { is_live: false }).eq('no', no);
+      if (r.error) throw new Error(r.error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : r.error.message);
+      sessions.forEach(x => { if (x.no === no) { x.is_live = on; if (u) x.stream_url = u; } else if (on) x.is_live = false; });
+    }
+    function teardown() {
+      if (unmount) { try { unmount(); } catch (e) {} } unmount = null;
+      const player = document.getElementById('player');
+      player.classList.remove('playing'); player.innerHTML = IDLE_HTML;
+      document.getElementById('badge').style.display = 'none';
+      document.getElementById('ttl').textContent = 'The live room';
+      document.getElementById('meta').textContent = '';
+    }
+    demo.addEventListener('click', () => { url.value = DEMO_URL; url.focus(); });
+    goBtn.addEventListener('click', async () => {
+      if (!camIdle()) { bnote.textContent = 'Finish with the camera first.'; return; }
+      const s = cur(), going = !s.is_live, u = url.value.trim();
+      if (going && !u) { bnote.textContent = 'Paste a playback URL first, or click Use demo stream.'; return; }
+      goBtn.disabled = true; goBtn.textContent = 'Saving…';
+      try { await flipLive(s.no, going, u); }
+      catch (e) { goBtn.disabled = false; syncCtl(); bnote.textContent = 'Could not save: ' + e.message; return; }
+      location.reload();   /* no camera to lose: a reload is the simplest way to mount the player and the chat */
+    });
+    /* Go live from this device. wirePanel binds the session when wired, so the panel is rebuilt
+       whenever the pick changes; the pick is locked while the camera is busy so a rebuild can never kill a broadcast. */
+    const token = (await sb.auth.getSession()).data.session?.access_token || '';
+    function renderPanel() {
+      const s = cur(), no = s.no, ttl = String(no).padStart(2, '0') + ' · ' + s.title;
+      cam.innerHTML = panelHTML('bcPanel');
+      wirePanel(document.getElementById('bcPanel'), {
+        cfg: window.BM_CONFIG, token, room: 'opil', sessionNo: no, title: () => ttl,
+        /* no reload here, it would kill the camera: mount the player and open the room in place */
+        go: async (watch) => {
+          /* stop future ticks, and flag this page as the broadcaster BEFORE the DB write: clearInterval cannot
+             cancel a tick already in flight, and its select can be served after is_live commits, so the flag
+             is the only thing that keeps it from reloading under the camera */
+          clearInterval(wakePoll); wakePoll = null; selfBroadcast = true; onAir(true);
+          try { await flipLive(no, true, watch); } catch (e) { selfBroadcast = false; onAir(false); if (!liveSess) armWake(); throw e; }
+          sessionNo = no; url.value = watch; syncCtl();
+          teardown(); mountStream(watch, ttl).catch(() => {});
+          document.getElementById('meta').textContent = metaLine(s);
+          input.disabled = false; input.placeholder = 'Message the room'; document.getElementById('lcSend').disabled = false;
+          await openChat();
+        },
+        end: async () => {
+          try { await flipLive(no, false); }
+          catch (e) { bnote.textContent = 'Could not take the session off air: ' + e.message; }
+          selfBroadcast = false; teardown(); syncCtl(); onAir(false);
+        },
+        /* the replay lands on the session as its recording link */
+        saved: async (d) => {
+          const r = await sb.from('ea_opil_sessions').update({ recording_url: d.watch }).eq('no', no);
+          if (r.error) throw new Error(r.error.message);
+          s.recording_url = d.watch;
+        },
+      });
+    }
+    let panelNo = pick.no;   /* the session the mounted panel is bound to */
+    sel.addEventListener('change', () => {
+      if (!camIdle()) { sel.value = String(panelNo); bnote.textContent = 'Finish with the camera before switching sessions.'; return; }
+      panelNo = Number(sel.value); syncCtl(); renderPanel();
+    });
+    syncCtl(); renderPanel();
+  }
+}
 </script>
 </body></html>

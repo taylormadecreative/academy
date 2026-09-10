@@ -50,7 +50,7 @@ function steps(page, role, ctx) {
   const admin = [
     { at: ['#stats'], title: 'The numbers', body: 'Teams forming, students applied, attendance so far, and how many teams have work in the locker. Live, from the same data the students see.' },
     { at: ['#regTbl'], up: '.hcard', title: 'Registrations', body: 'Every application. The + on a row opens every answer, the resumes open in a new tab, and Approve seats that student on their team the next time they sign in.' },
-    { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, upload materials, and Go live with a stream URL.' },
+    { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, and upload materials. To broadcast, open the live room: its Broadcast control goes live from this device\u2019s camera, nothing to install.' },
     { at: ['#attWrap'], up: '.hcard', title: 'Attendance', body: 'One cell per student per session. Tap to mark; students can also check themselves in with the code you set.' },
     { at: ['#judgeForm'], up: '.hcard', title: 'Judges and scores', body: 'Add a judge by email and they get the scoring view the moment they sign in. Averages per team show up here as scores come in.' },
     { at: ['#annForm'], up: '.hcard', title: 'Announcements', body: 'Whatever you post here is the first thing every student sees on their hub home.' },

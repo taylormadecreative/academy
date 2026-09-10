@@ -188,7 +188,7 @@ export function wirePanel(panel, { cfg, token, room, sessionNo, go, end, saved, 
   const guard = (ev) => { ev.preventDefault(); ev.returnValue = ''; };   /* the browser's own "leave page?" while on air */
 
   async function save() {
-    if (!blob || !blob.size) { note.textContent = 'Off air. Nothing was recorded.'; return; }
+    if (!blob || !blob.size) { say('Camera off'); btn.textContent = 'Go live from this device'; btn.disabled = false; note.textContent = 'Off air. Nothing was recorded.'; return; }
     say('Saving recording…', 'warm'); btn.disabled = true; btn.textContent = 'Saving…';
     try {
       const d = await uploadRecording(cfg, token, { ...body, title: title ? title() : '' }, blob, (p) => say('Saving recording… ' + Math.round(p * 100) + '%', 'warm'));
