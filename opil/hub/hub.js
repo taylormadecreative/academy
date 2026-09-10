@@ -114,6 +114,16 @@ export function nav(ctx, active) {
         : '')
     + '</nav>';
 
+  /* First-visit tour for this surface and role. The module rides on hub.js's own ?v=
+     so it cache-busts with everything else; a page with no tour gets no control. */
+  import('./tour.js' + new URL(import.meta.url).search).then((m) => {
+    if (!m.tour(ctx, active)) return m;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ln-help'; b.textContent = 'Show me around';
+    b.addEventListener('click', () => m.start(ctx, active));
+    mount.querySelector('.ln-bar').appendChild(b);
+  }).catch(() => {});
+
   /* Bottom bar, mobile only. Same four surfaces, thumb height, never more than four. */
   document.querySelector('.ln-dock')?.remove();
   const dock = document.createElement('nav');

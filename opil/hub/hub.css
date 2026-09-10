@@ -128,3 +128,30 @@
 .stat span{font-size:12px;color:var(--muted)}
 @media(max-width:760px){.statrow{grid-template-columns:1fr 1fr}}
 .empty{padding:26px;text-align:center;color:var(--muted);font-size:14px}
+
+/* ---- first-visit tour (tour.js): a veil, a spotlight cut out of it, one card ---- */
+.tr-veil{position:fixed;inset:0;z-index:180}
+.tr-spot{position:fixed;z-index:181;border-radius:16px;pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(4,18,58,.58),0 0 0 3px var(--gold);
+  transition:top .28s ease,left .28s ease,width .28s ease,height .28s ease}
+.tr-card{position:fixed;z-index:182;width:min(360px,calc(100vw - 32px));background:#fff;
+  border:1px solid var(--hair);border-radius:16px;padding:18px 20px 16px;box-shadow:0 30px 60px -24px rgba(4,18,58,.45);
+  transition:top .28s ease,left .28s ease}
+.tr-n{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-ink)}
+.tr-card h3{font-family:var(--display);font-size:18px;color:var(--ink);margin:6px 0 6px}
+.tr-card p{font-size:14px;line-height:1.55;color:var(--ink-2);margin:0}
+.tr-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+.tr-row button{font:inherit;font-size:13.5px;font-weight:700;border:0;border-radius:var(--pill);padding:9px 16px;cursor:pointer}
+.tr-go{background:var(--blue);color:#fff}
+.tr-b{background:var(--bg-soft);color:var(--ink-2)}
+.tr-x{background:none;color:var(--muted);padding-left:0!important}
+.tr-row button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.tr-on{overflow-x:hidden}
+.ln-help{margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;color:var(--blue);background:none;border:0;cursor:pointer;padding:8px 4px;white-space:nowrap}
+.ln-help:hover{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:720px){
+  .tr-card{top:auto!important;left:16px!important;right:16px;width:auto;bottom:calc(74px + env(safe-area-inset-bottom))}
+  .tr-spot{border-radius:14px}
+  .ln-help{margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){.tr-spot,.tr-card{transition:none}}

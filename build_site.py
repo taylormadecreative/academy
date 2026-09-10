@@ -14,7 +14,7 @@ def _asset_ver():
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
                 "css/agent.css", "js/agent.js", "js/founder.js",
-                "opil/hub/hub.css", "opil/hub/hub.js"):
+                "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
