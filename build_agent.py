@@ -1,14 +1,21 @@
 """/agent/ and /agent/thanks/ — Build Your First AI Agent (public waitlist + seat sales).
 
 Rendered by build_site.py so the pages inherit the real site header and footer. Page
-styles live in css/agent.css, behaviour in js/agent.js. Dates, tiers and prices are
-never written here: the page reads ea_events_public / ea_tiers_public at load and the
-founder dashboard (/founder/) is where Nelson sets them.
+styles live in css/agent.css, behaviour in js/agent.js. Tiers and prices are never
+written here: the page reads ea_events_public / ea_tiers_public at load and the founder
+dashboard (/founder/) is where Nelson sets them. The DATE does appear in the copy, in
+one place: the three constants below. Change it there and rebuild. Never edit
+agent/index.html by hand; the next build_site.py run overwrites it.
 """
 
-TITLE = "Build Your First AI Agent — a one-night workshop by Taylormade Academy"
-DESC = ("Build a working AI agent in one night, no code, and leave with the playbook to build the next one. "
-        "First taught for AUC's Data Science Institute and Johns Hopkins. Join the waitlist: dates and the early-bird rate go to the list first.")
+DAY = "October 3"
+DATE = "Saturday, October 3, 7 to 9 PM CT"
+DATE_LONG = "Saturday, October 3, 2026, 7 to 9 PM CT"
+
+TITLE = "Build Your First AI Agent: a one-night online workshop by Taylormade Academy"
+DESC = (f"{DATE_LONG}, live online on the Taylormade Academy player. "
+        "Build a working AI agent in one night, no code, and leave with the playbook to build the next one. "
+        "First taught for AUC's Data Science Institute and Johns Hopkins.")
 
 _ICON_AGENT = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
                '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M8 12h.01M16 12h.01M9 16h6"/></svg>')
@@ -79,11 +86,11 @@ def _form(form_id, source, compact=False, on_ink=False):
     return f"""<div class="ag-form{' on-paper' if on_ink else ''}">
 <div class="ag-live">
 <div class="ag-form-h">Put your name on the list</div>
-<p class="ag-form-p">Dates go to the list first, with a personal link that opens the waitlist rate before seats go on public sale.</p>
+<p class="ag-form-p">The list gets the first rate for {DAY}, through a personal link, before the public sale opens.</p>
 <form id="{form_id}" data-source="{source}" novalidate>
 <div class="ag-fields">{fields}</div>
 <div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email when the date drops, one when seats open.</span></div>
+<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email with your link, one before seats close.</span></div>
 <div class="err" role="alert"></div>
 </form></div>
 <div class="ag-done" aria-live="polite"></div>
@@ -99,7 +106,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-copy">
 <span class="kicker gold">Taylormade Academy workshop</span>
 <h1 class="display-xl">Build your first<br>AI <span class="u-gold">agent</span>.</h1>
-<p class="lead">One night. No code. You leave with an agent that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
+<p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="ag-sheet">{_form("wlForm", "agent-hero")}</div>
@@ -117,7 +124,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-out-lead">
 <div class="ic">{_ICON_AGENT}</div>
 <h3>A working agent</h3>
-<p>Built by you, on the night, doing one real task from your business or your craft. Not a demo you watched. Yours, running when you get home.</p>
+<p>Built by you, on the night, on your own laptop, doing one real task from your business or your craft. Not a demo you watched. Yours, still working the next morning.</p>
 <div class="ag-out-mock" aria-hidden="true">
 <div class="ao-bar"><span class="ao-dot"></span><span class="ao-dot"></span><span class="ao-dot"></span><b>Your agent</b></div>
 <div class="ao-line"><span class="ao-tag">Reads</span> New inquiry from Danielle</div>
@@ -127,7 +134,7 @@ def agent_page(head, header, footer, ver):
 </div>
 <div class="ag-out-rest">
 <div class="ag-out-item"><div class="ic">{_ICON_BOOK}</div><div><h3>The playbook</h3><p>A step-by-step guide built from the AUC run, prompts included, so you can build the second one on your own.</p></div></div>
-<div class="ag-out-item"><div class="ic">{_ICON_ROOM}</div><div><h3>A room that answers</h3><p>A small room. Questions answered while you are stuck instead of three days later, and the Academy community afterwards.</p></div></div>
+<div class="ag-out-item"><div class="ic">{_ICON_ROOM}</div><div><h3>A chat that answers</h3><p>Ask in the live chat the moment you are stuck and get an answer while I am still on screen, not three days later. The Academy community picks it up afterwards.</p></div></div>
 </div>
 </div></div></section>
 
@@ -145,25 +152,25 @@ def agent_page(head, header, footer, ver):
 <div class="ag-night-intro">
 <span class="kicker gold">The night</span>
 <h2 style="margin-top:12px">How the evening runs.</h2>
-<p class="lead">Bring a laptop and a charger. The tools are free to start and I walk you through the accounts. We build in three moves.</p>
+<p class="lead">{DATE}, live on the Academy player. You watch me build on screen and build the same thing on your own laptop, with a live chat for questions the whole way. The tools are free to start and I walk you through the accounts. We build in three moves.</p>
 </div>
 <ol class="ag-steps">
 <li class="ag-step"><span class="t"><b>1</b> Frame</span><h3>Pick the one task that eats your week.</h3><p>We write the job description your agent will follow, in plain words. If you can explain it to a new hire, you can explain it to an agent.</p></li>
-<li class="ag-step"><span class="t"><b>2</b> Build</span><h3>Build it live, on the same screen as me.</h3><p>Step by step, click by click. We feed it real examples and test it until it behaves the way you would.</p></li>
-<li class="ag-step"><span class="t"><b>3</b> Show</span><h3>Run it for the room.</h3><p>Everyone shows their agent doing its job. You leave with it working, and the playbook to build the next one.</p></li>
+<li class="ag-step"><span class="t"><b>2</b> Build</span><h3>Build it live, on the same screen as me.</h3><p>Step by step, click by click, in Claude Projects or ChatGPT Projects, both shown side by side. We feed it real examples and test it until it behaves the way you would.</p></li>
+<li class="ag-step"><span class="t"><b>3</b> Show</span><h3>Show the room what it just did.</h3><p>Everyone drops what their agent did into the live chat, and I read them out. You leave with it working, and the playbook to build the next one.</p></li>
 </ol></div></div></section>
 
 <section class="ag-dates" id="dates"><div class="wrap">
 <span class="kicker gold">Dates</span>
 <h2 style="margin-top:12px">Upcoming dates.</h2>
-<p class="ag-empty" id="datesEmpty"><b>No public date yet.</b> The first run is being scheduled now. The waitlist hears the date before it appears here, with the link that opens the waitlist rate.</p>
+<p class="ag-empty" id="datesEmpty"><b>{DATE_LONG}. Online, on the Academy player.</b> Seats open to the waitlist first, through the personal link in your email, then to everyone.</p>
 <div class="ag-datelist" id="datesList" style="display:none"></div>
 </div></section>
 
 <section class="ag-seats" id="seats" hidden><div class="wrap">
 <span class="kicker gold">Seats</span>
 <h2 style="margin-top:12px">Get your seat.</h2>
-<p class="lead">Small room on purpose. Checkout is secure and handled by Stripe; your seat code comes straight to your email.</p>
+<p class="lead">Online, so there is no cap on the room. Checkout is secure and handled by Stripe; your seat code and the sign-in link to the live room come straight to your email.</p>
 <div class="ag-early" id="earlyNote">You came from your waitlist link, so the waitlist rate is showing below.</div>
 <div class="ag-tiers" id="tiers"></div>
 </div></section>
@@ -174,24 +181,25 @@ def agent_page(head, header, footer, ver):
 <div class="who"><img src="/assets/agent-nelson-sm.webp" alt="" width="48" height="48"><div><b>Nelson Taylor</b><span>Founder, Taylormade Academy</span></div></div>
 <div class="letter" style="margin-top:22px">
 <p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
-<p>The question I get most is not "what is AI". It is "what do I actually do with it". This is my answer. One night, one agent, built by you, doing a job you are tired of doing.</p>
-<p>If that is what you have been waiting for, put your name down. I will tell you the date before anyone else, and the first seats are yours.</p>
+<p>The thing I hear most before a workshop is not "what is AI". It is "I think I'm too old to learn this". Then the same person describes the job they want handled, every rule and every exception, in thirty seconds. That description is the whole thing you type in. This is my answer: one night, online, one agent, built by you, doing a job you are tired of doing.</p>
+<p>If that is what you have been waiting for, put your name down. The list gets the first rate before anyone else.</p>
 <a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Put my name down <span class="arr">&rarr;</span></a>
 </div>
 </div>
 <div class="ag-faq">
 <details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
-<details><summary>What do I bring?</summary><p>A laptop and a charger. The tools are free to start, and I walk you through the accounts on the night. Phones are fine for following along but not for building.</p></details>
-<details><summary>What does it cost?</summary><p>Pricing is announced with the date. The waitlist gets a lower rate before seats go on public sale, and that rate is only ever offered through the link in your waitlist email.</p></details>
-<details><summary>Is it online or in person?</summary><p>The first public run is being scheduled now, and the format goes out with the date. If it is in person, it is in Dallas-Fort Worth.</p></details>
-<details><summary>What if I cannot make the first date?</summary><p>Stay on the list. Every date goes to the list first, and your personal link keeps working for the next one.</p></details>
+<details><summary>What do I need?</summary><p>A laptop or desktop with a browser, and a free Claude account (recommended) or a free ChatGPT account, set up before 7 PM. Bring one task you want handled and a few real examples of it. Phones are fine for watching but not for building.</p></details>
+<details><summary>Do I have to pay for the tools?</summary><p>Not on the night. Everything we build runs on free accounts. If you want to use your agent every day afterward, that may take one subscription of about $20 a month on the platform you choose. I say that now so there are no surprises later.</p></details>
+<details><summary>What does it cost?</summary><p>The seat prices are on this page once sales open. The waitlist gets a lower rate first, and that rate is only ever offered through the personal link in your waitlist email.</p></details>
+<details><summary>Is it online or in person?</summary><p>Online, live on the Taylormade Academy player. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
+<details><summary>What if I cannot make {DAY}?</summary><p>Stay on the list. Every future date goes to the list first, and your personal link keeps working for the next one.</p></details>
 <details><summary>What is the refund policy?</summary><p>Seven days, no questions, as long as it is before the workshop date. The full policy is on the <a class="textlink" href="/refunds/">refunds page</a>.</p></details>
 </div>
 </div></div></section>
 
 <section class="ag-close on-ink"><div class="wrap">
-<h2>The first seats go to the list.</h2>
-<p class="lead">Dates first. Early bird first. One email when it drops.</p>
+<h2>The first rate goes to the list.</h2>
+<p class="lead">{DAY}, online. The list hears first, with a personal link to the lowest rate.</p>
 {_form("wlForm2", "agent-close", compact=True, on_ink=True)}
 </div></section>
 </main>
@@ -206,7 +214,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-field"><label>Seats</label><div class="qty"><button type="button" id="bdMinus" aria-label="One fewer seat">&minus;</button><output id="bdQty" aria-live="polite">1</output><button type="button" id="bdPlus" aria-label="One more seat">+</button></div></div>
 </div>
 <div class="tot" id="bdTot"></div>
-<p class="bd-fine">Payment is handled by Stripe. Your seat code and the address arrive by email straight after.</p>
+<p class="bd-fine">Payment is handled by Stripe. Your seat code and the sign-in link to the live room arrive by email straight after.</p>
 <div class="err" role="alert" id="bdErr"></div>
 <div class="row"><button class="btn ghost" type="button" id="bdClose">Not now</button><button class="btn gold" type="submit" id="bdGo">Continue to checkout <span class="arr">&rarr;</span></button></div>
 </form>
