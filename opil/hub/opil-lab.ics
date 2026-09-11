@@ -118,7 +118,7 @@ END:VEVENT
 BEGIN:VEVENT
 UID:opil-103@taylormadeacademy.com
 DTSTART;VALUE=DATE:20270226
-DTEND;VALUE=DATE:20270227
+DTEND;VALUE=DATE:20270301
 SUMMARY:OPIL · BHM Financial Inclusion Hackathon
 DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
 END:VEVENT
