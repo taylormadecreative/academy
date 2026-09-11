@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=cbb6236ad0">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=cbb6236ad0">
+<link rel="stylesheet" href="/css/build-mode.css?v=87d8a3fd1e">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=87d8a3fd1e">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -35,9 +35,13 @@
 <div class="hd2"><h2>Announcements</h2></div>
 <div class="bd" id="annList"><div class="empty">Loading&hellip;</div></div>
 </div>
-<div class="hcard">
+<div class="hcard" style="margin-bottom:24px">
 <div class="hd2"><h2>The AI Thread &middot; every session, all year</h2><span class="mono" style="font-size:11px;color:var(--muted)">RECORDINGS + PLAYBOOKS LAND HERE</span></div>
 <div class="bd" id="sessList"><div class="empty">Loading&hellip;</div></div>
+</div>
+<div class="hcard" id="progCard" hidden>
+<div class="hd2"><h2>OPIL curriculum &amp; HPC sessions</h2><span class="mono" style="font-size:11px;color:var(--muted)">TRACK 1 · TRACK 2 · HPC SERIES</span></div>
+<div class="bd" id="progList"></div>
 </div>
 </div>
 <div>
@@ -53,9 +57,9 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=cbb6236ad0"></script>
+<script src="/js/config.js?v=87d8a3fd1e"></script>
 <script type="module">
-import { boot, esc, when, nav } from '/opil/hub/hub.js?v=cbb6236ad0';
+import { boot, esc, when, nav } from '/opil/hub/hub.js?v=87d8a3fd1e';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
 nav(ctx, 'home');
@@ -90,10 +94,13 @@ try {
 /* self check-in for today's session */
 try {
   const n = new Date(), todayStr = [n.getFullYear(), n.getMonth() + 1, n.getDate()].map(x => String(x).padStart(2, '0')).join('-'); // local date — toISOString() is UTC and rolls to tomorrow at 7pm Central
-  const todaySess = (sess || []).find(s => s.kind === 'thread' && s.session_date === todayStr);
-  if (todaySess && teamId) {
-    const { data: mine } = await sb.from('ea_opil_attendance').select('session_no').eq('session_no', todaySess.no).eq('user_id', user.id).maybeSingle();
-    if (!mine) {
+  const todays = (sess || []).filter(s => s.kind !== 'milestone' && s.session_date === todayStr);
+  let todaySess = todays[0];
+  if (todays.length && teamId) {
+    const { data: done } = await sb.from('ea_opil_attendance').select('session_no').in('session_no', todays.map(s => s.no)).eq('user_id', user.id);
+    const doneSet = new Set((done || []).map(a => a.session_no));
+    todaySess = todays.find(s => !doneSet.has(s.no));
+    if (todaySess) {
       document.getElementById('ciTitle').textContent = todaySess.title + ' is today:';
       document.getElementById('checkinNote').style.display = '';
       document.getElementById('ciForm').addEventListener('submit', async (ev) => {
@@ -121,17 +128,22 @@ document.getElementById('annList').innerHTML = (anns && anns.length)
 const matsBy = {}; (mats || []).forEach(m => { (matsBy[m.session_no || 0] = matsBy[m.session_no || 0] || []).push(m); });
 const thread = (sess || []).filter(s => s.kind === 'thread');
 const miles = (sess || []).filter(s => s.kind === 'milestone');
-document.getElementById('sessList').innerHTML = thread.map(s => {
+const prog = (sess || []).filter(s => s.kind === 'curriculum' || s.kind === 'hpc').sort((a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : (a.session_date || '9999') > (b.session_date || '9999') ? 1 : a.no - b.no);
+/* same label rule as the coordinator view: S1-S8 for curriculum (201+), H1-H4 for HPC (301+) */
+const sessLabel = s => s.kind === 'curriculum' ? 'S' + (s.no % 100) : s.kind === 'hpc' ? 'H' + (s.no % 100) : String(s.no).padStart(2, '0');
+const sessHtml = s => {
   const d = s.session_date ? new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
   const links = [
     s.recording_url ? `<a href="${esc(s.recording_url)}">Recording</a>` : '',
     s.playbook_url ? `<a href="${esc(s.playbook_url)}">Playbook</a>` : ''
   ].filter(Boolean).join('');
   const mrows = (matsBy[s.no] || []).map(m => `<div style="display:flex;gap:8px;align-items:center;padding:3px 0 3px 52px;font-size:13px;color:var(--ink-2)"><span style="font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold-soft);padding:2px 8px;border-radius:980px">${esc(m.kind)}</span>${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">${esc(m.title)}</a>` : `<a href="#" data-matfile="${esc(m.file_path || '')}" style="color:var(--blue);font-weight:600">${esc(m.title)}</a>`}</div>`).join('');
-  return `<div class="sess"><span class="no2">${String(s.no).padStart(2, '0')}</span>
+  return `<div class="sess"><span class="no2">${sessLabel(s)}</span>
     <div class="t2"><b>${esc(s.title)}</b><span>${d}${s.outcome ? ' · ' + esc(s.outcome) : ''}</span></div>
     <div class="links">${links || '<span class="soon">after the session</span>'}</div></div>${mrows}`;
-}).join('');
+};
+document.getElementById('sessList').innerHTML = thread.map(sessHtml).join('');
+if (prog.length) { document.getElementById('progList').innerHTML = prog.map(sessHtml).join(''); document.getElementById('progCard').hidden = false; }
 document.getElementById('mileList').innerHTML = miles.map(s => {
   const d = s.session_date ? new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
   return `<div class="sess"><div class="t2"><b>${esc(s.title)}</b><span>${d}</span></div></div>`;
@@ -144,7 +156,7 @@ if (teamId) {
     sb.from('ea_opil_teams').select('*').eq('id', teamId).single(),
     sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId),
   ]);
-  const { names } = await import('/opil/hub/hub.js?v=cbb6236ad0');
+  const { names } = await import('/opil/hub/hub.js?v=87d8a3fd1e');
   const nm = await names(sb, (members || []).map(m => m.user_id));
   tc.innerHTML = `<b style="font-family:var(--display);font-size:19px;color:var(--ink)">${esc(team.name)}</b>
     <div style="font-size:13px;color:var(--muted);margin:4px 0 12px">${esc(team.school || '')}</div>
@@ -153,7 +165,7 @@ if (teamId) {
 } else {
   tc.innerHTML = '<div class="empty">No team yet.</div>';
 }
-document.getElementById('sessList').addEventListener('click', async (ev) => {
+for (const id of ['sessList', 'progList']) document.getElementById(id).addEventListener('click', async (ev) => {
   const a = ev.target.closest('[data-matfile]'); if (!a) return;
   ev.preventDefault();
   const { data } = await sb.storage.from('opil-files').createSignedUrl(a.dataset.matfile, 300);

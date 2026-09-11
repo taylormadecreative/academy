@@ -129,4 +129,88 @@ DTEND;VALUE=DATE:20270320
 SUMMARY:OPIL · Final Showcase & ILP Demo Day
 DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
 END:VEVENT
+BEGIN:VEVENT
+UID:opil-201@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260916
+DTEND;VALUE=DATE:20260917
+SUMMARY:OPIL S1 · Financial Inclusion, Entrepreneurship & the Opportunity
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-202@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260930
+DTEND;VALUE=DATE:20261001
+SUMMARY:OPIL S2 · Customer Discovery & Small-Business Needs
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-203@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261014
+DTEND;VALUE=DATE:20261015
+SUMMARY:OPIL S3 · Building the Business Model
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-204@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261028
+DTEND;VALUE=DATE:20261029
+SUMMARY:OPIL S4 · Business Viability, Data & Unit Economics
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-205@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261111
+DTEND;VALUE=DATE:20261112
+SUMMARY:OPIL S5 · From Business Problem to FinTech Solution
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-206@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270127
+DTEND;VALUE=DATE:20270128
+SUMMARY:OPIL S6 · Open Payments, Interledger & Applied High-Performance Computing
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-207@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270210
+DTEND;VALUE=DATE:20270211
+SUMMARY:OPIL S7 · Prototype Development, Responsible Innovation & Testing
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-208@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270310
+DTEND;VALUE=DATE:20270311
+SUMMARY:OPIL S8 · Scaling, Storytelling & Venture Showcase
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-301@taylormadeacademy.com
+DTSTART;VALUE=DATE:20260923
+DTEND;VALUE=DATE:20260924
+SUMMARY:OPIL H1 · HPC Setup Session
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-302@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261007
+DTEND;VALUE=DATE:20261008
+SUMMARY:OPIL H2 · Using the Supercomputer
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-303@taylormadeacademy.com
+DTSTART;VALUE=DATE:20261202
+DTEND;VALUE=DATE:20261203
+SUMMARY:OPIL H3 · HPC Working Session · the teams' own work (fall)
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
+BEGIN:VEVENT
+UID:opil-304@taylormadeacademy.com
+DTSTART;VALUE=DATE:20270203
+DTEND;VALUE=DATE:20270204
+SUMMARY:OPIL H4 · HPC Working Session · the teams' own work (spring)
+DESCRIPTION:Details, recordings, and materials: https://taylormadeacademy.com/opil/hub/
+END:VEVENT
 END:VCALENDAR

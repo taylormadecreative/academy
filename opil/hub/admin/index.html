@@ -1,14 +1,15 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coordinator View · Lab Hub</title>
+<style>@media(max-width:720px){#addSess{grid-template-columns:1fr!important}#addSess>*{grid-column:1/-1!important}#facSess{grid-template-columns:1fr!important}}</style>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=cbb6236ad0">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=cbb6236ad0">
-<link rel="stylesheet" href="/css/broadcast.css?v=cbb6236ad0">
+<link rel="stylesheet" href="/css/build-mode.css?v=87d8a3fd1e">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=87d8a3fd1e">
+<link rel="stylesheet" href="/css/broadcast.css?v=87d8a3fd1e">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -52,6 +53,22 @@
 <div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
+<div class="hcard" style="margin-bottom:26px" id="facCard">
+<div class="hd2"><h2>Facilitators</h2><span class="mono" style="font-size:11px;color:var(--muted)">THEY SEE ONLY THEIR SESSIONS</span></div>
+<div class="bd">
+<form id="facForm" style="display:grid;gap:10px;margin-bottom:16px">
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<input id="facEmail" type="email" placeholder="facilitator@school.edu (the email they sign in with)" required style="flex:1;min-width:240px;font:inherit;font-size:14px;padding:11px 15px;border:1.5px solid var(--hair);border-radius:12px">
+<input id="facLabel" placeholder="Name / org (optional)" style="flex:1;min-width:180px;font:inherit;font-size:14px;padding:11px 15px;border:1.5px solid var(--hair);border-radius:12px">
+</div>
+<div id="facSess" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 14px;font-size:13px;color:var(--ink-2)"></div>
+<div style="display:flex;gap:10px;align-items:center"><button class="pillbtn" type="submit" style="padding:11px 20px">Add facilitator</button><span id="facHint" style="font-size:12.5px;color:var(--muted)">Tick the sessions they lead. Adding the same email again updates their sessions.</span></div>
+</form>
+<div id="facList" style="font-size:13.5px;color:var(--ink-2);margin-bottom:6px"></div>
+<p style="font-size:12.5px;color:var(--muted);margin-top:10px;max-width:70ch">Send them <b>taylormadeacademy.com/login/?next=/opil/hub/admin/</b> — they sign in with the email above (magic link, no password) and open straight onto <b>My sessions</b>: recordings, playbooks, materials, check-in codes and go-live for their sessions only. A judge who also facilitates gets both views.</p>
+</div>
+</div>
+
 <div class="hcard" style="margin-bottom:26px">
 <div class="hd2"><h2>Judges &amp; scores</h2><span class="mono" style="font-size:11px;color:var(--muted)">PITCH · SHOWCASE · RUBRICS</span></div>
 <div class="bd">
@@ -91,10 +108,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=cbb6236ad0"></script>
+<script src="/js/config.js?v=87d8a3fd1e"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=cbb6236ad0';
-import { panelHTML, wirePanel } from '/js/broadcast.js?v=cbb6236ad0';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=87d8a3fd1e';
+import { panelHTML, wirePanel } from '/js/broadcast.js?v=87d8a3fd1e';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
@@ -122,7 +139,9 @@ const nm = await names(sb, (mems || []).map(m => m.user_id));
 /* stats */
 const teamCount = new Set((regs || []).map(r => (r.team_name || '').trim().toLowerCase()).filter(Boolean)).size;
 const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <= localDate()).length;
-const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
+/* the grid and this rate cover the AI Thread only; curriculum/HPC check-ins still land in the export */
+const threadNos = new Set((sess || []).map(s => s.no));
+const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).filter(a => threadNos.has(a.session_no)).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
 const teamsWithWork = new Set((dvs || []).map(d => d.team_id)).size;
 const complRate = (teams || []).length ? Math.round((teamsWithWork / (teams || []).length) * 100) + '%' : '—';
 document.getElementById('stats').innerHTML = [
@@ -259,7 +278,11 @@ document.getElementById('dvWrap').addEventListener('click', async (ev) => {
 /* ---- sessions & content manager (LMS) ---- */
 const { data: mats } = await sb.from('ea_opil_materials').select('*').order('created_at');
 const matsBySess = {}; (mats || []).forEach(m => { (matsBySess[m.session_no || 0] = matsBySess[m.session_no || 0] || []).push(m); });
-const { data: allSess } = await sb.from('ea_opil_sessions').select('*').order('no');
+let { data: allSess } = await sb.from('ea_opil_sessions').select('*').order('no');
+/* one label rule for every surface: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+), milestones ★ */
+const sessLabel = s => s.kind === 'milestone' ? '★' : s.kind === 'curriculum' ? 'S' + (s.no % 100) : s.kind === 'hpc' ? 'H' + (s.no % 100) : String(s.no).padStart(2, '0');
+const KIND_HEAD = { thread: 'The AI Thread', curriculum: 'OPIL curriculum', hpc: 'HPC series', milestone: 'Milestones' };
+const KIND_ORDER = ['thread', 'curriculum', 'hpc', 'milestone'];
 function sessRow(s) {
   const items = matsBySess[s.no] || [];
   const matHtml = items.map(m => `
@@ -272,16 +295,17 @@ function sessRow(s) {
     </div>`).join('');
   return `<details style="border-top:1px solid var(--hair-soft);padding:12px 0">
     <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px">
-      <span style="font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--blue);background:var(--blue-soft);border-radius:9px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center">${s.kind==='milestone'?'★':String(s.no).padStart(2,'0')}</span>
+      <span style="font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--blue);background:var(--blue-soft);border-radius:9px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center">${sessLabel(s)}</span>
       <span style="flex:1"><b style="color:var(--ink);font-size:14.5px">${esc(s.title)}</b><br><span style="font-size:12px;color:var(--muted)">${s.session_date||''} · ${items.length} material${items.length!==1?'s':''}${s.recording_url?' · recording ✓':''}${s.playbook_url?' · playbook ✓':''}</span></span>
       <span style="color:var(--blue);font-weight:700">✎</span>
     </summary>
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
+      ${facOnly ? '' : `<div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input data-f="title" data-s="${s.no}" value="${esc(s.title||'')}" placeholder="Title" maxlength="200" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><input data-f="date" data-s="${s.no}" type="date" value="${esc(s.session_date||'')}" style="font:inherit;font-size:13.5px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px"></div>`}
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook URL" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <div style="display:flex;gap:8px;align-items:center"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Taylormade Live playback URL (.m3u8), or any stream URL" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn useDemo" data-s="${s.no}" title="Free rehearsal loop hosted on this site">Demo</button><button type="button" class="pillbtn goLive" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button><button type="button" class="pillbtn camBtn" data-s="${s.no}" title="Stream from this device's camera, nothing to install">Camera</button></div>
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Check-in code (students self-mark attendance with this)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
-      <button class="pillbtn saveSess" data-s="${s.no}" style="justify-self:start">Save session</button>
+      <div style="display:flex;gap:8px;align-items:center"><button class="pillbtn saveSess" data-s="${s.no}">Save session</button>${facOnly || (s.kind === 'thread' && s.no <= 14) ? '' : `<button type="button" class="pillbtn delSess" data-s="${s.no}" style="color:#b4451f;background:#fdf0e7">Remove session</button>`}</div>
       ${matHtml}
       <form class="addMat" data-s="${s.no}" style="display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center;margin-top:4px">
         <select name="kind" style="font:inherit;font-size:12.5px;padding:8px 10px;border:1.5px solid var(--hair);border-radius:10px"><option value="assignment">Assignment</option><option value="resource">Resource</option></select>
@@ -295,7 +319,24 @@ function sessRow(s) {
 }
 const mgr = document.getElementById('sessMgr');
 const visibleSess = () => facOnly ? (allSess || []).filter(s => (facSessions || []).includes(s.no)) : (allSess || []);
-function renderMgr(){ mgr.innerHTML = visibleSess().map(sessRow).join('') || '<div class="empty">No sessions assigned yet.</div>'; }
+function renderMgr(){
+  const vis = visibleSess();
+  const byDate = (a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : (a.session_date || '9999') > (b.session_date || '9999') ? 1 : a.no - b.no;
+  const groups = KIND_ORDER.map(k => [k, vis.filter(s => s.kind === k).sort(byDate)]).filter(([, l]) => l.length);
+  mgr.innerHTML = groups.map(([k, l]) => `<div class="mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:14px 0 4px">${KIND_HEAD[k]} · ${l.length}</div>` + l.map(sessRow).join('')).join('')
+    || '<div class="empty">No sessions assigned yet.</div>';
+  if (!facOnly) mgr.insertAdjacentHTML('beforeend', `
+    <form id="addSess" style="border-top:1px solid var(--hair);margin-top:18px;padding-top:16px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center">
+      <div class="mono" style="grid-column:1/-1;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)">Add a session</div>
+      <select name="kind" style="font:inherit;font-size:12.5px;padding:8px 10px;border:1.5px solid var(--hair);border-radius:10px"><option value="curriculum">OPIL curriculum</option><option value="hpc">HPC series</option><option value="milestone">Milestone</option><option value="thread">AI Thread</option></select>
+      <input name="title" placeholder="Title (e.g. Customer Discovery & Small-Business Needs)" required maxlength="200" style="font:inherit;font-size:13px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px">
+      <input name="date" type="date" style="font:inherit;font-size:13px;padding:7px 10px;border:1.5px solid var(--hair);border-radius:10px">
+      <input name="outcome" placeholder="What teams walk out with (optional)" maxlength="200" style="grid-column:1/3;font:inherit;font-size:13px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px">
+      <button class="pillbtn" type="submit">Add session</button>
+    </form>`);
+  if (!facOnly) renderFacSess();
+}
+async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
 if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr)) el.style.display = 'none'; });
 renderMgr();
 /* Go live from this device: one camera panel, docked under the session list (outside the
@@ -316,10 +357,10 @@ function openCamera(no) {
   const s = (allSess || []).find(x => x.no === no); if (!s) return;
   if (camNo === no && camDock.innerHTML) { camDock.innerHTML = ''; camNo = null; return; }
   camNo = no;
-  camDock.innerHTML = `<div style="margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Camera · ${String(no).padStart(2, '0')} ${esc(s.title)}</div>` + panelHTML('camPanel');
+  camDock.innerHTML = `<div style="margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Camera · ${sessLabel(s)} ${esc(s.title)}</div>` + panelHTML('camPanel');
   wirePanel(document.getElementById('camPanel'), {
     cfg: window.BM_CONFIG, token: mySession ? mySession.access_token : '', room: 'opil', sessionNo: no,
-    title: () => String(no).padStart(2, '0') + ' · ' + s.title,
+    title: () => sessLabel(s) + ' · ' + s.title,
     go: (watch) => flipLive(no, true, watch),
     end: () => flipLive(no, false),
     /* the replay lands on the session as its recording link */
@@ -380,11 +421,49 @@ mgr.addEventListener('click', async (ev) => {
     const pb = mgr.querySelector(`input[data-f="playbook"][data-s="${no}"]`).value.trim() || null;
     const cc = mgr.querySelector(`input[data-f="checkin"][data-s="${no}"]`).value.trim() || null;
     const st = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`).value.trim() || null;
+    const patch = { recording_url: rec, playbook_url: pb, checkin_code: cc, stream_url: st };
+    const tIn = mgr.querySelector(`input[data-f="title"][data-s="${no}"]`), dIn = mgr.querySelector(`input[data-f="date"][data-s="${no}"]`);
+    if (tIn && tIn.value.trim()) patch.title = tIn.value.trim();
+    if (dIn) patch.session_date = dIn.value || null;
     sv.textContent = 'Saving…';
-    const { error } = await sb.from('ea_opil_sessions').update({ recording_url: rec, playbook_url: pb, checkin_code: cc, stream_url: st }).eq('no', no);
+    const { error } = await sb.from('ea_opil_sessions').update(patch).eq('no', no);
     sv.textContent = error ? 'Retry' : 'Saved ✓';
-    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s){s.recording_url=rec;s.playbook_url=pb;s.checkin_code=cc;s.stream_url=st;} setTimeout(renderMgr, 600); }
+    if (error) alert('Could not save: ' + error.message);
+    if (!error) { const s=(allSess||[]).find(x=>x.no===no); if(s) Object.assign(s, patch); setTimeout(renderMgr, 600); }
+    return;
   }
+  const dl = ev.target.closest('.delSess');
+  if (dl) { ev.preventDefault();
+    /* two clicks to remove — no confirm(): browser dialogs block automation */
+    if (dl.dataset.armed !== '1') { dl.dataset.armed = '1'; dl.textContent = 'Sure? Remove'; return; }
+    const no = Number(dl.dataset.s);
+    dl.textContent = 'Removing…';
+    /* materials and attendance are the program team's own rows: clear them with the session.
+       Student deliverables and live-chat history are not ours to delete — they keep the row. */
+    await sb.from('ea_opil_materials').delete().eq('session_no', no);
+    await sb.from('ea_opil_attendance').delete().eq('session_no', no);
+    const { error } = await sb.from('ea_opil_sessions').delete().eq('no', no);
+    if (error) { alert(error.code === '23503' ? 'Teams have deliverables or live-chat history on this session, so it stays. Rename or re-date it instead.' : 'Could not remove: ' + error.message); dl.dataset.armed = ''; dl.textContent = 'Remove session'; await reloadSess(); return; }
+    const { data: fs } = await sb.from('ea_opil_facilitators').select('email, session_nos').contains('session_nos', [no]);
+    for (const f of fs || []) await sb.from('ea_opil_facilitators').update({ session_nos: (f.session_nos || []).filter(n => n !== no) }).eq('email', f.email);
+    delete matsBySess[no];
+    await reloadSess(); if (!facOnly) renderFacs();
+  }
+});
+/* add a session: the number is assigned from the kind's range so labels stay S1…S8 / H1…H4 */
+mgr.addEventListener('submit', async (ev) => {
+  const f = ev.target.closest('#addSess'); if (!f) return;
+  ev.preventDefault();
+  const kind = f.kind.value, title = f.title.value.trim(), date = f.date.value || null, outcome = f.outcome.value.trim() || null;
+  if (!title) return;
+  const btn = f.querySelector('button[type=submit]'); if (btn.disabled) return; btn.disabled = true; btn.textContent = 'Adding…';
+  const base = { thread: 0, milestone: 100, curriculum: 200, hpc: 300 }[kind];
+  const used = new Set((allSess || []).filter(s => s.kind === kind).map(s => s.no));
+  let no = base + 1; while (used.has(no)) no++;
+  const { error } = await sb.from('ea_opil_sessions').insert({ no, kind, title, session_date: date, outcome });
+  if (error && error.code !== '23505') { alert('Could not add: ' + error.message); btn.disabled = false; btn.textContent = 'Add session'; return; }
+  if (error) alert('That number was just taken (someone else added a session). The list is refreshed — add it again.');
+  await reloadSess();
 });
 mgr.addEventListener('submit', async (ev) => {
   const f = ev.target.closest('.addMat'); if (!f) return;
@@ -413,6 +492,46 @@ document.getElementById('annForm').addEventListener('submit', async (ev) => {
   const body = document.getElementById('annBody').value.trim(); if (!body) return;
   const { error } = await sb.from('ea_opil_announcements').insert({ author: user.id, body });
   if (!error) { document.getElementById('annBody').value = ''; alert('Posted to the cohort.'); }
+});
+
+/* facilitators: email + the sessions they lead. Upsert, so re-adding an email updates its sessions. */
+function renderFacSess(keep){
+  const facSessBox = document.getElementById('facSess');
+  const checked = new Set(keep || [...facSessBox.querySelectorAll('input:checked')].map(i => Number(i.value)));
+  const byDate = (a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : 1;
+  facSessBox.innerHTML = KIND_ORDER.flatMap(k => (allSess || []).filter(s => s.kind === k && s.kind !== 'milestone').sort(byDate)).map(s =>
+    `<label style="display:flex;gap:8px;align-items:center;cursor:pointer;min-width:0"><input type="checkbox" value="${s.no}" ${checked.has(s.no) ? 'checked' : ''}><span class="mono" style="font-size:11px;color:var(--blue);min-width:24px;flex:0 0 auto">${sessLabel(s)}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(s.title)}">${esc(s.title)}</span><span style="color:var(--muted);font-size:11.5px;white-space:nowrap">${s.session_date ? s.session_date.slice(5) : ''}</span></label>`).join('')
+    || '<div class="empty">Add sessions above first.</div>';
+}
+async function renderFacs(){
+  const { data: facs, error } = await sb.from('ea_opil_facilitators').select('*').order('created_at');
+  const label = no => { const s = (allSess || []).find(x => x.no === no); return s ? sessLabel(s) : '#' + no; };
+  document.getElementById('facList').innerHTML = error ? `<div class="empty">Could not load facilitators: ${esc(error.message)}</div>` : (facs || []).length
+    ? facs.map(f => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--hair-soft);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${esc(f.email)}</b>${f.label ? ` <span style="color:var(--muted)">· ${esc(f.label)}</span>` : ''}</span><span class="mono" style="font-size:11px;color:var(--blue)">${(f.session_nos || []).length ? (f.session_nos || []).map(label).join(' ') : 'no sessions yet'}</span><button class="pillbtn" data-editfac="${esc(f.email)}" style="padding:4px 10px;font-size:11.5px">Edit</button><button class="pillbtn" data-delfac="${esc(f.email)}" style="padding:4px 10px;font-size:11.5px;color:#b4451f;background:#fdf0e7">Remove</button></div>`).join('')
+    : '<div class="empty">No facilitators yet. Add one above.</div>';
+}
+if (!facOnly) { renderFacSess(); renderFacs(); }
+document.getElementById('facForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const email = document.getElementById('facEmail').value.trim().toLowerCase();
+  const label = document.getElementById('facLabel').value.trim() || null;
+  const session_nos = [...document.getElementById('facSess').querySelectorAll('input:checked')].map(i => Number(i.value));
+  if (!email) return;
+  const { error } = await sb.from('ea_opil_facilitators').upsert({ email, label, session_nos }, { onConflict: 'email' });
+  if (error) { alert('Could not add facilitator: ' + error.message); return; }
+  document.getElementById('facEmail').value = ''; document.getElementById('facLabel').value = ''; renderFacSess([]);
+  renderFacs();
+});
+document.getElementById('facList').addEventListener('click', async (ev) => {
+  const e = ev.target.closest('[data-editfac]');
+  if (e) { const { data: f } = await sb.from('ea_opil_facilitators').select('*').eq('email', e.dataset.editfac).maybeSingle();
+    if (f) { document.getElementById('facEmail').value = f.email; document.getElementById('facLabel').value = f.label || ''; renderFacSess(f.session_nos || []); document.getElementById('facEmail').scrollIntoView({ block: 'center' }); }
+    return; }
+  const b = ev.target.closest('[data-delfac]'); if (!b) return;
+  if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Sure?'; return; }
+  const { error } = await sb.from('ea_opil_facilitators').delete().eq('email', b.dataset.delfac);
+  if (error) { alert('Could not remove: ' + error.message); return; }
+  renderFacs();
 });
 
 /* judges */
@@ -500,9 +619,9 @@ document.getElementById('digestBtn').addEventListener('click', async () => {
   const next = (sess || []).filter(s => s.session_date && s.session_date >= localDate()).sort((a, b) => a.session_date.localeCompare(b.session_date))[0];
   const { data: ann } = await sb.from('ea_opil_announcements').select('body').order('created_at', { ascending: false }).limit(1).maybeSingle();
   const lines = ['Hi all,', ''];
-  if (next) lines.push('NEXT SESSION', `${String(next.no).padStart(2, '0')} · ${next.title} · ${new Date(next.session_date + 'T12:00:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`, ...(next.outcome ? ['Outcome: ' + next.outcome] : []), '');
+  if (next) lines.push('NEXT SESSION', `${sessLabel(next)} · ${next.title} · ${new Date(next.session_date + 'T12:00:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}`, ...(next.outcome ? ['Outcome: ' + next.outcome] : []), '');
   const newest = (mats || []).slice(-5).reverse();
-  if (newest.length) lines.push('NEWEST MATERIALS', ...newest.map(m => `· ${m.title} (${m.session_no ? 'session ' + String(m.session_no).padStart(2, '0') : 'general'})${m.link_url ? ' ' + m.link_url : ''}`), '');
+  if (newest.length) lines.push('NEWEST MATERIALS', ...newest.map(m => `· ${m.title} (${m.session_no ? 'session ' + (((allSess || []).find(x => x.no === m.session_no) && sessLabel((allSess || []).find(x => x.no === m.session_no))) || m.session_no) : 'general'})${m.link_url ? ' ' + m.link_url : ''}`), '');
   if (ann && ann.body) lines.push('LATEST ANNOUNCEMENT', ann.body.slice(0, 300), '');
   lines.push('Everything lives at https://taylormadeacademy.com/opil/hub/');
   window.location.href = 'mailto:taylormademd@gmail.com?bcc=' + encodeURIComponent(bcc.join(',')) + '&subject=' + encodeURIComponent('OPIL Lab · this week') + '&body=' + encodeURIComponent(lines.join('\n'));
@@ -605,9 +724,9 @@ document.getElementById('csvBtn').addEventListener('click', () => {
     (att || []).map(a2 => [nm[a2.user_id] || a2.user_id, teamName[(mems || []).find(m => m.user_id === a2.user_id)?.team_id] || '', a2.session_no, a2.created_at]));
   /* attendance the funder-facing way: a rate per session, not a list of who missed it */
   const cohort = (mems || []).length;
-  dl('opil-attendance-summary.csv', 'session_no,present,cohort_size,rate',
-    (sess || []).map(s => { const p = (att || []).filter(a2 => a2.session_no === s.no).length;
-      return [s.no, p, cohort, cohort ? Math.round((p / cohort) * 100) + '%' : '—']; }));
+  dl('opil-attendance-summary.csv', 'session_no,kind,title,date,present,cohort_size,rate',
+    (allSess || sess || []).filter(s => s.kind !== 'milestone').map(s => { const p = (att || []).filter(a2 => a2.session_no === s.no).length;
+      return [s.no, s.kind, s.title, s.session_date || '', p, cohort, cohort ? Math.round((p / cohort) * 100) + '%' : '—']; }));
   dl('opil-deliverables.csv', 'team,session_no,title,link,published,added',
     (dvs || []).map(d => [teamName[d.team_id] || '', d.session_no || '', d.title, d.link_url || (d.file_path ? 'file:' + d.file_path : ''), d.published ? 'yes' : 'no', d.created_at]));
   /* surveys are self-rated confidence — pseudonymised, because a name attached to

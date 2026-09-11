@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=cbb6236ad0">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=cbb6236ad0">
-<link rel="stylesheet" href="/css/broadcast.css?v=cbb6236ad0">
+<link rel="stylesheet" href="/css/build-mode.css?v=87d8a3fd1e">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=87d8a3fd1e">
+<link rel="stylesheet" href="/css/broadcast.css?v=87d8a3fd1e">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -70,10 +70,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=cbb6236ad0"></script>
+<script src="/js/config.js?v=87d8a3fd1e"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=cbb6236ad0';
-import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=cbb6236ad0';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=87d8a3fd1e';
+import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=87d8a3fd1e';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 const staff = isAdmin || (facSessions || []).length > 0;   /* coordinators and facilitators get the Broadcast control */
@@ -119,7 +119,9 @@ const DEMO_URL = '/assets/live-demo/stream.m3u8';
 const IDLE_HTML = document.getElementById('player').innerHTML;   /* kept verbatim so a broadcaster can put it back on End */
 let selfBroadcast = false;   /* this page is the broadcaster: it watches its own feed muted (or hears itself a beat late) and the wake poll must not reload it */
 let unmount = null;          /* stops whatever mountStream started (WebRTC retries, hls.js) before the player is cleared */
-const metaLine = (s) => 'Session ' + String(s.no).padStart(2, '0') + (s.outcome ? ' · Today you leave with: ' + s.outcome : '');
+/* same label rule as the hub: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+) */
+const sessLabel = s => s.kind === 'curriculum' ? 'S' + (s.no % 100) : s.kind === 'hpc' ? 'H' + (s.no % 100) : String(s.no).padStart(2, '0');
+const metaLine = (s) => 'Session ' + sessLabel(s) + (s.outcome ? ' · Today you leave with: ' + s.outcome : '');
 async function mountStream(u, title) {
   const player = document.getElementById('player');
   const isDemo = (u === DEMO_URL);
@@ -268,7 +270,7 @@ document.getElementById('lcForm').addEventListener('submit', async (ev) => {
    /live/ works for the Academy, instead of digging through the coordinator page. Everyone
    else gets an empty mount and nothing else changes. */
 if (staff) {
-  const { data: all } = await sb.from('ea_opil_sessions').select('*').eq('kind', 'thread').order('no');
+  const { data: all } = await sb.from('ea_opil_sessions').select('*').neq('kind', 'milestone').order('no');
   const sessions = (all || []).filter(s => isAdmin || (facSessions || []).includes(s.no));
   const bc = document.getElementById('bc');
   if (!sessions.length) {
@@ -279,7 +281,7 @@ if (staff) {
       || sessions.find(s => s.session_date === today)
       || sessions.filter(s => s.session_date && s.session_date > today).sort((a, b) => a.session_date.localeCompare(b.session_date))[0]
       || sessions[0];
-    const label = (s) => String(s.no).padStart(2, '0') + ' · ' + s.title + (s.session_date ? ' · ' + new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '');
+    const label = (s) => sessLabel(s) + ' · ' + s.title + (s.session_date ? ' · ' + new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '');
     bc.innerHTML = `<div class="hcard"><div class="hd2"><h2>Broadcast control</h2><span class="mono" style="font-size:11px;color:var(--gold-ink)">PROGRAM TEAM ONLY</span></div>
 <div class="bd">
 <div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
@@ -325,7 +327,7 @@ if (staff) {
        whenever the pick changes; the pick is locked while the camera is busy so a rebuild can never kill a broadcast. */
     const token = (await sb.auth.getSession()).data.session?.access_token || '';
     function renderPanel() {
-      const s = cur(), no = s.no, ttl = String(no).padStart(2, '0') + ' · ' + s.title;
+      const s = cur(), no = s.no, ttl = sessLabel(s) + ' · ' + s.title;
       cam.innerHTML = panelHTML('bcPanel');
       wirePanel(document.getElementById('bcPanel'), {
         cfg: window.BM_CONFIG, token, room: 'opil', sessionNo: no, title: () => ttl,
