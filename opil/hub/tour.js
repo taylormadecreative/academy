@@ -21,18 +21,21 @@ function steps(page, role, ctx) {
     student: 'You are in as a student. Everything your team does this year lives here.',
     judge: 'You are in as a judge. This is what the cohort sees; your scoring view is one tap away.',
     coordinator: 'You are in as the coordinator. This is the student view; your own view is one tap away.',
-    facilitator: 'You are in as a facilitator. This is the student view; your sessions are one tap away.',
+    facilitator: ctx.isJudge
+      ? 'You are in as a facilitator and a judge. This is the student view; your sessions and your scoring are each one tap away.'
+      : 'You are in as a facilitator. This is the student view; your sessions are one tap away.',
   }[role];
   const home = [
     { at: ['#hello', '.hub-head'], title: 'Welcome to the Lab Hub', body: you },
     { at: ['#annList'], up: '.hcard', title: 'Announcements', body: 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
     { at: ['#sessList'], up: '.hcard', title: 'The AI Thread', body: 'Fourteen Monday sessions across the year. After each one, its recording and playbook (the step-by-step guide from that night) appear on its row here, so you never lose a session.' },
+    { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series. Materials and recordings land on each row, the same as the AI Thread.' },
     { at: ['#mileList'], up: '.hcard', title: 'The year', body: 'The big dates: the December pitch, the February hackathon, the March showcase. "Add to calendar" puts all of it on your phone.' },
     staff
       ? { at: ['#teamCard'], up: '.hcard', title: 'A student’s team card', body: 'Students see their team, teammates, and the door to their team space here. You have no team by design, so yours stays empty.' }
       : { at: ['#teamCard', '#noTeamNote'], up: '.hcard', title: 'Your team', body: 'Your team, your teammates, and "Open team space", where the chat, the roster, and your checkpoints live. If you are not seated yet, this note says where your application stands.' },
     staff
-      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here. Everything else on this page is exactly what a student sees; a blue band reminds you when you are looking at their side.' }
+      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here' + (role === 'facilitator' && ctx.isJudge ? ', and Judging next to it for the December pitch and the March showcase' : '') + '. Everything else on this page is exactly what a student sees; a blue band reminds you when you are looking at their side.' }
       : { at: ['.ln-primary', '.ln-dock'], title: 'Getting around', body: 'Home, My team, Messages, Showcase. On a phone these sit at the bottom of the screen, under your thumb.' },
   ];
   const team = [
@@ -57,7 +60,22 @@ function steps(page, role, ctx) {
     { at: ['#annForm'], up: '.hcard', title: 'Announcements', body: 'Whatever you post here is the first thing every student sees on their hub home.' },
     { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, My team, Messages, Showcase open the student side exactly as the cohort has it. A blue band up top brings you back here in one tap.' },
   ];
-  const by = { home, team, judge, admin };
+  /* My sessions: the coordinator page, filtered to one facilitator's rows. The steps point
+     inside the first row (the engine opens it), so every control gets named once. */
+  const facilitator = [
+    { at: ['.hub-head'], title: 'Your sessions', body: 'You are in as a facilitator. Only the sessions you lead are listed here; the coordinator manages the rest. Open a row to run a session.' },
+    { at: ['#sessMgr'], up: '.hcard', title: 'One row per session', body: 'Each row is a session with its date and what is attached so far. The ✎ opens it. Anything you save here shows up on the students\u2019 hub home within seconds.' },
+    { at: ['input[data-f="recording"]'], title: 'Recording and playbook', body: 'After the session, paste the recording link and the playbook link (the step-by-step guide from that night) here. Students find both on that session\u2019s row.' },
+    { at: ['.addMat'], title: 'Materials', body: 'An assignment is work you want back; a resource is something to read or use. Either is a link, such as your Zoom link, a reading, a form, or a file up to 25 MB. It appears under the session on every student\u2019s home.' },
+    { at: ['input[data-f="checkin"]'], title: 'Check-in code', body: 'Generate a code and read it out on the night. Students type it on their hub home to mark themselves present, so attendance is theirs to claim rather than yours to chase.' },
+    { at: ['.goLive'], title: 'Going live', body: 'Paste a stream link and Go live, or tap Camera to broadcast from this device, nothing to install. Students watch in the live room, with cohort chat beside the video.' },
+    { at: ['.saveSess'], title: 'Save', body: 'Save writes the recording, playbook, check-in code and stream link for this session. Materials save on their own the moment you add them.' },
+    ctx.isJudge
+      ? { at: ['a.ln-team[href="/opil/hub/judge/"]', 'a[href="/opil/hub/judge/"]'], title: 'You also judge', body: 'Scoring for the December pitch and the March showcase lives under Judging: four criteria, one to five each, per team. It has its own short tour.' }
+      : null,
+    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, My team, Messages, Showcase open the student side exactly as the cohort has it. A blue band up top brings you back here in one tap.' },
+  ].filter(Boolean);
+  const by = { home, team, judge, admin: role === 'facilitator' ? facilitator : admin };
   return by[page] || [];
 }
 
@@ -82,9 +100,29 @@ function find(step) {
   return null;
 }
 
+/* Rows and cards render after the page's data lands, a beat after nav() starts the tour.
+   Look again, briefly, until the set of reachable targets stops growing. */
+function settled(list) {
+  return new Promise((res) => {
+    let last = -1, same = 0, tries = 0;
+    const tick = () => {
+      const found = list.map(s => ({ ...s, el: find(s) })).filter(s => s.el);
+      if (found.length === list.length || ++tries > 20 || (found.length === last && ++same >= 3)) return res(found);
+      if (found.length !== last) { last = found.length; same = 0; }
+      setTimeout(tick, 150);
+    };
+    tick();
+  });
+}
+
 export function start(ctx, page) {
-  const all = steps(page, roleOf(ctx), ctx).map(s => ({ ...s, el: find(s) })).filter(s => s.el);
-  if (!all.length) return false;
+  const wanted = steps(page, roleOf(ctx), ctx);
+  if (!wanted.length) return false;
+  settled(wanted).then((all) => { if (all.length) run(all, page); });
+  return true;
+}
+
+function run(all, page) {
   if (live) live.close(false);
 
   const veil = document.createElement('div'); veil.className = 'tr-veil';
