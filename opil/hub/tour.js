@@ -27,6 +27,12 @@ function steps(page, role, ctx) {
   }[role];
   const home = [
     { at: ['#hello', '.hub-head'], title: 'Welcome to the Lab Hub', body: you },
+    ...(staff ? [] : [
+      { at: ['#noTeamNote'], title: 'Where your application stands', body: 'This note tracks your application. The moment the program team approves it, your team space opens here on its own; nothing else to do.' },
+      { at: ['#liveNote'], title: 'A session is live', body: 'When a facilitator is on air, this banner appears. Tap it to open the live room.' },
+      { at: ['#checkinNote'], title: 'Check yourself in', body: 'On a session day, type the code the facilitator reads out. That marks you present; there is no roll call.' },
+      { at: ['#svyNote'], title: 'The baseline survey', body: 'Six one-to-five questions about where you are starting from. The same six come back after the showcase, and the difference is the proof of what you learned.' },
+    ]),
     { at: ['#annList'], up: '.hcard', title: 'Announcements', body: 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
     { at: ['#sessList'], up: '.hcard', title: 'The AI Thread', body: 'Fourteen Monday sessions across the year. After each one, its recording and playbook (the step-by-step guide from that night) appear on its row here, so you never lose a session.' },
     { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series. Materials and recordings land on each row, the same as the AI Thread.' },
@@ -42,7 +48,24 @@ function steps(page, role, ctx) {
     { at: ['#chatScroll'], up: '.hcard', title: 'Team chat', body: 'Live, and only your team can see it. Whatever you send here shows up for your teammates the moment you hit Send.' },
     { at: ['#roster'], up: '.hcard', title: 'Roster', body: 'Everyone seated on your team. The lead is whoever registered first; nothing else changes between lead and member.' },
     { at: ['#dvForm'], up: '.hcard', title: 'The locker', body: 'A checkpoint is a piece of work your team owes by a date. Drop it here, as a link or a file, against the session it belongs to. It all counts toward the December pitch and the March showcase.' },
+    { at: ['#dvList'], title: 'What you have turned in', body: 'Every checkpoint your team has dropped, newest first, with the session it belongs to. Published means the program team put it on the showcase.' },
     { at: ['.ln-tab[href="/opil/showcase/"]', '.ln-dock-a[href="/opil/showcase/"]'], title: 'Showcase', body: 'When the program team publishes a piece of your work, it appears on the public showcase with your names on it.' },
+  ];
+  /* Messages, the live room, the survey and the showcase: short, one idea per surface. */
+  const messages = [
+    { at: ['#people'], up: '.hcard', title: 'Everyone in the cohort', body: 'Every seated student across every team, with their team under their name. Pick a person to open a private thread.' },
+    { at: ['#dmForm', '#threadTitle'], up: '.hcard', title: 'One-to-one', body: 'A message here goes to that one person and nobody else. Team-wide talk belongs in your team chat.' },
+  ];
+  const live = [
+    { at: ['#player'], title: 'The live room', body: staff ? 'When a session is on air its video plays here, and every student\u2019s home shows a banner pointing at this page. Between sessions it is quiet, which is normal.' : 'When a facilitator goes live, the video plays here and a banner on your home points you to it. Between sessions it is quiet, which is normal.' },
+    { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: 'Everyone watching sees this chat. Questions for the facilitator go here during the session.' },
+  ];
+  const survey = [
+    { at: ['#lede', '#svyForm'], title: 'Why this survey', body: 'Six one-to-five questions, one minute. Your answers are the starting line; the same six come back after the showcase so the program can show what changed, for you and for its funders. Nobody is graded on it.' },
+    { at: ['#svyForm'], title: 'Once per survey', body: 'One response per person; submitting locks it. Answer where you actually are today, not where you hope to be.' },
+  ];
+  const showcase = [
+    { at: ['#grid', '#empty'], title: 'The showcase', body: staff ? 'Public. Anything you publish from a team\u2019s locker appears here with their names on it.' : 'Public. When the program team publishes a checkpoint from your locker, it appears here with your team\u2019s name on it, ready to share.' },
   ];
   const judge = [
     { at: ['#evPitch'], up: 'div', title: 'Which event', body: 'Pitch in December, Showcase in March. Pick the one you are scoring; your scores are kept separately for each.' },
@@ -75,7 +98,7 @@ function steps(page, role, ctx) {
       : null,
     { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, My team, Messages, Showcase open the student side exactly as the cohort has it. A blue band up top brings you back here in one tap.' },
   ].filter(Boolean);
-  const by = { home, team, judge, admin: role === 'facilitator' ? facilitator : admin };
+  const by = { home, team, judge, messages, live, survey, showcase, admin: role === 'facilitator' ? facilitator : admin };
   return by[page] || [];
 }
 
