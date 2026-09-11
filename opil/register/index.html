@@ -237,7 +237,8 @@
 
 <main>
 <section class="ohero"><div class="wrap">
-<div class="notice" id="closedNote" role="status" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>Applications closed Wednesday, September 9.</b> Accepted teams hear from the program team by email, and orientation is the evening of Wednesday, September 16. Questions or a late team: <a href="mailto:taylormademd@gmail.com" style="font-weight:700;color:inherit">taylormademd@gmail.com</a>.</div></div>
+<div class="notice" id="closedNote" role="status" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b id="closedLead">Applications closed Wednesday, September 9.</b> Accepted teams hear from the program team by email, and orientation is the evening of Wednesday, September 16. Questions or a late team: <a href="mailto:taylormademd@gmail.com" style="font-weight:700;color:inherit">taylormademd@gmail.com</a>.</div></div>
+<div class="notice" id="inviteNote" role="status" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><div><b id="inviteLead">The program team invited you.</b> Applications closed September 9, but this link accepts one application from you. Nothing saves until you submit, so have your resume PDF ready.</div></div>
 <form id="regForm" novalidate onsubmit="return false">
 <div class="ogrid">
 
@@ -606,14 +607,6 @@ proj.addEventListener('input', () => projCount.textContent = proj.value.length +
 /* one-step team registration: insert row + fire Academy magic link */
 const form = document.getElementById('regForm');
 const btn = document.getElementById('submitBtn');
-/* applications close end of day Wed Sep 9 (Central); after that the form is gone, not just the date */
-const CLOSES_AT = Date.UTC(2026, 8, 10, 5, 0, 0);
-if (Date.now() >= CLOSES_AT) {
-  document.getElementById('regForm').hidden = true;
-  document.getElementById('closedNote').hidden = false;
-}
-const errBox = document.getElementById('errBox');
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 let sb = null;
 async function client() {
   if (sb) return sb;
@@ -621,6 +614,46 @@ async function client() {
   sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
   return sb;
 }
+/* applications close end of day Wed Sep 9 (Central); after that the form is gone, not just the date.
+   The one exception is a one-time invite link the program team mints at /opil/hub/admin/
+   (?invite=<token>): the server confirms it is unused and unexpired before the form shows,
+   the token rides along on the insert, and the database burns it and approves the row. */
+const CLOSES_AT = Date.UTC(2026, 8, 10, 5, 0, 0);
+const CLOSED = Date.now() >= CLOSES_AT;
+const inviteParam = new URLSearchParams(location.search).get('invite');
+let inviteToken = null;
+const closedNote = document.getElementById('closedNote');
+const closedLead = document.getElementById('closedLead');
+const inviteNote = document.getElementById('inviteNote');
+const inviteLead = document.getElementById('inviteLead');
+const INVITE_LEAD = inviteLead.textContent;
+if (inviteParam) {
+  /* an invite link is checked whatever the device clock says (a wrong clock must not drop the
+     token and refuse the submit later); the note waits on the server so a dead link reads
+     "used or expired", not "closed". Checking state first: the hero lives inside the form. */
+  form.hidden = true;
+  inviteLead.textContent = 'Checking your invite link…'; inviteNote.hidden = false;
+  const UNREACHABLE = 'Applications closed Wednesday, September 9, and this invite link could not be checked just now. Reload to try again.';
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000));
+  Promise.race([client().then((supabase) => supabase.rpc('ea_opil_invite_valid', { t: inviteParam })), timeout]).then(({ data: ok, error }) => {
+    if (!error && ok === true) {
+      inviteToken = inviteParam; inviteLead.textContent = INVITE_LEAD; form.hidden = false;
+      /* the form still carries its pre-deadline copy; make it true for the one reader it has left */
+      const pill = document.querySelector('.dpill');
+      if (pill) { pill.querySelector('em').textContent = 'Invited application'; pill.querySelector('b').textContent = 'Closed Sep 9 · your link is open'; }
+      const limited = document.querySelector('.rcard .notice[role="note"]'); if (limited) limited.hidden = true;
+      return;
+    }
+    inviteNote.hidden = true;
+    closedLead.textContent = error ? UNREACHABLE : 'This invite link has already been used or has expired.';
+    closedNote.hidden = false;
+  }).catch(() => { inviteNote.hidden = true; closedLead.textContent = UNREACHABLE; closedNote.hidden = false; });
+} else if (CLOSED) {
+  form.hidden = true;
+  closedNote.hidden = false;
+}
+const errBox = document.getElementById('errBox');
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 /* warm the module + connection so first submit isn't paying a CDN handshake */
 setTimeout(() => { client().catch(() => {}); }, 1200);
 
@@ -646,7 +679,7 @@ function fail(msg, el) {
 }
 const done = document.getElementById('doneBox');
 function showDone() {
-  form.style.display = 'none';
+  form.style.display = 'none'; inviteNote.hidden = true;
   done.classList.add('show');
   document.getElementById('register').scrollIntoView({ behavior: 'smooth', block: 'center' });
   done.querySelector('.big').focus({ preventScroll: true });
@@ -758,22 +791,23 @@ form.addEventListener('submit', async (ev) => {
         ent_level: entLevel.value, ent_activities: acts, ent_activities_other: actsOther || null,
         fin_level: finLevel.value, fin_topics: tops, fin_topics_other: topOther || null
       },
-      agreed_expectations: true, agreed_commitment: true, commitment_signature: sign
+      agreed_expectations: true, agreed_commitment: true, commitment_signature: sign,
+      invite_token: inviteToken
     });
     const OTP = { emailRedirectTo: 'https://taylormadeacademy.com/welcome/' };
     if (error) {
       /* the insert policy enforces the deadline too — a submit that outlives the page's own gate lands here */
       if (error.code === '42501') {
-        form.hidden = true;
-        const note = document.getElementById('closedNote');
-        note.hidden = false; note.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        form.hidden = true; inviteNote.hidden = true;
+        if (inviteToken) closedLead.textContent = 'This invite link has already been used or has expired.';
+        closedNote.hidden = false; closedNote.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       /* duplicate email: the first application stands, so never present a re-submit as a saved correction */
       if (error.code === '23505' || String(error.message || '').toLowerCase().includes('duplicate')) {
         const { error: otpErr } = await supabase.auth.signInWithOtp({ email, options: OTP });
         done.querySelector('.big').textContent = 'This email already has an application in.';
-        const steps = ['We kept your original submission.',
+        const steps = [inviteToken ? 'We kept your original submission; the invite link was not needed and is still unused. The program team will review that original application.' : 'We kept your original submission.',
           otpErr ? 'The activation link did not re-send just now — email taylormademd@gmail.com and the program team will activate you by hand.'
                  : 'We re-sent your activation link — check your HBCU email.',
           'Need to change your team name, teammates, or resume? Email taylormademd@gmail.com and the program team will fix it by hand.'];
@@ -786,6 +820,8 @@ form.addEventListener('submit', async (ev) => {
     btn.textContent = 'Uploading your resume…';
     const { error: upErr } = await supabase.storage.from('ea-opil-resumes').upload(path, myPdf, { contentType: 'application/pdf', upsert: false });
     const { error: otpErr } = await supabase.auth.signInWithOtp({ email, options: OTP });
+    /* an invitee's teammates cannot "submit their own": the public form is closed */
+    if (inviteToken) done.querySelector('.step > span + span').innerHTML = '<b style="color:var(--ink)">Submitted.</b> <span id="doneTeam">Your application</span> is with the program team for review; they sent you this link, so expect a quick turnaround. A teammate who still needs to apply needs their own link from the program team.';
     document.getElementById('doneTeam').innerHTML = '<b style="color:var(--ink)">' +
       team.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>’s registration';
     const s2 = document.getElementById('doneStep2');

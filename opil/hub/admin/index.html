@@ -27,10 +27,23 @@
 <div class="statrow" id="stats"></div>
 
 <div class="hcard" style="margin-bottom:26px">
-<div class="hd2"><h2>Registrations</h2><div style="display:flex;gap:10px;align-items:center"><button class="pillbtn" id="cvAllBtn" style="padding:7px 15px;font-size:12.5px">Download all resumes</button><span class="mono" style="font-size:11px;color:var(--muted)">CLOSES SEP 9</span></div></div>
+<div class="hd2"><h2>Registrations</h2><div style="display:flex;gap:10px;align-items:center"><button class="pillbtn" id="cvAllBtn" style="padding:7px 15px;font-size:12.5px">Download all resumes</button><span class="mono" style="font-size:11px;color:var(--muted)">CLOSED SEP 9 · LATE = INVITE LINK BELOW</span></div></div>
 <div class="bd" style="overflow-x:auto"><table class="tbl" id="regTbl"><thead><tr>
 <th>Team</th><th>Student</th><th>Email</th><th>School</th><th>Names teammates</th><th>Resume</th><th>Status</th>
 </tr></thead><tbody><tr><td colspan="7" class="empty">Loading&hellip;</td></tr></tbody></table></div>
+</div>
+
+<div class="hcard" style="margin-bottom:26px" id="inviteCard">
+<div class="hd2"><h2>Late registrants</h2><span class="mono" style="font-size:11px;color:var(--muted)">ONE LINK · ONE USE · 14 DAYS</span></div>
+<div class="bd">
+<p style="margin:0 0 14px;font-size:12.5px;color:var(--muted);max-width:70ch">Applications closed September 9. To let one more student in, make a link and send it to that student: it opens the full application, they answer everything the others did, and they show up in Registrations above for you to approve like everyone else. <b>One link admits one student</b>; a late team of three needs three links. A link that has been used or has expired shows them a closed notice instead.</p>
+<form id="inviteForm" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+<input id="inviteLabel" placeholder="Student's name" required maxlength="80" style="flex:1;min-width:220px;font:inherit;font-size:14px;padding:11px 15px;border:1.5px solid var(--hair);border-radius:12px">
+<button class="pillbtn" type="submit" style="padding:11px 20px">Make a one-time link</button>
+</form>
+<div id="inviteMsg" role="status" style="font-size:13px;color:var(--ink-2);margin:-6px 0 12px;min-height:1.2em"></div>
+<div id="inviteList" style="font-size:13.5px;color:var(--ink-2)"></div>
+</div>
 </div>
 
 <div class="hcard" style="margin-bottom:26px">
@@ -230,6 +243,71 @@ document.querySelector('#regTbl').addEventListener('click', async (ev) => {
   const r = (regs || []).find(x => x.id === b.dataset.approve); if (r) r.approved = true;
   b.closest('td').innerHTML = '<span style="color:var(--emerald);font-weight:600">✓ approved</span>';
 });
+
+/* late registrants: one-time invite links. The token is the row's primary key (a 32-hex uuid);
+   the link is /opil/register/?invite=<token>. The database burns it on the registrant's insert. */
+const INVITE_BASE = 'https://taylormadeacademy.com/opil/register/?invite=';
+const inviteMsg = document.getElementById('inviteMsg');
+const fmtDay = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+/* expires_at is midnight Central after the last valid day; show that last day, in Central */
+const lastDay = (iso) => new Date(new Date(iso).getTime() - 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Chicago' });
+/* a ready-to-send message: the coordinator is on Outlook and should not have to write it */
+const mailHref = (label, link, until) => 'mailto:?subject=' + encodeURIComponent('Your invitation to apply: AUC Open Payments Innovation Lab') +
+  '&body=' + encodeURIComponent(`Hi ${label},\n\nApplications for the 2026-27 AUC Open Payments Innovation Lab closed on September 9, but the program team is holding a seat for you. This link opens the application for you, once, through ${until}:\n\n${link}\n\nNothing saves until you submit, so have your resume PDF ready. Once you submit, we approve it and your Lab Hub opens with the email you applied with.\n\nJamal Ware\nProgram Coordinator, AUC Data Science Initiative`);
+async function loadInvites() {
+  const { data: inv, error } = await sb.from('ea_opil_invites').select('*').order('created_at', { ascending: false });
+  const list = document.getElementById('inviteList');
+  if (error) { list.innerHTML = `<div class="empty">Could not load invite links: ${esc(error.message)}</div>`; return; }
+  if (!(inv || []).length) { list.innerHTML = '<div class="empty">No invite links yet.</div>'; return; }
+  const now = Date.now();
+  list.innerHTML = inv.map(i => {
+    const link = INVITE_BASE + i.token;
+    const used = !!i.used_at, expired = !used && new Date(i.expires_at).getTime() <= now;
+    const state = used ? `<span style="color:var(--emerald);font-weight:600">✓ used ${fmtDay(i.used_at)}${i.used_email ? ` · ${esc(i.used_email)}` : ''}</span> <span style="color:var(--muted)">· approve their row in Registrations</span>`
+      : expired ? `<span style="color:var(--muted)">expired ${lastDay(i.expires_at)}</span>`
+      : `<span style="color:var(--blue);font-weight:600">open through ${lastDay(i.expires_at)}</span>`;
+    const actions = used ? '' : expired
+      ? `<button class="pillbtn" data-delinvite="${esc(i.token)}" style="padding:4px 10px;font-size:11.5px;color:#b4451f;background:#fdf0e7">Remove</button>`
+      : `<a class="pillbtn" href="${esc(mailHref(i.label || 'there', link, lastDay(i.expires_at)))}" style="padding:4px 10px;font-size:11.5px;text-decoration:none">Email the link</a> <button class="pillbtn" data-copyinvite="${esc(link)}" style="padding:4px 10px;font-size:11.5px">Copy link</button> <button class="pillbtn" data-delinvite="${esc(i.token)}" style="padding:4px 10px;font-size:11.5px;color:#b4451f;background:#fdf0e7">Withdraw</button>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--hair-soft);flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>${esc(i.label || 'Late registrant')}</b> <span style="color:var(--muted)">· made ${fmtDay(i.created_at)}</span><br>${state}${used || expired ? '' : `<br><span class="mono" style="font-size:11px;color:var(--muted);word-break:break-all">${esc(link)}</span>`}</span><span style="white-space:nowrap">${actions}</span></div>`;
+  }).join('');
+}
+document.getElementById('inviteForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const label = document.getElementById('inviteLabel').value.trim();
+  if (!label) return;
+  const b = ev.target.querySelector('button'); b.disabled = true; b.textContent = 'Making…';
+  const { data, error } = await sb.from('ea_opil_invites').insert({ label, created_by: user.id }).select().single();
+  b.disabled = false; b.textContent = 'Make a one-time link';
+  if (error || !data) { inviteMsg.textContent = 'Could not make the link: ' + (error?.message || 'no row came back'); return; }
+  document.getElementById('inviteLabel').value = '';
+  const link = INVITE_BASE + data.token;
+  let copied = false;
+  try { await navigator.clipboard.writeText(link); copied = true; } catch (_) {}
+  inviteMsg.textContent = `${copied ? 'Link for ' + label + ' copied.' : 'Link for ' + label + ' is below.'} It admits one application and is open through ${lastDay(data.expires_at)}. Use "Email the link" for a ready-made message.`;
+  await loadInvites();
+});
+document.getElementById('inviteList').addEventListener('click', async (ev) => {
+  const c = ev.target.closest('[data-copyinvite]');
+  if (c) {
+    try { await navigator.clipboard.writeText(c.dataset.copyinvite); c.textContent = 'Copied'; setTimeout(() => { c.textContent = 'Copy link'; }, 1600); }
+    catch (_) { inviteMsg.textContent = 'Copy failed here; select the link text below the name and copy it by hand.'; }
+    return;
+  }
+  const b = ev.target.closest('[data-delinvite]'); if (!b) return;
+  /* two clicks to remove — no confirm(): browser dialogs block automation */
+  if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.dataset.was = b.textContent; b.textContent = 'Click again to remove'; setTimeout(() => { if (b.dataset.armed === '1') { b.dataset.armed = ''; b.textContent = b.dataset.was; } }, 2500); return; }
+  /* the delete policy skips a used link, so a stale row deletes nothing: say what actually happened */
+  const { data: gone, error } = await sb.from('ea_opil_invites').delete().eq('token', b.dataset.delinvite).select('token');
+  if (error) { inviteMsg.textContent = 'Could not remove that link: ' + error.message; return; }
+  inviteMsg.textContent = (gone || []).length ? 'Link removed. Anyone holding it now sees the closed notice.' : 'That link was already used, so it stays as the record of who came in on it. Reload to see their application.';
+  await loadInvites();
+});
+if (isAdmin) {
+  loadInvites();
+  /* a student may use a link while this tab sits open; refresh the list when the tab comes back */
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadInvites(); });
+} else document.getElementById('inviteCard').hidden = true;
 
 /* attendance grid: rows = hub members, cols = thread sessions */
 const attSet = new Set((att || []).map(a => a.session_no + ':' + a.user_id));

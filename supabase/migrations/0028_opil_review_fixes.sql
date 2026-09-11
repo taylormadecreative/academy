@@ -77,9 +77,8 @@ $$ select now() < '2026-09-10 05:00:00+00'::timestamptz $$;
 -- the policy evaluates it as the caller, so anon needs execute
 grant execute on function public.ea_opil_registration_open() to anon, authenticated;
 
-drop policy if exists "opil_register_insert" on public.ea_opil_registrations;
-create policy "opil_register_insert" on public.ea_opil_registrations
-  for insert to anon, authenticated with check (public.ea_opil_registration_open());
+-- The opil_register_insert policy is OWNED BY 0031 (it adds the invite-link branch). It was
+-- created here until 2026-09-11; re-pasting this file must not recreate it without that branch.
 
 -- ---------------------------------------------------------------- (E) chat needs a live session
 -- Every 0019 condition kept; adds: the row must name a session and that session must be
