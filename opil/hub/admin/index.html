@@ -136,6 +136,11 @@ const [{ data: regs }, { data: teams }, { data: mems }, { data: sess }, { data: 
   sb.from('ea_opil_deliverables').select('*'),
 ]);
 const teamName = {}; (teams || []).forEach(t => { teamName[t.id] = t.name; });
+/* the coordinator space (is_staff) is a real team so the program team can try the student side;
+   it stays out of every number and export below. The lockers table keeps it on purpose. */
+const staffIds = new Set((teams || []).filter(t => t.is_staff).map(t => t.id));
+const realTeams = (teams || []).filter(t => !t.is_staff);
+const realDvs = (dvs || []).filter(d => !staffIds.has(d.team_id));
 const nm = await names(sb, (mems || []).map(m => m.user_id));
 
 /* stats */
@@ -144,8 +149,8 @@ const pastSessions = (sess || []).filter(s => s.session_date && s.session_date <
 /* the grid and this rate cover the AI Thread only; curriculum/HPC check-ins still land in the export */
 const threadNos = new Set((sess || []).map(s => s.no));
 const attRate = (mems || []).length && pastSessions ? Math.round(((att || []).filter(a => threadNos.has(a.session_no)).length / ((mems || []).length * pastSessions)) * 100) + '%' : '—';
-const teamsWithWork = new Set((dvs || []).map(d => d.team_id)).size;
-const complRate = (teams || []).length ? Math.round((teamsWithWork / (teams || []).length) * 100) + '%' : '—';
+const teamsWithWork = new Set(realDvs.map(d => d.team_id)).size;
+const complRate = realTeams.length ? Math.round((teamsWithWork / realTeams.length) * 100) + '%' : '—';
 document.getElementById('stats').innerHTML = [
   [`${teamCount}`, 'teams forming'],
   [`${(regs || []).length}`, 'students applied (of 25)'],
@@ -724,7 +729,7 @@ document.getElementById('csvBtn').addEventListener('click', () => {
     (allSess || sess || []).filter(s => s.kind !== 'milestone').map(s => { const p = (att || []).filter(a2 => a2.session_no === s.no).length;
       return [s.no, s.kind, s.title, s.session_date || '', p, cohort, cohort ? Math.round((p / cohort) * 100) + '%' : '—']; }));
   dl('opil-deliverables.csv', 'team,session_no,title,link,published,added',
-    (dvs || []).map(d => [teamName[d.team_id] || '', d.session_no || '', d.title, d.link_url || (d.file_path ? 'file:' + d.file_path : ''), d.published ? 'yes' : 'no', d.created_at]));
+    realDvs.map(d => [teamName[d.team_id] || '', d.session_no || '', d.title, d.link_url || (d.file_path ? 'file:' + d.file_path : ''), d.published ? 'yes' : 'no', d.created_at]));
   /* surveys are self-rated confidence — pseudonymised, because a name attached to
      "I am weak at pitching" has no business in an export that gets forwarded.
      The stable Student NN still pairs each person's baseline to their post. */

@@ -64,11 +64,19 @@ if (!teamId) { location.replace('/opil/hub/'); throw new Error('no team'); }
 const { data: team } = await sb.from('ea_opil_teams').select('*').eq('id', teamId).single();
 document.getElementById('teamName').textContent = team.name;
 document.title = team.name + ' · Lab Hub';
+if (team.is_staff) {
+  /* the coordinator space: same page the students get, so the program team can try the locker themselves */
+  document.querySelector('.hub-head .kicker').textContent = 'Coordinator space';
+  document.querySelector('.hub-head').insertAdjacentHTML('afterend',
+    `<div style="margin:-6px 0 22px;padding:12px 16px;border:1.5px solid var(--hair);border-radius:12px;background:var(--bg-soft);font-size:13.5px;color:var(--ink-2)">This is exactly what each student team sees. Coordinators land here when they're not on a student team &mdash; chat, save a link or file to the locker, then find it under <b style="color:var(--ink)">Lockers</b> in the coordinator view. Nothing here counts toward program stats, exports or judging.</div>`);
+}
 
 /* roster */
 const { data: members } = await sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId);
 let nm = await names(sb, (members || []).map(m => m.user_id).concat([user.id]));
-document.getElementById('roster').innerHTML = (members || []).map(m =>
+/* the coordinator space has no membership rows: whoever is looking is the roster */
+const roster = (members || []).length ? members : (team.is_staff ? [{ user_id: user.id, role: 'coordinator' }] : []);
+document.getElementById('roster').innerHTML = roster.map(m =>
   `<div class="member"><span class="av">${esc((nm[m.user_id] || 'M')[0])}</span><div><b>${esc(nm[m.user_id])}</b><span>${m.role}</span></div>
    ${m.user_id !== user.id ? `<a class="dmlink" href="/opil/hub/messages/?to=${m.user_id}">Message</a>` : ''}</div>`).join('');
 

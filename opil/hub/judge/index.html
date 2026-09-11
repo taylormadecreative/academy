@@ -62,11 +62,12 @@ const CRITERIA = [
   ['presentation', 'Presentation: clear, confident, credible'],
 ];
 let EVENT = 'pitch';
-const [{ data: teams }, { data: scored }, { data: dvs }] = await Promise.all([
+let [{ data: teams }, { data: scored }, { data: dvs }] = await Promise.all([
   sb.from('ea_opil_teams').select('*').order('name'),
   sb.from('ea_opil_scores').select('*').eq('judge_id', user.id),
   sb.from('ea_opil_deliverables').select('team_id,title,link_url,file_path,session_no').order('created_at', { ascending: false }),
 ]);
+teams = (teams || []).filter(t => !t.is_staff); // the coordinator space is not a competing team
 const myScores = scored || []; // select returns null on error; keep this an array so the save path can never push into null
 const scoreOf = (tid) => myScores.find(s => s.team_id === tid && s.event === EVENT);
 const dvOf = (tid) => (dvs || []).filter(d => d.team_id === tid).slice(0, 8);
