@@ -28,7 +28,7 @@
         "can_produce": "ALLOWED"
       },
       "screenshare": {
-        "can_produce": "CAN_REQUEST"
+        "can_produce": "ALLOWED"
       }
     },
     "stage_enabled": false,
