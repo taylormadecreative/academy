@@ -84,6 +84,12 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
   });
 
   if (onState) el.addEventListener('rtkStatesUpdate', (ev) => { const s = ev.detail; if (s && s.meeting) onState(s.meeting, meeting); });
+  /* 'fixed' — the kit's default — sizes the meeting to the whole viewport and escapes its
+     container, dropping the control bar on top of the site header. 'fill' makes it fill the
+     panel we gave it (measured on the live site, 9/11). */
+  el.mode = 'fill';
+  /* the kit would otherwise write its design tokens onto <html> and restyle the page around it */
+  el.applyDesignSystem = false;
   el.showSetupScreen = true;   /* the "check your camera and mic" screen everyone expects before joining */
   el.leaveOnUnmount = true;
   el.meeting = meeting;
