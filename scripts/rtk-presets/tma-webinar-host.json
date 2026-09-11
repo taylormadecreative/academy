@@ -1,0 +1,116 @@
+{
+  "name": "tma-webinar-host",
+  "config": {
+    "view_type": "WEBINAR",
+    "max_video_streams": {
+      "desktop": 9,
+      "mobile": 4
+    },
+    "max_screenshare_count": 1,
+    "media": {
+      "video": {
+        "frame_rate": 24,
+        "quality": "hd",
+        "simulcast": true
+      },
+      "screenshare": {
+        "frame_rate": 5,
+        "quality": "hd"
+      }
+    }
+  },
+  "permissions": {
+    "media": {
+      "audio": {
+        "can_produce": "ALLOWED"
+      },
+      "video": {
+        "can_produce": "ALLOWED"
+      },
+      "screenshare": {
+        "can_produce": "ALLOWED"
+      }
+    },
+    "stage_enabled": true,
+    "stage_access": "ALLOWED",
+    "accept_stage_requests": true,
+    "can_accept_production_requests": true,
+    "accept_waiting_requests": true,
+    "kick_participant": true,
+    "pin_participant": true,
+    "can_spotlight": true,
+    "disable_participant_audio": true,
+    "disable_participant_video": true,
+    "disable_participant_screensharing": true,
+    "can_change_participant_permissions": true,
+    "can_record": true,
+    "can_livestream": false,
+    "chat": {
+      "public": {
+        "can_send": true,
+        "text": true,
+        "files": true
+      },
+      "private": {
+        "can_send": true,
+        "can_receive": true,
+        "text": true,
+        "files": true
+      }
+    },
+    "polls": {
+      "can_create": true,
+      "can_view": true,
+      "can_vote": true
+    },
+    "plugins": {
+      "can_start": true,
+      "can_close": true,
+      "can_edit_config": true,
+      "config": {}
+    },
+    "connected_meetings": {
+      "can_alter_connected_meetings": true,
+      "can_switch_connected_meetings": true,
+      "can_switch_to_parent_meeting": true
+    },
+    "show_participant_list": true,
+    "can_edit_display_name": true,
+    "hidden_participant": false,
+    "waiting_room_type": "SKIP",
+    "recorder_type": "NONE",
+    "transcription_enabled": true
+  },
+  "ui": {
+    "design_tokens": {
+      "theme": "darkest",
+      "font_family": "Inter",
+      "border_radius": "rounded",
+      "border_width": "thin",
+      "colors": {
+        "brand": {
+          "300": "#fee38a",
+          "400": "#fdd45a",
+          "500": "#fdc921",
+          "600": "#d9a90f",
+          "700": "#b28a0a"
+        },
+        "background": {
+          "600": "#22345f",
+          "700": "#162650",
+          "800": "#0f1d44",
+          "900": "#0a1733",
+          "1000": "#04123a"
+        },
+        "text": "#ffffff",
+        "text_on_brand": "#04123a",
+        "video_bg": "#0a1733",
+        "danger": "#ff5c5c",
+        "success": "#3ddc97",
+        "warning": "#fdc921"
+      },
+      "logo": "https://taylormadeacademy.com/assets/logo-nav.webp",
+      "spacing_base": 4
+    }
+  }
+}
