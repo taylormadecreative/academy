@@ -68,8 +68,8 @@ function steps(page, role, ctx) {
     { at: ['input[data-f="recording"]'], title: 'Recording and playbook', body: 'After the session, paste the recording link and the playbook link (the step-by-step guide from that night) here. Students find both on that session\u2019s row.' },
     { at: ['.addMat'], title: 'Materials', body: 'An assignment is work you want back; a resource is something to read or use. Either is a link, such as your Zoom link, a reading, a form, or a file up to 25 MB. It appears under the session on every student\u2019s home.' },
     { at: ['input[data-f="checkin"]'], title: 'Check-in code', body: 'Generate a code and read it out on the night. Students type it on their hub home to mark themselves present, so attendance is theirs to claim rather than yours to chase.' },
-    { at: ['.goLive'], title: 'Going live', body: 'Paste a stream link and Go live, or tap Camera to broadcast from this device, nothing to install. Students watch in the live room, with cohort chat beside the video.' },
-    { at: ['.saveSess'], title: 'Save', body: 'Save writes the recording, playbook, check-in code and stream link for this session. Materials save on their own the moment you add them.' },
+    { at: ['.camBtn'], title: 'Going live', body: 'Go live from this device uses your own camera and mic, nothing to install. Students watch in the live room with cohort chat beside the video, and when you end, the recording saves itself into this session\u2019s Recording link.' },
+    { at: ['.saveSess'], title: 'Save', body: 'Save writes the recording link, playbook link and check-in code for this session. Materials save on their own the moment you add them.' },
     ctx.isJudge
       ? { at: ['a.ln-team[href="/opil/hub/judge/"]', 'a[href="/opil/hub/judge/"]'], title: 'You also judge', body: 'Scoring for the December pitch and the March showcase lives under Judging: four criteria, one to five each, per team. It has its own short tour.' }
       : null,

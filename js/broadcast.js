@@ -194,7 +194,7 @@ export function wirePanel(panel, { cfg, token, room, sessionNo, go, end, saved, 
       const d = await uploadRecording(cfg, token, { ...body, title: title ? title() : '' }, blob, (p) => say('Saving recording… ' + Math.round(p * 100) + '%', 'warm'));
       if (saved) await saved(d);
       blob = null;
-      say('Camera off'); note.textContent = 'Off air. Recording saved; it becomes the replay once Cloudflare finishes processing it, usually within a few minutes.';
+      say('Camera off'); note.textContent = 'Off air. Recording saved to the Academy\u2019s Cloudflare Stream library and attached to this session as its Recording link. It plays once Cloudflare finishes processing, usually within a few minutes.';
     } catch (e) {
       say('Camera off');
       const name = 'recording-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + (blob.type.includes('mp4') ? '.mp4' : '.webm');
