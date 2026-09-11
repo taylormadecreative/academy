@@ -244,7 +244,25 @@ const NEXT = (() => {
     return (n.charAt(0) === '/' && n.charAt(1) !== '/' && n.indexOf('\\') === -1) ? n : '';
   } catch (_) { return ''; }
 })();
-const DEST = NEXT || '/community/';
+let DEST = NEXT || '/community/';
+/* People the Lab knows land in the Lab, not the community feed: a coordinator on the
+   coordinator view, a facilitator on My sessions, a judge on Judging, a seated student on
+   the hub. The site admin keeps the community landing. Whole thing try/caught: the Lab can
+   never break sign-in. */
+async function labLanding(sb) {
+  try {
+    const [{ data: role }, { data: site }, { data: team }] = await Promise.all([
+      sb.rpc('ea_opil_my_role'), sb.rpc('ea_is_admin'), sb.rpc('ea_opil_claim_team'),
+    ]);
+    if (site === true) return '';
+    const r = role || {};
+    if (r.admin) return '/opil/hub/admin/';
+    if (Array.isArray(r.facilitator_sessions) && r.facilitator_sessions.length) return '/opil/hub/admin/';
+    if (r.judge) return '/opil/hub/judge/';
+    if (team) return '/opil/hub/';
+  } catch (_) {}
+  return '';
+}
 
 if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) { location.replace('/login/'); }
 else if (!createClient) {
@@ -269,6 +287,7 @@ else if (!createClient) {
 
   if (!session) { location.replace(NEXT ? '/login/?next=' + encodeURIComponent(NEXT) : '/login/'); }
   else {
+    if (!NEXT) { const lab = await labLanding(supabase); if (lab) DEST = lab; }
     const me = session.user;
     const { data: prof } = await supabase.from('ea_profiles')
       .select('display_name,avatar_url,interests,onboarded_at').eq('user_id', me.id).maybeSingle();
