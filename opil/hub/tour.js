@@ -2,7 +2,7 @@
    nav() calls tour(ctx, page) on every hub page; it runs once per page per device
    (localStorage), again on ?tour=1, and from the "Show me around" control in the nav. */
 
-const KEY = (page) => 'opil-tour:' + page;
+const KEY = (page, role) => 'opil-tour:' + page + (role ? ':' + role : '');
 
 /* Who is standing here, in the words the page uses. */
 function roleOf(ctx) {
@@ -17,6 +17,8 @@ function roleOf(ctx) {
    page does not have today is skipped, so an empty locker or no live banner is fine. */
 function steps(page, role, ctx) {
   const staff = role !== 'student';
+  const seated = staff || !!ctx.teamId;   /* an unseated student has no cohort reads yet */
+  const post = /[?&]k=post\b/.test(location.search);
   const you = {
     student: 'You are in as a student. Everything your team does this year lives here.',
     judge: 'You are in as a judge. This is what the cohort sees; your scoring view is one tap away.',
@@ -30,26 +32,26 @@ function steps(page, role, ctx) {
     ...(staff ? [] : [
       { at: ['#noTeamNote'], title: 'Where your application stands', body: 'This note tracks your application. The moment the program team approves it, your team space opens here on its own; nothing else to do.' },
       { at: ['#liveNote'], title: 'A session is live', body: 'When a facilitator is on air, this banner appears. Tap it to open the live room.' },
-      { at: ['#checkinNote'], title: 'Check yourself in', body: 'On a session day, type the code the facilitator reads out. That marks you present; there is no roll call.' },
+      { at: ['#checkinNote'], title: 'Check yourself in', body: 'On a session day, type the code the facilitator reads out. That marks you present without anyone calling your name.' },
       { at: ['#svyNote'], title: 'The baseline survey', body: 'Six one-to-five questions about where you are starting from. The same six come back after the showcase, and the difference is the proof of what you learned.' },
     ]),
-    { at: ['#annList'], up: '.hcard', title: 'Announcements', body: 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
+    { at: ['#annList'], up: '.hcard', title: 'Announcements', body: role === 'facilitator' || role === 'judge' ? 'The program team\u2019s notices to the whole cohort land here first. This card is written for students; your account sees it empty.' : 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
     { at: ['#sessList'], up: '.hcard', title: 'The AI Thread', body: 'Fourteen Monday sessions across the year. After each one, its recording and playbook (the step-by-step guide from that night) appear on its row here, so you never lose a session.' },
-    { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series. Materials and recordings land on each row, the same as the AI Thread.' },
+    { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series (high-performance computing: supercomputer time for your own data). Materials and recordings land on each row, the same as the AI Thread.' },
     { at: ['#mileList'], up: '.hcard', title: 'The year', body: 'The big dates: the December pitch, the February hackathon, the March showcase. "Add to calendar" puts all of it on your phone.' },
     staff
       ? { at: ['#teamCard'], up: '.hcard', title: 'A student’s team card', body: 'Students see their team, teammates, and the door to their team space here. You have no team by design, so yours stays empty.' }
-      : { at: ['#teamCard', '#noTeamNote'], up: '.hcard', title: 'Your team', body: 'Your team, your teammates, and "Open team space", where the chat, the roster, and your checkpoints live. If you are not seated yet, this note says where your application stands.' },
+      : { at: ['#teamCard'], up: '.hcard', title: 'Your team', body: 'Your team, your teammates, and "Open team space", where the chat, the roster, and your checkpoints live. Until you are seated, the note at the top of the page says where your application stands.' },
     staff
-      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here' + (role === 'facilitator' && ctx.isJudge ? ', and Judging next to it for the December pitch and the March showcase' : '') + '. Everything else on this page is exactly what a student sees; a blue band reminds you when you are looking at their side.' }
+      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here' + (role === 'facilitator' && ctx.isJudge ? ', and Judging next to it for the December pitch and the March showcase' : '') + '. Everything else on this page is ' + (role === 'coordinator' ? 'exactly' : 'close to') + ' what a student sees; a blue band reminds you when you are looking at their side.' }
       : { at: ['.ln-primary', '.ln-dock'], title: 'Getting around', body: 'Home, My team, Messages, Showcase. On a phone these sit at the bottom of the screen, under your thumb.' },
   ];
   const team = [
-    { at: ['#chatScroll'], up: '.hcard', title: 'Team chat', body: 'Live, and only your team can see it. Whatever you send here shows up for your teammates the moment you hit Send.' },
+    { at: ['#chatScroll'], up: '.hcard', title: 'Team chat', body: 'Live. Your team and the program team can see it; no other team can. Whatever you send shows up for your teammates the moment you hit Send.' },
     { at: ['#roster'], up: '.hcard', title: 'Roster', body: 'Everyone seated on your team. The lead is whoever registered first; nothing else changes between lead and member.' },
-    { at: ['#dvForm'], up: '.hcard', title: 'The locker', body: 'A checkpoint is a piece of work your team owes by a date. Drop it here, as a link or a file, against the session it belongs to. It all counts toward the December pitch and the March showcase.' },
-    { at: ['#dvList'], title: 'What you have turned in', body: 'Every checkpoint your team has dropped, newest first, with the session it belongs to. Published means the program team put it on the showcase.' },
-    { at: ['.ln-tab[href="/opil/showcase/"]', '.ln-dock-a[href="/opil/showcase/"]'], title: 'Showcase', body: 'When the program team publishes a piece of your work, it appears on the public showcase with your names on it.' },
+    { at: ['#dvForm'], up: '.hcard', title: 'The locker', body: 'A checkpoint is a piece of work your team turns in for a session. Drop it here, as a link or a file, against the AI Thread session it belongs to. The judges see your locker at the December pitch and the March showcase.' },
+    { at: ['#dvList'], title: 'What you have turned in', body: 'Every checkpoint your team has dropped, grouped by the session it belongs to, with a link back to each one.' },
+    { at: ['.ln-tab[href="/opil/showcase/"]', '.ln-dock-a[href="/opil/showcase/"]'], title: 'Showcase', body: 'When the program team publishes a piece of your work, it appears on the public showcase under your team\u2019s name.' },
   ];
   /* Messages, the live room, the survey and the showcase: short, one idea per surface. */
   const messages = [
@@ -58,30 +60,31 @@ function steps(page, role, ctx) {
   ];
   const live = [
     { at: ['#player'], title: 'The live room', body: staff ? 'When a session is on air its video plays here, and every student\u2019s home shows a banner pointing at this page. Between sessions it is quiet, which is normal.' : 'When a facilitator goes live, the video plays here and a banner on your home points you to it. Between sessions it is quiet, which is normal.' },
-    { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: 'Everyone watching sees this chat. Questions for the facilitator go here during the session.' },
+    { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: role === 'judge' ? 'The cohort\u2019s room chat. Judges watch; posting is for students and the program team.' : 'Everyone in the cohort sees this chat. Questions for the facilitator go here during the session.' },
   ];
   const survey = [
-    { at: ['#lede', '#svyForm'], title: 'Why this survey', body: 'Six one-to-five questions, one minute. Your answers are the starting line; the same six come back after the showcase so the program can show what changed, for you and for its funders. Nobody is graded on it.' },
+    { at: ['#lede', '#svyForm'], title: post ? 'The closing survey' : 'Why this survey', body: post ? 'The same six questions you answered at the start. Answer for where you are now; the difference between the two is the program\u2019s evidence of what changed. Nobody is graded on it.' : 'Six one-to-five questions, one minute. Your answers are the starting line; the same six come back after the showcase so the program can show what changed. Nobody is graded on it.' },
     { at: ['#svyForm'], title: 'Once per survey', body: 'One response per person; submitting locks it. Answer where you actually are today, not where you hope to be.' },
   ];
   const showcase = [
-    { at: ['#grid', '#empty'], title: 'The showcase', body: staff ? 'Public. Anything you publish from a team\u2019s locker appears here with their names on it.' : 'Public. When the program team publishes a checkpoint from your locker, it appears here with your team\u2019s name on it, ready to share.' },
+    { at: ['#empty', '#grid'], title: 'The showcase', body: role === 'coordinator' ? 'Public. Anything you publish from a team\u2019s locker appears here under the team\u2019s name.' : staff ? 'Public. What the coordinator publishes from a team\u2019s locker appears here under the team\u2019s name.' : 'Public. When the program team publishes a checkpoint from your locker, it appears here under your team\u2019s name, ready to share.' },
   ];
   const judge = [
     { at: ['#evPitch'], up: 'div', title: 'Which event', body: 'Pitch in December, Showcase in March. Pick the one you are scoring; your scores are kept separately for each.' },
-    { at: ['#teams'], title: 'The teams', body: 'One card per team. Open a card to see the work they have published and the rubric underneath it.' },
+    { at: ['#teams'], title: 'The teams', body: 'One card per team. Open a card to see the work in their locker and the rubric underneath it.' },
     { at: ['#teams .rub .cr'], title: 'Four criteria, one to five', body: 'Problem and customer, business model, prototype and payment flow, presentation. Tap a number for each. Twenty is the most a team can score.' },
-    { at: ['#teams .rub .save'], title: 'Save per team', body: 'Save writes your score for that team. You can come back and revise until the event closes. The notes box goes to the program team, never to the students.' },
+    { at: ['#teams .rub .save'], title: 'Save per team', body: 'Save writes your score for that team. You can come back and revise; the program team reads your latest save. The notes box goes to the program team, never to the students.' },
   ];
   const admin = [
     { at: ['#stats'], title: 'The numbers', body: 'Teams forming, students applied, attendance so far, and how many teams have work in the locker. Live, from the same data the students see.' },
     { at: ['#regTbl'], up: '.hcard', title: 'Registrations', body: 'Every application. The + on a row opens every answer, the resumes open in a new tab, and Approve seats that student on their team the next time they sign in.' },
-    { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, and upload materials. Add a session at the bottom of the list for anything the facilitators run. To broadcast, open the live room: its Broadcast control goes live from this device\u2019s camera, nothing to install.' },
+    { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, and upload materials. Add a session at the bottom of the list for anything the facilitators run.' },
+    { at: ['.camBtn'], title: 'Going live', body: 'Go live from this device, in any row, broadcasts from your camera with nothing to install and drops the replay into that session\u2019s Recording link when you end.' },
     { at: ['#facForm'], up: '.hcard', title: 'Facilitators', body: 'Add a facilitator by email and tick the sessions they lead. When they sign in they get My sessions: their sessions only, with the same recording, materials and check-in controls you have here.' },
-    { at: ['#attWrap'], up: '.hcard', title: 'Attendance', body: 'One cell per student per session. Tap to mark; students can also check themselves in with the code you set.' },
+    { at: ['#attWrap'], up: '.hcard', title: 'Attendance', body: 'One cell per student per AI Thread session. Tap to mark; students can also check themselves in with the code you set. Curriculum and HPC check-ins land in the report pack.' },
     { at: ['#judgeForm'], up: '.hcard', title: 'Judges and scores', body: 'Add a judge by email and they get the scoring view the moment they sign in. Averages per team show up here as scores come in.' },
     { at: ['#annForm'], up: '.hcard', title: 'Announcements', body: 'Whatever you post here is the first thing every student sees on their hub home.' },
-    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, My team, Messages, Showcase open the student side exactly as the cohort has it. A blue band up top brings you back here in one tap.' },
+    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, Messages and Showcase open the student side as the cohort has it; My team needs a seat on a team, so it sends you Home. A blue band up top brings you back here in one tap.' },
   ];
   /* My sessions: the coordinator page, filtered to one facilitator's rows. The steps point
      inside the first row (the engine opens it), so every control gets named once. */
@@ -96,9 +99,10 @@ function steps(page, role, ctx) {
     ctx.isJudge
       ? { at: ['a.ln-team[href="/opil/hub/judge/"]', 'a[href="/opil/hub/judge/"]'], title: 'You also judge', body: 'Scoring for the December pitch and the March showcase lives under Judging: four criteria, one to five each, per team. It has its own short tour.' }
       : null,
-    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, My team, Messages, Showcase open the student side exactly as the cohort has it. A blue band up top brings you back here in one tap.' },
+    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, Messages and Showcase open the student side as the cohort has it; My team needs a seat on a team, so it sends you Home. A blue band up top brings you back here in one tap.' },
   ].filter(Boolean);
   const by = { home, team, judge, messages, live, survey, showcase, admin: role === 'facilitator' ? facilitator : admin };
+  if (!seated) return page === 'home' ? home.filter(st => ['#hello', '#noTeamNote', '.ln-primary'].includes(st.at[0])) : [];
   return by[page] || [];
 }
 
@@ -130,7 +134,8 @@ function settled(list) {
     let last = -1, same = 0, tries = 0;
     const tick = () => {
       const found = list.map(s => ({ ...s, el: find(s) })).filter(s => s.el);
-      if (found.length === list.length || ++tries > 20 || (found.length === last && ++same >= 3)) return res(found);
+      /* all found → go; else give the page's data 1.5 s to land before trusting a stable count */
+      if (found.length === list.length || ++tries > 20 || (tries >= 10 && found.length === last && ++same >= 3)) return res(found);
       if (found.length !== last) { last = found.length; same = 0; }
       setTimeout(tick, 150);
     };
@@ -141,11 +146,11 @@ function settled(list) {
 export function start(ctx, page) {
   const wanted = steps(page, roleOf(ctx), ctx);
   if (!wanted.length) return false;
-  settled(wanted).then((all) => { if (all.length) run(all, page); });
+  settled(wanted).then((all) => { if (all.length) run(all, page, roleOf(ctx)); });
   return true;
 }
 
-function run(all, page) {
+function run(all, page, role) {
   if (live) live.close(false);
 
   const veil = document.createElement('div'); veil.className = 'tr-veil';
@@ -187,7 +192,7 @@ function run(all, page) {
     window.removeEventListener('resize', follow); window.removeEventListener('scroll', follow, true);
     document.removeEventListener('keydown', keys);
     /* a dismissed tour is a seen tour: never nag */
-    try { localStorage.setItem(KEY(page), done ? 'done' : 'skipped'); } catch (e) {}
+    try { localStorage.setItem(KEY(page, role), done ? 'done' : 'skipped'); } catch (e) {}
     live = null;
   }
   function follow() { cancelAnimationFrame(raf); raf = requestAnimationFrame(place); }
@@ -215,7 +220,7 @@ export function tour(ctx, page) {
   const has = steps(page, roleOf(ctx), ctx).length > 0;
   if (!has) return false;
   const force = new URLSearchParams(location.search).get('tour') === '1';
-  let seen = null; try { seen = localStorage.getItem(KEY(page)); } catch (e) {}
+  let seen = null; try { seen = localStorage.getItem(KEY(page, roleOf(ctx))); } catch (e) {}
   if (!seen || force) start(ctx, page);
   return true;
 }

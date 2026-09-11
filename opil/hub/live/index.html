@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=2b32318846">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=2b32318846">
-<link rel="stylesheet" href="/css/broadcast.css?v=2b32318846">
+<link rel="stylesheet" href="/css/build-mode.css?v=ab90329eb6">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=ab90329eb6">
+<link rel="stylesheet" href="/css/broadcast.css?v=ab90329eb6">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -70,10 +70,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=2b32318846"></script>
+<script src="/js/config.js?v=ab90329eb6"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=2b32318846';
-import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=2b32318846';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=ab90329eb6';
+import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=ab90329eb6';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 const staff = isAdmin || (facSessions || []).length > 0;   /* coordinators and facilitators get the Broadcast control */
@@ -285,15 +285,17 @@ if (staff) {
     bc.innerHTML = `<div class="hcard"><div class="hd2"><h2>Broadcast control</h2><span class="mono" style="font-size:11px;color:var(--gold-ink)">PROGRAM TEAM ONLY</span></div>
 <div class="bd">
 <div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
-<div class="bc-ctl-row"><input id="bcUrl" placeholder="Playback URL (.m3u8 or WebRTC), or use the camera below" aria-label="Playback URL"><button type="button" class="pillbtn" id="bcDemo" title="Free rehearsal loop hosted on this site">Use demo stream</button><button type="button" class="pillbtn" id="bcGo">Go live</button></div>
-<p id="bcNote">Paste a playback URL and Go live, or use the camera below and it fills itself in. The demo loop is free and safe to rehearse with.</p>
+<div class="bc-ctl-row"><button type="button" class="pillbtn" id="bcDemo" title="Plays a sample clip in the room so you can show it without being on camera">Rehearse with a sample video</button><button type="button" class="pillbtn" id="bcGo" hidden>End session</button></div>
+<p id="bcNote">Go live from this device below &mdash; your camera, nothing to install, and the session records itself for students to rewatch.</p>
 <div id="bcCam"></div>
 </div></div>`;
-    const sel = document.getElementById('bcSess'), url = document.getElementById('bcUrl'), demo = document.getElementById('bcDemo'),
+    const sel = document.getElementById('bcSess'), demo = document.getElementById('bcDemo'),
           goBtn = document.getElementById('bcGo'), bnote = document.getElementById('bcNote'), cam = document.getElementById('bcCam');
     const cur = () => sessions.find(s => s.no === Number(sel.value));
-    function syncCtl() { const s = cur(); url.value = s.stream_url || ''; goBtn.textContent = s.is_live ? 'End session' : 'Go live'; }
-    const onAir = (on) => [sel, url, demo, goBtn].forEach(el => { el.disabled = on; });
+    /* End only ever appears for a broadcast this page did not start: a sample-video rehearsal, or a
+       session someone left live. A camera broadcast is ended from the panel's own End button. */
+    function syncCtl() { const s = cur(); goBtn.hidden = !s.is_live; demo.textContent = s.is_live && s.stream_url === DEMO_URL ? 'Rehearsal is playing' : 'Rehearse with a sample video'; demo.disabled = !!s.is_live; }
+    const onAir = (on) => [sel, demo, goBtn].forEach(el => { el.disabled = on; });
     /* wirePanel's own idle label: anything else means the camera is starting, on air, or saving the recording */
     const camIdle = () => { const b = cam.querySelector('.bc-status b'); return !b || b.textContent === 'Camera off'; };
     /* only one live session at a time: clear the current one first. A facilitator's RLS
@@ -313,15 +315,22 @@ if (staff) {
       document.getElementById('ttl').textContent = 'The live room';
       document.getElementById('meta').textContent = '';
     }
-    demo.addEventListener('click', () => { url.value = DEMO_URL; url.focus(); });
+    /* The sample clip is hosted on this site and costs nothing: it is how you show the room, or
+       rehearse the flow, without going on camera. It is not a recording — nothing is saved. */
+    demo.addEventListener('click', async () => {
+      if (!camIdle()) { bnote.textContent = 'Finish with the camera first.'; return; }
+      const s = cur();
+      demo.disabled = true; demo.textContent = 'Starting…';
+      try { await flipLive(s.no, true, DEMO_URL); }
+      catch (e) { syncCtl(); bnote.textContent = 'Could not start: ' + e.message; return; }
+      location.reload();   /* no camera to lose: a reload mounts the player and opens the room */
+    });
     goBtn.addEventListener('click', async () => {
       if (!camIdle()) { bnote.textContent = 'Finish with the camera first.'; return; }
-      const s = cur(), going = !s.is_live, u = url.value.trim();
-      if (going && !u) { bnote.textContent = 'Paste a playback URL first, or click Use demo stream.'; return; }
-      goBtn.disabled = true; goBtn.textContent = 'Saving…';
-      try { await flipLive(s.no, going, u); }
-      catch (e) { goBtn.disabled = false; syncCtl(); bnote.textContent = 'Could not save: ' + e.message; return; }
-      location.reload();   /* no camera to lose: a reload is the simplest way to mount the player and the chat */
+      goBtn.disabled = true; goBtn.textContent = 'Ending…';
+      try { await flipLive(cur().no, false); }
+      catch (e) { goBtn.disabled = false; syncCtl(); bnote.textContent = 'Could not end: ' + e.message; return; }
+      location.reload();
     });
     /* Go live from this device. wirePanel binds the session when wired, so the panel is rebuilt
        whenever the pick changes; the pick is locked while the camera is busy so a rebuild can never kill a broadcast. */
@@ -338,7 +347,7 @@ if (staff) {
              is the only thing that keeps it from reloading under the camera */
           clearInterval(wakePoll); wakePoll = null; selfBroadcast = true; onAir(true);
           try { await flipLive(no, true, watch); } catch (e) { selfBroadcast = false; onAir(false); if (!liveSess) armWake(); throw e; }
-          sessionNo = no; url.value = watch; syncCtl();
+          sessionNo = no; syncCtl();
           teardown(); mountStream(watch, ttl).catch(() => {});
           document.getElementById('meta').textContent = metaLine(s);
           input.disabled = false; input.placeholder = 'Message the room'; document.getElementById('lcSend').disabled = false;

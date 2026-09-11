@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=2b32318846">
+<link rel="stylesheet" href="/css/build-mode.css?v=ab90329eb6">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-shell{padding-block:clamp(26px,4vw,52px) clamp(50px,7vw,90px)}
@@ -149,10 +149,10 @@
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
-<link rel="stylesheet" href="/css/broadcast.css?v=2b32318846">
-<script src="/js/config.js?v=2b32318846"></script>
+<link rel="stylesheet" href="/css/broadcast.css?v=ab90329eb6">
+<script src="/js/config.js?v=ab90329eb6"></script>
 <script type="module">
-import { panelHTML, wirePanel, play } from "/js/broadcast.js?v=2b32318846";
+import { panelHTML, wirePanel, play } from "/js/broadcast.js?v=ab90329eb6";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
@@ -326,10 +326,9 @@ if (isAdmin) {
     '<div class="adminbar">' +
     '<div class="ah"><b>Broadcast control</b><span>ADMIN ONLY</span></div>' +
     '<div class="adminrow" style="margin-bottom:9px"><input id="aTitle" placeholder="Class title" aria-label="Class title" value="' + esc(show ? show.title : "") + '"></div>' +
-    '<div class="adminrow"><input id="aUrl" placeholder="Playback URL (.m3u8)" aria-label="Playback URL" value="' + esc(show && show.stream_url ? show.stream_url : "") + '">' +
-    '<button class="demo" id="aDemo" type="button">Use demo stream</button>' +
-    '<button class="' + (liveNow ? "end" : "go") + '" id="aGo" type="button">' + (liveNow ? "End broadcast" : "Go live") + '</button></div>' +
-    '<p class="adminnote" id="aNote">Rehearse with the demo loop. It is hosted here and costs nothing. Paste a playback URL and Go live, or use the camera below and it fills itself in.</p>' +
+    '<div class="adminrow"><button class="demo" id="aDemo" type="button"' + (liveNow ? " disabled" : "") + '>' + (liveNow && show && show.stream_url === DEMO_URL ? "Sample video is playing" : "Rehearse with a sample video") + '</button>' +
+    (liveNow ? '<button class="end" id="aGo" type="button">End broadcast</button>' : '') + '</div>' +
+    '<p class="adminnote" id="aNote">Go live from this device below &mdash; your camera, nothing to install, and the class records itself for members to rewatch.</p>' +
     panelHTML("bcPanel") +
     '</div>';
   /* the DB enforces one live broadcast; clear the others first or the write trips the unique index */
@@ -340,19 +339,27 @@ if (isAdmin) {
       : await sb.from("ea_live").insert(payload);
     if (res.error) throw new Error(res.error.message);
   }
-  $("aDemo").addEventListener("click", () => { $("aUrl").value = DEMO_URL; });
-  $("aGo").addEventListener("click", async () => {
-    const btn = $("aGo"), label = btn.textContent, note = $("aNote");
-    const url = $("aUrl").value.trim();
-    if (!liveNow && !url) { note.textContent = "Paste a playback URL first, or click Use demo stream."; return; }
-    btn.disabled = true; btn.textContent = "Saving...";
+  /* The sample clip is hosted here and costs nothing: it is how you show the room, or rehearse the
+     flow, without going on camera. It is not a recording — nothing is saved from it. */
+  $("aDemo").addEventListener("click", async () => {
+    const btn = $("aDemo"), note = $("aNote");
+    btn.disabled = true; btn.textContent = "Starting...";
     try {
-      await setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: url || null, is_live: !liveNow });
+      await setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: DEMO_URL, is_live: true });
     } catch (e) {
-      btn.disabled = false; btn.textContent = label;
-      note.textContent = "Could not save: " + e.message;
+      btn.disabled = false; btn.textContent = "Rehearse with a sample video";
+      note.textContent = "Could not start: " + e.message;
       return;
     }
+    location.reload();
+  });
+  /* End only appears for a broadcast this page did not start (a rehearsal, or a class left live).
+     A camera broadcast is ended from the panel's own End button, which also saves the recording. */
+  if ($("aGo")) $("aGo").addEventListener("click", async () => {
+    const btn = $("aGo"), note = $("aNote");
+    btn.disabled = true; btn.textContent = "Ending...";
+    try { await setLive({ is_live: false }); }
+    catch (e) { btn.disabled = false; btn.textContent = "End broadcast"; note.textContent = "Could not end: " + e.message; return; }
     location.reload();
   });
   /* Go live from this device: camera → Cloudflare → the room, no software. The server
@@ -361,7 +368,7 @@ if (isAdmin) {
   wirePanel($("bcPanel"), {
     cfg: window.BM_CONFIG, token: adminSession ? adminSession.access_token : "", room: "academy",
     title: () => $("aTitle").value.trim() || "Taylormade Academy Live",
-    go: (watch) => { $("aUrl").value = watch; return setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: watch, is_live: true }); },
+    go: (watch) => setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: watch, is_live: true }),
     end: () => setLive({ is_live: false }),
     /* the replay: Cloudflare's hosted watch page for the uploaded recording */
     saved: async (d) => { if (show && show.id) { const r = await sb.from("ea_live").update({ replay_url: d.watch }).eq("id", show.id); if (r.error) throw new Error(r.error.message); } },

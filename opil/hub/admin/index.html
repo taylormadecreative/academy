@@ -7,9 +7,9 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=2b32318846">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=2b32318846">
-<link rel="stylesheet" href="/css/broadcast.css?v=2b32318846">
+<link rel="stylesheet" href="/css/build-mode.css?v=ab90329eb6">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=ab90329eb6">
+<link rel="stylesheet" href="/css/broadcast.css?v=ab90329eb6">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -109,10 +109,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=2b32318846"></script>
+<script src="/js/config.js?v=ab90329eb6"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=2b32318846';
-import { panelHTML, wirePanel } from '/js/broadcast.js?v=2b32318846';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=ab90329eb6';
+import { panelHTML, wirePanel } from '/js/broadcast.js?v=ab90329eb6';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
@@ -305,8 +305,6 @@ function sessRow(s) {
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording link — where students rewatch this session after it happens (YouTube, Stream, Drive, Zoom cloud recording)" title="Fills in by itself when you broadcast with Camera" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook link — the written guide for this session (Google Doc, PDF, Notion, a page on the Academy)" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="pillbtn camBtn" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}" title="Uses this device's camera and mic, nothing to install. Students watch in the live room; the recording saves itself to this session's Recording link when you end.">${s.is_live?'● LIVE now':'Go live from this device'}</button><span style="font-size:12.5px;color:var(--muted)">Nothing to install. It records, and the replay lands in the Recording link above when you end.</span></div>
-      ${facOnly ? '' : `<details ${s.is_live && s.stream_url && !/cloudflarestream\.com\/[^/]+\/webRTC/.test(s.stream_url||'') ? 'open' : ''} style="font-size:12.5px;color:var(--muted)"><summary style="cursor:pointer">Streaming from OBS or another source instead?</summary>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><input data-f="stream" data-s="${s.no}" value="${esc(s.stream_url||'')}" placeholder="Stream link students watch (the Academy .m3u8 from Cloudflare Stream, or any stream URL)" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn useDemo" data-s="${s.no}" title="Pastes the rehearsal loop link so you can test without a real stream">Demo</button><button type="button" class="pillbtn goLive" data-s="${s.no}" title="Marks this session live using the link in the box. Press again to end." style="${s.is_live?'background:#e8f8f0;color:#067a56':''}">${s.is_live?'● LIVE — End':'Go live'}</button></div></details>`}
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Attendance code — read it out during the session; students type it on their hub home to mark themselves present" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <div style="display:flex;gap:8px;align-items:center"><button class="pillbtn saveSess" data-s="${s.no}">Save session</button>${facOnly || (s.kind === 'thread' && s.no <= 14) ? '' : `<button type="button" class="pillbtn delSess" data-s="${s.no}" style="color:#b4451f;background:#fdf0e7">Remove session</button>`}</div>
       ${matHtml}
@@ -387,30 +385,6 @@ mgr.addEventListener('click', async (ev) => {
   if (mf) { ev.preventDefault();
     const { data } = await sb.storage.from('opil-files').createSignedUrl(mf.dataset.matfile, 300);
     if (data && data.signedUrl) window.open(data.signedUrl, '_blank'); return; }
-  const ud = ev.target.closest('.useDemo');
-  if (ud) { ev.preventDefault();
-    const inp = mgr.querySelector(`input[data-f="stream"][data-s="${ud.dataset.s}"]`);
-    if (inp) { inp.value = '/assets/live-demo/stream.m3u8'; inp.focus(); }
-    return; }
-  const gl = ev.target.closest('.goLive');
-  if (gl) { ev.preventDefault();
-    const no = Number(gl.dataset.s);
-    const s = (allSess || []).find(x => x.no === no);
-    const going = !s.is_live;
-    const streamVal = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`).value.trim() || null;
-    if (going && !streamVal) { alert('Paste the stream URL first.'); return; }
-    /* only one live session at a time: clear the current one first. A facilitator's RLS
-       only reaches their own sessions, so that clear can touch 0 rows and the second
-       update then trips the one-live unique index (23505) — say so instead of going quiet. */
-    let error = null;
-    if (going) ({ error } = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true));
-    if (!error) ({ error } = await sb.from('ea_opil_sessions').update({ is_live: going, stream_url: streamVal }).eq('no', no));
-    if (error) alert(error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : error.message);
-    /* re-read either way so the buttons show what the database actually holds */
-    const { data: fresh } = await sb.from('ea_opil_sessions').select('no, is_live, stream_url');
-    (fresh || []).forEach(f => { const x = (allSess || []).find(y => y.no === f.no); if (x) { x.is_live = f.is_live; x.stream_url = f.stream_url; } });
-    renderMgr();
-    return; }
   const gc = ev.target.closest('.genCode');
   if (gc) { ev.preventDefault();
     const inp = mgr.querySelector(`input[data-f="checkin"][data-s="${gc.dataset.s}"]`);
@@ -423,9 +397,7 @@ mgr.addEventListener('click', async (ev) => {
     const rec = mgr.querySelector(`input[data-f="recording"][data-s="${no}"]`).value.trim() || null;
     const pb = mgr.querySelector(`input[data-f="playbook"][data-s="${no}"]`).value.trim() || null;
     const cc = mgr.querySelector(`input[data-f="checkin"][data-s="${no}"]`).value.trim() || null;
-    const stIn = mgr.querySelector(`input[data-f="stream"][data-s="${no}"]`);
     const patch = { recording_url: rec, playbook_url: pb, checkin_code: cc };
-    if (stIn) patch.stream_url = stIn.value.trim() || null;
     const tIn = mgr.querySelector(`input[data-f="title"][data-s="${no}"]`), dIn = mgr.querySelector(`input[data-f="date"][data-s="${no}"]`);
     if (tIn && tIn.value.trim()) patch.title = tIn.value.trim();
     if (dIn) patch.session_date = dIn.value || null;
