@@ -65,11 +65,11 @@ let EVENT = 'pitch';
 const [{ data: teams }, { data: scored }, { data: dvs }] = await Promise.all([
   sb.from('ea_opil_teams').select('*').order('name'),
   sb.from('ea_opil_scores').select('*').eq('judge_id', user.id),
-  sb.from('ea_opil_deliverables').select('team_id,title,link_url,session_no').order('created_at', { ascending: false }),
+  sb.from('ea_opil_deliverables').select('team_id,title,link_url,file_path,session_no').order('created_at', { ascending: false }),
 ]);
 const myScores = scored || []; // select returns null on error; keep this an array so the save path can never push into null
 const scoreOf = (tid) => myScores.find(s => s.team_id === tid && s.event === EVENT);
-const dvOf = (tid) => (dvs || []).filter(d => d.team_id === tid).slice(0, 4);
+const dvOf = (tid) => (dvs || []).filter(d => d.team_id === tid).slice(0, 8);
 
 function render() {
   document.getElementById('evKick').textContent = EVENT === 'pitch' ? 'Business Idea Pitch · Dec 4' : 'Final Showcase · Mar 19';
@@ -79,7 +79,7 @@ function render() {
   el.innerHTML = (teams && teams.length) ? (teams || []).map(t => {
     const sc = scoreOf(t.id); const r = (sc && sc.rubric) || {};
     const total = CRITERIA.reduce((a, [k]) => a + (Number(r[k]) || 0), 0);
-    const work = dvOf(t.id).map(d => `<div class="dvline">${esc(d.title)}${d.link_url ? ` · <a href="${esc(d.link_url)}" target="_blank" rel="noopener">open</a>` : ''}</div>`).join('') || '<div class="dvline" style="color:var(--muted)">No published work yet.</div>';
+    const work = dvOf(t.id).map(d => `<div class="dvline">${esc(d.title)}${d.link_url ? ` · <a href="${esc(d.link_url)}" target="_blank" rel="noopener">open link</a>` : ''}${d.file_path ? ` · <a href="#" data-open="${esc(d.file_path)}">open file</a>` : ''}</div>`).join('') || '<div class="dvline" style="color:var(--muted)">Nothing in their locker yet.</div>';
     return `<details class="jcard"${sc ? '' : ''}>
       <summary><span class="tm">${esc(t.name)}</span><span style="font-size:12.5px;color:var(--muted)">${esc(t.school || '')}</span>
       <span class="st2" style="color:${sc ? 'var(--emerald)' : 'var(--muted)'}">${sc ? 'Scored · ' + total + '/20' : 'Not scored'}</span></summary>
@@ -96,6 +96,14 @@ function render() {
 render();
 document.getElementById('evPitch').addEventListener('click', () => { EVENT = 'pitch'; render(); });
 document.getElementById('evShow').addEventListener('click', () => { EVENT = 'showcase'; render(); });
+document.getElementById('teams').addEventListener('click', async (ev) => {
+  /* files live in a private bucket: mint a short signed URL on click */
+  const o = ev.target.closest('[data-open]'); if (!o) return;
+  ev.preventDefault();
+  const { data, error } = await sb.storage.from('opil-files').createSignedUrl(o.dataset.open, 300);
+  if (error || !data) { alert('Could not open the file: ' + (error ? error.message : 'no URL')); return; }
+  window.open(data.signedUrl, '_blank', 'noopener');
+});
 document.getElementById('teams').addEventListener('submit', async (ev) => {
   const f = ev.target.closest('.rub'); if (!f) return;
   ev.preventDefault();

@@ -49,8 +49,9 @@
 <div class="bd" style="overflow-x:auto" id="attWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
-<div class="hcard" style="margin-bottom:26px">
-<div class="hd2"><h2>Deliverables &middot; publish to the showcase</h2><a class="mono" style="font-size:11px;color:var(--blue)" href="/opil/showcase/" target="_blank">VIEW SHOWCASE →</a></div>
+<div class="hcard" style="margin-bottom:26px" id="dvCard">
+<div class="hd2"><h2>Lockers &middot; what teams have uploaded</h2><a class="mono" style="font-size:11px;color:var(--blue)" href="/opil/showcase/" target="_blank">VIEW SHOWCASE →</a></div>
+<div class="bd" style="padding-bottom:0;font-size:13.5px;color:var(--muted)">Students add work from their team space (<b style="color:var(--ink)">My team → The locker</b>): a link or a file, tagged to a session. Every item lands here the moment it's saved &mdash; open it, and publish the strongest work to the showcase.</div>
 <div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
@@ -251,21 +252,40 @@ document.getElementById('attWrap').addEventListener('click', async (ev) => {
   }
 });
 
-/* deliverables list w/ publish toggle */
+/* lockers: every team's deliverables, newest first, with the work itself one click away.
+   Admins publish to the showcase; facilitators and judges read. */
+const dvBy = await names(sb, (dvs || []).map(d => d.uploaded_by));
+/* same label rule as the sessions manager below, derived from the number alone: 101+ milestones ★, 201+ curriculum S1…, 301+ HPC H1…, else the AI Thread 01-14 */
+const dvSess = (no) => no >= 300 ? 'H' + (no % 100) : no >= 200 ? 'S' + (no % 100) : no >= 100 ? '★' : String(no).padStart(2, '0');
 function dvRows(){
-  return (dvs || []).length
-    ? `<table class="tbl"><thead><tr><th>Team</th><th>Deliverable</th><th>Session</th><th>Added</th><th>Showcase</th></tr></thead><tbody>` +
-      (dvs || []).map(d => {
+  const rows = (dvs || []).slice().sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  return rows.length
+    ? `<table class="tbl"><thead><tr><th>Team</th><th>Deliverable</th><th>Session</th><th>Added by</th><th>Added</th><th>Open</th>${facOnly ? '' : '<th>Showcase</th>'}</tr></thead><tbody>` +
+      rows.map(d => {
         const tn = teamName[d.team_id] || '';
         const btn = d.published
           ? `<button class="pillbtn" style="background:var(--emerald-soft);color:var(--emerald)" data-pub="${d.id}" data-to="0">Published ✓</button>`
           : `<button class="pillbtn" data-pub="${d.id}" data-to="1">Publish</button>`;
-        return `<tr><td><b>${esc(tn)}</b></td><td>${esc(d.title)}</td><td>${d.session_no ? String(d.session_no).padStart(2,'0') : '—'}</td><td>${when(d.created_at)}</td><td>${btn}</td></tr>`;
+        const open = [
+          d.link_url ? `<a class="pillbtn" href="${esc(d.link_url)}" target="_blank" rel="noopener" style="text-decoration:none">Open link</a>` : '',
+          d.file_path ? `<button class="pillbtn" data-open="${esc(d.file_path)}">Open file</button>` : '',
+        ].filter(Boolean).join(' ') || '<span style="color:var(--muted)">—</span>';
+        return `<tr><td><b>${esc(tn)}</b></td><td>${esc(d.title)}</td><td>${d.session_no ? dvSess(d.session_no) : '—'}</td><td>${esc(dvBy[d.uploaded_by] || '—')}</td><td>${when(d.created_at)}</td><td style="white-space:nowrap">${open}</td>${facOnly ? '' : `<td>${btn}</td>`}</tr>`;
       }).join('') + '</tbody></table>'
-    : '<div class="empty">Deliverables appear as teams fill their lockers. Publish the strongest work to the public showcase.</div>';
+    : '<div class="empty">Nothing uploaded yet. The first link or file a team saves to its locker shows up here.</div>';
 }
 document.getElementById('dvWrap').innerHTML = dvRows();
 document.getElementById('dvWrap').addEventListener('click', async (ev) => {
+  const o = ev.target.closest('[data-open]');
+  if (o) {
+    /* private bucket: mint a short signed URL, same as resumes and materials */
+    o.textContent = '…';
+    const { data, error } = await sb.storage.from('opil-files').createSignedUrl(o.dataset.open, 300);
+    o.textContent = 'Open file';
+    if (error || !data) { alert('Could not open the file: ' + (error ? error.message : 'no URL')); return; }
+    window.open(data.signedUrl, '_blank', 'noopener');
+    return;
+  }
   const b = ev.target.closest('[data-pub]'); if (!b) return;
   const to = b.dataset.to === '1';
   b.textContent = '…';
@@ -338,7 +358,7 @@ function renderMgr(){
   if (!facOnly) renderFacSess();
 }
 async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
-if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr)) el.style.display = 'none'; });
+if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard') el.style.display = 'none'; });
 renderMgr();
 /* Go live from this device: one camera panel, docked under the session list (outside the
    re-rendered manager so a save or a re-render can never kill a broadcast in progress).
