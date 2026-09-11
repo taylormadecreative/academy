@@ -1,0 +1,10 @@
+/* The class room fills the page while a meeting is on: the kit draws its own header,
+   grid and control bar, so the page chrome around it gets out of the way. */
+#rtkMount:not(:empty){display:block;height:min(78vh,760px);border-radius:16px;overflow:hidden;border:1px solid var(--hair);background:#04123a}
+#rtkMount rtk-meeting{display:block;width:100%;height:100%}
+body.in-room .live-grid{grid-template-columns:1fr}     /* the side chat steps aside: the room has its own */
+body.in-room .ln-dock{display:none}                     /* the phone dock would sit on the control bar */
+body.in-room.has-dock{padding-bottom:0}
+body.in-room #player,body.in-room #meta{display:none}
+.rtk-note{font-size:13px;color:var(--muted);margin:10px 0 0}
+@media(max-width:720px){#rtkMount:not(:empty){height:calc(100dvh - 150px);border-radius:12px}}
