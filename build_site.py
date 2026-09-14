@@ -14,7 +14,7 @@ def _asset_ver():
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
                 "css/agent.css", "js/agent.js", "js/founder.js",
-                "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js",
+                "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/broadcast.js", "css/broadcast.css",
                 "js/rtk-room.js", "css/rtk-room.css"):
         f = ROOT / rel
@@ -234,7 +234,7 @@ HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
              "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase",
              "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
              "live")   # the Academy live room: hand-maintained, stamped like the hub pages
-_HUB_ASSET_RX = re.compile(r'(/opil/hub/hub\.(?:css|js))(?:\?v=[a-z0-9]+)?')
+_HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js))(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
     stamped = []
