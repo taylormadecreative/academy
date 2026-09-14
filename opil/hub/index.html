@@ -22,7 +22,7 @@
 </div>
 <div class="hub-tabs"></div>
 
-<div class="hub-note" id="liveNote" style="display:none;background:#e8f8f0;border-color:#b7e8d4;color:#067a56"><b id="liveTitle">A session is live right now.</b> <a href="/opil/hub/live/" style="font-weight:700;color:#067a56;text-decoration:underline">Join the live room &rarr;</a></div>
+<div class="hub-note" id="liveNote" style="display:none;background:#e8f8f0;border-color:#b7e8d4;color:#067a56"><b id="liveTitle">A session is live right now.</b> <a id="liveOne" href="/opil/hub/live/" style="font-weight:700;color:#067a56;text-decoration:underline">Join the live room &rarr;</a><div id="liveList" class="live-list"></div></div>
 <div class="hub-note" id="checkinNote" style="display:none;background:var(--emerald-soft);border-color:#b7e8d4;color:#0b5e43"><b id="ciTitle">Session today:</b> enter the check-in code from the screen to mark yourself present.
 <form id="ciForm" style="display:inline-flex;gap:8px;margin-left:10px"><input id="ciCode" placeholder="CODE" maxlength="20" style="font:inherit;font-size:13px;padding:7px 12px;border:1.5px solid #9fd8c2;border-radius:980px;width:130px;text-transform:uppercase"><button class="pillbtn" type="submit" style="background:#d9f3e8;color:#0b5e43">Check in</button></form>
 <span id="ciMsg" style="margin-left:8px;font-weight:700"></span></div>
@@ -60,6 +60,7 @@
 <script src="/js/config.js?v=37333ba3d1"></script>
 <script type="module">
 import { boot, esc, when, nav } from '/opil/hub/hub.js?v=37333ba3d1';
+import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=37333ba3d1';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
 nav(ctx, 'home');
@@ -83,11 +84,18 @@ const [{ data: sess }, { data: mats }] = await Promise.all([
   sb.from('ea_opil_sessions').select('*').order('no'),
   sb.from('ea_opil_materials').select('*').order('created_at'),
 ]);
-/* live banner */
+/* live banner: one room → the same one-line banner as before, pointed at that room;
+   several → a list, the student picks (rooms are independent since 0032) */
 try {
-  const live = (sess || []).find(s => s.is_live);
-  if (live) {
-    document.getElementById('liveTitle').textContent = live.title + ' is live right now.';
+  const live = (sess || []).filter(s => s.is_live).sort((a, b) => a.no - b.no);
+  if (live.length === 1) {
+    document.getElementById('liveTitle').textContent = live[0].title + ' is live right now.';
+    document.getElementById('liveOne').href = roomPath(live[0].no);
+    document.getElementById('liveNote').style.display = '';
+  } else if (live.length > 1) {
+    document.getElementById('liveTitle').textContent = live.length + ' rooms are live right now. Pick yours.';
+    document.getElementById('liveOne').hidden = true;
+    document.getElementById('liveList').innerHTML = liveListHTML(live, esc);
     document.getElementById('liveNote').style.display = '';
   }
 } catch (e) {}
@@ -130,7 +138,6 @@ const thread = (sess || []).filter(s => s.kind === 'thread');
 const miles = (sess || []).filter(s => s.kind === 'milestone');
 const prog = (sess || []).filter(s => s.kind === 'curriculum' || s.kind === 'hpc').sort((a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : (a.session_date || '9999') > (b.session_date || '9999') ? 1 : a.no - b.no);
 /* same label rule as the coordinator view: S1-S8 for curriculum (201+), H1-H4 for HPC (301+) */
-const sessLabel = s => s.kind === 'curriculum' ? 'S' + (s.no % 100) : s.kind === 'hpc' ? 'H' + (s.no % 100) : String(s.no).padStart(2, '0');
 const sessHtml = s => {
   const d = s.session_date ? new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
   const links = [
