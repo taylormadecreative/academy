@@ -292,14 +292,16 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   const bindSelf = () => { try { m.self.on('audioUpdate', chips.sync); m.self.on('videoUpdate', chips.sync); } catch (e) {} chips.sync(); };
 
   /* the side panel (desktop) / sheet (phone) */
+  /* the kit's grid measures itself lazily (a resize-observer polyfill): nudge it after layout changes */
+  const nudge = () => [60, 320, 900].forEach(ms => setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, ms));
   const showPane = (name) => {
     node.querySelectorAll('.r2-pane').forEach(p => { p.hidden = p.dataset.pane !== name; });
     node.querySelectorAll('.r2-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
-    node.classList.add('panel-open');
+    node.classList.add('panel-open'); nudge();
   };
   node.querySelectorAll('.r2-tab').forEach(t => t.addEventListener('click', () => showPane(t.dataset.tab)));
   q('.r2-open').addEventListener('click', () => showPane(host ? 'queue' : 'chat'));
-  q('.r2-close').addEventListener('click', () => node.classList.remove('panel-open'));
+  q('.r2-close').addEventListener('click', () => { node.classList.remove('panel-open'); nudge(); });
   const peopleCount = () => { try { const n = m.participants.joined.toArray().length + 1; q('.r2-tab[data-tab="people"] em').textContent = n; } catch (e) {} };
 
   /* the question queue */
@@ -422,7 +424,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   function bind(mm) {
     m = mm; if (onSwitch) onSwitch(mm);
     node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants').forEach(c => { c.meeting = mm; });
-    bindSelf(); peopleCount();
+    bindSelf(); peopleCount(); nudge();
     try { mm.participants.joined.on('participantJoined', () => { peopleCount(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); renderQueue(); renderPrimary(); }); } catch (e) {}
     if (!handsChan) watchHands();
     loadHands();
