@@ -57,6 +57,29 @@ async function joinTarget(cfg, token, sessionNo, meetingId) {
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 const AUTO_KEY = 'r2-auto-enter';
+const OWN_BG_KEY = 'r2-own-backdrop';   /* the last photo someone chose, so it is one tap next class */
+
+/* "Use my own photo": pick an image, shrink it to 1280 wide, keep it as a data URL */
+function pickOwnPhoto() {
+  return new Promise((resolve) => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0]; if (!f) return resolve(null);
+      const img = new Image();
+      img.onload = () => {
+        const w = Math.min(1280, img.naturalWidth), h = Math.round(img.naturalHeight * (w / img.naturalWidth));
+        const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+        const url = c.toDataURL('image/jpeg', 0.86); URL.revokeObjectURL(img.src);
+        try { localStorage.setItem(OWN_BG_KEY, url); } catch (e) {}
+        resolve(url);
+      };
+      img.onerror = () => resolve(null);
+      img.src = URL.createObjectURL(f);
+    });
+    inp.click();
+  });
+}
+const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch (e) { return null; } };
 
 /* mountRoomV2 — one call for every situation on the room page:
      mode 'waiting'  a student before the class starts (no kit, no token)
@@ -100,6 +123,7 @@ export async function mountRoomV2(o) {
     defaults: { audio: host, video: host, mediaConfiguration: { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } } } },
   });
   let current = meeting;   /* the meeting this page is in: the main room, or a breakout room */
+  try { window.__r2 = { get meeting() { return current; }, get effects() { return effects; } }; } catch (e) {}   /* support hook, read-only */
 
   /* ---------- effects (blur / backdrops), reused from v1's addon, driven by our own buttons ---------- */
   let effects = null;
@@ -145,11 +169,18 @@ export async function mountRoomV2(o) {
   if (fxChip) fxChip.addEventListener('click', () => {
     let tray = screen.querySelector('.r2-fxtray');
     if (tray) { tray.remove(); return; }
-    tray = el(`<div class="r2-fxtray"><button type="button" data-fx="none">No effect</button><button type="button" data-fx="blur">Blur</button>${BACKDROPS.map(b => `<button type="button" data-fx="${b.url}">${b.name}</button>`).join('')}</div>`);
+    tray = el(`<div class="r2-fxtray"><button type="button" data-fx="none">No effect</button><button type="button" data-fx="blur">Blur</button>${BACKDROPS.map(b => `<button type="button" data-fx="${b.url}">${b.name}</button>`).join('')}${ownPhoto() ? '<button type="button" data-fx="own">My photo</button>' : ''}<button type="button" data-fx="pick">Use my own photo…</button></div>`);
     tray.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', async () => {
-      if (!effects) { b.textContent = 'Loading…'; setTimeout(() => { b.textContent = b.dataset.fx === 'none' ? 'No effect' : b.dataset.fx === 'blur' ? 'Blur' : (BACKDROPS.find(x => x.url === b.dataset.fx) || {}).name; }, 1500); return; }
-      try { if (b.dataset.fx === 'none') await effects.removeBackground(); else if (b.dataset.fx === 'blur') await effects.applyBlurBackground(); else await effects.applyVirtualBackground(location.origin + b.dataset.fx); } catch (e) {}
-      tray.querySelectorAll('[data-fx]').forEach(x => x.classList.toggle('on', x === b));
+      const kind = b.dataset.fx;
+      if (!effects) { const old = b.textContent; b.textContent = 'Loading…'; setTimeout(() => { b.textContent = old; }, 1500); return; }
+      try {
+        if (kind === 'none') await effects.removeBackground();
+        else if (kind === 'blur') await effects.applyBlurBackground();
+        else if (kind === 'own') { const u = ownPhoto(); if (u) await effects.applyVirtualBackground(u); }
+        else if (kind === 'pick') { const u = await pickOwnPhoto(); if (!u) return; await effects.applyVirtualBackground(u); if (!tray.querySelector('[data-fx="own"]')) b.insertAdjacentHTML('beforebegin', '<button type="button" data-fx="own" class="on">My photo</button>'); }
+        else await effects.applyVirtualBackground(location.origin + kind);
+      } catch (e) {}
+      tray.querySelectorAll('[data-fx]').forEach(x => x.classList.toggle('on', x === b || (kind === 'pick' && x.dataset.fx === 'own')));
     }));
     screen.querySelector('.r2-preview').insertAdjacentElement('afterend', tray);
   });
@@ -361,10 +392,17 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); sheet.hidden = false; };
   q('.r2-sheet-close').addEventListener('click', () => { sheet.hidden = true; sheetBody.innerHTML = ''; });
   const effectsPane = () => {
-    const p = el(`<div class="r2-fxpane"><button type="button" class="r2-btn" data-fx="none">No effect</button><button type="button" class="r2-btn" data-fx="blur">Blur my background</button>${BACKDROPS.map(b => `<button type="button" class="r2-btn" data-fx="${b.url}">${b.name} backdrop</button>`).join('')}<p class="r2-fine">Effects can take a few seconds the first time.</p></div>`);
+    const p = el(`<div class="r2-fxpane"><button type="button" class="r2-btn" data-fx="none">No effect</button><button type="button" class="r2-btn" data-fx="blur">Blur my background</button>${BACKDROPS.map(b => `<button type="button" class="r2-btn" data-fx="${b.url}">${b.name} backdrop</button>`).join('')}${ownPhoto() ? '<button type="button" class="r2-btn" data-fx="own">My photo</button>' : ''}<button type="button" class="r2-btn" data-fx="pick">Use my own photo…</button><p class="r2-fine">Effects can take a few seconds the first time. Your own photo stays on this device only.</p></div>`);
     p.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', async () => {
       const fx = getEffects(); if (!fx) { toast('Effects are still loading — try again in a moment.'); return; }
-      try { if (b.dataset.fx === 'none') await fx.removeBackground(); else if (b.dataset.fx === 'blur') await fx.applyBlurBackground(); else await fx.applyVirtualBackground(location.origin + b.dataset.fx); } catch (e) { toast('Could not apply that — ' + (e.message || e)); }
+      const kind = b.dataset.fx;
+      try {
+        if (kind === 'none') await fx.removeBackground();
+        else if (kind === 'blur') await fx.applyBlurBackground();
+        else if (kind === 'own') { const u = ownPhoto(); if (u) await fx.applyVirtualBackground(u); }
+        else if (kind === 'pick') { const u = await pickOwnPhoto(); if (!u) return; await fx.applyVirtualBackground(u); toast('Your photo is on.'); }
+        else await fx.applyVirtualBackground(location.origin + kind);
+      } catch (e) { toast('Could not apply that — ' + (e.message || e)); }
     }));
     return p;
   };
