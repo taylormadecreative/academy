@@ -8,6 +8,10 @@
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
 const UI_MAIN = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/dist/index.js';
+/* Effects (background blur + Academy backdrops): the video-background addon is a self-contained
+   ESM file, so it loads straight from the CDN like the kit. Pinned like everything else. */
+const VB_ADDON = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui-addons@0.1.0/dist/video-background.js';
+const BACKDROPS = ['/assets/rtk-bg/navy.jpg', '/assets/rtk-bg/paper.jpg'];
 
 let kitReady = null;
 function loadKit() {
@@ -83,7 +87,29 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
     },
   });
 
-  if (onState) el.addEventListener('rtkStatesUpdate', (ev) => { const s = ev.detail; if (s && s.meeting) onState(s.meeting, meeting); });
+  /* Effects button on the camera-check screen and under Settings: blur, or one of the Academy
+     backdrops. Registered per meeting object, so a breakout room gets it again below. If the
+     addon or its model fails to load, the room still opens — just without Effects. */
+  async function effectsConfig(m) {
+    try {
+      const { default: VideoBackground } = await import(VB_ADDON);
+      const vb = await VideoBackground.init({ meeting: m, modes: ['blur', 'virtual'], blurStrength: 50, images: BACKDROPS.map(p => location.origin + p) });
+      return ui.registerAddons([vb], m);
+    } catch (e) { console.warn('[rtk-room] effects unavailable:', e && e.message); return null; }
+  }
+  let current = meeting;   /* the meeting this page is in right now: the main room, or a breakout room */
+  /* Breakout rooms: when a host moves someone, the kit hands the page a NEW meeting object and
+     waits for it to be swapped in — without this the tile sits on "Joining Breakout Room…"
+     forever (seen 2026-09-14). Same handler brings them back to the main room. */
+  const onMeetingChanged = async (next) => {
+    current = next;
+    const cfg = await effectsConfig(next); if (cfg) el.config = cfg;
+    el.meeting = next;
+    try { next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+  };
+  try { meeting.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+
+  if (onState) el.addEventListener('rtkStatesUpdate', (ev) => { const s = ev.detail; if (s && s.meeting) onState(s.meeting, current); });
   /* 'fixed' — the kit's default — sizes the meeting to the whole viewport and escapes its
      container, dropping the control bar on top of the site header. 'fill' makes it fill the
      panel we gave it (measured on the live site, 9/11). */
@@ -92,6 +118,7 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
   el.applyDesignSystem = false;
   el.showSetupScreen = true;   /* the "check your camera and mic" screen everyone expects before joining */
   el.leaveOnUnmount = true;
+  const cfg = await effectsConfig(meeting); if (cfg) el.config = cfg;
   el.meeting = meeting;
 
   document.body.classList.add('in-room');
@@ -99,7 +126,7 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
     meeting, meetingId: join.meeting_id, host: !!join.host, preset: join.preset,
     async leave() {
       document.body.classList.remove('in-room');
-      try { await meeting.leave(); } catch (e) {}
+      try { await current.leave(); } catch (e) {}
       mountEl.innerHTML = '';
     },
   };
