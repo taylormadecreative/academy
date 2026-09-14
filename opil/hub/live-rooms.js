@@ -37,8 +37,10 @@ export function liveListHTML(live, esc) {
 
 /* v2 is the default when the page's flag says so; ?classic=1 on any link brings the old room back */
 export function useV2(search, flag) {
-  let classic = false; try { classic = new URLSearchParams(search || '').get('classic') === '1'; } catch (e) {}
-  return !!flag && !classic;
+  let q = null; try { q = new URLSearchParams(search || ''); } catch (e) { return !!flag; }
+  if (q.get('classic') === '1') return false;   /* the old room, this visit */
+  if (q.get('v2') === '1') return true;         /* the new room, this visit — for testing before the flag flips */
+  return !!flag;
 }
 
 /* mic/camera state as a sentence + what a tap does — never just an icon */

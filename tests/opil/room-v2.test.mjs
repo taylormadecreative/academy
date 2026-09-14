@@ -9,6 +9,8 @@ test('useV2: the flag picks v2, ?classic=1 always wins', () => {
   assert.equal(useV2('?s=7&classic=1', true), false);
   assert.equal(useV2('?classic=1', true), false);
   assert.equal(useV2('?s=7', false), false);
+  assert.equal(useV2('?s=7&v2=1', false), true);
+  assert.equal(useV2('?s=7&v2=1&classic=1', true), false);
 });
 
 test('stateCopy says the state in words, and what a tap does', () => {

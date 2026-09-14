@@ -16,7 +16,7 @@ def _asset_ver():
                 "css/agent.css", "js/agent.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/broadcast.js", "css/broadcast.css",
-                "js/rtk-room.js", "css/rtk-room.css"):
+                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -212,7 +212,7 @@ def render(path, html):
 # NOTE: playbook/ai-avatar is intentionally NOT listed — it is web-only (no PWA/Capacitor
 # head injection) and pins its asset ?v= manually in the page itself.
 APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course", "founder")
-_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|css/broadcast\.css|css/rtk-room\.css|js/site\.js|js/config\.js|js/founder\.js|js/broadcast\.js|js/rtk-room\.js))(?:\?v=[a-z0-9]+)?')
+_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|css/broadcast\.css|css/rtk-room\.css|css/rtk-room-v2\.css|js/site\.js|js/config\.js|js/founder\.js|js/broadcast\.js|js/rtk-room\.js|js/rtk-room-v2\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):
     """Insert (or refresh) the PWA <head> block in a hand-maintained app page, guarded by a
