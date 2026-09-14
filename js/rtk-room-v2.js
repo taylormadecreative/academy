@@ -330,7 +330,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
     try {
       const g = node.querySelector('.r2-grid'); if (!g) return;
       g.style.height = 'calc(100% - 1px)';
-      requestAnimationFrame(() => { g.style.height = ''; try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
+      setTimeout(() => { g.style.height = ''; try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, 40);   /* not rAF: a background tab never paints */
     } catch (e) {}
   }, ms));
   const showPane = (name) => {
