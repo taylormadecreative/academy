@@ -84,7 +84,12 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
          on when they want to be seen — 27 cameras at once is a wall, and slow connections
          suffer. Everything is one tap away in the control bar either way. */
       audio: join.host, video: join.host,
-      mediaConfiguration: { video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } } },
+      /* echo cancellation + noise suppression on explicitly: a laptop on speakers otherwise feeds the
+         far end's voice back through its own mic, and the transcript labels it with the wrong name */
+      mediaConfiguration: {
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } },
+      },
     },
   });
 
