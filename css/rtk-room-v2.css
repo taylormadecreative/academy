@@ -43,18 +43,20 @@
 .r2-rec::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#e0492a;margin-right:6px;animation:r2pulse 1.6s ease-in-out infinite}
 .r2-main{display:grid;grid-template-columns:1fr 0;min-height:0;transition:grid-template-columns .2s ease}
 .r2.panel-open .r2-main{grid-template-columns:1fr 340px}
-.r2-stage{min-height:0;position:relative;padding:12px}
+.r2-stage{min-height:0;position:relative;padding:12px;overflow:hidden}
 .r2-stage rtk-ui-provider{height:100%}
 .r2-grid{height:100%}
 .r2-panel{border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#0a1733}
 .r2-tabs{display:flex;gap:4px;padding:10px 10px 0}
-.r2-tab{flex:1;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#9fb0d4;font:600 14px Inter,sans-serif;cursor:pointer}
+.r2-tab{flex:1;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#9fb0d4;font:600 13.5px Inter,sans-serif;cursor:pointer;white-space:nowrap;padding:0 6px}
 .r2-tab.on{color:#fff;border-bottom-color:#fdc921}
 .r2-tab em{font-style:normal;color:#fdc921;margin-left:4px}
 .r2-pane{flex:1;min-height:0;display:flex;flex-direction:column}
+.r2-pane[hidden]{display:none}
 .r2-pane rtk-chat,.r2-pane rtk-participants{flex:1;min-height:0;width:100%}
 .r2-close{margin:8px 10px 10px;min-height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:none;color:#fff;font:600 14px Inter,sans-serif;cursor:pointer}
 .r2-queue{padding:10px;overflow:auto}
+.r2-queue-head{font:700 15px 'Space Grotesk',Inter,sans-serif;padding:6px 4px 10px}
 .r2-hand{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:8px}
 .r2-hand.staged{border-color:rgba(253,201,33,.7)}
 .r2-n{width:30px;height:30px;border-radius:8px;background:#fdc921;color:#04123a;font-weight:700;display:inline-flex;align-items:center;justify-content:center}

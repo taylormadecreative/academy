@@ -250,11 +250,11 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
       </div>
       <aside class="r2-panel">
         <div class="r2-tabs">
-          ${host ? '<button type="button" class="r2-tab" data-tab="queue">Ready to speak <em>0</em></button>' : ''}
+          ${host ? '<button type="button" class="r2-tab" data-tab="queue">Questions <em>0</em></button>' : ''}
           <button type="button" class="r2-tab" data-tab="chat">Chat</button>
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
         </div>
-        <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue"></div></div>
+        <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
         <button type="button" class="r2-close" aria-label="Close">Close</button>
