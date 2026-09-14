@@ -400,7 +400,7 @@ function replayLine(s) {
   else if (r.status === 'uploading' || r.status === 'uploaded') inner = chip('Replay is being prepared…', 'var(--gold-soft)', 'var(--gold-ink)');
   else if (r.status === 'ready' && !r.published) inner = chip('Replay ready — review it, then publish', '#e8f8f0', '#067a56') + link('Review') + btn('Publish to students', true) + `<span style="font-size:12.5px;color:var(--muted)">Students see nothing until you publish.</span>`;
   else if (r.status === 'ready' && r.published) inner = chip('Replay published ✓', '#e8f8f0', '#067a56') + link('Watch') + btn('Unpublish', false);
-  else inner = chip('Replay failed', '#fdf0e7', '#b4451f') + `<span style="font-size:12.5px;color:var(--muted)">${esc(r.error || 'unknown reason')}. The recording is kept for 7 days — tell Nelson.</span>`;
+  else inner = chip('Replay failed', '#fdf0e7', '#b4451f') + `<button type="button" class="pillbtn retryReplay" data-s="${s.no}">Retry</button><span style="font-size:12.5px;color:var(--muted)">${esc(r.error || 'unknown reason')}. The recording is kept for 7 days.</span>`;
   return `<div class="replayLine" data-s="${s.no}" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${inner}</div>`;
 }
 /* one label rule for every surface: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+), milestones ★ */
@@ -479,6 +479,17 @@ mgr.addEventListener('click', async (ev) => {
     const { error } = await sb.rpc('ea_opil_publish_replay', { p_session: no, p_publish: on });
     if (error) { pub.disabled = false; pub.textContent = on ? 'Publish to students' : 'Unpublish'; alert('Could not ' + (on ? 'publish' : 'unpublish') + ': ' + error.message); return; }
     await loadReplays(); await reloadSess();   /* replays first — reloadSess() is what re-renders */
+    return; }
+  const rt = ev.target.closest('.retryReplay');
+  if (rt) { ev.preventDefault();
+    const no = Number(rt.dataset.s); rt.disabled = true; rt.textContent = 'Retrying…';
+    try {
+      const tok = (await sb.auth.getSession()).data.session?.access_token || '';
+      const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-rtk-record', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ session_no: no, action: 'retry_replay' }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error === 'not_uploaded_yet' ? 'the recording has not finished uploading yet' : (d.error || ('the server said ' + r.status)));
+    } catch (e) { rt.disabled = false; rt.textContent = 'Retry'; alert('Could not retry: ' + (e.message || e)); return; }
+    await loadReplays(); await reloadSess();
     return; }
   const del = ev.target.closest('[data-delmat]');
   if (del) { ev.preventDefault();

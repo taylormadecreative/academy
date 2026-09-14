@@ -60,8 +60,8 @@ export async function handleEvent(payload: Record<string, unknown>, deps: Webhoo
     session_no: session.no, meeting_id: meetingId, recording_id: recordingId, status,
     download_url: typeof rec.downloadUrl === "string" ? rec.downloadUrl : null,
     download_expires_at: typeof rec.downloadUrlExpiry === "string" ? rec.downloadUrlExpiry : null,
-    duration_s: Number.isFinite(Number(rec.recordingDuration)) ? Number(rec.recordingDuration) : null,
-    file_size: Number.isFinite(Number(rec.fileSize)) ? Number(rec.fileSize) : null,
+    duration_s: Number.isFinite(Number(rec.recordingDuration)) ? Math.round(Number(rec.recordingDuration)) : null,   /* Cloudflare sends 102.783; the column is whole seconds */
+    file_size: Number.isFinite(Number(rec.fileSize)) ? Math.round(Number(rec.fileSize)) : null,
     error: status === "error" ? String(rec.error || rec.errorMessage || "recording failed").slice(0, 500) : null,
   };
 

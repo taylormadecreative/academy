@@ -64,6 +64,13 @@ Deno.test("UPLOADED → copied into Stream, row ready with the watch URL", async
   assertEquals(row.download_url, "https://dl/rec-1.mp4"); assertEquals(row.duration_s, 1800); assertEquals(row.file_size, 2044680);
 });
 
+Deno.test("a fractional duration (Cloudflare sends 102.783) is stored as whole seconds", async () => {
+  const d = deps();
+  await handleEvent(REC("UPLOADED", { recordingDuration: 102.783, fileSize: "7800108" }), d);
+  const row = d.upserts[d.upserts.length - 1];
+  assertEquals(row.duration_s, 103); assertEquals(row.file_size, 7800108);
+});
+
 Deno.test("UPLOADED but Stream fails → row error, download URL kept, still 200", async () => {
   const d = deps({ streamCopy: async () => { throw new Error("stream 403"); } });
   const r = await handleEvent(REC("UPLOADED"), d);

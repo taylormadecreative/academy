@@ -15,6 +15,9 @@ function deps(over: Partial<RecordDeps> = {}) {
     latestActive: async () => null,
     insertReplay: async (row) => { inserted.push(row); },
     cf: async (method, path, body) => { calls.push({ method, path, body }); return { ok: true, status: 200, data: { id: "rec-1", status: "INVOKED" } }; },
+    latestAny: async () => null,
+    uploadedEvent: async () => null,
+    reprocess: async () => ({ status: "ready" }),
     ...over,
   };
   return d;
@@ -96,4 +99,17 @@ Deno.test("list_webhooks is admin-only and never leaks tokens", async () => {
   const r = await handleRecord({ action: "list_webhooks" }, ADMIN, d);
   assertEquals(r.status, 200);
   assertEquals(JSON.stringify(r.body).includes("SHOULD-NOT-LEAK"), false);
+});
+
+Deno.test("retry_replay re-runs the stored UPLOADED event for the latest replay", async () => {
+  const seen: unknown[] = [];
+  const d = deps({ latestAny: async () => ({ recording_id: "rec-9", status: "error" }), uploadedEvent: async (id) => (id === "rec-9" ? { event: "recording.statusUpdate", recording: { id: "rec-9" } } : null), reprocess: async (p) => { seen.push(p); return { status: "ready" }; } });
+  const r = await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { recording_id: "rec-9", status: "ready" }); assertEquals(seen.length, 1);
+});
+
+Deno.test("retry_replay: nothing recorded → 404; recorded but not uploaded yet → 409; students → 403", async () => {
+  assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps())).status, 404);
+  assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps({ latestAny: async () => ({ recording_id: "rec-9", status: "uploading" }) }))).status, 409);
+  assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, STUDENT, deps())).status, 403);
 });

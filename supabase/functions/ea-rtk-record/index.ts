@@ -7,6 +7,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
 import { handleRecord, type RecordBody } from "./handler.ts";
+import { handleEvent } from "../ea-rtk-webhook/handler.ts";
+import { replayDeps } from "../_shared/replay_deps.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
@@ -52,6 +54,19 @@ Deno.serve(async (req: Request) => {
       if (error) throw new Error(error.message);
     },
     cf: rtkClient(acct, app, cfToken),
+    latestAny: async (meetingId) => {
+      const { data } = await admin.from("ea_opil_replays").select("recording_id, status").eq("meeting_id", meetingId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      return data ?? null;
+    },
+    uploadedEvent: async (recordingId) => {
+      const { data } = await admin.from("ea_rtk_events").select("payload").eq("id", recordingId + ":UPLOADED").maybeSingle();
+      return (data?.payload as Record<string, unknown>) ?? null;
+    },
+    reprocess: async (payload) => {
+      const r = await handleEvent(payload, replayDeps(admin, { dedupe: false }));
+      const b = r.body as { status?: string };
+      return { status: b.status || "unknown" };
+    },
   }).catch((e) => ({ status: 500, body: { error: "server", detail: String(e && e.message || e).slice(0, 200) } }));
 
   return json(reply.body, reply.status);

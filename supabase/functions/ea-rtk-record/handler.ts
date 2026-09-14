@@ -6,7 +6,7 @@
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
 export type Caller = { user: { id: string; email?: string | null }; role: Role; functionsBase: string };
-export type RecordBody = { session_no?: number; action?: "start" | "stop" | "register_webhook" | "list_webhooks" };
+export type RecordBody = { session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
 export type ActiveReplay = { recording_id: string; status: string };
 export type CfResult = { ok: boolean; status: number; data: unknown };
@@ -15,11 +15,16 @@ export type RecordDeps = {
   latestActive: (meetingId: string) => Promise<ActiveReplay | null>;
   insertReplay: (row: { session_no: number; meeting_id: string; recording_id: string; status: string }) => Promise<void>;
   cf: (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<CfResult>;
+  /* Retry: the latest replay for a meeting (any status), the stored UPLOADED event for it, and
+     the same processing the webhook does — dedupe bypassed on purpose. */
+  latestAny: (meetingId: string) => Promise<{ recording_id: string; status: string } | null>;
+  uploadedEvent: (recordingId: string) => Promise<Record<string, unknown> | null>;
+  reprocess: (payload: Record<string, unknown>) => Promise<{ status: string }>;
 };
 export type Reply = { status: number; body: unknown };
 
 const RTK_PREFIX = "rtk:";
-const ACTIONS = ["start", "stop", "register_webhook", "list_webhooks"] as const;
+const ACTIONS = ["start", "stop", "retry_replay", "register_webhook", "list_webhooks"] as const;
 
 export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
   const action = body.action;
@@ -53,6 +58,15 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
   if (!s) return { status: 404, body: { error: "not_found" } };
   const meetingId = typeof s.stream_url === "string" && s.stream_url.startsWith(RTK_PREFIX) ? s.stream_url.slice(RTK_PREFIX.length) : null;
   if (!meetingId) return { status: 409, body: { error: "no_room" } };
+
+  if (action === "retry_replay") {
+    const last = await deps.latestAny(meetingId);
+    if (!last) return { status: 404, body: { error: "no_replay" } };
+    const payload = await deps.uploadedEvent(last.recording_id);
+    if (!payload) return { status: 409, body: { error: "not_uploaded_yet" } };
+    const out = await deps.reprocess(payload);
+    return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
+  }
 
   const active = await deps.latestActive(meetingId);
   if (action === "start") {

@@ -8,6 +8,7 @@
 // SUPABASE_SERVICE_ROLE_KEY. Deploy: --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifySignature, handleEvent } from "./handler.ts";
+import { replayDeps, markFailed } from "../_shared/replay_deps.ts";
 
 const KEY_URL = "https://api.realtime.cloudflare.com/.well-known/webhooks.json";
 let cachedKey: { pem: string; at: number } | null = null;
@@ -41,37 +42,13 @@ Deno.serve(async (req: Request) => {
 
   const url = Deno.env.get("SUPABASE_URL")!;
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const acct = Deno.env.get("CF_ACCOUNT_ID") || "", streamToken = Deno.env.get("CF_API_TOKEN") || "", sub = Deno.env.get("CF_STREAM_SUBDOMAIN") || "";
 
-  const reply = await handleEvent(payload, {
-    dedupe: async (id, event, p) => {
-      const { error } = await admin.from("ea_rtk_events").insert({ id, event, payload: p });
-      if (!error) return true;
-      if (error.code === "23505") return false;   // seen before
-      throw new Error(error.message);
-    },
-    sessionByMeeting: async (meetingId) => {
-      const { data } = await admin.from("ea_opil_sessions").select("no, title, kind").eq("stream_url", "rtk:" + meetingId).limit(1).maybeSingle();
-      return data ?? null;
-    },
-    upsertReplay: async (row) => {
-      const { error } = await admin.from("ea_opil_replays").upsert({ ...row, updated_at: new Date().toISOString() }, { onConflict: "recording_id" });
-      if (error) throw new Error(error.message);
-    },
-    streamCopy: async (dl, name) => {
-      if (!acct || !streamToken) throw new Error("Stream is not configured");
-      const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acct}/stream/copy`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${streamToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ url: dl, meta: { name } }),
-      });
-      const j = await r.json().catch(() => ({})) as { success?: boolean; result?: { uid?: string }; errors?: unknown };
-      const uid = j?.result?.uid;
-      if (!r.ok || !j?.success || !uid) throw new Error(`Stream copy ${r.status}: ${JSON.stringify(j?.errors || {}).slice(0, 200)}`);
-      return { uid };
-    },
-    subdomain: sub,
-  }).catch((e) => ({ status: 200, body: { ok: false, error: String(e && e.message || e).slice(0, 300) } }));
+  const reply = await handleEvent(payload, replayDeps(admin, { dedupe: true }))
+    .catch(async (e) => {
+      const message = String(e && e.message || e).slice(0, 300);
+      await markFailed(admin, payload, message);
+      return { status: 200, body: { ok: false, error: message } };
+    });
 
   return new Response(JSON.stringify(reply.body), { status: reply.status, headers: { "Content-Type": "application/json" } });
 });
