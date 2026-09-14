@@ -11,6 +11,7 @@ const UI_MAIN = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/d
 /* Effects (background blur + Academy backdrops): the video-background addon is a self-contained
    ESM file, so it loads straight from the CDN like the kit. Pinned like everything else. */
 const VB_ADDON = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui-addons@0.1.0/dist/video-background.js';
+const BTN_ADDON = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui-addons@0.1.0/dist/custom-controlbar-button.js';
 const BACKDROPS = ['/assets/rtk-bg/navy.jpg', '/assets/rtk-bg/paper.jpg'];
 
 let kitReady = null;
@@ -90,12 +91,44 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
   /* Effects button on the camera-check screen and under Settings: blur, or one of the Academy
      backdrops. Registered per meeting object, so a breakout room gets it again below. If the
      addon or its model fails to load, the room still opens — just without Effects. */
+  /* Transcript: the kit shows live captions under Meeting AI but has no way to keep them. Every
+     final line is collected here (per speaker — only participants whose preset transcribes are
+     heard) and "Save transcript" in the More menu downloads them as a text file. */
+  const lines = [];
+  function keepTranscripts(m) {
+    try {
+      (m.ai && m.ai.transcripts || []).forEach(x => { if (x && !x.isPartialTranscript) lines.push(x); });
+      m.ai && m.ai.on && m.ai.on('transcript', (x) => { if (x && !x.isPartialTranscript && !lines.some(y => y.id === x.id)) lines.push(x); });
+    } catch (e) {}
+  }
+  function saveTranscript() {
+    const title = (current && current.meta && current.meta.meetingTitle) || document.title;
+    const when = (ts) => { const d = new Date(ts || Date.now()); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+    const body = lines.length
+      ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
+      : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
+    const txt = title + '\n' + new Date().toLocaleString() + '\n\n' + body + '\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+    a.download = (title.replace(/[^\w\- ]+/g, '').trim() || 'transcript') + ' transcript.txt';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
   async function effectsConfig(m) {
+    keepTranscripts(m);
+    const addons = [];
     try {
       const { default: VideoBackground } = await import(VB_ADDON);
-      const vb = await VideoBackground.init({ meeting: m, modes: ['blur', 'virtual'], blurStrength: 50, images: BACKDROPS.map(p => location.origin + p) });
-      return ui.registerAddons([vb], m);
-    } catch (e) { console.warn('[rtk-room] effects unavailable:', e && e.message); return null; }
+      addons.push(await VideoBackground.init({ meeting: m, modes: ['blur', 'virtual'], blurStrength: 50, images: BACKDROPS.map(p => location.origin + p) }));
+    } catch (e) { console.warn('[rtk-room] effects unavailable:', e && e.message); }
+    try {
+      const { default: ControlbarButton } = await import(BTN_ADDON);
+      addons.push(new ControlbarButton({
+        position: 'more-menu', label: 'Save transcript', onClick: saveTranscript,
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M12 11v6"/><path d="m9 14 3 3 3-3"/></svg>',
+      }));
+    } catch (e) { console.warn('[rtk-room] transcript button unavailable:', e && e.message); }
+    if (!addons.length) return null;
+    try { return ui.registerAddons(addons, m); } catch (e) { console.warn('[rtk-room] addons failed:', e && e.message); return null; }
   }
   let current = meeting;   /* the meeting this page is in right now: the main room, or a breakout room */
   let switching = false;   /* mid-move between main room and a breakout: the old meeting's 'left' is not the host leaving */
