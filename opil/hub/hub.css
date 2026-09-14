@@ -163,3 +163,4 @@
 .live-row .join{font-weight:700;text-decoration:underline}
 .live-row:focus-visible{outline:2px solid #067a56;outline-offset:2px}
 .idle .live-list{width:min(520px,100%);margin:14px auto 0;text-align:left}
+.player .idle .live-row b{font-family:inherit;color:inherit;font-size:14px}   /* the dark idle card's heading rule would paint the title white */
