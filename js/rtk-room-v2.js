@@ -323,8 +323,16 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   const bindSelf = () => { try { m.self.on('audioUpdate', chips.sync); m.self.on('videoUpdate', chips.sync); } catch (e) {} chips.sync(); };
 
   /* the side panel (desktop) / sheet (phone) */
-  /* the kit's grid measures itself lazily (a resize-observer polyfill): nudge it after layout changes */
-  const nudge = () => [60, 320, 900].forEach(ms => setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) {} }, ms));
+  /* The kit's grid measures itself with a resize observer that can miss the first layout: tiles sit
+     tiny for up to half a minute. Wiggling the grid's own height by a hair forces a real size change,
+     which the observer cannot ignore. Repeated a few times because the kit re-creates the inner grid. */
+  const nudge = () => [80, 600, 1500, 3000, 6000].forEach(ms => setTimeout(() => {
+    try {
+      const g = node.querySelector('.r2-grid'); if (!g) return;
+      g.style.height = 'calc(100% - 1px)';
+      requestAnimationFrame(() => { g.style.height = ''; try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
+    } catch (e) {}
+  }, ms));
   const showPane = (name) => {
     node.querySelectorAll('.r2-pane').forEach(p => { p.hidden = p.dataset.pane !== name; });
     node.querySelectorAll('.r2-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
