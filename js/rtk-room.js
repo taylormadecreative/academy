@@ -103,7 +103,7 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
      forever (seen 2026-09-14). Same handler brings them back to the main room. */
   const onMeetingChanged = async (next) => {
     current = next;
-    const cfg = await effectsConfig(next); if (cfg) el.config = cfg;
+    const uiCfg = await effectsConfig(next); if (uiCfg) el.config = uiCfg;
     el.meeting = next;
     try { next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
   };
@@ -118,7 +118,7 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
   el.applyDesignSystem = false;
   el.showSetupScreen = true;   /* the "check your camera and mic" screen everyone expects before joining */
   el.leaveOnUnmount = true;
-  const cfg = await effectsConfig(meeting); if (cfg) el.config = cfg;
+  const uiCfg = await effectsConfig(meeting); if (uiCfg) el.config = uiCfg;
   el.meeting = meeting;
 
   document.body.classList.add('in-room');
