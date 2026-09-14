@@ -98,18 +98,24 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
     } catch (e) { console.warn('[rtk-room] effects unavailable:', e && e.message); return null; }
   }
   let current = meeting;   /* the meeting this page is in right now: the main room, or a breakout room */
+  let switching = false;   /* mid-move between main room and a breakout: the old meeting's 'left' is not the host leaving */
   /* Breakout rooms: when a host moves someone, the kit hands the page a NEW meeting object and
      waits for it to be swapped in — without this the tile sits on "Joining Breakout Room…"
      forever (seen 2026-09-14). Same handler brings them back to the main room. */
   const onMeetingChanged = async (next) => {
     current = next;
-    const uiCfg = await effectsConfig(next); if (uiCfg) el.config = uiCfg;
     el.meeting = next;
-    try { next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+    const uiCfg = await effectsConfig(next); if (uiCfg) el.config = uiCfg;   /* config AFTER meeting, or the kit's default replaces it */
+    try { next.connectedMeetings.on('changingMeeting', () => { switching = true; }); next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+    setTimeout(() => { switching = false; }, 1500);
   };
-  try { meeting.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+  try { meeting.connectedMeetings.on('changingMeeting', () => { switching = true; }); meeting.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
 
-  if (onState) el.addEventListener('rtkStatesUpdate', (ev) => { const s = ev.detail; if (s && s.meeting) onState(s.meeting, current); });
+  if (onState) el.addEventListener('rtkStatesUpdate', (ev) => {
+    const s = ev.detail; if (!s || !s.meeting) return;
+    if (switching && (s.meeting === 'left' || s.meeting === 'ended')) return;   /* a room switch, not an exit */
+    onState(s.meeting, current);
+  });
   /* 'fixed' — the kit's default — sizes the meeting to the whole viewport and escapes its
      container, dropping the control bar on top of the site header. 'fill' makes it fill the
      panel we gave it (measured on the live site, 9/11). */
@@ -118,8 +124,10 @@ export async function mountRoom({ mountEl, cfg, token, sessionNo, meetingId, onS
   el.applyDesignSystem = false;
   el.showSetupScreen = true;   /* the "check your camera and mic" screen everyone expects before joining */
   el.leaveOnUnmount = true;
-  const uiCfg = await effectsConfig(meeting); if (uiCfg) el.config = uiCfg;
   el.meeting = meeting;
+  /* config must land AFTER the meeting: assigning .meeting regenerates the kit's default config
+     and would drop the Effects button (verified on the live site, 9/14) */
+  const uiCfg = await effectsConfig(meeting); if (uiCfg) el.config = uiCfg;
 
   document.body.classList.add('in-room');
   return {
