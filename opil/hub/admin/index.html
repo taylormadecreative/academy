@@ -126,6 +126,7 @@
 <script src="/js/config.js?v=bf2bfb54a9"></script>
 <script type="module">
 import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=bf2bfb54a9';
+import { roomPath } from '/opil/hub/live-rooms.js?v=bf2bfb54a9';
 import { panelHTML, wirePanel } from '/js/broadcast.js?v=bf2bfb54a9';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
@@ -407,7 +408,7 @@ function sessRow(s) {
       ${facOnly ? '' : `<div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input data-f="title" data-s="${s.no}" value="${esc(s.title||'')}" placeholder="Title" maxlength="200" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><input data-f="date" data-s="${s.no}" type="date" value="${esc(s.session_date||'')}" style="font:inherit;font-size:13.5px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px"></div>`}
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording link — where students rewatch this session after it happens (YouTube, Stream, Drive, Zoom cloud recording)" title="Fills in by itself when you broadcast with Camera" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook link — the written guide for this session (Google Doc, PDF, Notion, a page on the Academy)" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="pillbtn camBtn" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}" title="Uses this device's camera and mic, nothing to install. Students watch in the live room; the recording saves itself to this session's Recording link when you end.">${s.is_live?'● LIVE now':'Go live from this device'}</button><span style="font-size:12.5px;color:var(--muted)">Nothing to install. It records, and the replay lands in the Recording link above when you end.</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button type="button" class="pillbtn camBtn" data-s="${s.no}" style="${s.is_live?'background:#e8f8f0;color:#067a56':''}" title="Uses this device's camera and mic, nothing to install. Students watch in the live room; the recording saves itself to this session's Recording link when you end.">${s.is_live?'● LIVE now':'Go live from this device'}</button><a class="pillbtn" href="${roomPath(s.no)}" title="This session's own room: start the class there, or copy the link students use">Open room &rarr;</a><span style="font-size:12.5px;color:var(--muted)">Nothing to install. It records, and the replay lands in the Recording link above when you end.</span></div>
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Attendance code — read it out during the session; students type it on their hub home to mark themselves present" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <div style="display:flex;gap:8px;align-items:center"><button class="pillbtn saveSess" data-s="${s.no}">Save session</button>${facOnly || (s.kind === 'thread' && s.no <= 14) ? '' : `<button type="button" class="pillbtn delSess" data-s="${s.no}" style="color:#b4451f;background:#fdf0e7">Remove session</button>`}</div>
       ${matHtml}
@@ -450,11 +451,12 @@ const camDock = document.createElement('div'); camDock.id = 'camDock';
 mgr.parentNode.insertBefore(camDock, mgr.nextSibling);
 const { data: { session: mySession } } = await sb.auth.getSession();
 let camNo = null;
+/* Rooms are independent (0032): going live here never touches another session's class. The one
+   rule left is one camera/sample-video stream at a time (the input is shared), so 23505 means that. */
 async function flipLive(no, on, hls) {
-  if (on) { const c = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); if (c.error) throw new Error(c.error.message); }
   const r = await sb.from('ea_opil_sessions').update(on ? { is_live: true, stream_url: hls } : { is_live: false }).eq('no', no);
-  if (r.error) throw new Error(r.error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : r.error.message);
-  (allSess || []).forEach(x => { if (x.no === no) { x.is_live = on; if (hls) x.stream_url = hls; } else if (on) x.is_live = false; });
+  if (r.error) throw new Error(r.error.code === '23505' ? 'Only one camera or sample-video broadcast can run at a time. End the other one first. Classes aren\u2019t affected.' : r.error.message);
+  (allSess || []).forEach(x => { if (x.no === no) { x.is_live = on; if (hls) x.stream_url = hls; } });
   renderMgr();
 }
 function openCamera(no) {

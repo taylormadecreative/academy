@@ -15,6 +15,8 @@
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
 @media(max-width:900px){.live-grid{grid-template-columns:1fr}}
 .player{background:#000;border-radius:16px;overflow:hidden;border:1px solid var(--hair);box-shadow:var(--shadow-card);aspect-ratio:16/9;position:relative}
+.player.list{aspect-ratio:auto}.player.list .idle{position:static;padding:28px 20px}   /* the pick-a-room list grows with its rows instead of clipping in 16:9 */
+.player .idle .live-row:focus-visible{outline-color:#fff}
 .player iframe,.player video{width:100%;height:100%;border:0;display:block;background:#000}
 .player .brandbar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(rgba(4,18,58,.75),transparent);z-index:5;pointer-events:none;opacity:1;transition:opacity .4s ease}
 .player.playing .brandbar{opacity:0}
@@ -41,6 +43,9 @@
 .bc-ctl-row input{min-width:220px}
 #bcNote{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.5}
 #bc select:disabled,#bc input:disabled,#bc .pillbtn:disabled{opacity:.55;cursor:not-allowed}
+#bc .pillbtn{min-height:44px}
+#bcLink{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--bg-soft,#f5f7fb);color:var(--ink-2,#3a4661)}
+.bc-cap{font-size:13px;color:var(--muted);margin:2px 0 12px;line-height:1.5}
 </style>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -60,7 +65,7 @@
 <div>
 <div id="rtkMount"></div>
 <div class="player" id="player">
-<div class="idle" id="idle"><b>Nothing is streaming right now.</b><span>When a session goes live, the stream appears here and everyone sees the banner on their hub home.</span></div>
+<div class="idle" id="idle"><b>Opening the room&hellip;</b><span>One moment.</span></div>
 </div>
 <p id="meta" style="font-size:14px;color:var(--muted);margin-top:14px"></p>
 </div>
@@ -86,7 +91,11 @@ nav(ctx, 'live');
    when several are. Milestones are never rooms. Rooms are independent since 0032. */
 const wanted = roomFromQuery(location.search);
 const { data: allSess } = await sb.from('ea_opil_sessions').select('*').neq('kind', 'milestone').order('no');
-const pickedRoom = pickRoom(allSess || [], wanted);
+let pickedRoom = pickRoom(allSess || [], wanted);
+/* an instructor on the bare URL came to run THEIR session: show the control and whatever is live,
+   never drop them into a colleague's class. Students and judges keep the straight-in behaviour. */
+if (wanted == null && staff && pickedRoom.mode === 'room') pickedRoom = { mode: 'list', live: [pickedRoom.session] };
+const badLink = wanted != null && !(allSess || []).some(s => s.no === wanted);   /* ?s= names nothing on the calendar */
 const roomSess = pickedRoom.mode === 'room' ? pickedRoom.session : null;         /* the session this page is bound to */
 const liveSess = roomSess && roomSess.is_live ? roomSess : null;                  /* …and only when it is on air */
 let sessionNo = roomSess ? roomSess.no : null;
@@ -124,7 +133,7 @@ function brandChrome(player, title) {
   player.appendChild(wm);
 }
 const DEMO_URL = '/assets/live-demo/stream.m3u8';
-const IDLE_HTML = document.getElementById('player').innerHTML;   /* kept verbatim so a broadcaster can put it back on End */
+const IDLE_HTML = '<div class="idle" id="idle"><b>Nothing is streaming right now.</b><span>When a session goes live, the stream appears here and everyone sees the banner on their hub home.</span></div>';   /* what a broadcaster gets back on End */
 let selfBroadcast = false;   /* this page is the broadcaster: it watches its own feed muted (or hears itself a beat late) and the wake poll must not reload it */
 let unmount = null;          /* stops whatever mountStream started (WebRTC retries, hls.js) before the player is cleared */
 /* same label rule as the hub: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+) */
@@ -227,19 +236,38 @@ async function enterRoom(no, meetingId, title) {
 }
 
 const idleEl = document.getElementById('idle');
+const playerEl = document.getElementById('player');
+if (badLink) {
+  const n = document.createElement('div'); n.className = 'hub-note';
+  n.textContent = 'That link doesn\u2019t point to a session on the calendar. Here is what is live instead.';
+  document.querySelector('.live-grid').insertAdjacentElement('beforebegin', n);
+}
+const liveLabel = (list) => (list.length === 1 ? '1 room is live right now.' : list.length + ' rooms are live right now.');
+function renderList(list) {
+  playerEl.classList.add('list');
+  idleEl.innerHTML = '<b>' + liveLabel(list) + '</b><span>Pick yours.</span><div class="live-list" id="liveList">' + liveListHTML(list, esc) + '</div>';
+}
 if (liveSess && isRoom(liveSess.stream_url)) {
-  /* students and judges land straight in; a 409 means the facilitator has not opened it yet */
+  /* students and judges land straight in */
   enterRoom(liveSess.no, liveSess.stream_url.slice(RTK_PREFIX.length), liveSess.title)
-    .catch((e) => { idleEl.innerHTML = '<b>' + esc(e.message || 'Could not open the class.') + '</b><span>Reload once your facilitator has started it.</span>'; });
+    .catch((e) => {
+      const hint = e.code === 'not_allowed' ? 'Ask the coordinator to add you to the cohort.' : e.code === 'not_open' ? 'Stay on this page \u2014 it opens by itself.' : 'Reload to try again.';
+      idleEl.innerHTML = '<b>' + esc(e.message || 'Could not open the class.') + '</b><span>' + hint + '</span>';
+    });
 } else if (liveSess && liveSess.stream_url) {
   mountStream(liveSess.stream_url, liveSess.title).catch(() => {});
   document.getElementById('meta').textContent = metaLine(liveSess);
 } else if (roomSess) {
-  /* a room link opened before the facilitator started: wait here, the poll below reloads when it flips live */
+  /* a room link opened before the class started: students wait here (the poll below reloads when it
+     flips live); the instructor is told the room is theirs to start */
   document.getElementById('ttl').textContent = sessLabel(roomSess) + ' \u00b7 ' + roomSess.title;
-  idleEl.innerHTML = '<b>This room opens when your facilitator starts it.</b><span>Stay on this page &mdash; it joins by itself.</span>';
+  idleEl.innerHTML = staff
+    ? '<b>This room is yours.</b><span>Start the class from the control above &mdash; students who have your link are waiting here.</span>'
+    : '<b>This room opens when your facilitator starts it.</b><span>Stay on this page &mdash; it opens by itself.</span>';
 } else if (pickedRoom.mode === 'list') {
-  idleEl.innerHTML = '<b>' + pickedRoom.live.length + ' rooms are live right now.</b><span>Pick yours.</span><div class="live-list" id="liveList">' + liveListHTML(pickedRoom.live, esc) + '</div>';
+  renderList(pickedRoom.live);
+} else {
+  idleEl.innerHTML = '<b>Nothing is streaming right now.</b><span>When a session goes live, the stream appears here and everyone sees the banner on their hub home.</span>';
 }
 
 /* room chat (cohort-wide, scoped to the one live session) */
@@ -273,12 +301,25 @@ async function openChat() {
   setInterval(loadChat, 12000);
 }
 let wakePoll = null;   /* kept so a broadcaster can stop it: a reload under a live camera ends the broadcast */
+let boundNo = roomSess ? roomSess.no : null;   /* the room this page is bound to; bindUrl() moves it when a host starts one */
 function armWake() {
   wakePoll = setInterval(async () => {
+    if (selfBroadcast) return;
+    if (pickedRoom.mode === 'list' && boundNo == null) {
+      /* the pick-a-room view refreshes its rows in place; a reload every 30 s would yank the page away mid-choice */
+      const { data } = await sb.from('ea_opil_sessions').select('*').eq('is_live', true).neq('kind', 'milestone').order('no');
+      const now = (data || []);
+      if (now.map(s => s.no).join(',') !== pickedRoom.live.map(s => s.no).join(',')) {
+        pickedRoom = now.length ? { mode: 'list', live: now } : { mode: 'idle' };
+        if (now.length) renderList(now);
+        else { playerEl.classList.remove('list'); idleEl.innerHTML = '<b>Nothing is streaming right now.</b><span>When a session goes live, the stream appears here and everyone sees the banner on their hub home.</span>'; }
+      }
+      return;
+    }
     let q = sb.from('ea_opil_sessions').select('no').eq('is_live', true);
-    if (roomSess) q = q.eq('no', roomSess.no);   /* a named room waits for ITS session, not whichever goes live first */
+    if (boundNo != null) q = q.eq('no', boundNo);   /* a named room waits for ITS session, not whichever goes live first */
     const { data } = await q.limit(1);
-    if (data && data.length && !selfBroadcast) location.reload();
+    if (data && data.length) location.reload();
   }, 30000);
 }
 if (liveSess) {
@@ -319,18 +360,20 @@ if (staff) {
     bc.innerHTML = '<div class="hub-note">No sessions to broadcast yet. Ask the coordinator to put you on one.</div>';
   } else {
     const n = new Date(), today = [n.getFullYear(), n.getMonth() + 1, n.getDate()].map(x => String(x).padStart(2, '0')).join('-');   /* local date; toISOString() is UTC and rolls to tomorrow at 7pm Central */
+    /* the room the URL names; else today's, the next one up, one that is live, the first */
     const pick = (roomSess && sessions.find(s => s.no === roomSess.no))
-      || sessions.find(s => s.is_live)
       || sessions.find(s => s.session_date === today)
       || sessions.filter(s => s.session_date && s.session_date > today).sort((a, b) => a.session_date.localeCompare(b.session_date))[0]
+      || sessions.find(s => s.is_live)
       || sessions[0];
     const label = (s) => sessLabel(s) + ' · ' + s.title + (s.session_date ? ' · ' + new Date(s.session_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' }) : '');
     bc.innerHTML = `<div class="hcard"><div class="hd2"><h2>Broadcast control</h2><span class="mono" style="font-size:11px;color:var(--gold-ink)">PROGRAM TEAM ONLY</span></div>
 <div class="bd">
 <div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
-<div class="bc-ctl-row"><input id="bcLink" readonly aria-label="Link to this room" value=""><button type="button" class="pillbtn" id="bcCopy" title="The link students open to join this room. It works before you start.">Copy link</button></div>
+<div class="bc-ctl-row"><input id="bcLink" readonly aria-label="Link to this room" value=""><button type="button" class="pillbtn" id="bcCopy" aria-live="polite">Copy link</button></div>
+<p class="bc-cap">Send this link to your students. It works before you start &mdash; they wait in the room until you do.</p>
 <div class="bc-ctl-row"><button type="button" class="pillbtn" id="bcClass" style="background:var(--blue);color:#fff" title="Everyone on camera: you teach, students can turn their camera and mic on, raise a hand, and share their screen">Start class &mdash; everyone on camera</button><button type="button" class="pillbtn" id="bcDemo" title="Plays a sample clip in the room so you can show it without being on camera">Rehearse with a sample video</button><button type="button" class="pillbtn" id="bcGo" hidden>End session</button></div>
-<p id="bcNote">Go live from this device below &mdash; your camera, nothing to install, and the session records itself for students to rewatch.</p>
+<p id="bcNote">1. Pick your session. &nbsp;2. Copy the link and send it to your students. &nbsp;3. Start class &mdash; or go live from your camera below, which records itself for students to rewatch.</p>
 <div id="bcCam"></div>
 </div></div>`;
     const sel = document.getElementById('bcSess'), demo = document.getElementById('bcDemo'), classBtn = document.getElementById('bcClass'),
@@ -341,12 +384,14 @@ if (staff) {
     const syncLink = () => { linkEl.value = location.origin + roomPath(Number(sel.value)); };
     copyBtn.addEventListener('click', async () => {
       linkEl.select();
-      try { await navigator.clipboard.writeText(linkEl.value); copyBtn.textContent = 'Copied'; }
-      catch (e) { copyBtn.textContent = 'Press \u2318C'; }   /* clipboard blocked: the text is selected, one keystroke away */
+      let done = false;
+      try { await navigator.clipboard.writeText(linkEl.value); done = true; } catch (e) {}
+      if (!done) { try { done = document.execCommand('copy'); } catch (e) {} }   /* older WebViews: the selection is copied the old way */
+      copyBtn.textContent = done ? 'Copied' : (/Mac|iPhone|iPad/.test(navigator.platform) ? 'Press \u2318C' : 'Press Ctrl+C');
       setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1600);
     });
     /* bind the host's page to the room it is running, so a reload after End lands back in it */
-    const bindUrl = (no) => { try { history.replaceState(null, '', roomPath(no)); } catch (e) {} };
+    const bindUrl = (no) => { boundNo = no; try { history.replaceState(null, '', roomPath(no)); } catch (e) {} };
     /* End only ever appears for a broadcast this page did not start: a sample-video rehearsal, or a
        session someone left live. A camera broadcast is ended from the panel's own End button. */
     function syncCtl() {
@@ -365,13 +410,13 @@ if (staff) {
        that — say so instead of going quiet. */
     async function flipLive(no, on, u) {
       const r = await sb.from('ea_opil_sessions').update(on ? { is_live: true, stream_url: u } : { is_live: false }).eq('no', no);
-      if (r.error) throw new Error(r.error.code === '23505' ? 'Another camera broadcast is already running. End that one first (ask the coordinator if it isn\u2019t yours).' : r.error.message);
+      if (r.error) throw new Error(r.error.code === '23505' ? 'Only one camera or sample-video broadcast can run at a time. End the other one first (ask the coordinator if it isn\u2019t yours). Classes aren\u2019t affected \u2014 you can start one now.' : r.error.message);
       sessions.forEach(x => { if (x.no === no) { x.is_live = on; if (u) x.stream_url = u; } });
     }
     function teardown() {
       if (unmount) { try { unmount(); } catch (e) {} } unmount = null;
       const player = document.getElementById('player');
-      player.classList.remove('playing'); player.innerHTML = IDLE_HTML;
+      player.classList.remove('playing'); player.classList.remove('list'); player.innerHTML = IDLE_HTML;
       document.getElementById('badge').style.display = 'none';
       document.getElementById('ttl').textContent = 'The live room';
       document.getElementById('meta').textContent = '';
@@ -387,10 +432,13 @@ if (staff) {
       classBtn.disabled = true; classBtn.textContent = 'Opening the room\u2026';
       try {
         clearInterval(wakePoll); wakePoll = null; selfBroadcast = true;
+        if (room) { try { await room.leave(); } catch (x) {} room = null; }   /* a class this page had joined as a viewer */
         const r = await enterRoom(s.no, null, sessLabel(s) + ' \u00b7 ' + s.title);
         await flipLive(s.no, true, 'rtk:' + r.meetingId);
         sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
         bnote.textContent = 'Class is running. Send students the link above \u2014 they join you here. End it from the room\u2019s own Leave button, then End session.';
+        input.disabled = false; input.placeholder = 'Message the room'; document.getElementById('lcSend').disabled = false;
+        await openChat();
       } catch (e) {
         selfBroadcast = false; if (!liveSess) armWake();
         if (room) { try { await room.leave(); } catch (x) {} room = null; }
