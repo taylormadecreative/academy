@@ -1,4 +1,4 @@
-// tests/opil/live-rooms.test.mjs — run: node --test tests/opil/
+// tests/opil/live-rooms.test.mjs — run: node --test tests/opil/*.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sessLabel, roomFromQuery, pickRoom, roomPath, liveListHTML } from '../../opil/hub/live-rooms.js';

@@ -1,10 +1,13 @@
 /* OPIL Lab Hub — shared runtime. Auth gate, team claim, helpers. */
+/* Where a signed-out visitor goes, and comes back to. The query string rides along so a room
+   link (/opil/hub/live/?s=7) lands in that room after the magic link, not on the bare page. */
+export const loginBounce = (loc) => '/login/?next=' + encodeURIComponent(loc.pathname + loc.search);
 export async function boot() {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    location.replace('/login/?next=' + encodeURIComponent(location.pathname));
+    location.replace(loginBounce(location));
     return null;
   }
   const user = session.user;

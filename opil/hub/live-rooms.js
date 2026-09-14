@@ -1,5 +1,5 @@
 /* OPIL live rooms — the decisions the live page and hub home share. Pure: no DOM, no supabase,
-   so `node --test tests/opil/` covers every branch.
+   so `node --test tests/opil/*.test.mjs` covers every branch.
    A room is a scheduled session; its link is /opil/hub/live/?s=<no>. Several sessions may be
    live at once (migration 0032), so "which room am I in" is a question, answered here. */
 
