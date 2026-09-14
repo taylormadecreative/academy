@@ -76,14 +76,20 @@
 <script type="module">
 import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=37333ba3d1';
 import { play, panelHTML, wirePanel } from '/js/broadcast.js?v=37333ba3d1';
+import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML } from '/opil/hub/live-rooms.js?v=37333ba3d1';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 const staff = isAdmin || (facSessions || []).length > 0;   /* coordinators and facilitators get the Broadcast control */
 nav(ctx, 'live');
 
-/* find the live session */
-const { data: liveSess } = await sb.from('ea_opil_sessions').select('*').eq('is_live', true).order('no').limit(1).maybeSingle();
-let sessionNo = liveSess ? liveSess.no : null;
+/* which room: ?s=<no> names one (live or waiting); with no s, the one live session, or a list
+   when several are. Milestones are never rooms. Rooms are independent since 0032. */
+const wanted = roomFromQuery(location.search);
+const { data: allSess } = await sb.from('ea_opil_sessions').select('*').neq('kind', 'milestone').order('no');
+const pickedRoom = pickRoom(allSess || [], wanted);
+const roomSess = pickedRoom.mode === 'room' ? pickedRoom.session : null;         /* the session this page is bound to */
+const liveSess = roomSess && roomSess.is_live ? roomSess : null;                  /* …and only when it is on air */
+let sessionNo = roomSess ? roomSess.no : null;
 
 function safeUrl(u) {
   let url; try { url = new URL(u); } catch (e) { return null; }
@@ -122,7 +128,6 @@ const IDLE_HTML = document.getElementById('player').innerHTML;   /* kept verbati
 let selfBroadcast = false;   /* this page is the broadcaster: it watches its own feed muted (or hears itself a beat late) and the wake poll must not reload it */
 let unmount = null;          /* stops whatever mountStream started (WebRTC retries, hls.js) before the player is cleared */
 /* same label rule as the hub: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+) */
-const sessLabel = s => s.kind === 'curriculum' ? 'S' + (s.no % 100) : s.kind === 'hpc' ? 'H' + (s.no % 100) : String(s.no).padStart(2, '0');
 const metaLine = (s) => 'Session ' + sessLabel(s) + (s.outcome ? ' · Today you leave with: ' + s.outcome : '');
 async function mountStream(u, title) {
   const player = document.getElementById('player');
@@ -221,13 +226,20 @@ async function enterRoom(no, meetingId, title) {
   return room;
 }
 
+const idleEl = document.getElementById('idle');
 if (liveSess && isRoom(liveSess.stream_url)) {
   /* students and judges land straight in; a 409 means the facilitator has not opened it yet */
   enterRoom(liveSess.no, liveSess.stream_url.slice(RTK_PREFIX.length), liveSess.title)
-    .catch((e) => { document.getElementById('idle').innerHTML = '<b>' + esc(e.message || 'Could not open the class.') + '</b><span>Reload once your facilitator has started it.</span>'; });
+    .catch((e) => { idleEl.innerHTML = '<b>' + esc(e.message || 'Could not open the class.') + '</b><span>Reload once your facilitator has started it.</span>'; });
 } else if (liveSess && liveSess.stream_url) {
   mountStream(liveSess.stream_url, liveSess.title).catch(() => {});
   document.getElementById('meta').textContent = metaLine(liveSess);
+} else if (roomSess) {
+  /* a room link opened before the facilitator started: wait here, the poll below reloads when it flips live */
+  document.getElementById('ttl').textContent = sessLabel(roomSess) + ' \u00b7 ' + roomSess.title;
+  idleEl.innerHTML = '<b>This room opens when your facilitator starts it.</b><span>Stay on this page &mdash; it joins by itself.</span>';
+} else if (pickedRoom.mode === 'list') {
+  idleEl.innerHTML = '<b>' + pickedRoom.live.length + ' rooms are live right now.</b><span>Pick yours.</span><div class="live-list" id="liveList">' + liveListHTML(pickedRoom.live, esc) + '</div>';
 }
 
 /* room chat (cohort-wide, scoped to the one live session) */
@@ -254,8 +266,8 @@ async function openChat() {
   await loadChat();
   if (chatWired) return; chatWired = true;
   try {
-    sb.channel('live-room')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_live_chat' }, loadChat)
+    sb.channel('live-room-' + sessionNo)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ea_opil_live_chat', filter: 'session_no=eq.' + sessionNo }, loadChat)
       .subscribe();
   } catch (e) {}
   setInterval(loadChat, 12000);
@@ -263,16 +275,18 @@ async function openChat() {
 let wakePoll = null;   /* kept so a broadcaster can stop it: a reload under a live camera ends the broadcast */
 function armWake() {
   wakePoll = setInterval(async () => {
-    const { data } = await sb.from('ea_opil_sessions').select('no').eq('is_live', true).limit(1);
+    let q = sb.from('ea_opil_sessions').select('no').eq('is_live', true);
+    if (roomSess) q = q.eq('no', roomSess.no);   /* a named room waits for ITS session, not whichever goes live first */
+    const { data } = await q.limit(1);
     if (data && data.length && !selfBroadcast) location.reload();
   }, 30000);
 }
 if (liveSess) {
   await openChat();
 } else {
-  /* no session_no to read or write under (the insert policy rejects null), so the room stays shut
-     and reopens itself the moment a session flips live */
-  scroll.innerHTML = '<div class="empty">Chat opens when a session goes live.</div>';
+  /* nothing live to read or write under (the insert policy checks the session is live), so the room
+     stays shut and reopens itself the moment the session flips live */
+  scroll.innerHTML = '<div class="empty">' + (roomSess ? 'Chat opens when this room goes live.' : 'Chat opens when a session goes live.') + '</div>';
   input.disabled = true; input.placeholder = 'Room opens with the session';
   document.getElementById('lcSend').disabled = true;
   armWake();
@@ -299,14 +313,14 @@ document.getElementById('lcForm').addEventListener('submit', async (ev) => {
    /live/ works for the Academy, instead of digging through the coordinator page. Everyone
    else gets an empty mount and nothing else changes. */
 if (staff) {
-  const { data: all } = await sb.from('ea_opil_sessions').select('*').neq('kind', 'milestone').order('no');
-  const sessions = (all || []).filter(s => isAdmin || (facSessions || []).includes(s.no));
+  const sessions = (allSess || []).filter(s => isAdmin || (facSessions || []).includes(s.no));
   const bc = document.getElementById('bc');
   if (!sessions.length) {
     bc.innerHTML = '<div class="hub-note">No sessions to broadcast yet. Ask the coordinator to put you on one.</div>';
   } else {
     const n = new Date(), today = [n.getFullYear(), n.getMonth() + 1, n.getDate()].map(x => String(x).padStart(2, '0')).join('-');   /* local date; toISOString() is UTC and rolls to tomorrow at 7pm Central */
-    const pick = sessions.find(s => s.is_live)
+    const pick = (roomSess && sessions.find(s => s.no === roomSess.no))
+      || sessions.find(s => s.is_live)
       || sessions.find(s => s.session_date === today)
       || sessions.filter(s => s.session_date && s.session_date > today).sort((a, b) => a.session_date.localeCompare(b.session_date))[0]
       || sessions[0];
@@ -314,6 +328,7 @@ if (staff) {
     bc.innerHTML = `<div class="hcard"><div class="hd2"><h2>Broadcast control</h2><span class="mono" style="font-size:11px;color:var(--gold-ink)">PROGRAM TEAM ONLY</span></div>
 <div class="bd">
 <div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
+<div class="bc-ctl-row"><input id="bcLink" readonly aria-label="Link to this room" value=""><button type="button" class="pillbtn" id="bcCopy" title="The link students open to join this room. It works before you start.">Copy link</button></div>
 <div class="bc-ctl-row"><button type="button" class="pillbtn" id="bcClass" style="background:var(--blue);color:#fff" title="Everyone on camera: you teach, students can turn their camera and mic on, raise a hand, and share their screen">Start class &mdash; everyone on camera</button><button type="button" class="pillbtn" id="bcDemo" title="Plays a sample clip in the room so you can show it without being on camera">Rehearse with a sample video</button><button type="button" class="pillbtn" id="bcGo" hidden>End session</button></div>
 <p id="bcNote">Go live from this device below &mdash; your camera, nothing to install, and the session records itself for students to rewatch.</p>
 <div id="bcCam"></div>
@@ -321,6 +336,17 @@ if (staff) {
     const sel = document.getElementById('bcSess'), demo = document.getElementById('bcDemo'), classBtn = document.getElementById('bcClass'),
           goBtn = document.getElementById('bcGo'), bnote = document.getElementById('bcNote'), cam = document.getElementById('bcCam');
     const cur = () => sessions.find(s => s.no === Number(sel.value));
+    const linkEl = document.getElementById('bcLink'), copyBtn = document.getElementById('bcCopy');
+    /* the link an instructor sends out: absolute, and it works before the class starts */
+    const syncLink = () => { linkEl.value = location.origin + roomPath(Number(sel.value)); };
+    copyBtn.addEventListener('click', async () => {
+      linkEl.select();
+      try { await navigator.clipboard.writeText(linkEl.value); copyBtn.textContent = 'Copied'; }
+      catch (e) { copyBtn.textContent = 'Press \u2318C'; }   /* clipboard blocked: the text is selected, one keystroke away */
+      setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1600);
+    });
+    /* bind the host's page to the room it is running, so a reload after End lands back in it */
+    const bindUrl = (no) => { try { history.replaceState(null, '', roomPath(no)); } catch (e) {} };
     /* End only ever appears for a broadcast this page did not start: a sample-video rehearsal, or a
        session someone left live. A camera broadcast is ended from the panel's own End button. */
     function syncCtl() {
@@ -334,14 +360,13 @@ if (staff) {
     const onAir = (on) => [sel, demo, goBtn, classBtn].forEach(el => { el.disabled = on; });
     /* wirePanel's own idle label: anything else means the camera is starting, on air, or saving the recording */
     const camIdle = () => { const b = cam.querySelector('.bc-status b'); return !b || b.textContent === 'Camera off'; };
-    /* only one live session at a time: clear the current one first. A facilitator's RLS
-       only reaches their own sessions, so that clear can touch 0 rows and the second
-       update then trips the one-live unique index (23505) — say so instead of going quiet. */
+    /* Rooms are independent (0032): starting one never touches another. The only unique rule
+       left is one non-room STREAM at a time (the camera input is shared), so 23505 means exactly
+       that — say so instead of going quiet. */
     async function flipLive(no, on, u) {
-      if (on) { const c = await sb.from('ea_opil_sessions').update({ is_live: false }).eq('is_live', true); if (c.error) throw new Error(c.error.message); }
       const r = await sb.from('ea_opil_sessions').update(on ? { is_live: true, stream_url: u } : { is_live: false }).eq('no', no);
-      if (r.error) throw new Error(r.error.code === '23505' ? "Another session is still live. End that one first (ask the coordinator if it isn't yours)." : r.error.message);
-      sessions.forEach(x => { if (x.no === no) { x.is_live = on; if (u) x.stream_url = u; } else if (on) x.is_live = false; });
+      if (r.error) throw new Error(r.error.code === '23505' ? 'Another camera broadcast is already running. End that one first (ask the coordinator if it isn\u2019t yours).' : r.error.message);
+      sessions.forEach(x => { if (x.no === no) { x.is_live = on; if (u) x.stream_url = u; } });
     }
     function teardown() {
       if (unmount) { try { unmount(); } catch (e) {} } unmount = null;
@@ -364,8 +389,8 @@ if (staff) {
         clearInterval(wakePoll); wakePoll = null; selfBroadcast = true;
         const r = await enterRoom(s.no, null, sessLabel(s) + ' \u00b7 ' + s.title);
         await flipLive(s.no, true, 'rtk:' + r.meetingId);
-        sessionNo = s.no; onAir(true); syncCtl();
-        bnote.textContent = 'Class is running. Students who open the live room join you here. End it from the room\u2019s own Leave button, then End session.';
+        sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
+        bnote.textContent = 'Class is running. Send students the link above \u2014 they join you here. End it from the room\u2019s own Leave button, then End session.';
       } catch (e) {
         selfBroadcast = false; if (!liveSess) armWake();
         if (room) { try { await room.leave(); } catch (x) {} room = null; }
@@ -379,6 +404,7 @@ if (staff) {
       demo.disabled = true; demo.textContent = 'Starting…';
       try { await flipLive(s.no, true, DEMO_URL); }
       catch (e) { syncCtl(); bnote.textContent = 'Could not start: ' + e.message; return; }
+      bindUrl(s.no);
       location.reload();   /* no camera to lose: a reload mounts the player and opens the room */
     });
     goBtn.addEventListener('click', async () => {
@@ -403,7 +429,7 @@ if (staff) {
              is the only thing that keeps it from reloading under the camera */
           clearInterval(wakePoll); wakePoll = null; selfBroadcast = true; onAir(true);
           try { await flipLive(no, true, watch); } catch (e) { selfBroadcast = false; onAir(false); if (!liveSess) armWake(); throw e; }
-          sessionNo = no; syncCtl();
+          sessionNo = no; syncCtl(); bindUrl(no);
           teardown(); mountStream(watch, ttl).catch(() => {});
           document.getElementById('meta').textContent = metaLine(s);
           input.disabled = false; input.placeholder = 'Message the room'; document.getElementById('lcSend').disabled = false;
@@ -425,9 +451,9 @@ if (staff) {
     let panelNo = pick.no;   /* the session the mounted panel is bound to */
     sel.addEventListener('change', () => {
       if (!camIdle()) { sel.value = String(panelNo); bnote.textContent = 'Finish with the camera before switching sessions.'; return; }
-      panelNo = Number(sel.value); syncCtl(); renderPanel();
+      panelNo = Number(sel.value); syncCtl(); syncLink(); renderPanel();
     });
-    syncCtl(); renderPanel();
+    syncCtl(); syncLink(); renderPanel();
   }
 }
 </script>
