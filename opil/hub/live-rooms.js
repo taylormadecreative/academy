@@ -32,3 +32,49 @@ export const roomPath = (no) => '/opil/hub/live/?s=' + no;
 export function liveListHTML(live, esc) {
   return (live || []).map(s => `<a class="live-row" href="${roomPath(s.no)}"><span class="no2">${esc(sessLabel(s))}</span><b>${esc(s.title)}</b><span class="join">Join &rarr;</span></a>`).join('');
 }
+
+/* ---------- room v2 (spec 2026-09-14-opil-room-v2-design.md): the words on the screen ---------- */
+
+/* v2 is the default when the page's flag says so; ?classic=1 on any link brings the old room back */
+export function useV2(search, flag) {
+  let classic = false; try { classic = new URLSearchParams(search || '').get('classic') === '1'; } catch (e) {}
+  return !!flag && !classic;
+}
+
+/* mic/camera state as a sentence + what a tap does — never just an icon */
+export function stateCopy({ audio, video }) {
+  return {
+    mic: audio ? ['Mic is on', 'People can hear you'] : ['You’re muted', 'Tap to unmute'],
+    cam: video ? ['Camera is on', 'You’ll be seen'] : ['Camera is off', 'Tap to turn on'],
+  };
+}
+
+/* the "what's happening now" strip */
+export function nowCopy({ facilitator, title, recording, breakout }) {
+  if (breakout) return 'Small groups · ' + breakout.name + (breakout.left ? ' · ' + breakout.left + ' left' : '');
+  const who = facilitator ? facilitator + ' is teaching: ' + title : 'Class in progress: ' + title;
+  return recording ? who + ' · This class is being recorded' : who;
+}
+
+/* the question queue: open hands in the order raised; a staged hand is "on deck" first */
+export function queueOrder(rows) {
+  return (rows || []).filter(r => !r.done_at).slice().sort((a, b) => {
+    const sa = a.staged_at ? 0 : 1, sb = b.staged_at ? 0 : 1;
+    return sa - sb || String(a.created_at).localeCompare(String(b.created_at));
+  });
+}
+export function queuePosition(rows, uid) {
+  const i = queueOrder(rows).findIndex(r => r.user_id === uid);
+  return i < 0 ? null : i + 1;
+}
+export function nextInLine(rows) { return queueOrder(rows)[0] || null; }
+
+/* the sentence under the title on the join screen */
+export function joinCopy({ live, host, facilitator, joined, startsAt }) {
+  const n = Number(joined || 0), students = n === 1 ? '1 student joined' : n + ' students joined';
+  if (host) return live ? 'Your class is running · ' + students : 'This room is yours. Start the class when you’re ready — students who have the link are waiting here.';
+  if (live) return (facilitator ? facilitator + ' is in the room' : 'The class is running') + ' · ' + students;
+  return startsAt
+    ? 'Class hasn’t started yet. You’re all set — it starts at ' + startsAt + ' and you’ll enter on your own.'
+    : 'Class hasn’t started yet. You’re all set — you’ll enter on your own when ' + (facilitator || 'your facilitator') + ' starts it.';
+}
