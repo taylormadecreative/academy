@@ -9,12 +9,14 @@ const STUDENT = { ...HOST, role: { admin: false, judge: false, facilitator_sessi
 function deps(over: Partial<RecordDeps> = {}) {
   const calls: { method: string; path: string; body?: unknown }[] = [];
   const inserted: unknown[] = [];
-  const d: RecordDeps & { calls: typeof calls; inserted: typeof inserted } = {
-    calls, inserted,
+  const updated: [string, string][] = [];
+  const d: RecordDeps & { calls: typeof calls; inserted: typeof inserted; updated: typeof updated } = {
+    calls, inserted, updated,
     getSession: async (no) => (no === 7 ? { no: 7, title: "Agents 101", stream_url: "rtk:meet-7", is_live: true } : no === 8 ? { no: 8, title: "No room", stream_url: null, is_live: false } : null),
     latestActive: async () => null,
     insertReplay: async (row) => { inserted.push(row); },
     cf: async (method, path, body) => { calls.push({ method, path, body }); return { ok: true, status: 200, data: { id: "rec-1", status: "INVOKED" } }; },
+    updateReplayStatus: async (id, status) => { updated.push([id, status]); },
     latestAny: async () => null,
     uploadedEvent: async () => null,
     reprocess: async () => ({ status: "ready" }),
@@ -27,18 +29,30 @@ Deno.test("start as the session's host creates a recording and a draft row", asy
   const d = deps();
   const r = await handleRecord({ session_no: 7, action: "start" }, HOST, d);
   assertEquals(r.status, 200);
-  assertEquals(d.calls, [{ method: "POST", path: "/recordings", body: { meeting_id: "meet-7" } }]);
+  assertEquals(d.calls, [{ method: "POST", path: "/recordings", body: { meeting_id: "meet-7", max_seconds: 14400 } }]);
   assertEquals(d.inserted.length, 1);
   const row = d.inserted[0] as Record<string, unknown>;
   assertEquals(row.session_no, 7); assertEquals(row.meeting_id, "meet-7"); assertEquals(row.recording_id, "rec-1"); assertEquals(row.status, "invoked");
   assertEquals(r.body, { recording_id: "rec-1", status: "invoked", reused: false });
 });
 
-Deno.test("start twice (a reload) reuses the active recording — no second Cloudflare call", async () => {
-  const d = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }) });
+Deno.test("start twice (a reload) reuses the active recording once Cloudflare confirms it is still going", async () => {
+  const d = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }), cf: async (method, path) => ({ ok: true, status: 200, data: { id: "rec-9", status: "RECORDING" } }) });
   const r = await handleRecord({ session_no: 7, action: "start" }, HOST, d);
   assertEquals(r.status, 200); assertEquals(r.body, { recording_id: "rec-9", status: "recording", reused: true });
-  assertEquals(d.calls.length, 0); assertEquals(d.inserted.length, 0);
+  assertEquals(d.inserted.length, 0);
+});
+
+Deno.test("a stale 'recording' row (lost webhook) is corrected and a fresh recording starts", async () => {
+  const calls: string[] = [];
+  const d = deps({
+    latestActive: async () => ({ recording_id: "rec-old", status: "recording" }),
+    cf: async (method, path) => { calls.push(method + " " + path); return method === "GET" ? { ok: true, status: 200, data: { id: "rec-old", status: "UPLOADED" } } : { ok: true, status: 200, data: { id: "rec-new", status: "INVOKED" } }; },
+  });
+  const r = await handleRecord({ session_no: 7, action: "start" }, HOST, d);
+  assertEquals(r.status, 200); assertEquals((r.body as { recording_id: string }).recording_id, "rec-new");
+  assertEquals(d.updated, [["rec-old", "uploaded"]]);
+  assertEquals(calls, ["GET /recordings/rec-old", "POST /recordings"]);
 });
 
 Deno.test("a student cannot start or stop", async () => {
@@ -85,12 +99,15 @@ Deno.test("Cloudflare failure on start surfaces as 502 and inserts nothing", asy
   assertEquals(r.status, 502); assertEquals(d.inserted.length, 0);
 });
 
-Deno.test("register_webhook is admin-only and points at ea-rtk-webhook", async () => {
-  const d = deps();
+Deno.test("register_webhook is admin-only, points at ea-rtk-webhook, and is idempotent", async () => {
+  const d = deps({ cf: async (method, path, body) => { d.calls.push({ method, path, body }); return method === "GET" ? { ok: false, status: 404, data: {} } : { ok: true, status: 200, data: { id: "w-new" } }; } });
   assertEquals((await handleRecord({ action: "register_webhook" }, HOST, d)).status, 403);
   const r = await handleRecord({ action: "register_webhook" }, ADMIN, d);
-  assertEquals(r.status, 200);
-  assertEquals(d.calls, [{ method: "POST", path: "/webhooks", body: { name: "taylormade-academy replays", url: "https://p.supabase.co/functions/v1/ea-rtk-webhook", events: ["recording.statusUpdate", "meeting.ended"], enabled: true } }]);
+  assertEquals(r.status, 200); assertEquals(r.body, { ok: true, id: "w-new", existing: false });
+  assertEquals(d.calls, [{ method: "GET", path: "/webhooks", body: undefined }, { method: "POST", path: "/webhooks", body: { name: "taylormade-academy replays", url: "https://p.supabase.co/functions/v1/ea-rtk-webhook", events: ["recording.statusUpdate", "meeting.ended"], enabled: true } }]);
+  const d2 = deps({ cf: async (method, path, body) => { d2.calls.push({ method, path, body }); return { ok: true, status: 200, data: [{ id: "w-have", url: "https://p.supabase.co/functions/v1/ea-rtk-webhook" }] }; } });
+  const r2 = await handleRecord({ action: "register_webhook" }, ADMIN, d2);
+  assertEquals(r2.body, { ok: true, id: "w-have", existing: true }); assertEquals(d2.calls.length, 1);
 });
 
 Deno.test("list_webhooks is admin-only and never leaks tokens", async () => {
@@ -108,8 +125,11 @@ Deno.test("retry_replay re-runs the stored UPLOADED event for the latest replay"
   assertEquals(r.status, 200); assertEquals(r.body, { recording_id: "rec-9", status: "ready" }); assertEquals(seen.length, 1);
 });
 
-Deno.test("retry_replay: nothing recorded → 404; recorded but not uploaded yet → 409; students → 403", async () => {
+Deno.test("retry_replay: nothing recorded → 404; not failed → 409 nothing_to_retry; failed with no upload → 409 no_upload; students → 403", async () => {
   assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps())).status, 404);
-  assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps({ latestAny: async () => ({ recording_id: "rec-9", status: "uploading" }) }))).status, 409);
+  const ready = await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps({ latestAny: async () => ({ recording_id: "rec-9", status: "ready" }) }));
+  assertEquals(ready.status, 409); assertEquals((ready.body as { error: string }).error, "nothing_to_retry");
+  const noUp = await handleRecord({ session_no: 7, action: "retry_replay" }, HOST, deps({ latestAny: async () => ({ recording_id: "rec-9", status: "error" }) }));
+  assertEquals(noUp.status, 409); assertEquals((noUp.body as { error: string }).error, "no_upload");
   assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, STUDENT, deps())).status, 403);
 });

@@ -40,6 +40,7 @@ function deps(over: Partial<WebhookDeps> = {}) {
     upsertReplay: async (row) => { upserts.push(row); },
     streamCopy: async (url, name) => { copies.push({ url, name }); return { uid: "uid-abc" }; },
     subdomain: "customer-xyz",
+    currentStatus: async (id) => { const last = [...upserts].reverse().find(r => r.recording_id === id); return last ? String(last.status) : null; },
     ...over,
   };
   return d;
@@ -109,4 +110,36 @@ Deno.test("an event without a recognisable shape is a 200 no-op", async () => {
   const d = deps();
   const r = await handleEvent({ event: "recording.statusUpdate" }, d);
   assertEquals(r.status, 200); assertEquals(d.upserts.length, 0);
+});
+
+Deno.test("a late RECORDING after ready is ignored — the row never moves backwards", async () => {
+  const d = deps();
+  await handleEvent(REC("UPLOADED"), d);
+  const r = await handleEvent(REC("RECORDING"), d);
+  assertEquals((r.body as { ignored?: string }).ignored, "stale");
+  assertEquals(d.upserts.length, 1); assertEquals(d.upserts[0].status, "ready");
+});
+
+Deno.test("a failed row can still be healed by a later successful upload", async () => {
+  const d = deps({ streamCopy: async () => { throw new Error("stream down"); } });
+  await handleEvent(REC("UPLOADED"), d);
+  assertEquals(d.upserts[0].status, "error");
+  d.streamCopy = async () => ({ uid: "uid-2" });
+  d.dedupe = async () => true;   /* a Retry bypasses dedupe */
+  await handleEvent(REC("UPLOADED"), d);
+  assertEquals(d.upserts[1].status, "ready");
+});
+
+Deno.test("an ERRORED event after ready does not un-ready a replay", async () => {
+  const d = deps();
+  await handleEvent(REC("UPLOADED"), d);
+  await handleEvent(REC("ERRORED", { error: "late noise" }), d);
+  assertEquals(d.upserts.length, 1); assertEquals(d.upserts[0].status, "ready");
+});
+
+Deno.test("a stranger's validly-signed event leaves no trace: session lookup runs before the dedupe write", async () => {
+  const ids: string[] = [];
+  const d = deps({ dedupe: async (id) => { ids.push(id); return true; } });
+  await handleEvent(REC("UPLOADED", { meetingId: "meet-x" }), d);
+  assertEquals(ids.length, 0); assertEquals(d.upserts.length, 0);
 });

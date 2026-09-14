@@ -101,6 +101,7 @@ const metaLine = (s) => 'Session ' + sessLabel(s) + (s.outcome ? ' · Today you 
 let hosting = false;   /* this page started the class: the wake poll must never reload it from under the host */
 let room = null;       /* the joined class, so Start can tear a viewer's room down before opening its own */
 let onLeft = null;     /* the class control hooks this so End session wakes up once the host leaves the room */
+let onJoined = null;   /* …and starts the recording the moment the host is actually in the room */
 
 async function enterRoom(no, meetingId, title) {
   const { mountRoom } = await import('/js/rtk-room.js?v=7b4a608873');
@@ -108,7 +109,10 @@ async function enterRoom(no, meetingId, title) {
   room = await mountRoom({
     mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok,
     sessionNo: no, meetingId,
-    onState: (st) => { if (st === 'ended' || st === 'left') { document.body.classList.remove('in-room'); if (onLeft) onLeft(); } },
+    onState: (st) => {
+      if (st === 'joined' && onJoined) onJoined();
+      if (st === 'ended' || st === 'left') { document.body.classList.remove('in-room'); if (onLeft) onLeft(); }
+    },
   });
   document.getElementById('badge').style.display = '';
   document.getElementById('ttl').textContent = title;
@@ -279,6 +283,13 @@ if (staff) {
     /* The class records itself: start right after the room opens, stop when the host leaves. The
        replay lands on the coordinator page as a draft; nobody in the room presses Record. */
     const recChip = document.getElementById('bcRec');
+    let pendingRecord = null;   /* the session whose recording starts on the host's 'joined' */
+    onJoined = async () => {
+      if (pendingRecord == null) return;
+      const no = pendingRecord; pendingRecord = null;
+      try { await record('start', no); recChip.hidden = false; }
+      catch (e) { bnote.textContent = 'You\u2019re in, but the replay could not start recording (' + (e.message || e) + '). The class itself is fine.'; }
+    };
     async function record(action, no) {
       const tok = (await sb.auth.getSession()).data.session?.access_token || '';
       const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-rtk-record', {
@@ -286,9 +297,19 @@ if (staff) {
         body: JSON.stringify({ session_no: no, action }),
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.error || ('the server said ' + r.status));
+      if (!r.ok) throw new Error(plainErr(d.error || ('server_' + r.status)));
       return d;
     }
+    const plainErr = (code) => ({
+      not_host: 'only the facilitator of this session can record it', no_room: 'the room isn\u2019t open yet', sign_in: 'you were signed out \u2014 reload and sign in again',
+      rtk_not_configured: 'the recording service isn\u2019t set up', server: 'the recording service didn\u2019t answer',
+    }[String(code)] || (/^(cloudflare_|server_)/.test(String(code)) ? 'the recording service didn\u2019t answer' : String(code)));
+    /* a reload mid-class: the recording is still running server-side — show the chip so the host knows */
+    (async () => {
+      if (!roomSess || !roomSess.is_live) return;
+      const { data } = await sb.from('ea_opil_replays').select('status').eq('session_no', roomSess.no).in('status', ['invoked', 'recording']).limit(1);
+      if (data && data.length) recChip.hidden = false;
+    })();
     /* End shows for any session left live; Start is off only while a class is genuinely running in it
        (a session flagged live with a stale non-room stream_url can still be started, which overwrites it) */
     function syncCtl() {
@@ -312,7 +333,7 @@ if (staff) {
       catch (e) { onAir(false); syncCtl(); bnote.textContent = 'You left, but the session could not be closed (' + e.message + '). Press End session.'; return; }
       onAir(false); syncCtl();
       bnote.textContent = recorded
-        ? 'Class ended — the replay is being prepared. It shows on the coordinator page when it is ready to review; students see it once it is published.'
+        ? 'Class ended — the replay is being prepared. It shows on your sessions page (Coordinator, or My sessions) when it is ready to review; students see it once it is published.'
         : 'Class ended — the room is closed for everyone. Start class to open it again.';
     };
     /* Rooms are independent (0032): starting one never touches another. */
@@ -334,8 +355,10 @@ if (staff) {
         await flipLive(s.no, true, 'rtk:' + r.meetingId);
         sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
         bnote.textContent = 'Class is running. Press Join in the room below to go on camera — share screen, the participants list, and chat appear after that. Send students the link above; they join you here. When you’re done, press Leave in the room and the session ends.';
-        try { await record('start', s.no); recChip.hidden = false; }
-        catch (e) { bnote.textContent = 'The class is on, but the replay could not start recording (' + (e.message || e) + '). ' + bnote.textContent; }
+        /* the recording starts when the host is IN the room (the 'joined' state), not now: Cloudflare
+           stops a recording that sits with nobody in it for 60 s, and the camera-check screen can
+           easily take longer than that */
+        pendingRecord = s.no;
         enableChat();
         await openChat();
       } catch (e) {
@@ -347,6 +370,7 @@ if (staff) {
     });
     goBtn.addEventListener('click', async () => {
       goBtn.disabled = true; goBtn.textContent = 'Ending…';
+      try { await record('stop', cur().no); } catch (e) {}   /* a recording left running from another device */
       try { await flipLive(cur().no, false); }
       catch (e) { goBtn.disabled = false; syncCtl(); bnote.textContent = 'Could not end: ' + e.message; return; }
       location.reload();

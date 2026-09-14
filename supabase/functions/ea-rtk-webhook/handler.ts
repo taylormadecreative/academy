@@ -15,10 +15,14 @@ export type WebhookDeps = {
   upsertReplay: (row: ReplayRow) => Promise<void>;
   streamCopy: (url: string, name: string) => Promise<{ uid: string }>;
   subdomain: string;   // customer-xxxx
+  currentStatus: (recordingId: string) => Promise<string | null>;   // what the row says now, or null if no row
 };
 export type Reply = { status: number; body: unknown };
 
 const STATUS: Record<string, string> = { INVOKED: "invoked", RECORDING: "recording", UPLOADING: "uploading", UPLOADED: "uploaded", ERRORED: "error" };
+/* Events can arrive late or twice. A row only ever moves forward: a straggling RECORDING after
+   ready must not un-ready a published replay. error sits just under ready so a retry can heal it. */
+const RANK: Record<string, number> = { invoked: 1, recording: 2, uploading: 3, uploaded: 4, error: 4.5, ready: 5 };
 
 /* RSASSA-PKCS1-v1_5 / SHA-256 over the raw body, the way Cloudflare's own sample does it. */
 export async function verifySignature(publicKeyPem: string, signatureB64: string, body: Uint8Array<ArrayBuffer>): Promise<boolean> {
@@ -51,10 +55,18 @@ export async function handleEvent(payload: Record<string, unknown>, deps: Webhoo
   const status = STATUS[raw];
   if (!recordingId || !meetingId || !status) return { status: 200, body: { ok: true, ignored: "shape" } };
 
-  if (!(await deps.dedupe(`${recordingId}:${raw}`, event, payload))) return { status: 200, body: { ok: true, duplicate: true } };
-
+  /* a valid signature only proves Cloudflare sent it — the key is global to RealtimeKit, so look
+     the meeting up BEFORE writing anything: a stranger's event never leaves a row behind */
   const session = await deps.sessionByMeeting(meetingId);
   if (!session) return { status: 200, body: { ok: true, ignored: "unknown_meeting" } };
+
+  if (!(await deps.dedupe(`${recordingId}:${raw}`, event, payload))) return { status: 200, body: { ok: true, duplicate: true } };
+
+  const have = await deps.currentStatus(recordingId);
+  const incoming = status === "uploaded" && typeof rec.downloadUrl === "string" ? "ready" : status;   /* what this event will land as */
+  if (have && (RANK[incoming] ?? 0) <= (RANK[have] ?? 0) && !(have === "error" && incoming === "ready")) {
+    return { status: 200, body: { ok: true, ignored: "stale", have, incoming } };
+  }
 
   const row: ReplayRow = {
     session_no: session.no, meeting_id: meetingId, recording_id: recordingId, status,

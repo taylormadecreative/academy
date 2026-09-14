@@ -385,10 +385,34 @@ let { data: allSess } = await sb.from('ea_opil_sessions').select('*').order('no'
 /* Replays: every class records itself; the file lands here as a DRAFT the program team reviews,
    and Publish copies its link into the session's Recording (what students see). */
 let replays = [];
-async function loadReplays() { const r = await sb.from('ea_opil_replays').select('*').order('created_at', { ascending: false }); if (!r.error) replays = r.data || []; }
+const REPLAY_COLS = 'id,session_no,recording_id,status,watch_url,duration_s,error,published,created_at,updated_at';   /* the raw download link is server-only */
+async function loadReplays() { const r = await sb.from('ea_opil_replays').select(REPLAY_COLS).order('created_at', { ascending: false }); if (!r.error) replays = r.data || []; }
 await loadReplays();
 const latestReplay = (no) => replays.find(r => r.session_no === no) || null;
 const BUSY = ['invoked', 'recording', 'uploading', 'uploaded'];
+/* server codes → sentences a coordinator can act on */
+const plainErr = (code) => ({
+  not_host: 'only a coordinator or that session\u2019s facilitator can do this',
+  not_admin: 'only a coordinator can do this',
+  no_room: 'that session has never had a class room',
+  no_replay: 'nothing has been recorded for that session yet',
+  nothing_to_retry: 'that replay is not in a failed state',
+  no_upload: 'there is no finished recording to retry \u2014 it failed before it finished',
+  sign_in: 'you were signed out \u2014 reload and sign in again',
+  server: 'the recording service did not answer \u2014 try again in a minute',
+  'not your session': 'only a coordinator or that session\u2019s facilitator can do this',
+  'no replay is ready for this session': 'no replay is ready for this session',
+}[String(code)] || (/^cloudflare_/.test(String(code)) ? 'the recording service did not answer \u2014 try again in a minute' : String(code)));
+/* one word in the collapsed summary so a ready replay is visible in a list of 30 rows */
+function replayWord(s) {
+  const r = latestReplay(s.no);
+  if (!r) return s.recording_url ? ' · recording ✓' : '';
+  if (r.status === 'invoked' || r.status === 'recording') return ' · <span style="color:#b4451f;font-weight:700">recording</span>';
+  if (r.status === 'uploading' || r.status === 'uploaded') return ' · replay preparing';
+  if (r.status === 'ready' && !r.published) return ' · <span style="color:#067a56;font-weight:700">replay ready to review</span>';
+  if (r.status === 'ready' && r.published) return ' · replay ✓';
+  return ' · <span style="color:#b4451f;font-weight:700">replay failed</span>';
+}
 function replayLine(s) {
   const r = latestReplay(s.no);
   if (!r) return '';
@@ -397,10 +421,10 @@ function replayLine(s) {
   const link = (label) => `<a class="pillbtn" href="${esc(r.watch_url)}" target="_blank" rel="noopener">${label}</a>`;
   let inner;
   if (r.status === 'invoked' || r.status === 'recording') inner = chip('&#9679; Recording this session…', '#fdf0e7', '#b4451f');
-  else if (r.status === 'uploading' || r.status === 'uploaded') inner = chip('Replay is being prepared…', 'var(--gold-soft)', 'var(--gold-ink)');
-  else if (r.status === 'ready' && !r.published) inner = chip('Replay ready — review it, then publish', '#e8f8f0', '#067a56') + link('Review') + btn('Publish to students', true) + `<span style="font-size:12.5px;color:var(--muted)">Students see nothing until you publish.</span>`;
-  else if (r.status === 'ready' && r.published) inner = chip('Replay published ✓', '#e8f8f0', '#067a56') + link('Watch') + btn('Unpublish', false);
-  else inner = chip('Replay failed', '#fdf0e7', '#b4451f') + `<button type="button" class="pillbtn retryReplay" data-s="${s.no}">Retry</button><span style="font-size:12.5px;color:var(--muted)">${esc(r.error || 'unknown reason')}. The recording is kept for 7 days.</span>`;
+  else if (r.status === 'uploading' || r.status === 'uploaded') inner = chip('Replay is being prepared…', 'var(--gold-soft)', 'var(--gold-ink)') + `<span style="font-size:12.5px;color:var(--muted)">Usually a few minutes.</span>`;
+  else if (r.status === 'ready' && !r.published) inner = chip('Replay ready — review it, then publish', '#e8f8f0', '#067a56') + link('Review') + btn('Publish to students', true) + `<span style="font-size:12.5px;color:var(--muted)">Students see nothing until you publish. Publishing fills the Recording link above.</span>`;
+  else if (r.status === 'ready' && r.published) inner = chip('Replay published ✓', '#e8f8f0', '#067a56') + link('Watch') + btn('Unpublish', false) + `<span style="font-size:12.5px;color:var(--muted)">Unpublish clears the link students see.</span>`;
+  else inner = chip('Replay failed', '#fdf0e7', '#b4451f') + `<button type="button" class="pillbtn retryReplay" data-s="${s.no}">Retry</button><span style="font-size:12.5px;color:var(--muted)" title="${esc(r.error || '')}">Press Retry. If it fails again, tell Nelson within 7 days — after that the original file is gone.</span>`;
   return `<div class="replayLine" data-s="${s.no}" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${inner}</div>`;
 }
 /* one label rule for every surface: AI Thread 01-14, curriculum S1-S8 (201+), HPC H1-H4 (301+), milestones ★ */
@@ -417,17 +441,17 @@ function sessRow(s) {
       ${m.file_path ? `<a href="#" data-matfile="${esc(m.file_path)}" style="color:var(--blue);font-weight:600;font-size:12.5px">file</a>` : ''}
       <button class="pillbtn" data-delmat="${m.id}" style="color:#b4451f;background:#fdf0e7">remove</button>
     </div>`).join('');
-  return `<details style="border-top:1px solid var(--hair-soft);padding:12px 0">
+  return `<details data-sess="${s.no}" style="border-top:1px solid var(--hair-soft);padding:12px 0">
     <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px">
       <span style="font-family:var(--display);font-weight:700;font-size:12.5px;color:var(--blue);background:var(--blue-soft);border-radius:9px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center">${sessLabel(s)}</span>
-      <span style="flex:1"><b style="color:var(--ink);font-size:14.5px">${esc(s.title)}</b><br><span style="font-size:12px;color:var(--muted)">${s.session_date||''} · ${items.length} material${items.length!==1?'s':''}${s.recording_url?' · recording ✓':''}${s.playbook_url?' · playbook ✓':''}</span></span>
+      <span style="flex:1"><b style="color:var(--ink);font-size:14.5px">${esc(s.title)}</b><br><span style="font-size:12px;color:var(--muted)">${s.session_date||''} · ${items.length} material${items.length!==1?'s':''}${replayWord(s)}${s.playbook_url?' · playbook ✓':''}</span></span>
       <span style="color:var(--blue);font-weight:700">✎</span>
     </summary>
     <div style="padding:14px 0 6px 48px;display:grid;gap:9px">
       ${facOnly ? '' : `<div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input data-f="title" data-s="${s.no}" value="${esc(s.title||'')}" placeholder="Title" maxlength="200" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><input data-f="date" data-s="${s.no}" type="date" value="${esc(s.session_date||'')}" style="font:inherit;font-size:13.5px;padding:8px 12px;border:1.5px solid var(--hair);border-radius:10px"></div>`}
       <input data-f="recording" data-s="${s.no}" value="${esc(s.recording_url||'')}" placeholder="Recording link — where students rewatch this session after it happens (YouTube, Stream, Drive, Zoom cloud recording)" title="Paste the recording link after the session so students can rewatch it" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
       <input data-f="playbook" data-s="${s.no}" value="${esc(s.playbook_url||'')}" placeholder="Playbook link — the written guide for this session (Google Doc, PDF, Notion, a page on the Academy)" style="font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px">
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a class="pillbtn" href="${roomPath(s.no)}" title="This session's own class room: start the class there, or copy the link students use">Open room &rarr;</a>${s.is_live ? '<span class="pillbtn" style="background:#e8f8f0;color:#067a56;cursor:default">&#9679; LIVE now</span>' : ''}<span style="font-size:12.5px;color:var(--muted)">Students join with the room&rsquo;s link; everyone is on camera, with share screen and chat. It records itself.</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a class="pillbtn" href="${roomPath(s.no)}" title="This session's own class room: start the class there, or copy the link students use">Open room &rarr;</a>${s.is_live ? '<span class="pillbtn" style="background:#e8f8f0;color:#067a56;cursor:default">&#9679; LIVE now</span>' : ''}<span style="font-size:12.5px;color:var(--muted)">Students join with the room&rsquo;s link; everyone is on camera, with share screen and chat. The class records itself.</span></div>
       ${replayLine(s)}
       <div style="display:flex;gap:8px;align-items:center"><input data-f="checkin" data-s="${s.no}" value="${esc(s.checkin_code||'')}" placeholder="Attendance code — read it out during the session; students type it on their hub home to mark themselves present" style="flex:1;font:inherit;font-size:13.5px;padding:9px 13px;border:1.5px solid var(--hair);border-radius:10px"><button type="button" class="pillbtn genCode" data-s="${s.no}">Generate</button></div>
       <div style="display:flex;gap:8px;align-items:center"><button class="pillbtn saveSess" data-s="${s.no}">Save session</button>${facOnly || (s.kind === 'thread' && s.no <= 14) ? '' : `<button type="button" class="pillbtn delSess" data-s="${s.no}" style="color:#b4451f;background:#fdf0e7">Remove session</button>`}</div>
@@ -445,6 +469,7 @@ function sessRow(s) {
 const mgr = document.getElementById('sessMgr');
 const visibleSess = () => facOnly ? (allSess || []).filter(s => (facSessions || []).includes(s.no)) : (allSess || []);
 function renderMgr(){
+  const open = new Set([...mgr.querySelectorAll('details[data-sess][open]')].map(d => d.dataset.sess));   /* survive the re-render */
   const vis = visibleSess();
   const byDate = (a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : (a.session_date || '9999') > (b.session_date || '9999') ? 1 : a.no - b.no;
   const groups = KIND_ORDER.map(k => [k, vis.filter(s => s.kind === k).sort(byDate)]).filter(([, l]) => l.length);
@@ -460,16 +485,20 @@ function renderMgr(){
       <button class="pillbtn" type="submit">Add session</button>
     </form>`);
   if (!facOnly) renderFacSess();
+  open.forEach(no => { const d = mgr.querySelector('details[data-sess="' + no + '"]'); if (d) d.open = true; });
 }
 async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
 if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard') el.style.display = 'none'; });
 renderMgr();
-/* a replay in flight refreshes itself: recording → preparing → ready, without a reload */
+/* a class in progress or a replay in flight refreshes itself: LIVE now → recording → preparing →
+   ready, without a reload. Open rows stay open across the re-render (renderMgr restores them). */
 setInterval(async () => {
-  if (!replays.some(r => BUSY.includes(r.status))) return;
-  const before = JSON.stringify(replays.map(r => [r.id, r.status, r.published]));
+  if (!replays.some(r => BUSY.includes(r.status)) && !(allSess || []).some(s => s.is_live)) return;
+  const before = JSON.stringify([replays.map(r => [r.id, r.status, r.published]), (allSess || []).map(s => [s.no, s.is_live, s.recording_url])]);
   await loadReplays();
-  if (JSON.stringify(replays.map(r => [r.id, r.status, r.published])) !== before) renderMgr();
+  const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || [];
+  const after = JSON.stringify([replays.map(r => [r.id, r.status, r.published]), (allSess || []).map(s => [s.no, s.is_live, s.recording_url])]);
+  if (after !== before) renderMgr();
 }, 20000);
 mgr.addEventListener('click', async (ev) => {
   const pub = ev.target.closest('.pubReplay');
@@ -477,7 +506,7 @@ mgr.addEventListener('click', async (ev) => {
     const no = Number(pub.dataset.s), on = pub.dataset.pub === '1';
     pub.disabled = true; pub.textContent = on ? 'Publishing…' : 'Unpublishing…';
     const { error } = await sb.rpc('ea_opil_publish_replay', { p_session: no, p_publish: on });
-    if (error) { pub.disabled = false; pub.textContent = on ? 'Publish to students' : 'Unpublish'; alert('Could not ' + (on ? 'publish' : 'unpublish') + ': ' + error.message); return; }
+    if (error) { pub.disabled = false; pub.textContent = on ? 'Publish to students' : 'Unpublish'; alert('Could not ' + (on ? 'publish' : 'unpublish') + ': ' + plainErr(error.message)); return; }
     await loadReplays(); await reloadSess();   /* replays first — reloadSess() is what re-renders */
     return; }
   const rt = ev.target.closest('.retryReplay');
@@ -487,7 +516,7 @@ mgr.addEventListener('click', async (ev) => {
       const tok = (await sb.auth.getSession()).data.session?.access_token || '';
       const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-rtk-record', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ session_no: no, action: 'retry_replay' }) });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(d.error === 'not_uploaded_yet' ? 'the recording has not finished uploading yet' : (d.error || ('the server said ' + r.status)));
+      if (!r.ok) throw new Error(plainErr(d.error || ('the server said ' + r.status)));
     } catch (e) { rt.disabled = false; rt.textContent = 'Retry'; alert('Could not retry: ' + (e.message || e)); return; }
     await loadReplays(); await reloadSess();
     return; }

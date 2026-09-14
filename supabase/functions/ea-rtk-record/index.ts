@@ -54,6 +54,9 @@ Deno.serve(async (req: Request) => {
       if (error) throw new Error(error.message);
     },
     cf: rtkClient(acct, app, cfToken),
+    updateReplayStatus: async (recordingId, status) => {
+      await admin.from("ea_opil_replays").update({ status, updated_at: new Date().toISOString() }).eq("recording_id", recordingId);
+    },
     latestAny: async (meetingId) => {
       const { data } = await admin.from("ea_opil_replays").select("recording_id, status").eq("meeting_id", meetingId).order("created_at", { ascending: false }).limit(1).maybeSingle();
       return data ?? null;
@@ -67,7 +70,7 @@ Deno.serve(async (req: Request) => {
       const b = r.body as { status?: string };
       return { status: b.status || "unknown" };
     },
-  }).catch((e) => ({ status: 500, body: { error: "server", detail: String(e && e.message || e).slice(0, 200) } }));
+  }).catch((e) => { console.error("[ea-rtk-record]", String(e && e.message || e)); return { status: 500, body: { error: "server" } }; });
 
   return json(reply.body, reply.status);
 });

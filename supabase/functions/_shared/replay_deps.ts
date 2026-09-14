@@ -12,7 +12,7 @@ export function replayDeps(admin: SupabaseClient, opts: { dedupe: boolean }): We
       const { error } = await admin.from("ea_rtk_events").insert({ id, event, payload: p });
       if (!error) return true;
       if (error.code === "23505") return false;   // seen before
-      throw new Error(error.message);
+      const e = new Error(error.message); e.name = "DedupeError"; throw e;   // the caller answers 503 so Cloudflare retries
     },
     sessionByMeeting: async (meetingId) => {
       const { data } = await admin.from("ea_opil_sessions").select("no, title, kind").eq("stream_url", "rtk:" + meetingId).limit(1).maybeSingle();
@@ -35,6 +35,10 @@ export function replayDeps(admin: SupabaseClient, opts: { dedupe: boolean }): We
       return { uid };
     },
     subdomain: sub,
+    currentStatus: async (recordingId) => {
+      const { data } = await admin.from("ea_opil_replays").select("status").eq("recording_id", recordingId).maybeSingle();
+      return data?.status ?? null;
+    },
   };
 }
 

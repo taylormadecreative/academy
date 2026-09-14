@@ -15,6 +15,8 @@ export type RecordDeps = {
   latestActive: (meetingId: string) => Promise<ActiveReplay | null>;
   insertReplay: (row: { session_no: number; meeting_id: string; recording_id: string; status: string }) => Promise<void>;
   cf: (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<CfResult>;
+  /* a row we believed active turned out not to be (Cloudflare says so): record the truth */
+  updateReplayStatus: (recordingId: string, status: string) => Promise<void>;
   /* Retry: the latest replay for a meeting (any status), the stored UPLOADED event for it, and
      the same processing the webhook does — dedupe bypassed on purpose. */
   latestAny: (meetingId: string) => Promise<{ recording_id: string; status: string } | null>;
@@ -25,6 +27,9 @@ export type Reply = { status: number; body: unknown };
 
 const RTK_PREFIX = "rtk:";
 const ACTIONS = ["start", "stop", "retry_replay", "register_webhook", "list_webhooks"] as const;
+const MAX_SECONDS = 4 * 3600;   /* a tab left open cannot record for a day */
+const CF_STATUS: Record<string, string> = { INVOKED: "invoked", RECORDING: "recording", UPLOADING: "uploading", UPLOADED: "uploaded", ERRORED: "error" };
+const WEBHOOK_EVENTS = ["recording.statusUpdate", "meeting.ended"];
 
 export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
   const action = body.action;
@@ -32,22 +37,21 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
 
   if (action === "register_webhook" || action === "list_webhooks") {
     if (!ctx.role.admin) return { status: 403, body: { error: "not_admin" } };
+    const target = ctx.functionsBase + "/ea-rtk-webhook";
+    const listed = await deps.cf("GET", "/webhooks");
+    // Cloudflare answers 404 for "no webhooks yet"; anything else that is not ok is a real failure
+    if (!listed.ok && listed.status !== 404) return { status: 502, body: { error: "cloudflare_" + listed.status } };
+    const list = (Array.isArray(listed.data) ? listed.data : []).map((w) => w as Record<string, unknown>);
     if (action === "register_webhook") {
-      const r = await deps.cf("POST", "/webhooks", {
-        name: "taylormade-academy replays",
-        url: ctx.functionsBase + "/ea-rtk-webhook",
-        events: ["recording.statusUpdate", "meeting.ended"],
-        enabled: true,
-      });
+      const have = list.find((w) => w.url === target);
+      if (have) return { status: 200, body: { ok: true, id: have.id ?? null, existing: true } };   /* idempotent */
+      const r = await deps.cf("POST", "/webhooks", { name: "taylormade-academy replays", url: target, events: WEBHOOK_EVENTS, enabled: true });
       if (!r.ok) return { status: 502, body: { error: "cloudflare_" + r.status } };
       const d = (r.data || {}) as Record<string, unknown>;
-      return { status: 200, body: { ok: true, id: d.id ?? null } };
+      return { status: 200, body: { ok: true, id: d.id ?? null, existing: false } };
     }
-    const r = await deps.cf("GET", "/webhooks");
-    if (!r.ok) return { status: 502, body: { error: "cloudflare_" + r.status } };
     // only the fields a coordinator needs to see; never echo a secret back to a browser
-    const list = Array.isArray(r.data) ? r.data : [];
-    return { status: 200, body: { webhooks: list.map((w) => { const x = w as Record<string, unknown>; return { id: x.id, url: x.url, events: x.events, enabled: x.enabled }; }) } };
+    return { status: 200, body: { webhooks: list.map((x) => ({ id: x.id, url: x.url, events: x.events, enabled: x.enabled })) } };
   }
 
   const no = Number(body.session_no);
@@ -62,16 +66,29 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
   if (action === "retry_replay") {
     const last = await deps.latestAny(meetingId);
     if (!last) return { status: 404, body: { error: "no_replay" } };
+    /* only a FAILED replay is retried: a second run on a ready one would mint another Stream copy */
+    if (last.status !== "error") return { status: 409, body: { error: "nothing_to_retry" } };
     const payload = await deps.uploadedEvent(last.recording_id);
-    if (!payload) return { status: 409, body: { error: "not_uploaded_yet" } };
+    if (!payload) return { status: 409, body: { error: "no_upload" } };   /* it errored before ever uploading */
     const out = await deps.reprocess(payload);
     return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
   }
 
-  const active = await deps.latestActive(meetingId);
+  let active = await deps.latestActive(meetingId);
   if (action === "start") {
-    if (active) return { status: 200, body: { recording_id: active.recording_id, status: active.status, reused: true } };
-    const r = await deps.cf("POST", "/recordings", { meeting_id: meetingId });
+    if (active) {
+      /* Trust but verify: a lost webhook would leave this row "recording" forever and block every
+         later class of this session. Ask Cloudflare; if it is over, record that and start fresh. */
+      const chk = await deps.cf("GET", `/recordings/${active.recording_id}`);
+      const raw = String(((chk.data || {}) as Record<string, unknown>).status || "");
+      if (chk.ok && raw && raw !== "INVOKED" && raw !== "RECORDING") {
+        await deps.updateReplayStatus(active.recording_id, CF_STATUS[raw] || "error");
+        active = null;
+      } else {
+        return { status: 200, body: { recording_id: active.recording_id, status: active.status, reused: true } };
+      }
+    }
+    const r = await deps.cf("POST", "/recordings", { meeting_id: meetingId, max_seconds: MAX_SECONDS });
     const d = (r.data || {}) as Record<string, unknown>;
     const recordingId = typeof d.id === "string" ? d.id : "";
     if (!r.ok || !recordingId) return { status: 502, body: { error: "cloudflare_" + r.status } };
