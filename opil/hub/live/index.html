@@ -35,6 +35,8 @@
 #bc .pillbtn{min-height:44px}
 #bcLink{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--bg-soft,#f5f7fb);color:var(--ink-2,#3a4661)}
 .bc-cap{font-size:13px;color:var(--muted);margin:2px 0 12px;line-height:1.5}
+#bcRec{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#b4451f;background:#fdf0e7;border-radius:980px;padding:0 12px;min-height:44px}
+#bcRec i{width:8px;height:8px;border-radius:50%;background:#e0492a;animation:pulse 1.6s ease-in-out infinite}
 </style>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -255,7 +257,7 @@ if (staff) {
 <div class="bc-ctl-row"><select id="bcSess" aria-label="Session">${sessions.map(s => `<option value="${esc(s.no)}"${s.no === pick.no ? ' selected' : ''}>${esc(label(s))}</option>`).join('')}</select></div>
 <div class="bc-ctl-row"><input id="bcLink" readonly aria-label="Link to this room" value=""><button type="button" class="pillbtn" id="bcCopy" aria-live="polite">Copy link</button></div>
 <p class="bc-cap">Send this link to your students. It works before you start &mdash; they wait in the room until you do.</p>
-<div class="bc-ctl-row"><button type="button" class="pillbtn" id="bcClass" style="background:var(--blue);color:#fff" title="Everyone on camera: you teach, students can turn their camera and mic on, raise a hand, and share their screen">Start class &mdash; everyone on camera</button><button type="button" class="pillbtn" id="bcGo" hidden title="For a session left running from another device. Leaving the room from the device that started it ends the session on its own.">End session</button></div>
+<div class="bc-ctl-row"><button type="button" class="pillbtn" id="bcClass" style="background:var(--blue);color:#fff" title="Everyone on camera: you teach, students can turn their camera and mic on, raise a hand, and share their screen">Start class &mdash; everyone on camera</button><button type="button" class="pillbtn" id="bcGo" hidden title="For a session left running from another device. Leaving the room from the device that started it ends the session on its own.">End session</button><span id="bcRec" hidden><i></i>Recording</span></div>
 <p id="bcNote">1. Pick your session. &nbsp;2. Copy the link and send it to your students. &nbsp;3. Start class, then press Join in the room. Leaving the room ends the session.</p>
 </div></div>`;
     const sel = document.getElementById('bcSess'), classBtn = document.getElementById('bcClass'),
@@ -274,6 +276,19 @@ if (staff) {
     });
     /* bind the host's page to the room it is running, so a reload after End lands back in it */
     const bindUrl = (no) => { boundNo = no; try { history.replaceState(null, '', roomPath(no)); } catch (e) {} };
+    /* The class records itself: start right after the room opens, stop when the host leaves. The
+       replay lands on the coordinator page as a draft; nobody in the room presses Record. */
+    const recChip = document.getElementById('bcRec');
+    async function record(action, no) {
+      const tok = (await sb.auth.getSession()).data.session?.access_token || '';
+      const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-rtk-record', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok },
+        body: JSON.stringify({ session_no: no, action }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || ('the server said ' + r.status));
+      return d;
+    }
     /* End shows for any session left live; Start is off only while a class is genuinely running in it
        (a session flagged live with a stale non-room stream_url can still be started, which overwrites it) */
     function syncCtl() {
@@ -290,10 +305,15 @@ if (staff) {
       if (!hosting) { onAir(false); syncCtl(); return; }
       hosting = false;
       const no = boundNo != null ? boundNo : cur().no;
+      let recorded = false;
+      try { recorded = !!(await record('stop', no)).stopped; } catch (e) {}
+      recChip.hidden = true;
       try { await flipLive(no, false); }
       catch (e) { onAir(false); syncCtl(); bnote.textContent = 'You left, but the session could not be closed (' + e.message + '). Press End session.'; return; }
       onAir(false); syncCtl();
-      bnote.textContent = 'Class ended — the room is closed for everyone. Start class to open it again.';
+      bnote.textContent = recorded
+        ? 'Class ended — the replay is being prepared. It shows on the coordinator page when it is ready to review; students see it once it is published.'
+        : 'Class ended — the room is closed for everyone. Start class to open it again.';
     };
     /* Rooms are independent (0032): starting one never touches another. */
     async function flipLive(no, on, u) {
@@ -314,6 +334,8 @@ if (staff) {
         await flipLive(s.no, true, 'rtk:' + r.meetingId);
         sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
         bnote.textContent = 'Class is running. Press Join in the room below to go on camera — share screen, the participants list, and chat appear after that. Send students the link above; they join you here. When you’re done, press Leave in the room and the session ends.';
+        try { await record('start', s.no); recChip.hidden = false; }
+        catch (e) { bnote.textContent = 'The class is on, but the replay could not start recording (' + (e.message || e) + '). ' + bnote.textContent; }
         enableChat();
         await openChat();
       } catch (e) {
