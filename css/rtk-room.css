@@ -11,8 +11,7 @@ body.in-room .live-grid > .chat{display:none}
 body.in-room .ln-dock{display:none}                     /* the phone dock would sit on the control bar */
 body.in-room.has-dock{padding-bottom:0}
 body.in-room #player,body.in-room #meta{display:none}
-/* the one-way "go live from this device" camera panel would offer a second, conflicting way to
-   be on camera while the class room is already running */
-body.in-room #bcCam,body.in-room #bcNote{display:none}
+/* the control's how-to note is noise once the class is on screen */
+body.in-room #bcNote{display:none}
 .rtk-note{font-size:13px;color:var(--muted);margin:10px 0 0}
 @media(max-width:720px){#rtkMount:not(:empty){height:calc(100dvh - 150px);border-radius:12px}}
