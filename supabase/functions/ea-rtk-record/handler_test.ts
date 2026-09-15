@@ -2,17 +2,25 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleRecord, type RecordDeps } from "./handler.ts";
 
-const HOST = { user: { id: "u-host", email: "host@x" }, role: { admin: false, judge: false, facilitator_sessions: [7] }, functionsBase: "https://p.supabase.co/functions/v1" };
+const HOST = { user: { id: "u-host", email: "host@x" }, role: { admin: false, judge: false, facilitator_sessions: [7] }, academyAdmin: false, functionsBase: "https://p.supabase.co/functions/v1" };
 const ADMIN = { ...HOST, role: { admin: true, judge: false, facilitator_sessions: [] } };
 const STUDENT = { ...HOST, role: { admin: false, judge: false, facilitator_sessions: [] } };
+/* Nelson: the Academy admin (ea_is_admin). No OPIL role at all — the room branch keys on academyAdmin alone. */
+const NELSON = { user: { id: "u-nelson", email: "nelson@x" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: true, functionsBase: "https://p.supabase.co/functions/v1" };
+const ROOM = { id: "room-1", meeting_id: "meet-room" };
+const REPLAY_ID = "6b1f4a2e-9c3d-4e5f-8a7b-1c2d3e4f5a6b";
 
-function deps(over: Partial<RecordDeps> = {}) {
+type Over = Partial<Omit<RecordDeps, "room">> & { room?: Partial<RecordDeps["room"]> };
+
+function deps(over: Over = {}) {
   const calls: { method: string; path: string; body?: unknown }[] = [];
   const inserted: unknown[] = [];
   const updated: [string, string][] = [];
-  const d: RecordDeps & { calls: typeof calls; inserted: typeof inserted; updated: typeof updated } = {
-    calls, inserted, updated,
-    getSession: async (no) => (no === 7 ? { no: 7, title: "Agents 101", stream_url: "rtk:meet-7", is_live: true } : no === 8 ? { no: 8, title: "No room", stream_url: null, is_live: false } : null),
+  const roomInserted: unknown[] = [];
+  const roomUpdated: [string, string][] = [];
+  const d: RecordDeps & { calls: typeof calls; inserted: typeof inserted; updated: typeof updated; roomInserted: typeof roomInserted; roomUpdated: typeof roomUpdated } = {
+    calls, inserted, updated, roomInserted, roomUpdated,
+    getSession: async (no) => (no === 7 ? { no: 7, title: "Agents 101", stream_url: "rtk:meet-7", is_live: true } : no === 8 ? { no: 8, title: "No room", stream_url: null, is_live: false } : no === 9 ? { no: 9, title: "Points at the room", stream_url: "rtk:meet-room", is_live: true } : null),
     latestActive: async () => null,
     insertReplay: async (row) => { inserted.push(row); },
     cf: async (method, path, body) => { calls.push({ method, path, body }); return { ok: true, status: 200, data: { id: "rec-1", status: "INVOKED" } }; },
@@ -20,7 +28,17 @@ function deps(over: Partial<RecordDeps> = {}) {
     latestAny: async () => null,
     uploadedEvent: async () => null,
     reprocess: async () => ({ status: "ready" }),
+    getRoom: async () => null,
+    roomMeetingIds: async () => new Set<string>(),
     ...over,
+    room: {
+      latestActive: async () => null,
+      latestAny: async () => null,
+      insertReplay: async (row) => { roomInserted.push(row); },
+      updateReplayStatus: async (id, status) => { roomUpdated.push([id, status]); },
+      replayById: async () => null,
+      ...(over.room || {}),
+    },
   };
   return d;
 }

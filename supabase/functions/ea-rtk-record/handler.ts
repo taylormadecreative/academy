@@ -1,27 +1,40 @@
 // ea-rtk-record — the pure decisions behind "the class records itself".
-//   start  (host)  : begin a RealtimeKit recording of the session's meeting; idempotent
+//   start  (host)  : begin a RealtimeKit recording of the meeting; idempotent
 //   stop   (host)  : stop the active recording (the webhook reports what happens next)
+//   retry_replay   : re-run a failed replay's stored UPLOADED event
 //   register_webhook / list_webhooks (admin) : one-time wiring of ea-rtk-webhook
+// Two branches share the start/stop rules: { session_no } is an OPIL class (ea_opil_replays,
+// host = coordinator or that session's facilitator); { room: true } is Nelson's Academy room
+// (ea_room_replays, host = the Academy admin, retry by replay_id).
 // No network, no env, no supabase here: index.ts injects `deps`, handler_test.ts stubs them.
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
-export type Caller = { user: { id: string; email?: string | null }; role: Role; functionsBase: string };
-export type RecordBody = { session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
+export type Caller = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; functionsBase: string };
+export type RecordBody = { room?: boolean; replay_id?: string; session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
 export type ActiveReplay = { recording_id: string; status: string };
 export type CfResult = { ok: boolean; status: number; data: unknown };
-export type RecordDeps = {
-  getSession: (no: number) => Promise<SessionRow | null>;
+/* One store per replay table. The OPIL store is the top level of RecordDeps (ea_opil_replays,
+   today's names); the room store is deps.room (ea_room_replays). Same calls, different table. */
+export type ReplayStore = {
   latestActive: (meetingId: string) => Promise<ActiveReplay | null>;
-  insertReplay: (row: { session_no: number; meeting_id: string; recording_id: string; status: string }) => Promise<void>;
-  cf: (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<CfResult>;
+  latestAny: (meetingId: string) => Promise<{ recording_id: string; status: string } | null>;
+  insertReplay: (row: { session_no?: number; room_id?: string; meeting_id: string; recording_id: string; status: string }) => Promise<void>;
   /* a row we believed active turned out not to be (Cloudflare says so): record the truth */
   updateReplayStatus: (recordingId: string, status: string) => Promise<void>;
-  /* Retry: the latest replay for a meeting (any status), the stored UPLOADED event for it, and
-     the same processing the webhook does — dedupe bypassed on purpose. */
-  latestAny: (meetingId: string) => Promise<{ recording_id: string; status: string } | null>;
+};
+export type RecordDeps = ReplayStore & {
+  getSession: (no: number) => Promise<SessionRow | null>;
+  cf: (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<CfResult>;
+  /* Retry: the stored UPLOADED event for a recording, and the same processing the webhook
+     does — dedupe bypassed on purpose. */
   uploadedEvent: (recordingId: string) => Promise<Record<string, unknown> | null>;
   reprocess: (payload: Record<string, unknown>) => Promise<{ status: string }>;
+  /* the Academy room — one row, read with the service role */
+  getRoom: () => Promise<{ id: string; meeting_id: string | null } | null>;
+  /* every meeting that is or was the room's: ea_rooms.meeting_id ∪ ea_room_replays.meeting_id */
+  roomMeetingIds: () => Promise<Set<string>>;
+  room: ReplayStore & { replayById: (id: string) => Promise<{ id: string; room_id: string | null; meeting_id: string; recording_id: string; status: string } | null> };
 };
 export type Reply = { status: number; body: unknown };
 
