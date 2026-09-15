@@ -20,11 +20,15 @@ const tpl = fs.readFileSync(path.join(HUB, '_shell.tpl'), 'utf8');
 /* One content stamp for every /ht/ asset. The root service worker caches static assets
    cache-first keyed by full URL, so the stamp MUST change whenever these files change. */
 const ROOT = path.join(HUB, '..');
+const stampIn = (p) => (fs.existsSync(p) ? fs.readFileSync(p) : Buffer.alloc(0));
 const V = createHash('sha1')
   .update(fs.readFileSync(path.join(ROOT, 'ht.css')))
   .update(fs.readFileSync(path.join(HUB, 'ht.js')))
   .update(fs.readFileSync(path.join(HUB, 'data.js')))
   .update(fs.readFileSync(path.join(HUB, 'data', 'all.js')))
+  .update(stampIn(path.join(HUB, 'room.js')))
+  .update(stampIn(path.join(HUB, 'room.css')))
+  .update(stampIn(path.join(HUB, 'room-words.js')))
   .digest('hex').slice(0, 8);
 const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function shell(key, title, desc, dir) {

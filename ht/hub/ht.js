@@ -5,6 +5,10 @@
   'use strict';
   var HT = window.HT || (window.HT = {});
   var LS = function (k) { return 'ht:' + k; };
+  /* our own ?v= — read while this script is still the current one (null after DOMContentLoaded).
+     The room module and its CSS load with the same stamp, so a cache-first service worker frees
+     them whenever ht/build.mjs rewrites it. */
+  var V = (function () { try { var s = document.currentScript && document.currentScript.src; var m = s && /[?&]v=([A-Za-z0-9]+)/.exec(s); return m ? '?v=' + m[1] : ''; } catch (e) { return ''; } })();
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
   function h(strings) { var out = strings[0]; for (var i = 1; i < arguments.length; i++) out += esc(arguments[i]) + strings[i]; return out; }
   function el(html) { var t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
@@ -164,6 +168,12 @@
       '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="chip live"><i></i>Live</span>' : '') + '</div>' +
       '<div class="poster" style="background-image:url(' + esc(b.poster || '/ht/img/hero-flyover-poster.jpg') + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '"><span aria-hidden="true">▶</span>&nbsp; Watch</button></div>' +
       '<img class="wm" src="/assets/logo-nav.webp" alt=""></div>' + now;
+    var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
+  };
+  /* the HT class room: the mount the room module fills, and the cards/host card above it.
+     Inert until ht/hub/room.js loads (wire() imports it when this block is on the page). */
+  R.room = function (b) {
+    var inner = '<div data-room><div class="ht-room-ctl"><p class="ht-room-loading">Opening the room&hellip;</p></div><div id="rtkMount"></div></div>';
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
   };
   R.timeline = function (b) {
@@ -401,7 +411,11 @@
       b.addEventListener('click', function () {
         var p = root.querySelector('[data-player]');
         var title = b.getAttribute('data-replay');
-        if (!p) { var live = root.querySelector('a[href$="/live/"]'); if (live) location.href = live.getAttribute('href'); return; }
+        if (!p) {
+          var rm = root.querySelector('[data-room]');
+          if (rm) { var hc = rm.closest('.hc') || rm; if (hc.scrollIntoView) hc.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
+          var live = root.querySelector('a[href$="/live/"]'); if (live) location.href = live.getAttribute('href'); return;
+        }
         var nb = p.parentElement.querySelector('.nowbar b'); if (nb) nb.textContent = 'Replay, sample picture · ' + title;
         var host = p.closest('.hc') || p; if (host.scrollIntoView) host.scrollIntoView({ block: 'center', behavior: 'smooth' });
         if (!p.querySelector('video')) startPlayer(p);
@@ -411,6 +425,14 @@
     root.querySelectorAll('[data-player]').forEach(function (p) {
       var poster = p.querySelector('.poster'); poster.addEventListener('click', function () { startPlayer(p); });
     });
+    /* the class room: one module, loaded only where the block is */
+    if (root.querySelector('[data-room]')) {
+      import('/ht/hub/room.js' + V).catch(function (e) {
+        var c = root.querySelector('.ht-room-ctl');
+        if (c) c.innerHTML = '<p class="ht-room-loading">The room could not load. Reload to try again.</p>';
+        try { console.error('ht room', e); } catch (x) {}
+      });
+    }
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function parseTime(t) { var m = /(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i.exec(t || ''); if (!m) return [9, 0]; var hh = +m[1], mm = +(m[2] || 0); var ap = (m[3] || '').toUpperCase(); if (ap === 'PM' && hh < 12) hh += 12; if (ap === 'AM' && hh === 12) hh = 0; return [hh, mm]; }
