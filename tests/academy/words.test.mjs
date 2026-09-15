@@ -27,7 +27,7 @@ test('OPIL_WORDS and ROOM_WORDS are frozen and carry the same keys', () => {
   });
   assert.deepEqual(ROOM_WORDS, {
     one: 'person', many: 'people', host: 'Nelson', teaching: 'is live', thing: 'session',
-    waiting: 'Nelson hasn’t started yet — we’ll bring you in the moment he does.', replayFor: 'members',
+    waiting: 'Nelson hasn’t started yet — when he does, press Enter and you’re in.', replayFor: 'members',
     notAllowed: 'You need Nelson’s link or an Academy membership.', notOpen: 'Nelson hasn’t started yet.',
     notConfigured: 'The room is not set up yet.',
   });
@@ -72,9 +72,9 @@ test('joinCopy: the OPIL default and an explicit OPIL_WORDS give the exact strin
   const cases = [
     [{ live: true, host: false, facilitator: 'Casey Dike', joined: 26 }, 'Casey Dike is in the room · 26 students joined'],
     [{ live: true, host: false, facilitator: null, joined: 1 }, 'The class is running · 1 student joined'],
-    [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: '7:00 PM' }, "Class hasn’t started yet. You’re all set — it starts at 7:00 PM and you’ll enter on your own."],
-    [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: null }, "Class hasn’t started yet. You’re all set — you’ll enter on your own when Casey Dike starts it."],
-    [{ live: false, host: false, facilitator: null, startsAt: null }, "Class hasn’t started yet. You’re all set — you’ll enter on your own when your facilitator starts it."],
+    [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: '7:00 PM' }, "Class hasn’t started yet. You’re all set — it starts at 7:00 PM — press Enter when it does."],
+    [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: null }, "Class hasn’t started yet. You’re all set — press Enter when Casey Dike starts it."],
+    [{ live: false, host: false, facilitator: null, startsAt: null }, "Class hasn’t started yet. You’re all set — press Enter when your facilitator starts it."],
     [{ live: false, host: true, facilitator: 'Casey Dike' }, "This room is yours. Start the class when you’re ready — students who have the link are waiting here."],
     [{ live: true, host: true, facilitator: 'Casey Dike', joined: 3 }, 'Your class is running · 3 students joined'],
     [{ live: true, host: true, facilitator: 'Casey Dike' }, 'Your class is running · 0 students joined'],
@@ -86,7 +86,7 @@ test('joinCopy: the OPIL default and an explicit OPIL_WORDS give the exact strin
 });
 
 test('joinCopy with ROOM_WORDS: not live and not Nelson → the waiting sentence, whatever startsAt or facilitator say', () => {
-  const want = "Nelson hasn’t started yet — we’ll bring you in the moment he does.";
+  const want = "Nelson hasn’t started yet — when he does, press Enter and you’re in.";
   assert.equal(joinCopy({ live: false, host: false }, ROOM_WORDS), want);
   assert.equal(joinCopy({ live: false, host: false, facilitator: 'Nelson', joined: 4 }, ROOM_WORDS), want);
   assert.equal(joinCopy({ live: false, host: false, facilitator: null, startsAt: '7:00 PM' }, ROOM_WORDS), want);
@@ -105,9 +105,9 @@ test('joinCopy with ROOM_WORDS: live and host sentences count people', () => {
 test('joinCopy without a waiting sentence falls through to the hasn\'t-started sentences, capitalised from words.thing', () => {
   const noWait = Object.freeze({ ...ROOM_WORDS, waiting: null });
   assert.equal(joinCopy({ live: false, host: false, startsAt: '7:00 PM' }, noWait),
-    "Session hasn’t started yet. You’re all set — it starts at 7:00 PM and you’ll enter on your own.");
+    "Session hasn’t started yet. You’re all set — it starts at 7:00 PM — press Enter when it does.");
   assert.equal(joinCopy({ live: false, host: false, facilitator: null, startsAt: null }, noWait),
-    "Session hasn’t started yet. You’re all set — you’ll enter on your own when Nelson starts it.");
+    "Session hasn’t started yet. You’re all set — press Enter when Nelson starts it.");
   assert.equal(joinCopy({ live: false, host: false, facilitator: 'Casey Dike', startsAt: null }, noWait),
-    "Session hasn’t started yet. You’re all set — you’ll enter on your own when Casey Dike starts it.");
+    "Session hasn’t started yet. You’re all set — press Enter when Casey Dike starts it.");
 });

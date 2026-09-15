@@ -62,7 +62,7 @@ export const OPIL_WORDS = Object.freeze({
 });
 export const ROOM_WORDS = Object.freeze({
   one: 'person', many: 'people', host: 'Nelson', teaching: 'is live', thing: 'session',
-  waiting: 'Nelson hasn’t started yet — we’ll bring you in the moment he does.', replayFor: 'members',
+  waiting: 'Nelson hasn’t started yet — when he does, press Enter and you’re in.', replayFor: 'members',
   notAllowed: 'You need Nelson’s link or an Academy membership.', notOpen: 'Nelson hasn’t started yet.',
   notConfigured: 'The room is not set up yet.',
 });
@@ -95,6 +95,6 @@ export function joinCopy({ live, host, facilitator, joined, startsAt }, words = 
   if (live) return (facilitator ? facilitator + ' is in the room' : 'The ' + words.thing + ' is running') + ' · ' + people;
   if (words.waiting) return words.waiting;
   return startsAt
-    ? capFirst(words.thing) + ' hasn’t started yet. You’re all set — it starts at ' + startsAt + ' and you’ll enter on your own.'
-    : capFirst(words.thing) + ' hasn’t started yet. You’re all set — you’ll enter on your own when ' + (facilitator || words.host) + ' starts it.';
+    ? capFirst(words.thing) + ' hasn’t started yet. You’re all set — it starts at ' + startsAt + ' — press Enter when it does.'
+    : capFirst(words.thing) + ' hasn’t started yet. You’re all set — press Enter when ' + (facilitator || words.host) + ' starts it.';
 }

@@ -155,7 +155,12 @@ export async function mountRoomV2(o) {
   async function loadEffects(m) {
     try {
       const { default: VideoBackground } = await import(VB_ADDON);
-      effects = await VideoBackground.init({ meeting: m, modes: ['blur', 'virtual'], blurStrength: 50, images: BACKDROPS.map(b => location.origin + b.url) });
+      effects = await VideoBackground.init({
+        meeting: m, modes: ['blur', 'virtual'], blurStrength: 70, images: BACKDROPS.map(b => location.origin + b.url),
+        /* the "meet" person model with edge smoothing: cleaner hair/shoulder edges than the default 256x256 model (Nelson, 9/15: the blur "wasn't that great") */
+        segmentationConfig: { model: 'meet', inputResolution: '256x144', pipeline: 'webgl2', backend: 'wasmSimd', targetFps: 30 },
+        postProcessingConfig: { smoothSegmentationMask: true, jointBilateralFilter: { sigmaSpace: 2, sigmaColor: 0.15 }, coverage: [0.45, 0.8], lightWrapping: 0.2 },
+      });
     } catch (e) { effects = null; }
   }
   loadEffects(meeting);
@@ -274,7 +279,7 @@ function joinScreen({ label, title, startsAt, live, host, facilitator, joined, p
           <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
           <button type="button" class="r2-chip r2-fx" data-t="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
         </div></div>` : `<div class="r2-wait"><b>${esc(title)}</b><span>${startsAt ? 'Starts at ' + esc(startsAt) : isRoom ? 'Starts when ' + esc(words.host) + ' opens the room' : 'Starts when ' + esc(words.host) + ' opens it'}</span>
-        <ol><li>You’ll enter the ${esc(words.thing)} on your own.</li><li>${esc(copy.capFirst(words.host))} will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
+        <ol><li>When it starts, press Enter.</li><li>${esc(copy.capFirst(words.host))} will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
     </div>
     <div class="r2-join-right">${cta}<p class="r2-fine">No downloads. Works in your browser.</p></div>
   </section>`);
