@@ -63,6 +63,7 @@ test('htErrorText never says Nelson; every code has a sentence', () => {
   }
   assert.equal(htErrorText('not_allowed', 403, w), w.notAllowed);
   assert.equal(htErrorText('not_open', 409, w), w.notOpen);
+  assert.equal(htErrorText('rtk_not_configured', 500, w), w.notConfigured);
   assert.equal(htErrorText('bad_link', 404, w), 'This link isn’t active anymore — ask your host for the new one.');
   assert.equal(htErrorText('not_host', 403, w), 'Only a host can do that.');
   assert.equal(htErrorText('room_full', 429, w), 'The room is full right now.');

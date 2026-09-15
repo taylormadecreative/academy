@@ -45,7 +45,7 @@ export function htErrorText(code, status, words) {
     case 'not_host': return 'Only a host can do that.';
     case 'no_replay': return 'That replay is gone.';
     case 'nothing_to_retry': return 'Nothing to retry for that replay.';
-    case 'rtk_not_configured': return 'The room is not set up yet.';
+    case 'rtk_not_configured': return words.notConfigured;
     default: return 'The server said ' + (status || code || 'nothing') + '.';
   }
 }
