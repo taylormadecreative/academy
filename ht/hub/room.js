@@ -208,14 +208,17 @@ const host = {
     if (!this.room.is_live && !this.busy) { clearInterval(this.tick); this.tick = null; }
   },
   async flip(on) {
-    const patch = on ? { is_live: true, live_since: new Date().toISOString() } : { is_live: false, ended_at: new Date().toISOString() };
+    const patch = on ? { is_live: true, updated_at: new Date().toISOString() } : { is_live: false, ended_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     const { error } = await sb.from('ea_rooms').update(patch).eq('id', this.room.id);
     if (error) throw new Error(error.message);
     Object.assign(this.room, patch); state.is_live = on;
   },
-  /* Start class: the server opens a fresh meeting and hands this host a token; onOpened fires the
-     moment the meeting exists (before Enter) — that is when the room flips live. No reload: it
-     would drop the camera we are about to use. */
+  /* Start class: the server opens a fresh meeting and hands this host a token; ea-rtk-join already
+     stamps is_live + live_since on the row with the server clock the moment the meeting exists
+     (before Enter) — that is when the room actually flips live. onOpened re-reads the row and the
+     state instead of writing them again; a fast host clock must never overwrite the server's
+     live_since (it would kill the guest question queue and the people count). No reload: it would
+     drop the camera we are about to use. */
   async start() {
     const e = this.els;
     e.start.disabled = true; e.start.textContent = 'Opening the room…';
@@ -223,7 +226,8 @@ const host = {
     try {
       hosting = true; if (poll) { clearInterval(poll); poll = null; }
       await mountRoom('host', { onOpened: async () => {
-        await this.flip(true); opened = true; pendingRecord = true; this.syncCtl();
+        await this.load(); try { state = await getState(); } catch (e) {}
+        opened = true; pendingRecord = true; this.syncCtl();
         this.note('Your room is open. Check your camera below and press Enter Class — the recording starts when you’re in. When you’re done, press Leave and the session ends for everyone.');
       } });
     } catch (x) {

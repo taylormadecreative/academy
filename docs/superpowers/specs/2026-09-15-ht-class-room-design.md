@@ -104,7 +104,7 @@ The one-argument version is dropped (an overload would be ambiguous). Selects by
 - `is_host` = `ea_room_is_host(r.id)`.
 - `can_join` = `is_host or (slug = 'academy' and ea_is_member()) or (p_key = link_key)`.
 - `bad_link` = `not can_join and p_key is not null and p_key <> link_key` → returns exactly `{bad_link:true}`.
-- `recording_url` when `is_host or (slug = 'academy' and ea_is_member()) or exists(ea_room_members row for auth.uid())`.
+- `recording_url` when `is_host or (slug = 'academy' and ea_is_member()) or (slug <> 'academy' and exists(ea_room_members row for auth.uid()))`.
 - `people` when `is_host`.
 Never returns `link_key`, `meeting_id`, `host_emails`.
 
@@ -149,7 +149,7 @@ export function htLoginHref(k) — '/login/?next=' + encodeURIComponent('/ht/hub
 ### 7.3 `ht/hub/room.js` (ES module) — the page logic
 Boot: inject `<link rel=stylesheet href="/ht/hub/room.css?v=…">` and await it → `k = roomKey(location.search)` → Supabase client from `BM_CONFIG` → `state = rpc('ea_room_state', { p_key:k, p_slug:'ht' })` → `roomBranch(state)`:
 - `dead_link` / `landing` / `not_allowed` → the HT cards of §2.2 (wordmark, maroon, `htLoginHref`).
-- `host_idle` → host card (§2.1) + **Start class** → `mountRoomV2({ mode:'host', target:{kind:'room', slug:'ht', id, title, host_name, words, tokens}, onOpened: update ea_rooms set is_live=true, live_since=now() where id, onState })`; record start on `joined`; Leave → record stop → `is_live=false, ended_at=now()`.
+- `host_idle` → host card (§2.1) + **Start class** → `mountRoomV2({ mode:'host', target:{kind:'room', slug:'ht', id, title, host_name, words, tokens}, onOpened: re-read the row and the state — the join function already stamped is_live + live_since with the server clock; the page writes nothing on Start, onState })`; record start on `joined`; Leave → record stop → `is_live=false, ended_at=now()`.
 - `host_live` → host card with *Class is running* + **End session**, and `mountRoomV2` host mode without `onOpened`.
 - `waiting` → `mountRoomV2({ mode:'waiting', … })`, 20 s poll, reload when `is_live` flips (auto-enter walks them in).
 - `student` → `mountRoomV2({ mode:'student', … })`; 20 s state poll → `is_live` false → leave + ended card.
