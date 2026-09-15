@@ -167,8 +167,11 @@ export async function mountRoomV2(o) {
       const { default: VideoBackground } = await import(VB_ADDON);
       effects = await VideoBackground.init({
         meeting: m, modes: ['blur', 'virtual'], blurStrength: 70, images: BACKDROPS.map(b => location.origin + b.url),
-        /* the "meet" person model with edge smoothing: cleaner hair/shoulder edges than the default 256x256 model (Nelson, 9/15: the blur "wasn't that great") */
-        segmentationConfig: { model: 'meet', inputResolution: '256x144', pipeline: 'webgl2', backend: wasmSimd ? 'wasmSimd' : 'wasm', targetFps: 30 },
+        /* the "meet" person model with edge smoothing: cleaner hair/shoulder edges than the default 256x256 model (Nelson, 9/15: the blur "wasn't that great").
+           targetFps drives the loop that redraws the OUTGOING canvas, so it is also the video's frame rate — 24 matches the camera above. It was 30,
+           which re-rendered ~6 frames a second the camera never produced. Do NOT lower it further to save CPU: the loop reschedules with
+           Math.max(0, interval - elapsed), so a machine that cannot keep up already runs flat out and a lower target only makes the video choppier. */
+        segmentationConfig: { model: 'meet', inputResolution: '256x144', pipeline: 'webgl2', backend: wasmSimd ? 'wasmSimd' : 'wasm', targetFps: 24 },
         postProcessingConfig: { smoothSegmentationMask: true, jointBilateralFilter: { sigmaSpace: 2, sigmaColor: 0.15 }, coverage: [0.45, 0.8], lightWrapping: 0.2 },
       });
       effectsError = null;
