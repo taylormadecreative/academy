@@ -342,7 +342,6 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       </aside>
     </div>
     <div class="r2-bar">
-      <button type="button" class="r2-btn r2-back" hidden>Back to the main room</button>
       <div class="r2-chips">
         <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
         <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
@@ -367,7 +366,8 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   /* the strip. No facilitator filed for this session (the AI Thread, a stand-in)? Then whoever holds the
      host preset is teaching — the reader is told a name, never "class in progress". */
   const hostName = () => { try { if (host) return m.self.name || null; const p = m.participants.joined.toArray().find(x => /host/.test(String(x.presetName || ''))); return p ? p.name : null; } catch (e) { return null; } };
-  const inBreakout = () => { try { return !!(m.connectedMeetings && m.connectedMeetings.parentMeeting); } catch (e) { return false; } };
+  /* in the main room the kit points parentMeeting at the meeting itself; a breakout's parent is a different id */
+  const inBreakout = () => { try { const pm = m.connectedMeetings && m.connectedMeetings.parentMeeting; return !!(pm && pm.id && m.meta && pm.id !== m.meta.meetingId); } catch (e) { return false; } };
   const setNow = () => {
     const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room' } : null;
     q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
@@ -415,6 +415,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const primary = q('.r2-primary');
   const nameOf = (id) => { try { const p = m.participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
   const renderPrimary = () => {
+    if (inBreakout()) {
+      primary.innerHTML = `<button type="button" class="r2-cta r2-back"><b>Back to the main room</b><span>Leaves this small group</span></button>`;
+      primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { if (m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) await m.connectedMeetings.moveToParentMeeting(); else throw new Error('not available'); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
+      const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
+      return;
+    }
     if (host) {
       const next = copy.nextInLine(hands);
       const nm = next ? (nameOf(next.user_id) || 'the next person') : null;
@@ -518,9 +524,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     return p;
   };
   const tb = q('.r2-tools'); if (tb) tb.addEventListener('click', () => openSheet('Tools', toolsPane()));
-  const back = q('.r2-back');
-  back.addEventListener('click', async () => { back.disabled = true; try { if (m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) await m.connectedMeetings.moveToParentMeeting(); else throw new Error('not available'); } catch (e) { toast('Could not move you back — ' + (e.message || e)); back.disabled = false; } });
-  const syncBack = () => { let can = false; try { can = inBreakout() && !!(m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) && (m.self.permissions.connectedMeetings ? m.self.permissions.connectedMeetings.canSwitchToParentMeeting !== false : true); } catch (e) {} back.hidden = !can; if (!can) back.disabled = false; };
+
   const hb = q('.r2-help'); if (hb) hb.addEventListener('click', () => openSheet('Need help?', helpPane()));
 
   /* leave: two taps, never one accidental one */
@@ -540,7 +544,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   function bind(mm) {
     m = mm; if (onSwitch) onSwitch(mm);
     node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants').forEach(c => { c.meeting = mm; });
-    bindSelf(); peopleCount(); setNow(); syncBack(); nudge();
+    bindSelf(); peopleCount(); setNow(); renderPrimary(); nudge();
     try { mm.participants.joined.on('participantJoined', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); } catch (e) {}
     if (!handsChan) watchHands();
     loadHands();
