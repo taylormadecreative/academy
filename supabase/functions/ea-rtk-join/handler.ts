@@ -12,8 +12,8 @@
 //   cohort member (ea_opil_in_cohort)                        -> opil-student
 //   anyone else                                              -> 403 not_allowed
 //
-// Room branch (body.room === true): the Academy room. Until it is built, a room body answers
-// 404 not_found — nothing on the OPIL path runs for it.
+// Room branch (body.room === true): the Academy room — handleRoomJoin at the end of this file.
+// Nothing on the OPIL path runs for a room body.
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
 export type JoinBody = { room?: boolean; key?: string | null; session_no?: number; meeting_id?: string };
@@ -42,7 +42,7 @@ export const OPEN_WINDOW_MS = 4 * 3600 * 1000;   /* a room left live by a dead t
 const RTK_PREFIX = "rtk:";
 
 export async function handleJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Reply> {
-  if (body.room === true) return { status: 404, body: { error: "not_found" } };
+  if (body.room === true) return handleRoomJoin(body, ctx, deps);
   return joinOpil(body, ctx, deps);
 }
 
@@ -87,4 +87,69 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
   const token = ((added.data || {}) as Record<string, unknown>).token;
 
   return { status: 200, body: { token, meeting_id: meetingId, preset, host: isHost, name } };
+}
+
+/* ───────────── the Academy room (body.room === true) ─────────────
+   One room, one link. Nelson (ea_is_admin) is the host; a person gets in with the current link key
+   or an Academy membership, only while Nelson is live (and for at most 4 h after he started, the
+   recording cap — a tab that died leaves is_live true). Every Start class is a fresh Cloudflare
+   meeting and the previous one is set INACTIVE, so a token from last time opens nothing. People are
+   never told the meeting id; a client-supplied meeting_id is never read. */
+
+const KEY_RX = /^[A-Za-z0-9_-]{22}$/;
+/* YYYY-MM-DD in America/Chicago (en-CA prints ISO order) — the meeting title people see in the dashboard */
+const CHICAGO_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" });
+
+async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Reply> {
+  const uid = ctx.user.id;
+  /* 1 — rate limit, fail-open (null = the limiter is down → allowed), before any Cloudflare call */
+  if ((await deps.rateCheck("rtk-join:u:" + uid, 30, 600)) === false) return { status: 429, body: { error: "slow_down" } };
+  if ((await deps.rateCheck("rtk-join:ip:" + ctx.ip, 90, 600)) === false) return { status: 429, body: { error: "slow_down" } };
+  /* 2 — the room */
+  const room = await deps.getRoom();
+  if (!room) return { status: 503, body: { error: "rtk_not_configured" } };
+  /* 3 — who is this: Nelson, a member, or someone holding the current link */
+  const isHost = ctx.academyAdmin;
+  const key = typeof body.key === "string" && KEY_RX.test(body.key) ? body.key : null;
+  if (!isHost) {
+    const allowed = (await deps.isMember()) || (key !== null && key === room.link_key);
+    if (!allowed) return key ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
+  }
+  /* 4 — is the room open: live, and started less than 4 h ago */
+  const open = room.is_live && !!room.live_since && (deps.now().getTime() - Date.parse(room.live_since)) < OPEN_WINDOW_MS;
+  if (!isHost && !open) return { status: 409, body: { error: "not_open" } };
+  /* 5 — the meeting: Nelson starting (or re-starting a stale room) gets a fresh one; a live Nelson and people reuse it */
+  let meetingId: string | null = room.meeting_id;
+  if (isHost && (!open || !meetingId)) {
+    const title = ("Academy · " + room.title + " · " + CHICAGO_DAY.format(deps.now())).slice(0, 80);
+    const made = await deps.cf("POST", "/meetings", { title, persist_chat: false });
+    if (!made.ok) return { status: 502, body: { error: "cloudflare_" + made.status } };
+    const id = String(((made.data || {}) as Record<string, unknown>).id || "");
+    if (!id) return { status: 502, body: { error: "cloudflare_no_id" } };
+    await deps.setRoomMeeting(room.id, id);
+    if (room.meeting_id) {
+      /* best effort: the previous meeting closes so an old token opens nothing, not even an empty billable session */
+      try { await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }); } catch (_) { /* ignored */ }
+    }
+    meetingId = id;
+  }
+  if (!meetingId) return { status: 409, body: { error: "not_open" } };
+  /* 6 — Nelson makes sure the two presets exist on Cloudflare (cached; never throws) */
+  if (isHost) await deps.ensurePresets();
+  /* 7 — the cap, people only; Cloudflare counts Nelson too ("Max people (you included)"); 404 = no session yet */
+  if (!isHost) {
+    const r = await deps.cf("GET", `/meetings/${meetingId}/active-session`);
+    const live = r.status === 404 ? 0 : Number(((r.data || {}) as Record<string, unknown>).live_participants ?? 0);
+    if (live >= room.max_participants) return { status: 429, body: { error: "room_full" } };
+  }
+  /* 8 — one participant per person; custom_participant_id is the Supabase uid, never an email */
+  const name = String((await deps.displayName(uid)) || (ctx.user.email || "Member").split("@")[0]).slice(0, 60);
+  const preset = isHost ? "tma-class-host" : "tma-class-guest";
+  const added = await deps.cf("POST", `/meetings/${meetingId}/participants`, { custom_participant_id: uid, preset_name: preset, name });
+  if (!added.ok) return { status: 502, body: { error: "cloudflare_" + added.status } };
+  const token = ((added.data || {}) as Record<string, unknown>).token;
+  /* 9 — who joined (the Your room card on /live/ reads it) */
+  await deps.upsertMember(room.id, uid);
+  /* 10 — only Nelson learns the meeting id */
+  return { status: 200, body: isHost ? { token, meeting_id: meetingId, preset, host: true, name } : { token, preset, host: false, name } };
 }

@@ -171,9 +171,184 @@ Deno.test("the OPIL branch never touches the room plumbing except the room-meeti
   assertEquals(s.touched, ["inCohort", "getSession", "roomMeetingIds", "displayName", "cf"]);
 });
 
-Deno.test("body.room === true answers 404 not_found and never enters the OPIL path", async () => {
-  const d = deps();
+Deno.test("body.room === true never enters the OPIL path", async () => {
+  const d = deps();   /* getRoom → null: the room branch stops at 503 before any OPIL dep is reached */
   const r = await handleJoin({ room: true, key: "k".repeat(22) }, COORD, d);
-  assertEquals(r.status, 404); assertEquals(err(r), "not_found");
-  assertEquals(d.touched, []); assertEquals(d.calls.length, 0);
+  assertEquals(r.status, 503); assertEquals(err(r), "rtk_not_configured");
+  assertEquals(d.touched, ["rateCheck", "rateCheck", "getRoom"]); assertEquals(d.calls.length, 0);
+});
+
+/* ───────────── the room branch (body.room === true) — Academy room, Task 4 ───────────── */
+import type { RoomRow } from "./handler.ts";
+
+/* Nelson is ea_is_admin() on the Academy and NOT an OPIL coordinator: the room keys on academyAdmin alone */
+const NELSON = { user: { id: "u-nelson", email: "nelson@x" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: true, ip: "9.9.9.9" };
+const PERSON = { user: { id: "u-guest", email: "sam@example.com" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: false, ip: "5.5.5.5" };
+const KEY = "AbCdEfGhIjKlMnOpQrStUv";          /* 22 chars of [A-Za-z0-9_-], what ea_room_new_key() mints */
+const WRONG = "ZzZzZzZzZzZzZzZzZzZzZz";
+const NOW = new Date("2026-09-14T20:00:00Z");   /* 15:00 in Chicago */
+const LIVE_ROOM = { id: "room-1", title: "Taylormade Academy Live", link_key: KEY, is_live: true, live_since: "2026-09-14T19:30:00Z", meeting_id: "meet-live", max_participants: 50 };
+const OFF_ROOM = { ...LIVE_ROOM, is_live: false, live_since: "2026-09-13T19:00:00Z", meeting_id: "meet-old" };
+const STALE_ROOM = { ...LIVE_ROOM, live_since: "2026-09-14T15:00:00Z" };   /* 5 h ago: the tab died, the row still says live */
+
+function roomDeps(over: Partial<JoinDeps> = {}, room: RoomRow = LIVE_ROOM) {
+  const calls: { method: string; path: string; body?: unknown }[] = [];
+  const meetingSet: [string, string][] = [];
+  const members: [string, string][] = [];
+  const rates: string[] = [];
+  let presets = 0;
+  const d: JoinDeps & { calls: typeof calls; meetingSet: typeof meetingSet; members: typeof members; rates: typeof rates; presets: () => number } = {
+    calls, meetingSet, members, rates, presets: () => presets,
+    cf: async (method, path, body) => {
+      calls.push({ method, path, body });
+      if (method === "GET" && path.endsWith("/active-session")) return { ok: false, status: 404, data: {} };
+      if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
+      if (method === "POST" && path.endsWith("/participants")) return { ok: true, status: 200, data: { token: "tok-1" } };
+      return { ok: true, status: 200, data: {} };
+    },
+    rateCheck: async (key) => { rates.push(key); return true; },
+    getSession: async () => null,
+    inCohort: async () => false,
+    isMember: async () => false,
+    getRoom: async () => room,
+    setRoomMeeting: async (roomId, meetingId) => { meetingSet.push([roomId, meetingId]); },
+    roomMeetingIds: async () => new Set<string>(),
+    upsertMember: async (roomId, userId) => { members.push([roomId, userId]); },
+    displayName: async (id) => (id === "u-nelson" ? "Nelson Taylor" : null),
+    ensurePresets: async () => { presets++; },
+    now: () => NOW,
+    ...over,
+  };
+  return d;
+}
+const paths = (d: { calls: { method: string; path: string }[] }) => d.calls.map((c) => c.method + " " + c.path);
+
+Deno.test("room: a person with the right key while live gets a guest token and never the meeting id", async () => {
+  const d = roomDeps();
+  const r = await handleJoin({ room: true, key: KEY }, PERSON, d);
+  assertEquals(r.status, 200);
+  assertEquals(r.body, { token: "tok-1", preset: "tma-class-guest", host: false, name: "sam" });
+  assertEquals("meeting_id" in (r.body as Record<string, unknown>), false);
+  assertEquals(paths(d), ["GET /meetings/meet-live/active-session", "POST /meetings/meet-live/participants"]);
+  assertEquals(d.calls[1].body, { custom_participant_id: "u-guest", preset_name: "tma-class-guest", name: "sam" });
+  assertEquals(d.members, [["room-1", "u-guest"]]);
+  assertEquals(d.presets(), 0);
+});
+
+Deno.test("room: the wrong key → 404 bad_link; no key and not a member → 403 not_allowed; a malformed key counts as no key", async () => {
+  const wrong = await handleJoin({ room: true, key: WRONG }, PERSON, roomDeps());
+  assertEquals(wrong.status, 404); assertEquals(wrong.body, { error: "bad_link" });
+  const none = await handleJoin({ room: true }, PERSON, roomDeps());
+  assertEquals(none.status, 403); assertEquals(none.body, { error: "not_allowed" });
+  const short = await handleJoin({ room: true, key: "short" }, PERSON, roomDeps());
+  assertEquals(short.status, 403); assertEquals(short.body, { error: "not_allowed" });
+  const d = roomDeps();
+  await handleJoin({ room: true, key: WRONG }, PERSON, d);
+  assertEquals(d.calls.length, 0);   /* refused before any Cloudflare call */
+});
+
+Deno.test("room: a member without a key is in; a member with a stale key is in too", async () => {
+  const d = roomDeps({ isMember: async () => true });
+  const r = await handleJoin({ room: true }, PERSON, d);
+  assertEquals(r.status, 200); assertEquals((r.body as { preset: string }).preset, "tma-class-guest");
+  const stale = await handleJoin({ room: true, key: WRONG }, PERSON, roomDeps({ isMember: async () => true }));
+  assertEquals(stale.status, 200);
+});
+
+Deno.test("room: a person while off air → 409 not_open; when live_since is 5 h old → 409 not_open", async () => {
+  const off = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, OFF_ROOM));
+  assertEquals(off.status, 409); assertEquals(off.body, { error: "not_open" });
+  const stale = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, STALE_ROOM));
+  assertEquals(stale.status, 409); assertEquals(stale.body, { error: "not_open" });
+  const noMeeting = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, { ...LIVE_ROOM, meeting_id: null }));
+  assertEquals(noMeeting.status, 409); assertEquals(noMeeting.body, { error: "not_open" });
+});
+
+Deno.test("room: Nelson off air → a fresh meeting, saved on the row, the previous one set INACTIVE, meeting_id returned", async () => {
+  const d = roomDeps({}, OFF_ROOM);
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 200);
+  assertEquals(r.body, { token: "tok-1", meeting_id: "meet-new", preset: "tma-class-host", host: true, name: "Nelson Taylor" });
+  assertEquals(paths(d), ["POST /meetings", "PATCH /meetings/meet-old", "POST /meetings/meet-new/participants"]);
+  assertEquals(d.calls[0].body, { title: "Academy · Taylormade Academy Live · 2026-09-14", persist_chat: false });
+  assertEquals(d.calls[1].body, { status: "INACTIVE" });
+  assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
+  assertEquals(d.members, [["room-1", "u-nelson"]]);
+  assertEquals(d.presets(), 1);
+});
+
+Deno.test("room: Nelson while live (reload, second device) reuses the meeting — no POST /meetings, no cap check", async () => {
+  const d = roomDeps();
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { meeting_id: string }).meeting_id, "meet-live");
+  assertEquals(paths(d), ["POST /meetings/meet-live/participants"]);
+  assertEquals(d.meetingSet, []);
+  assertEquals(d.presets(), 1);
+});
+
+Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like off air; a failed INACTIVE is ignored", async () => {
+  const d = roomDeps({
+    cf: async (method, path, body) => {
+      d.calls.push({ method, path, body });
+      if (method === "PATCH") return { ok: false, status: 500, data: {} };
+      if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
+      return { ok: true, status: 200, data: { token: "tok-1" } };
+    },
+  }, STALE_ROOM);
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 200);
+  assertEquals(paths(d), ["POST /meetings", "PATCH /meetings/meet-live", "POST /meetings/meet-new/participants"]);
+  assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
+});
+
+Deno.test("room: Cloudflare refusing the meeting → 502 cloudflare_<status>, nothing saved", async () => {
+  const d = roomDeps({ cf: async (method, path, body) => { d.calls.push({ method, path, body }); return { ok: false, status: 429, data: {} }; } }, OFF_ROOM);
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 502); assertEquals(r.body, { error: "cloudflare_429" });
+  assertEquals(d.meetingSet, []); assertEquals(d.members, []);
+});
+
+Deno.test("room: the cap — 50 in with max 50 → 429 room_full; 404 from active-session means nobody yet", async () => {
+  const full = roomDeps({ cf: async (method, path, body) => { full.calls.push({ method, path, body }); return path.endsWith("/active-session") ? { ok: true, status: 200, data: { live_participants: 50 } } : { ok: true, status: 200, data: { token: "tok-1" } }; } });
+  const r = await handleJoin({ room: true, key: KEY }, PERSON, full);
+  assertEquals(r.status, 429); assertEquals(r.body, { error: "room_full" });
+  assertEquals(paths(full), ["GET /meetings/meet-live/active-session"]);
+  assertEquals(full.members, []);
+  const room = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps());   /* default fake: 404 */
+  assertEquals(room.status, 200);
+  const under = roomDeps({ cf: async (method, path, body) => { under.calls.push({ method, path, body }); return path.endsWith("/active-session") ? { ok: true, status: 200, data: { live_participants: 49 } } : { ok: true, status: 200, data: { token: "tok-1" } }; } });
+  assertEquals((await handleJoin({ room: true, key: KEY }, PERSON, under)).status, 200);
+});
+
+Deno.test("room: rate limit — false → 429 slow_down before any Cloudflare call; null (limiter down) → allowed", async () => {
+  const d = roomDeps({ rateCheck: async (key) => { d.rates.push(key); return key.startsWith("rtk-join:u:") ? false : true; } });
+  const r = await handleJoin({ room: true, key: KEY }, PERSON, d);
+  assertEquals(r.status, 429); assertEquals(r.body, { error: "slow_down" });
+  assertEquals(d.calls.length, 0);
+  const ip = roomDeps({ rateCheck: async (key) => key.startsWith("rtk-join:ip:") ? false : true });
+  assertEquals((await handleJoin({ room: true, key: KEY }, PERSON, ip)).status, 429);
+  const down = roomDeps({ rateCheck: async () => null });
+  assertEquals((await handleJoin({ room: true, key: KEY }, PERSON, down)).status, 200);
+  const keys = roomDeps();
+  await handleJoin({ room: true, key: KEY }, PERSON, keys);
+  assertEquals(keys.rates, ["rtk-join:u:u-guest", "rtk-join:ip:5.5.5.5"]);
+});
+
+Deno.test("room: a client-supplied meeting_id in a room body is ignored", async () => {
+  const d = roomDeps();
+  const r = await handleJoin({ room: true, key: KEY, meeting_id: "meet-evil" }, PERSON, d);
+  assertEquals(r.status, 200);
+  assertEquals(paths(d), ["GET /meetings/meet-live/active-session", "POST /meetings/meet-live/participants"]);
+  const h = roomDeps();
+  await handleJoin({ room: true, meeting_id: "meet-evil" }, NELSON, h);
+  assertEquals(paths(h), ["POST /meetings/meet-live/participants"]);
+});
+
+Deno.test("room: no room row → 503 rtk_not_configured; a long title is cut at 80 for Cloudflare", async () => {
+  const none = await handleJoin({ room: true }, NELSON, roomDeps({ getRoom: async () => null }));
+  assertEquals(none.status, 503); assertEquals(none.body, { error: "rtk_not_configured" });
+  const d = roomDeps({}, { ...OFF_ROOM, title: "T".repeat(100) });
+  await handleJoin({ room: true }, NELSON, d);
+  assertEquals(String((d.calls[0].body as { title: string }).title).length, 80);
 });

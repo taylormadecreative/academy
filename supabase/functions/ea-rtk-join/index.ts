@@ -9,7 +9,9 @@
 //                           session's stored "rtk:" id (ea_opil_sessions.stream_url) or one a host
 //                           creates here; a meeting_id in the body is ignored, and a session
 //                           pointed at the Academy room's meeting is refused.
-//   { room: true, key? }    the Academy room — answers 404 not_found until the room branch lands.
+//   { room: true, key? }    the Academy room. Nelson (ea_is_admin) -> tma-class-host; a member or
+//                           someone holding the current link -> tma-class-guest; the two presets
+//                           are created on Cloudflare by ensurePresets the first time he joins.
 //
 // Auth model: verify_jwt is OFF. The caller sends its own logged-in access token; we resolve the
 // user with the SERVICE ROLE client, then ask the database AS THAT USER which role they hold
@@ -19,6 +21,7 @@
 // SUPABASE_SERVICE_ROLE_KEY. Deploy: --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { clientIp, resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
+import { ensurePresets } from "../_shared/rtk_presets.ts";
 import { handleJoin, type JoinBody } from "./handler.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
@@ -50,8 +53,9 @@ Deno.serve(async (req: Request) => {
   let body: JoinBody = {};
   try { body = await req.json(); } catch (_) { /* handler answers bad_session */ }
 
+  const cf = rtkClient(acct, app, cfToken);
   const reply = await handleJoin(body, { user: who.user, role: who.role, academyAdmin: who.academyAdmin, ip: clientIp(req) }, {
-    cf: rtkClient(acct, app, cfToken),
+    cf,
     /* fail-open like every other ea_rate_check caller: only an explicit false refuses */
     rateCheck: async (key, max, windowSecs) => {
       const { data } = await admin.rpc("ea_rate_check", { p_key: key, p_max: max, p_window_secs: windowSecs });
@@ -99,8 +103,8 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.from("ea_profiles").select("display_name").eq("user_id", userId).maybeSingle();
       return typeof data?.display_name === "string" ? data.display_name : null;
     },
-    /* nothing to ensure until the room branch exists — no Cloudflare preset is touched today */
-    ensurePresets: async () => {},
+    /* Nelson's first join creates tma-class-host / tma-class-guest on Cloudflare (cached; never throws) */
+    ensurePresets: () => ensurePresets(cf),
     now: () => new Date(),
   }).catch((e) => { console.error("[ea-rtk-join]", String(e && e.message || e)); return { status: 500, body: { error: "server" } }; });
 
