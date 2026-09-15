@@ -97,6 +97,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   ok('waiting: Ada beside the line', /ada-face\.jpg/.test(await p.evaluate(() => getComputedStyle(document.querySelector('.r2-line'), '::before').backgroundImage)));
   /* the HT wordmark inside the room (Nelson, 9/15): the target carries it, the join screen draws it above the kicker, the file really loads, and room.css sizes it */
   ok('waiting: the wordmark reached the room target', await p.evaluate(() => window.__mount.target.logo.src === '/ht/img/ht-wordmark-gold.png'));
+  ok('waiting: the strip gets the monogram, not the wordmark', await p.evaluate(() => (window.__mount.target.mark || {}).src === '/ht/img/ht-monogram-gold.png'));
   ok('waiting: the wordmark is the first thing on the join screen', await p.evaluate(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.tagName === 'IMG' && i === document.querySelector('.r2-join-left').firstElementChild && i.nextElementSibling.classList.contains('r2-kicker'); }));
   await p.waitForFunction(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
   ok('waiting: the wordmark file loads', await p.evaluate(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.naturalWidth > 0; }));
@@ -125,6 +126,10 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   await p.waitForFunction(() => window.__rec === true);
   ok('joined: recording started with room:ht', rec.length === 1 && rec[0].room === 'ht' && rec[0].action === 'start');
   ok('joined: chrome hidden in room', await p.evaluate(() => getComputedStyle(document.querySelector('.ht-tabs')).display === 'none'));
+  /* the strip mark: the academic monogram (HT minimum 0.43in ≈ 41px wide) at 24px tall — the wordmark at strip height fell under its own minimum */
+  await p.waitForFunction(() => { const i = document.querySelector('.r2-now .r2-brand-strip'); return !!i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
+  { const m = await p.evaluate(() => { const i = document.querySelector('.r2-now .r2-brand-strip'); if (!i) return null; const r = i.getBoundingClientRect(); return { src: i.getAttribute('src'), nat: i.naturalWidth, w: r.width, h: r.height, first: i === i.parentElement.firstElementChild }; });
+    ok('joined: the strip opens with the monogram, 24px tall and ≥41px wide', !!m && m.src === '/ht/img/ht-monogram-gold.png' && m.nat > 0 && m.first && Math.abs(m.h - 24) < 1 && m.w >= 41, JSON.stringify(m)); }
   await p.evaluate(() => window.__room.leave());
   await p.waitForFunction(() => window.__db.room.is_live === false);
   ok('leave: stop sent, room off air', rec.length === 2 && rec[1].action === 'stop');
@@ -141,11 +146,43 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
 /* 7 a guest who joined before sees Last session on the landing card */
 { const { p } = await page({ state: { ...base, can_join: false, recording_url: 'https://customer-x.cloudflarestream.com/abc/watch' }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
   ok('past joiner: Last session', !!(await p.$('.ht-room-last iframe'))); await p.close(); }
-/* 8 phone: no horizontal overflow on the host card and the waiting screen */
-for (const [name, db] of [['host', { state: { ...base, is_host: true }, session: sess, admin: false, room: { ...room }, replays: [], members: [], profiles: [] }], ['waiting', { state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] }]]) {
-  const { p } = await page(db, { width: 390 });
+/* 8 phone (390): no horizontal overflow; while waiting the wordmark is ON SCREEN once the scroll settles (it is measured
+   after the mount, when body.in-room has already hidden the chrome above the room); in class the strip mark is the
+   monogram and the guest's "This session is being recorded" line is fully visible — it wraps, never ellipsizes */
+for (const [name, db] of [['host', { state: { ...base, is_host: true }, session: sess, admin: false, room: { ...room }, replays: [], members: [], profiles: [] }], ['waiting', { state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] }], ['student', { state: { ...base, is_live: true }, session: sess, room: { ...room, is_live: true }, replays: [], members: [], profiles: [] }]]) {
+  const { p, errs } = await page(db, { width: 390 });
   await p.waitForTimeout(400);
-  ok('phone ' + name + ': no horizontal overflow', await p.evaluate(() => document.documentElement.scrollWidth <= 390 + 1)); await p.close(); }
+  ok('phone ' + name + ': no horizontal overflow', await p.evaluate(() => document.documentElement.scrollWidth <= 390 + 1));
+  if (name === 'waiting') {
+    await p.waitForSelector('.r2-join .r2-brand');
+    await p.waitForTimeout(1500);   /* the smooth scroll, and #room's .rv reveal transition, settle */
+    const m = await p.evaluate(() => { const b = document.querySelector('.r2-join .r2-brand').getBoundingClientRect(); const k = document.querySelector('.r2-kicker').getBoundingClientRect(); return { inRoom: document.body.classList.contains('in-room'), scrollY: window.scrollY, top: b.top, bottom: b.bottom, kickerTop: k.top }; });
+    ok('phone waiting: the room chrome is gone (body.in-room)', m.inRoom);
+    ok('phone waiting: the wordmark is on screen after the scroll settles', m.top >= 0 && m.bottom <= 844 && m.top <= 60, JSON.stringify(m));
+    ok('phone waiting: the kicker sits under the wordmark', m.kickerTop > m.bottom, JSON.stringify(m));
+  }
+  if (name === 'student') {
+    await p.waitForSelector('.r2-join');
+    ok('phone student: entered the live room', await p.evaluate(() => window.__mount.mode === 'student'));
+    await p.evaluate(() => window.__room.state('joined'));
+    await p.waitForSelector('.r2-now .r2-nowtxt');
+    await p.waitForFunction(() => { const i = document.querySelector('.r2-now .r2-brand-strip'); return !!i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
+    const m = await p.evaluate(() => {
+      const i = document.querySelector('.r2-now .r2-brand-strip'), t = document.querySelector('.r2-nowtxt'), n = document.querySelector('.r2-now');
+      const ir = i.getBoundingClientRect(), tr = t.getBoundingClientRect(), nr = n.getBoundingClientRect();
+      /* the last word of the notice must land inside the strip: a Range over it, measured */
+      const node = t.firstChild, txt = t.textContent, rg = document.createRange(); rg.setStart(node, txt.length - 'recorded'.length); rg.setEnd(node, txt.length);
+      const lr = rg.getBoundingClientRect();
+      return { src: i.getAttribute('src'), nat: i.naturalWidth, w: ir.width, h: ir.height, text: txt, clippedX: t.scrollWidth > t.clientWidth + 1, clippedY: t.scrollHeight > t.clientHeight + 1,
+        lastWordIn: lr.width > 0 && lr.right <= tr.right + 1 && lr.bottom <= nr.bottom + 1, lines: Math.round(tr.height / (parseFloat(getComputedStyle(t).lineHeight) || 18)), stripH: nr.height };
+    });
+    ok('phone student: the strip mark is the monogram, 24px tall and ≥41px wide', m.src === '/ht/img/ht-monogram-gold.png' && m.nat > 0 && Math.abs(m.h - 24) < 1 && m.w >= 41, JSON.stringify(m));
+    ok('phone student: the recording notice is the whole line', /This session is being recorded$/.test(m.text), m.text);
+    ok('phone student: the recording notice is fully visible — wrapped, not cut', !m.clippedX && !m.clippedY && m.lastWordIn, JSON.stringify(m));
+    ok('phone student: the strip grows to two lines, no more', m.lines >= 1 && m.lines <= 2 && m.stripH < 70, JSON.stringify(m));
+  }
+  ok('phone ' + name + ': no page errors', errs.length === 0, errs.join(' | '));
+  await p.close(); }
 await b.close();
 console.log(out.join('\n')); console.log(out.filter(l => l.startsWith('OK')).length + ' OK · ' + out.filter(l => l.startsWith('FAIL')).length + ' FAIL');
 process.exit(out.some(l => l.startsWith('FAIL')) ? 1 : 0);

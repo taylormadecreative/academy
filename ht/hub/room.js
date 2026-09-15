@@ -52,9 +52,13 @@ const token = async () => (await sb.auth.getSession()).data.session?.access_toke
 
 /* ---------- the cards ---------- */
 /* the HT wordmark: on the page cards (WM, .ht-room-wm) and, as target.logo, inside the room itself — the
-   join screen and the now-strip — because that is all a guest sees for an hour (Nelson, 9/15, on a call
-   with an HT administrator: "I need to see the HT logo somewhere on the UI"). Gold on transparent. */
+   join screen — because that is all a guest sees for an hour (Nelson, 9/15, on a call with an HT
+   administrator: "I need to see the HT logo somewhere on the UI"). The now-strip gets the academic
+   monogram (target.mark): at strip height the two-line wordmark falls under HT's minimum reproduction
+   width and its second line smears, and on a phone it would crowd out the guest's "this session is being
+   recorded" line. Both gold on transparent. */
 const LOGO = { src: '/ht/img/ht-wordmark-gold.png', alt: 'Huston-Tillotson University' };
+const MARK = { src: '/ht/img/ht-monogram-gold.png', alt: 'Huston-Tillotson University' };
 const WM = '<img class="ht-room-wm" src="' + LOGO.src + '" alt="' + LOGO.alt + '">';
 const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air') + '</p>';
 function card(inner, after) { ctl.innerHTML = '<div class="ht-room-card">' + WM + inner + '</div>' + (after || ''); mount.innerHTML = ''; mount.classList.remove('r2host'); }
@@ -78,7 +82,7 @@ if (state && state.bad_link && keyFromStore) {
 }
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -87,12 +91,16 @@ let pendingRecord = false;/* start the recording on the host's 'joined' — neve
 
 async function mountRoom(mode, extra) {
   const { mountRoomV2 } = await import('/js/rtk-room-v2.js' + V);
-  const top = mount.getBoundingClientRect().top + window.scrollY - 72;
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   r2 = await mountRoomV2(Object.assign({
     mountEl: mount, cfg: window.BM_CONFIG, token: await token(), sb, user, mode,
     target: target(), facilitator: state.host_name, onState,
   }, extra || {}));
+  /* scroll AFTER the mount, never before: the room module adds body.in-room, which hides the preview bar,
+     the HT head and the site header above the room — a target measured before that lands ~40px too far and
+     cut the wordmark off the top of a phone. Measured now, the room sits 8px under the top edge. (While a
+     class is live the module resolves once the person presses Enter; until then the collapsed chrome
+     already holds the join screen at the top, so this is a small settle into the class view.) */
+  window.scrollTo({ top: Math.max(0, mount.getBoundingClientRect().top + window.scrollY - 8), behavior: 'smooth' });
   return r2;
 }
 function onState(st, meeting, reason) {
