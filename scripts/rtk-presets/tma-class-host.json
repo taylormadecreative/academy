@@ -1,7 +1,7 @@
 {
-  "name": "tma-webinar-host",
+  "name": "tma-class-host",
   "config": {
-    "view_type": "WEBINAR",
+    "view_type": "GROUP_CALL",
     "max_video_streams": {
       "desktop": 9,
       "mobile": 4
@@ -31,7 +31,7 @@
         "can_produce": "ALLOWED"
       }
     },
-    "stage_enabled": true,
+    "stage_enabled": false,
     "stage_access": "ALLOWED",
     "accept_stage_requests": true,
     "can_accept_production_requests": true,

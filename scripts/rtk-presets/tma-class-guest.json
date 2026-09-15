@@ -1,7 +1,7 @@
 {
-  "name": "tma-webinar-member",
+  "name": "tma-class-guest",
   "config": {
-    "view_type": "WEBINAR",
+    "view_type": "GROUP_CALL",
     "max_video_streams": {
       "desktop": 9,
       "mobile": 4
@@ -22,17 +22,17 @@
   "permissions": {
     "media": {
       "audio": {
-        "can_produce": "CAN_REQUEST"
+        "can_produce": "ALLOWED"
       },
       "video": {
-        "can_produce": "CAN_REQUEST"
+        "can_produce": "ALLOWED"
       },
       "screenshare": {
-        "can_produce": "CAN_REQUEST"
+        "can_produce": "ALLOWED"
       }
     },
-    "stage_enabled": true,
-    "stage_access": "CAN_REQUEST",
+    "stage_enabled": false,
+    "stage_access": "ALLOWED",
     "accept_stage_requests": false,
     "can_accept_production_requests": false,
     "accept_waiting_requests": false,
@@ -49,12 +49,12 @@
       "public": {
         "can_send": true,
         "text": true,
-        "files": true
+        "files": false
       },
       "private": {
-        "can_send": false,
-        "can_receive": false,
-        "text": false,
+        "can_send": true,
+        "can_receive": true,
+        "text": true,
         "files": false
       }
     },
@@ -71,8 +71,8 @@
     },
     "connected_meetings": {
       "can_alter_connected_meetings": false,
-      "can_switch_connected_meetings": false,
-      "can_switch_to_parent_meeting": false
+      "can_switch_connected_meetings": true,
+      "can_switch_to_parent_meeting": true
     },
     "show_participant_list": true,
     "can_edit_display_name": false,
