@@ -29,7 +29,7 @@ Not in this build: co-hosts, several rooms, a waiting room where the host admits
 - **The link** `https://taylormadeacademy.com/room/?k=<key>` in a read-only field · **Copy link** · **New link** (two-tap confirm; cuts off everyone holding the old link — a forwarded link, someone removed). *Remove* (in People) takes someone out for now — they can reopen the link; **New link** is how you keep someone out.
 - **Title** field (default "Taylormade Academy Live"), saved when he clicks away (a small *Saved* note); shows on the join screen and on the members' door. **Max people (you included)**, default 50, saved the same way. Over the cap the join is refused with "The room is full right now."
 - **Open your room →** goes to `/room/` (no key needed for him).
-- Status line: *Off air* / *Live now · 12 people* — the count is `ea_room_members` rows with `last_joined_at >= live_since`, refreshed every 20 s. A room left live from a tab that died shows *Class is running* + **End session** here too; guests are refused after 4 h regardless (§6.1 step 5).
+- Status line: *Off air* / *Live now · 12 people* — the count is `ea_room_members` rows with `last_joined_at >= live_since`, refreshed every 20 s (a light `ea_room_state` read runs for every signed-in visitor whether or not a session is live; the heavier room / replays / people reads only while one is live or a replay is preparing). Any live row shows *Live now · N people* + **End session** — the page cannot tell a row left live by a tab that died from a running session, so it never claims one; guests are refused after 4 h regardless (§6.1 step 5).
 - **Replays**: the latest recordings, newest first, each as *Replay preparing* / *Replay ready — Review · Publish to members* / *Published ✓ · Unpublish* / *Replay failed — Retry* — the same wording as Jamal's coordinator row.
 - **Who joined**: "Last session · 12 people" with names under a disclosure — the same rows (`last_joined_at >= live_since` of the most recent session; `live_since` is overwritten at Start, so this shows the previous session until he starts again), names from `ea_profiles.display_name`.
 
@@ -58,7 +58,9 @@ Not in this build: co-hosts, several rooms, a waiting room where the host admits
 
 `/live/`, signed-in member: if the room is live → *Nelson is live: <title>* + **Join the room →** (`/room/`, no key). Off air → *Nothing is live right now* + **Last session** (the published replay, embedded) when there is one. Members never need the link.
 
-Signed-out and signed-in non-member visitors keep exactly today's gate card; its *Happening right now* / *Members only* header now reads the room's state.
+Signed-out and signed-in non-member visitors keep today's gate card with one string changed: the bullet *Every replay, kept in your library* reads **Every replay, kept on this page** (replays live on `/live/`, not in `/library/` — §1 "not in this build"; the card must not claim otherwise). Its *Happening right now* / *Members only* header now reads the room's state.
+
+A signed-in member's off-air tab polls `ea_room_state` every 20 s (the same light read as §2.1), so **Join the room →** and a newly published *Last session* appear without a reload; the replay embed is only re-created when `is_live` or `recording_url` actually changed. If the state RPC itself fails (0036 not applied yet, a transient error) every visitor gets the off-air door — default title, *Off air*, the gate card or *Nothing is live right now* — never an error card; Nelson's card says *run bash scripts/apply-0036.sh, then reload*.
 
 ## 3. Architecture
 
@@ -190,7 +192,7 @@ Room branch: host = `academyAdmin` (403 `not_host`); the meeting is `ea_rooms.me
 `sessionByMeeting(meetingId)` becomes `targetByMeeting(meetingId)` → `{ kind: 'room', id, title } | { kind: 'opil', no, title, kind } | null`. **Lookup order: `ea_rooms.meeting_id`, then `ea_room_replays.meeting_id → room_id` (a recording that finishes after the next Start class replaced `meeting_id` still files under its room), then `ea_opil_sessions.stream_url = 'rtk:' + id` last** — so a session pointed at the room meeting can never pull Academy recordings into OPIL's table. Unknown → ignored, as today. `upsertReplay` / `currentStatus` route by kind; `markFailed` (called from the catch with only the payload) updates by `recording_id` in `ea_room_replays` and, if nothing matched, `ea_opil_replays`. Stream copy name for a room: `Academy · <title> · <YYYY-MM-DD>` with the date from the replay row's `created_at` in America/Chicago. The forward-only RANK rule and dedupe are untouched.
 
 ### 6.4 Error codes the pages translate
-`sign_in` · `not_allowed` · `bad_link` · `not_open` · `room_full` · `slow_down` · `no_room` · `not_host` · `no_replay` · `nothing_to_retry` · `rtk_not_configured` · `cloudflare_<status>`.
+`sign_in` · `not_allowed` · `bad_link` · `not_open` · `room_full` · `slow_down` · `no_room` · `not_host` · `no_replay` · `nothing_to_retry` · `no_upload` · `rtk_not_configured` · `cloudflare_<status>` · `server` (an uncaught exception in the function: logged, answered as 500). One table — `joinErrorText(code, status, words)` in `js/room-page.js` — serves `/room/` and Nelson's card on `/live/`; `js/rtk-room-v2.js` carries the same sentences for the join it makes itself. Anything not in the table reads *The server said <status>.*
 
 ## 7. Client
 

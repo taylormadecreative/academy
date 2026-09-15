@@ -1,6 +1,6 @@
 # BUILD MODE edge functions — deploy + secrets
 
-Seven functions, one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
+The edge functions of one Supabase project (`pgqdmnmessbbzyszjfvr`). Each function does its
 own auth with the service role, so JWT verification is turned OFF for all of them.
 
 ## verify_jwt = false (set this per function)
@@ -103,8 +103,11 @@ No Cloudflare credential ever reaches a page: pages only ever hold a per-person 
 Tests (stubbed fetch + supabase, Deno std 0.224.0 asserts):
 
 ```bash
-deno test supabase/functions/ea-rtk-join/ supabase/functions/ea-rtk-record/ supabase/functions/ea-rtk-webhook/
+deno test --allow-read supabase/functions/ea-rtk-join/ supabase/functions/ea-rtk-record/ supabase/functions/ea-rtk-webhook/ supabase/functions/_shared/rtk_auth_test.ts supabase/functions/_shared/rtk_presets_test.ts
 ```
+
+(`--allow-read` because `rtk_presets_test.ts` reads `scripts/rtk-presets/*.json`; the two `_shared`
+suites are part of the room build and do not run from the three directories alone.)
 
 Deploy (CLI):
 
