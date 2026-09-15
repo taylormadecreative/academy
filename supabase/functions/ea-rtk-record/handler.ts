@@ -93,12 +93,11 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     const out = await deps.reprocess(payload);
     return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
   }
-  const out = await startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
-  /* Leave = end of the class for everyone (Nelson, 9/14): once the host's recording is stopped, close the
-     meeting so students are not left in an empty room, and a kept token cannot re-enter it. The page that
-     started the class also removes everyone before it leaves; this is the server-side backstop. */
-  if (action === "stop" && out.status === 200) await inactivate(meetingId, deps.cf, "class");
-  return out;
+  /* OPIL stop never closes the meeting: a session KEEPS its meeting across classes (ea-rtk-join reuses
+     the stored id, unlike the Academy room which mints a fresh one per Start), and an INACTIVE meeting
+     refuses every later join with ERR0004 — verified the hard way on 9/15. Leave = end for everyone is
+     done by the page that started the class (kickAll before it leaves). */
+  return startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
 }
 
 /* Close a Cloudflare meeting. Best effort, never silent, never the answer. */
