@@ -8,6 +8,18 @@
    so the tap IS the unlock; guests also arrive muted and get a one-time nudge to check their mic.
    v1 (`rtk-room.js`, the kit's own shell) is untouched: `?classic=1` brings it back.
 
+   Nobody ends a class by accident, and every person gets every tool (Nelson, 9/15, after a call
+   where he and his guest were both thrown out and she could not share her screen). The rules, for
+   every room this module draws (OPIL, the Academy, HT):
+     · Leave only leaves. A host's Leave never removes anyone, never stops the recording, never
+       flips the row; the page hears ('left', m, 'left') exactly once and offers the way back in.
+     · The one way to end is the explicit End in Tools ("End the class for everyone", two taps):
+       everyone is removed, we leave, the page hears ('ended', m, 'ended') and closes the row.
+     · A drop is never the end. When the kit says roomLeft for any reason but left / kicked / ended
+       (the socket died, the tab was throttled), a Reconnecting strip shows and the room rejoins the
+       same meeting on its own — twice — before the page hears ('left', m, 'dropped').
+     · One bar, one Tools sheet, for host and guest alike.
+
    Loading is identical to v1 (proven 9/10): core as the IIFE build, UI kit as ESM, pinned. */
 
 /* The words and the queue helpers live in OPIL's live-rooms.js. They are imported when a room
@@ -65,7 +77,7 @@ async function joinTarget(cfg, token, joinBody, words) {
       not_allowed: words.notAllowed,
       not_open: words.notOpen,
       not_found: 'That session no longer exists.',
-      bad_link: 'This link isn’t active anymore — ask Nelson for the new one.',
+      bad_link: 'This link isn’t active anymore — ask ' + words.host + ' for the new one.',
       room_full: 'The room is full right now.',
       slow_down: 'Too many tries — wait a minute and try again.',
       rtk_not_configured: words.notConfigured,
@@ -110,8 +122,11 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
      mode 'student'  the class is running: preview → Enter Class → in class
      mode 'host'     Start class pressed: the meeting is opened now (onOpened gets the id),
                      preview → Enter Class (starts everything) → in class
-   Returns { meetingId, leave(), setRecording(bool) }. onState gets ('joined' | 'left' | 'ended', meeting, reason)
-   where reason is 'left' | 'kicked' | 'ended' — why the room went away.
+   Returns { meetingId, host, leave(), end(), setRecording(bool) }. leave() leaves only; end() is the explicit
+   end for everyone. onState gets ('joined' | 'left' | 'ended', meeting, reason) where reason is
+   'left' | 'kicked' | 'ended' | 'dropped' — why the room went away ('dropped' = the connection died and two
+   rejoin attempts failed); a page also hears ('reconnecting', m, 'dropped') when a rejoin starts and
+   ('joined', m, 'rejoined') when it lands — both are safe to ignore. 'left' and 'ended' fire ONCE.
    o.target says where the room lives: { kind:'opil', session } (the default, today's OPIL behaviour byte
    for byte) or { kind:'room', id, title, key, slug?, words?, tokens?, logo?: { src, alt }, mark?: { src, alt } }
    (the Academy room, spec 2026-09-14-academy-room-design.md). slug, words, tokens, logo and mark are optional
@@ -125,9 +140,8 @@ export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
   const target = o.target || { kind: 'opil', session: o.session };
-  /* Leave = end of the session for everyone, but only from the page that STARTED the class (a co-host
-     who joined a colleague's class just leaves). The Academy room has one host, so there it is Nelson. */
-  const endsAll = (target.kind === 'room') ? undefined : !!o.endsSession;
+  /* (o.endsSession, the old "Leave ends it from the page that started the class", is read by nobody now:
+     Leave leaves, whoever you are; End is its own action) */
   /* derived once; nothing below reads target.session again */
   const isRoom = target.kind === 'room';
   const session = isRoom ? null : target.session;
@@ -161,11 +175,11 @@ export async function mountRoomV2(o) {
     ui.provideRtkDesignSystem(mountEl, target.tokens || ACADEMY_TOKENS);
   }
   const host = !!join.host;
-  const meeting = await RealtimeKitClient.init({
-    authToken: join.token,
-    /* hosts arrive ready to teach; students arrive muted, camera off, and turn them on in one tap */
-    defaults: { audio: host, video: host, mediaConfiguration: { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } } } },
-  });
+  const mediaConfiguration = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } } };
+  /* one init for the first meeting and for a rejoin after a drop (same token, or a fresh one) */
+  const initKit = (authToken, audio, video) => RealtimeKitClient.init({ authToken, defaults: { audio, video, mediaConfiguration } });
+  /* hosts arrive ready to teach; students arrive muted, camera off, and turn them on in one tap */
+  const meeting = await initKit(join.token, host, host);
   let current = meeting;   /* the meeting this page is in: the main room, or a breakout room */
   try { window.__r2 = { get meeting() { return current; }, get effects() { return effects; } }; } catch (e) {}   /* support hook, read-only */
 
@@ -259,7 +273,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onEnd: endNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -267,30 +281,116 @@ export async function mountRoomV2(o) {
 
   /* breakout rooms hand the page a NEW meeting: rebind everything to it */
   let switching = false;
+  const watchBreakouts = (mtg) => { try { mtg.connectedMeetings.on('changingMeeting', () => { switching = true; }); mtg.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {} };
   const onMeetingChanged = async (next) => {
-    current = next; room.bind(next); keepTranscripts(next); watchLeft(next); await loadEffects(next);
-    try { next.connectedMeetings.on('changingMeeting', () => { switching = true; }); next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+    current = next; room.bind(next); keepTranscripts(next); watchLeft(next); watchLink(next); await loadEffects(next);
+    watchBreakouts(next);
     setTimeout(() => { switching = false; }, 1500);
   };
-  try { meeting.connectedMeetings.on('changingMeeting', () => { switching = true; }); meeting.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
+  watchBreakouts(meeting);
 
-  const gone = (why, reason) => () => { if (switching) return; room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = ''; if (onState) onState(why, current, reason); };
-  /* roomLeft carries why: 'left' (we pressed Leave), 'ended' (the host ended it), 'kicked' (removed).
-     The first onState argument keeps its two values; the third says which of the three it was. */
-  const watchLeft = (mtg) => { try { mtg.self.on('roomLeft', (ev) => { if (mtg !== current) return; const st = ev && ev.state; gone(st === 'ended' ? 'ended' : 'left', st === 'kicked' || st === 'ended' ? st : 'left')(); }); } catch (e) {} };
-  watchLeft(meeting);
+  /* ---------- the way out: once, and only for a reason ----------
+     leaving  = we pressed Leave (the room keeps running; the page offers the way back in)
+     ending   = we pressed End (everyone is removed first; the page closes the row)
+     goneOnce = the page has been told; the kit can say roomLeft twice (its event + our explicit call) */
+  let leaving = false, ending = false, goneOnce = false;
+  const gone = (why, reason) => () => {
+    if (switching || goneOnce) return;
+    goneOnce = true;
+    room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = '';
+    if (onState) onState(why, current, reason);
+  };
+  /* roomLeft carries why. 'left' (we pressed Leave), 'kicked' (a host removed you), 'ended' (the meeting ended)
+     keep their word; ANYTHING ELSE — 'disconnected', 'failed', an undefined state — is a drop: the connection
+     died, not the class (9/15: the host's socket dropped and the page ended the class for everyone). A drop
+     reconnects; it never reaches the page as 'left' until both attempts have failed. */
+  const watchLeft = (mtg) => { try { mtg.self.on('roomLeft', (ev) => {
+    if (mtg !== current) return;
+    const st = ev && ev.state;
+    if (ending) return gone('ended', 'ended')();
+    if (leaving) return gone('left', 'left')();
+    const kind = copy.leftKind(st);
+    if (kind === 'left') return gone('left', 'left')();
+    if (kind === 'kicked') return gone('left', 'kicked')();
+    if (kind === 'ended') return gone('ended', 'ended')();
+    drop(st);
+  }); } catch (e) {} };
+  /* the kit's own reconnect (before it gives up): say so on the strip; 'disconnected' = it gave up.
+     'reconnecting' also freezes the mic/camera memory below — the kit turns both off while it tears a dead
+     connection down, and that is not what the person had on. */
+  let dropping = false;
+  const watchLink = (mtg) => { try {
+    mtg.meta.on('reconnecting', () => { if (mtg === current && !goneOnce && !leaving && !ending) { mediaFrozen = true; room.reconnecting(copy.reconnectCopy(0)); } });
+    mtg.meta.on('reconnected', () => { if (mtg === current && !dropping) { mediaFrozen = false; room.reconnecting(null); } });
+    mtg.meta.on('disconnected', () => { if (mtg === current) drop('disconnected'); });
+  } catch (e) {} };
+  /* what the person had on, so a rejoin brings it back: the host's defaults until the kit says otherwise */
+  let lastMedia = { audio: host, video: host }, mediaFrozen = false;
+  const trackMedia = (mtg) => {
+    const upd = () => { if (mediaFrozen || mtg !== current) return; try { lastMedia = { audio: !!mtg.self.audioEnabled, video: !!mtg.self.videoEnabled }; } catch (e) {} };
+    try { mtg.self.on('audioUpdate', upd); mtg.self.on('videoUpdate', upd); } catch (e) {}
+    upd();
+  };
+  watchLeft(meeting); watchLink(meeting); trackMedia(meeting);
 
-  /* In the Academy room there is one host, so Nelson leaving IS the end: everyone else is removed
-     first (what "End class for everyone" does in the Tools sheet), then he leaves. OPIL keeps plain Leave. */
+  /* a rejoin after a drop: the same meeting, first with the token we have, then with a fresh one from the
+     server (the join function reuses the running meeting for a host and for a guest alike). Mic and camera
+     come back the way they were. The page is not told 'joined' again as a first join — reason 'rejoined'. */
+  const freshToken = async () => { try { return (await sb.auth.getSession()).data.session?.access_token || token; } catch (e) { return token; } };
+  async function rejoin(useFreshToken, media) {
+    let tok = join.token;
+    if (useFreshToken) { const j = await joinTarget(cfg, await freshToken(), joinBody, words); tok = j.token; }
+    const next = await initKit(tok, media.audio, media.video);
+    await (next.join ? next.join() : next.joinRoom());
+    return next;
+  }
+  async function drop(state) {
+    if (dropping || goneOnce || leaving || ending || switching) return;
+    dropping = true; mediaFrozen = true;
+    const media = lastMedia;
+    room.reconnecting(copy.reconnectCopy(0));
+    if (onState) onState('reconnecting', current, 'dropped');
+    for (let attempt = 0; ; attempt++) {
+      const wait = copy.rejoinPlan('dropped', attempt);
+      if (wait == null) break;
+      await new Promise((r) => setTimeout(r, wait));
+      if (goneOnce || leaving || ending) { dropping = false; return; }
+      room.reconnecting(copy.reconnectCopy(attempt));
+      try {
+        const next = await rejoin(attempt > 0, media);
+        current = next; room.bind(next); keepTranscripts(next); watchLeft(next); watchLink(next); watchBreakouts(next); loadEffects(next);
+        dropping = false; mediaFrozen = false; trackMedia(next); room.reconnecting(null); room.toast('You’re back in.');
+        if (onState) onState('joined', next, 'rejoined');
+        return;
+      } catch (e) { console.warn('[room] rejoin ' + (attempt + 1) + ' failed:', String((e && e.message) || e || state)); }
+    }
+    dropping = false; room.reconnecting(null);
+    gone('left', 'dropped')();
+  }
+
+  /* Leave: this person leaves; the class keeps running for everyone else, the recording keeps going,
+     the row stays live. The same for a host — the way back in is one tap on the page. */
   async function leaveNow() {
-    if ((isRoom && host) || endsAll) { try { await current.participants.kickAll?.(); } catch (e) {} }
+    if (goneOnce || leaving || ending) return;
+    leaving = true;
     try { await current.leave(); } catch (e) {}
     gone('left', 'left')();
+  }
+  /* End: the ONLY way a class ends. Everyone else is removed, then we leave; the page hears 'ended' and
+     stops the recording and closes the row. Reached from Tools ("End the class for everyone", two taps)
+     or a page's own End control, never from Leave. */
+  async function endNow() {
+    if (goneOnce || ending) return;
+    ending = true;
+    try { if (current.participants.kickAll) await current.participants.kickAll(); } catch (e) {}
+    try { await current.leave(); } catch (e) {}
+    gone('ended', 'ended')();
   }
 
   return {
     meetingId: join.meeting_id, host,
     leave: leaveNow,
+    end: endNow,
     setRecording: (on) => room.setRecording(on),
   };
 }
@@ -344,7 +444,8 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects, onLeave, onEnd, onSwitch, rootId }) {
+  const ec = copy.endCopy(words);   /* the Leave / End words, from the room's own noun */
   const node = el(`<div class="r2">
     <div class="r2-now">${brandMark(mark, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
@@ -356,6 +457,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <rtk-dialog-manager></rtk-dialog-manager>
         </rtk-ui-provider>
         <div class="r2-cc" role="region" aria-label="Captions" hidden></div>
+        <div class="r2-reconnect" role="status" hidden></div>
       </div>
       <aside class="r2-panel">
         <div class="r2-tabs">
@@ -381,8 +483,10 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-primary"></div>
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
+        <button type="button" class="r2-btn r2-share" aria-pressed="false">Share my screen</button>
+        <button type="button" class="r2-btn r2-fx-btn">Effects</button>
         <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false">Captions</button>
-        ${host ? '<button type="button" class="r2-btn r2-tools">Tools</button>' : '<button type="button" class="r2-btn r2-help">Need help?</button>'}
+        <button type="button" class="r2-btn r2-tools">Tools</button>
         <button type="button" class="r2-leave">Leave</button>
       </div>
     </div>
@@ -432,7 +536,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
 
   /* mic / camera in words — wired once; a breakout switch only re-points them at the new meeting */
   const chips = wireChips(node, () => m, null, (msg) => toast(msg, 7000));
-  const bindSelf = () => { try { m.self.on('audioUpdate', chips.sync); m.self.on('videoUpdate', chips.sync); } catch (e) {} chips.sync(); };
+  const bindSelf = () => { try { m.self.on('audioUpdate', chips.sync); m.self.on('videoUpdate', chips.sync); m.self.on('screenShareUpdate', syncShare); } catch (e) {} chips.sync(); syncShare(); };
 
   /* the side panel (desktop) / sheet (phone) */
   /* The kit's grid measures itself with a resize observer that can miss the first layout: tiles sit
@@ -565,7 +669,9 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   let handsChan = null;
   const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} setInterval(loadHands, 15000); };
 
-  /* the sheet: tools for the host, help for students */
+  /* the sheet: the same Tools for everyone — host and guest (Nelson, 9/15: "every single person should
+     have access to ALL THE TOOLS on every platform"). The preset decides what the kit lets a tap do;
+     rtk_presets.ts opens screen share, polls, chat files, pin and small groups to every role. */
   const sheet = q('.r2-sheet'), sheetBody = q('.r2-sheet-body');
   const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); sheet.hidden = false; };
   q('.r2-sheet-close').addEventListener('click', () => { sheet.hidden = true; sheetBody.innerHTML = ''; });
@@ -584,25 +690,39 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     }));
     return p;
   };
+  /* Share my screen: one toggle, wherever it is pressed (the bar, the Tools sheet). The kit refuses when
+     the browser cannot capture a screen (most phones) or the preset says no — the toast says which. */
+  const shareBtn = q('.r2-share');
+  const syncShare = () => { let on = false; try { on = !!m.self.screenShareEnabled; } catch (e) {} if (shareBtn) { shareBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); shareBtn.textContent = on ? 'Stop sharing' : 'Share my screen'; } };
+  async function toggleShare() {
+    let can = true; try { can = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) {}
+    if (!can) { toast('This browser can’t share a screen — a laptop can.', 6000); return; }
+    try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); }
+    catch (e) { toast('Screen share: ' + (e.message || e), 6000); }
+    syncShare();
+  }
+  if (shareBtn) shareBtn.addEventListener('click', toggleShare);
+  const fxBtn = q('.r2-fx-btn'); if (fxBtn) fxBtn.addEventListener('click', () => openSheet('Effects', effectsPane()));
   const toolsPane = () => {
     const p = el(`<div class="r2-tools">
       <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-      <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>Split ${esc(words.many)} into rooms, visit one, bring everyone back</span></button>
-      <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
+      <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
+      <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>Split ${esc(words.many)} into rooms, visit one, bring everyone back</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
-      <button type="button" class="r2-btn danger" data-tool="end"><b>End ${esc(words.thing)} for everyone</b><span>Closes the room and stops the recording</span></button>
+      <button type="button" class="r2-btn danger" data-tool="end"><b>${esc(ec.endButton)}</b><span>${esc(ec.endHint)}</span></button>
     </div>`);
     p.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', async () => {
       const t = b.dataset.tool;
-      if (t === 'share') { try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); } catch (e) { toast('Screen share: ' + (e.message || e)); } sheet.hidden = true; }
+      if (t === 'share') { sheet.hidden = true; await toggleShare(); }
       else if (t === 'fx') openSheet('Effects', effectsPane());
       else if (t === 'breakout') openSheet('Small groups', groupsPane());
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
-      else if (t === 'end') { if (confirmInline(b, 'End ' + words.thing + ' for everyone?')) { try { if (m.participants.kickAll) await m.participants.kickAll(); } catch (e) {} await onLeave(); } }
+      /* the ONLY way a class ends: two taps, then everyone is removed and the page closes the row */
+      else if (t === 'end') { if (confirmInline(b, ec.endAsk, ec.endAgain)) { b.disabled = true; await onEnd(); } }
     }));
     return p;
   };
@@ -656,34 +776,23 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     refresh(); const tick = setInterval(() => { if (!p.isConnected) return clearInterval(tick); refresh(); }, 8000);
     return p;
   };
-  const helpPane = () => {
-    const p = el(`<div class="r2-tools">
-      <button type="button" class="r2-btn" data-h="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-      <button type="button" class="r2-btn" data-h="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
-      <button type="button" class="r2-btn" data-h="share"><b>Share my screen</b><span>Only if ${esc(words.host)} asks</span></button>
-      <p class="r2-fine">Can’t hear? Check your speakers under Camera &amp; mic. Can’t be heard? Tap the mic chip — it says whether you’re muted.</p>
-    </div>`);
-    p.querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', async () => {
-      const t = b.dataset.h;
-      if (t === 'fx') openSheet('Effects', effectsPane());
-      else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
-      else if (t === 'share') { try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); } catch (e) { toast('Screen share: ' + (e.message || e)); } sheet.hidden = true; }
-    }));
-    return p;
-  };
+  /* (the guest's "Need help?" menu is gone: its three items live in the same Tools sheet everyone gets) */
   const tb = q('.r2-tools'); if (tb) tb.addEventListener('click', () => openSheet('Tools', toolsPane()));
 
-  const hb = q('.r2-help'); if (hb) hb.addEventListener('click', () => openSheet('Need help?', helpPane()));
-
-  /* leave: two taps, never one accidental one */
+  /* Leave: two taps, never one accidental one — and it only ever LEAVES. A host is told the class keeps
+     running; nobody is removed, nothing stops, the row stays live (the End in Tools does that, on purpose). */
   const leaveBtn = q('.r2-leave');
-  leaveBtn.addEventListener('click', async () => { if (confirmInline(leaveBtn, isRoom && host ? 'End the session for everyone?' : 'Leave ' + words.thing + '?')) await onLeave(); });
-  function confirmInline(btn, label) {
+  leaveBtn.addEventListener('click', async () => { if (confirmInline(leaveBtn, host ? ec.leaveHost : ec.leave)) { leaveBtn.disabled = true; await onLeave(); } });
+  function confirmInline(btn, label, again) {
     if (btn.dataset.armed === '1') { btn.dataset.armed = ''; return true; }
-    const old = btn.innerHTML; btn.dataset.armed = '1'; btn.innerHTML = esc(label) + ' <em>Tap again</em>';
+    const old = btn.innerHTML; btn.dataset.armed = '1'; btn.innerHTML = esc(label) + ' <em>' + esc(again || 'Tap again') + '</em>';
     setTimeout(() => { if (btn.dataset.armed === '1') { btn.dataset.armed = ''; btn.innerHTML = old; } }, 4000);
     return false;
   }
+
+  /* the Reconnecting strip over the video: a sentence, or nothing */
+  const reconnectEl = q('.r2-reconnect');
+  function reconnecting(text) { if (!reconnectEl) return; if (text) { reconnectEl.textContent = text; reconnectEl.hidden = false; } else { reconnectEl.hidden = true; reconnectEl.textContent = ''; } }
 
   function toast(msg, ms) { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), ms || 4000); }
 
@@ -708,5 +817,5 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
   function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); }
-  return { node, bind, destroy, setRecording, toast };
+  return { node, bind, destroy, setRecording, toast, reconnecting };
 }

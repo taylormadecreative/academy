@@ -151,3 +151,57 @@ export function takeCaption(caps, x, now) {
   next = next.filter(c => !(c.final && now - c.at > CAPTION_TTL_MS));
   return next.slice(-CAPTION_MAX);
 }
+
+/* ---------- nobody ends a class by accident (Nelson, 9/15: "i never asked for a rule anywhere to cut off a
+   class I am in the middle of talking on … i dont want to be booted out again") ----------
+   On 9/15 the host's own socket dropped mid-call; the kit reported roomLeft, and the page treated that
+   like the host pressing Leave — which, back then, ended the class for everyone. Three rules now, for
+   every room (OPIL, the Academy, HT): Leave only leaves; the one way to end is the explicit End; a drop
+   reconnects. The words and the plan live here so the pages and the module agree, and node tests them. */
+
+/* Why the kit says you are out, in one of four words: 'left' (you pressed Leave), 'kicked' (a host
+   removed you), 'ended' (the meeting ended) — anything else ('disconnected', 'failed', undefined…) is
+   a DROP: the connection died. A drop is never the end of anything. */
+export function leftKind(state) {
+  return state === 'left' || state === 'kicked' || state === 'ended' ? state : 'dropped';
+}
+
+/* the reconnect plan: how long to wait before attempt N (0-based), or null when there is no attempt N —
+   twice after a drop (2 s, then 4 s more, about 6 s in); never after Leave, a kick, or an ended meeting */
+export const REJOIN_DELAYS_MS = Object.freeze([2000, 4000]);
+export function rejoinPlan(kind, attempt) {
+  if (kind !== 'dropped') return null;
+  const n = Number(attempt);
+  if (!Number.isInteger(n) || n < 0 || n >= REJOIN_DELAYS_MS.length) return null;
+  return REJOIN_DELAYS_MS[n];
+}
+/* the strip while it happens: plain words, one line */
+export function reconnectCopy(attempt) {
+  return attempt > 0 ? 'Still reconnecting — one more try…' : 'Reconnecting…';
+}
+
+/* the Leave and End words, from the room's own noun (class / session). No name, no vendor. */
+export function endCopy(words = OPIL_WORDS) {
+  const t = words.thing;
+  return Object.freeze({
+    leave: 'Leave ' + t + '?',                                                       /* a guest's Leave, as today */
+    leaveHost: 'Leave the room? The ' + t + ' keeps running — you can come back.',   /* a host's Leave: leaves only */
+    endButton: 'End the ' + t + ' for everyone',                                      /* the one way to end it */
+    endAsk: 'End the ' + t + ' for everyone?',
+    endAgain: 'Tap again to end it.',
+    endHint: 'Closes the room for everyone and stops the recording',
+    stillRunning: 'You left — the ' + t + ' is still running.',
+    stillRunningHint: 'People are still in the room and the recording is still going. Rejoin, or end the ' + t + ' for everyone.',
+    backOn: 'The ' + t + ' is back on — rejoin when you’re ready.',
+    rejoin: 'Rejoin →',
+  });
+}
+
+/* The ended card keeps listening, so nobody who was removed or whose class ended is stranded when a new
+   one starts. "Live again" means the room was seen OFF air since the card appeared (a removed person in a
+   class that never stopped is not offered the door back until a new class starts) and is live now.
+   Pure: prev = { seenOff }, isLiveNow = the poll's answer → { seenOff, again }. */
+export function backOn(prev, isLiveNow) {
+  const seenOff = !!(prev && prev.seenOff) || isLiveNow === false;
+  return { seenOff, again: isLiveNow === true && seenOff };
+}
