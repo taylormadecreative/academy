@@ -45,6 +45,8 @@ export function htErrorText(code, status, words) {
     case 'not_host': return 'Only a host can do that.';
     case 'no_replay': return 'That replay is gone.';
     case 'nothing_to_retry': return 'Nothing to retry for that replay.';
+    case 'no_upload': return 'That recording never finished uploading, so there is nothing to retry.';
+    case 'bad_replay': return 'That replay id is not valid.';
     case 'rtk_not_configured': return words.notConfigured;
     default: return 'The server said ' + (status || code || 'nothing') + '.';
   }

@@ -29,6 +29,9 @@ const V = createHash('sha1')
   .update(stampIn(path.join(HUB, 'room.js')))
   .update(stampIn(path.join(HUB, 'room.css')))
   .update(stampIn(path.join(HUB, 'room-words.js')))
+  /* the HT page imports both under the HT ?v=, so their changes must move it */
+  .update(stampIn(path.join(ROOT, '..', 'js', 'room-page.js')))
+  .update(stampIn(path.join(ROOT, '..', 'js', 'rtk-room-v2.js')))
   .digest('hex').slice(0, 8);
 const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function shell(key, title, desc, dir) {

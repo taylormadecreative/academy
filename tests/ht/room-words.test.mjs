@@ -55,7 +55,7 @@ test('HT_TOKENS has the exact key shape provideRtkDesignSystem gets for the Acad
 
 test('htErrorText never says Nelson; every code has a sentence', () => {
   const w = htWords('Dr. Gray');
-  const codes = ['sign_in', 'not_allowed', 'bad_link', 'not_open', 'room_full', 'slow_down', 'no_room', 'not_host', 'no_replay', 'nothing_to_retry', 'rtk_not_configured', 'cloudflare_502', 'server_500'];
+  const codes = ['sign_in', 'not_allowed', 'bad_link', 'not_open', 'room_full', 'slow_down', 'no_room', 'not_host', 'no_replay', 'nothing_to_retry', 'no_upload', 'bad_replay', 'rtk_not_configured', 'cloudflare_502', 'server_500'];
   for (const c of codes) {
     const t = htErrorText(c, 500, w);
     assert.equal(typeof t, 'string'); assert.ok(t.length > 8, c);
@@ -67,6 +67,7 @@ test('htErrorText never says Nelson; every code has a sentence', () => {
   assert.equal(htErrorText('bad_link', 404, w), 'This link isn’t active anymore — ask your host for the new one.');
   assert.equal(htErrorText('not_host', 403, w), 'Only a host can do that.');
   assert.equal(htErrorText('room_full', 429, w), 'The room is full right now.');
+  assert.equal(htErrorText('no_upload', 400, w), 'That recording never finished uploading, so there is nothing to retry.');
   assert.equal(htErrorText('zzz', 418, w), 'The server said 418.');
 });
 
