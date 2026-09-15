@@ -75,8 +75,10 @@ test('build_site.py: hash list + _ASSET_RX carry js/room-page.js and no broadcas
   assert.match(build, /HUB_PAGES = \([^)]*"room"[^)]*\)/);
 });
 
-test('sw.js VERSION is bumped for the room', () => {
-  assert.ok(sw.includes("const VERSION = 'tma-v21-academy-room';"));
+test('sw.js VERSION is at or past the room bump (v21); later fixes keep counting up', () => {
+  const m = sw.match(/const VERSION = 'tma-v(\d+)-[a-z0-9-]+';/);
+  assert.ok(m, 'VERSION line missing');
+  assert.ok(Number(m[1]) >= 21, 'VERSION went backwards: ' + m[0]);
 });
 
 test('the retired files are gone and the README says so', () => {
