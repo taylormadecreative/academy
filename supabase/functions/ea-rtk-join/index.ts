@@ -35,7 +35,7 @@ const CORS: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const ANON_KEY = "sb_publishable_fyYqa9QkEeA5LD_0hYLTTA_F8Gxw1oz";
-const ROOM_COLS = "id,slug,title,host_name,host_emails,host_preset,guest_preset,link_key,is_live,live_since,meeting_id,max_participants";
+const ROOM_COLS = "id,slug,title,host_name,host_emails,host_preset,guest_preset,link_key,is_live,live_since,meeting_id,max_participants,open_door";
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });

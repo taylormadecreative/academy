@@ -460,6 +460,31 @@ Deno.test("room:'ht' — an Academy member without the key is refused (membershi
   assertEquals(r.status, 403); assertEquals(r.body, { error: "not_allowed" });
 });
 
+/* 0038 — the open door: on an open_door room any signed-in account walks in while the class runs;
+   a wrong key is not a dead link there; the Academy room (open_door false) is unchanged */
+Deno.test("room:'ht' open_door — a signed-in stranger with NO key is admitted as ht-class-guest", async () => {
+  const d = roomDeps({}, htRow({ open_door: true }));
+  const r = await handleJoin({ room: "ht" }, PERSON, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { preset: string }).preset, "ht-class-guest");
+  assertEquals((r.body as { meeting_id?: string }).meeting_id, undefined);
+});
+Deno.test("room:'ht' open_door — a wrong key still gets in (the key is not the gate)", async () => {
+  const d = roomDeps({}, htRow({ open_door: true }));
+  const r = await handleJoin({ room: "ht", key: "ZZZZZZZZZZZZZZZZZZZZZZ" }, PERSON, d);
+  assertEquals(r.status, 200);
+});
+Deno.test("room:'ht' open_door — still refused while the class is not running (not_open)", async () => {
+  const d = roomDeps({}, htRow({ open_door: true, is_live: false, meeting_id: null }));
+  const r = await handleJoin({ room: "ht" }, PERSON, d);
+  assertEquals(r.status, 409); assertEquals(r.body, { error: "not_open" });
+});
+Deno.test("room:'ht' with open_door false — a stranger without the key is still refused", async () => {
+  const d = roomDeps({}, htRow({ open_door: false }));
+  const r = await handleJoin({ room: "ht" }, PERSON, d);
+  assertEquals(r.status, 403); assertEquals(r.body, { error: "not_allowed" });
+});
+
 Deno.test("room:'ht' — the key admits a guest with ht-class-guest and no meeting id", async () => {
   const d = roomDeps({}, htRow());
   const r = await handleJoin({ room: "ht", key: "AbC123_-xyzXYZ0987ab-_" }, PERSON, d);

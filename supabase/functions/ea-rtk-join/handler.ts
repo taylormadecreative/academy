@@ -27,6 +27,7 @@ export type SessionRow = { no: number; title: string | null; stream_url: string 
 export type RoomRow = {
   id: string; slug: string; title: string; host_name: string; host_emails: string[]; host_preset: string; guest_preset: string;
   link_key: string; is_live: boolean; live_since: string | null; meeting_id: string | null; max_participants: number;
+  open_door?: boolean;   /* 0038: any signed-in account may enter while the class runs (ht); the key is not the gate */
 };
 export type CfResult = { ok: boolean; status: number; data: unknown };
 export type JoinDeps = {
@@ -134,7 +135,10 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
   /* a malformed key (wrong length/charset — e.g. a truncated paste) is still a dead link, not "no key" */
   const keyOk = keyGiven && KEY_RX.test(key) && key === room.link_key;
   if (!isHost) {
-    const allowed = (slug === "academy" && (await deps.isMember())) || keyOk;
+    /* an open-door room (ht, 0038) admits any signed-in account — the link is how they found the
+       page, not the gate (Nelson, 9/15: "anyone should be able to enter the room once signed in");
+       a wrong key on such a room is not a dead link either. The Academy room keeps open_door false. */
+    const allowed = room.open_door === true || (slug === "academy" && (await deps.isMember())) || keyOk;
     if (!allowed) return keyGiven ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
   }
   /* 4 — is the room open: live, and started less than 4 h ago */
