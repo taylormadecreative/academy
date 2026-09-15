@@ -324,7 +324,8 @@ export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promis
    host talking. The two OPIL bodies whose flag changed ship here as copies of the committed
    files (a bundle cannot reach scripts/; rtk_presets_test.ts proves they match). They are never
    CREATED here — scripts/rtk-presets.sh made them — only brought in line when Cloudflare's copy
-   disagrees on transcription. Same contract as ensurePresets: never throws, cached once right. */
+   disagrees on any TOOL flag (transcription, and since 9/15 screen share, polls, chat files, pin,
+   small groups — toolFlagMismatch). Same contract as ensurePresets: never throws, cached once right. */
 export const OPIL_BODIES = { "opil-student": opilStudent, "opil-judge": opilJudge } as const;
 const OPIL_NAMES = ["opil-student", "opil-judge"] as const;
 let opilOk = false;
