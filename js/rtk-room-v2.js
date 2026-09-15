@@ -7,7 +7,10 @@
 
    Loading is identical to v1 (proven 9/10): core as the IIFE build, UI kit as ESM, pinned. */
 
-import { stateCopy, nowCopy, queueOrder, queuePosition, nextInLine, joinCopy, sessLabel } from '/opil/hub/live-rooms.js';
+/* The words and the queue helpers live in OPIL's live-rooms.js. They are imported when a room
+   mounts, on this module's own ?v= (the pattern opil/hub/hub.js uses for tour.js), so they ride
+   its cache stamp and never need a service-worker bump of their own. */
+let copy = null;
 
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
@@ -33,20 +36,24 @@ function loadKit() {
   return kitReady;
 }
 
-/* Ask the server for a token. It decides the role; the page never names a preset. */
-async function joinTarget(cfg, token, sessionNo, meetingId) {
+/* Ask the server for a token. It decides the role; the page never names a preset.
+   joinBody is { session_no, meeting_id? } for an OPIL class or { room: true, key } for the Academy room. */
+async function joinTarget(cfg, token, joinBody, words) {
   const r = await fetch(cfg.FUNCTIONS_BASE + '/ea-rtk-join', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify(meetingId ? { session_no: sessionNo, meeting_id: meetingId } : { session_no: sessionNo }),
+    body: JSON.stringify(joinBody),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
     const e = new Error({
       sign_in: 'Sign in again and retry.',
-      not_allowed: 'Your account is not in this cohort.',
-      not_open: 'The room opens when your facilitator starts the class.',
+      not_allowed: words.notAllowed,
+      not_open: words.notOpen,
       not_found: 'That session no longer exists.',
+      bad_link: 'This link isn’t active anymore — ask Nelson for the new one.',
+      room_full: 'The room is full right now.',
+      slow_down: 'Too many tries — wait a minute and try again.',
       rtk_not_configured: 'The class room is not set up yet.',
     }[d.error] || ('The server said ' + r.status + '.'));
     e.code = d.error; e.status = r.status; throw e;
@@ -86,23 +93,41 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
      mode 'student'  the class is running: preview → Enter Class → in class
      mode 'host'     Start class pressed: the meeting is opened now (onOpened gets the id),
                      preview → Enter Class (starts everything) → in class
-   Returns { meetingId, leave(), setRecording(bool) }. onState gets 'joined' | 'left' | 'ended'. */
+   Returns { meetingId, leave(), setRecording(bool) }. onState gets ('joined' | 'left' | 'ended', meeting, reason)
+   where reason is 'left' | 'kicked' | 'ended' — why the room went away.
+   o.target says where the room lives: { kind:'opil', session } (the default, today's OPIL behaviour byte
+   for byte) or { kind:'room', id, title, key } (the Academy room, spec 2026-09-14-academy-room-design.md). */
 export async function mountRoomV2(o) {
-  const { mountEl, cfg, token, sb, user, session, mode, facilitator, onState, onOpened } = o;
-  const no = session.no, title = sessLabel(session) + ' · ' + session.title;
+  copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
+  const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
+  const target = o.target || { kind: 'opil', session: o.session };
+  /* derived once; nothing below reads target.session again */
+  const isRoom = target.kind === 'room';
+  const session = isRoom ? null : target.session;
+  const words = isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS;
+  const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
+  const title = isRoom ? target.title : session.title;
+  const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
+  const autoKey = isRoom ? 'room:' + target.id : String(session.no);
+  const hands = isRoom
+    ? { table: 'ea_room_hands', col: 'room_id', val: target.id, chan: 'hands-room-' + target.id }
+    : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
+  /* OPIL keeps sending meeting_id; the server ignores it now and uses the session's stored one */
+  const joinBody = isRoom ? { room: true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
+  const facilitator = o.facilitator ?? (isRoom ? words.host : null);
   mountEl.classList.add('r2host');
   document.body.classList.add('in-room', 'in-room-v2');
 
   /* ---------- waiting: no video library yet, just the promise of what happens next ---------- */
   if (mode === 'waiting') {
     mountEl.innerHTML = '';
-    mountEl.appendChild(joinScreen({ title, session, live: false, host: false, facilitator, joined: 0, preview: false }));
-    try { sessionStorage.setItem(AUTO_KEY, String(no)); } catch (e) {}   /* when the page reloads live, walk straight in */
+    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words }));
+    try { sessionStorage.setItem(AUTO_KEY, autoKey); } catch (e) {}   /* when the page reloads live, walk straight in */
     return { meetingId: null, leave: () => { mountEl.innerHTML = ''; }, setRecording() {} };
   }
 
   /* ---------- the meeting object: for a host this is what OPENS the room ---------- */
-  const join = await joinTarget(cfg, token, no, o.meetingId || null);
+  const join = await joinTarget(cfg, token, joinBody, words);
   if (mode === 'host' && onOpened) await onOpened(join.meeting_id);
   const { RealtimeKitClient, ui } = await loadKit();
   if (ui.provideRtkDesignSystem) {
@@ -144,14 +169,14 @@ export async function mountRoomV2(o) {
     const body = lines.length ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
       : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([title + '\n' + new Date().toLocaleString() + '\n\n' + body + '\n'], { type: 'text/plain' }));
-    a.download = (title.replace(/[^\w\- ]+/g, '').trim() || 'transcript') + ' transcript.txt';
+    a.href = URL.createObjectURL(new Blob([label + '\n' + new Date().toLocaleString() + '\n\n' + body + '\n'], { type: 'text/plain' }));
+    a.download = (label.replace(/[^\w\- ]+/g, '').trim() || 'transcript') + ' transcript.txt';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   }
 
   /* ---------- getting in ---------- */
   const joinedCount = () => { try { return meeting.participants.joined.toArray().length; } catch (e) { return 0; } };
-  const screen = joinScreen({ title, session, live: true, host, facilitator, joined: joinedCount(), preview: true });
+  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words });
   mountEl.innerHTML = ''; mountEl.appendChild(screen);
   const preview = screen.querySelector('video');
   const attachPreview = () => {
@@ -191,7 +216,7 @@ export async function mountRoomV2(o) {
   chips.sync();
 
   let autoEnter = false;
-  try { autoEnter = sessionStorage.getItem(AUTO_KEY) === String(no); sessionStorage.removeItem(AUTO_KEY); } catch (e) {}
+  try { autoEnter = sessionStorage.getItem(AUTO_KEY) === autoKey; sessionStorage.removeItem(AUTO_KEY); } catch (e) {}
   const enterBtn = screen.querySelector('.r2-enter');
   await new Promise((resolve) => {
     if (autoEnter && !host) return resolve();
@@ -201,7 +226,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, title, session, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; } });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; } });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (onState) onState('joined', meeting);
@@ -215,11 +240,18 @@ export async function mountRoomV2(o) {
   };
   try { meeting.connectedMeetings.on('changingMeeting', () => { switching = true; }); meeting.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
 
-  const gone = (why) => () => { if (switching) return; room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = ''; if (onState) onState(why, current); };
-  /* roomLeft carries why: 'left' (we pressed Leave), 'ended' (the host ended it), 'kicked' */
-  try { meeting.self.on('roomLeft', (ev) => gone(ev && ev.state === 'ended' ? 'ended' : 'left')()); } catch (e) {}
+  const gone = (why, reason) => () => { if (switching) return; room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = ''; if (onState) onState(why, current, reason); };
+  /* roomLeft carries why: 'left' (we pressed Leave), 'ended' (the host ended it), 'kicked' (removed).
+     The first onState argument keeps its two values; the third says which of the three it was. */
+  try { meeting.self.on('roomLeft', (ev) => { const st = ev && ev.state; gone(st === 'ended' ? 'ended' : 'left', st === 'kicked' || st === 'ended' ? st : 'left')(); }); } catch (e) {}
 
-  async function leaveNow() { try { await current.leave(); } catch (e) {} gone('left')(); }
+  /* In the Academy room there is one host, so Nelson leaving IS the end: everyone else is removed
+     first (what "End class for everyone" does in the Tools sheet), then he leaves. OPIL keeps plain Leave. */
+  async function leaveNow() {
+    if (isRoom && host) { try { await current.participants.kickAll?.(); } catch (e) {} }
+    try { await current.leave(); } catch (e) {}
+    gone('left', 'left')();
+  }
 
   return {
     meetingId: join.meeting_id, host,
@@ -229,15 +261,14 @@ export async function mountRoomV2(o) {
 }
 
 /* ---------- the join screen ---------- */
-function joinScreen({ title, session, live, host, facilitator, joined, preview }) {
-  const when = session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null;
-  const line = joinCopy({ live, host, facilitator, joined, startsAt: live ? null : when });
-  const cta = !live && !host ? '' : `<button type="button" class="r2-enter">${host && !live ? 'Start class →' : 'Enter Class →'}</button>
+function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words }) {
+  const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
+  const cta = !live && !host ? '' : `<button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
       <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p>`;
   return el(`<section class="r2-join">
     <div class="r2-join-left">
       <div class="r2-kicker">You’re in the right place.</div>
-      <h2 class="r2-title">${esc(title)}</h2>
+      <h2 class="r2-title">${esc(label)}</h2>
       <p class="r2-line">${esc(line)}</p>
       ${preview ? `<div class="r2-preview"><video muted playsinline autoplay></video>
         <div class="r2-ph"><b>Your camera is off</b><span>Tap the camera chip to check how you look.</span></div>
@@ -245,8 +276,8 @@ function joinScreen({ title, session, live, host, facilitator, joined, preview }
           <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
           <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
           <button type="button" class="r2-chip r2-fx" data-t="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-        </div></div>` : `<div class="r2-wait"><b>${esc(session.title)}</b><span>${when ? 'Starts at ' + esc(when) : 'Starts when your facilitator opens it'}</span>
-        <ol><li>You’ll enter the class on your own.</li><li>Your facilitator will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
+        </div></div>` : `<div class="r2-wait"><b>${esc(title)}</b><span>${startsAt ? 'Starts at ' + esc(startsAt) : 'Starts when ' + esc(words.host) + ' opens it'}</span>
+        <ol><li>You’ll enter the ${esc(words.thing)} on your own.</li><li>${esc(copy.capFirst(words.host))} will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
     </div>
     <div class="r2-join-right">${cta}<p class="r2-fine">No downloads. Works in your browser.</p></div>
   </section>`);
@@ -257,7 +288,7 @@ function wireChips(root, getMeeting, onVideo) {
   const mic = root.querySelector('.r2-chip[data-t="mic"]'), cam = root.querySelector('.r2-chip[data-t="cam"]');
   const sync = () => {
     const s = getMeeting().self;
-    const c = stateCopy({ audio: !!s.audioEnabled, video: !!s.videoEnabled });
+    const c = copy.stateCopy({ audio: !!s.audioEnabled, video: !!s.videoEnabled });
     if (mic) { mic.querySelector('b').textContent = c.mic[0]; mic.querySelector('span').textContent = c.mic[1]; mic.classList.toggle('on', !!s.audioEnabled); }
     if (cam) { cam.querySelector('b').textContent = c.cam[0]; cam.querySelector('span').textContent = c.cam[1]; cam.classList.toggle('on', !!s.videoEnabled); }
   };
@@ -267,9 +298,9 @@ function wireChips(root, getMeeting, onVideo) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch }) {
   const node = el(`<div class="r2">
-    <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording · saves automatically for your students</span></div>
+    <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
       <div class="r2-stage">
         <rtk-ui-provider>
@@ -314,7 +345,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   let m = meeting, recording = !host, pinnedId = null;   /* every class records; students are told so, hosts are told once it actually starts */
 
   /* the strip */
-  const setNow = () => { q('.r2-nowtxt').textContent = nowCopy({ facilitator, title: session.title, recording: false }); q('.r2-rec').hidden = !recording || !host; if (recording && !host) q('.r2-nowtxt').textContent += ' · This class is being recorded'; };
+  const setNow = () => { q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator, title, recording: false }, words); q('.r2-rec').hidden = !recording || !host; if (recording && !host) q('.r2-nowtxt').textContent += ' · This ' + words.thing + ' is being recorded'; };
   const setRecording = (on) => { recording = on; setNow(); };
   setNow();
 
@@ -350,50 +381,50 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   const nameOf = (id) => { try { const p = m.participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
   const renderPrimary = () => {
     if (host) {
-      const next = nextInLine(hands);
+      const next = copy.nextInLine(hands);
       const nm = next ? (nameOf(next.user_id) || 'the next person') : null;
       primary.innerHTML = next
-        ? `<button type="button" class="r2-cta r2-stage-btn"><b>Bring ${esc(nm)} on stage</b><span>${queueOrder(hands).length} in line</span></button>`
+        ? `<button type="button" class="r2-cta r2-stage-btn"><b>Bring ${esc(nm)} on stage</b><span>${copy.queueOrder(hands).length} in line</span></button>`
         : `<button type="button" class="r2-cta" disabled><b>No one in line</b><span>Questions show up here</span></button>`;
       const b = primary.querySelector('.r2-stage-btn'); if (b) b.addEventListener('click', () => bringOnStage(next));
     } else {
-      const pos = queuePosition(hands, uid);
+      const pos = copy.queuePosition(hands, uid);
       primary.innerHTML = pos
         ? `<button type="button" class="r2-cta on"><b>You’re #${pos} in line</b><span>Tap to leave the line</span></button>`
         : `<button type="button" class="r2-cta"><b>Ask a question</b><span>Add yourself to the line</span></button>`;
       primary.querySelector('.r2-cta').addEventListener('click', () => pos ? leaveLine() : askQuestion());
     }
-    const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = queueOrder(hands).length;
+    const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
   };
   const renderQueue = () => {
     const box = q('.r2-queue'); if (!box) return;
-    const rows = queueOrder(hands);
-    box.innerHTML = rows.length ? rows.map((r, i) => `<div class="r2-hand${r.staged_at ? ' staged' : ''}"><span class="r2-n">${i + 1}</span><div class="r2-who"><b>${esc(nameOf(r.user_id) || 'Student')}</b><span>${r.kind === 'comment' ? 'Would like to comment' : 'Has a question'}${r.staged_at ? ' · on stage' : ''}</span></div><button type="button" class="r2-mini r2-bring" data-id="${r.id}">Bring on stage</button><button type="button" class="r2-mini r2-done" data-id="${r.id}">Done</button></div>`).join('')
-      : '<div class="r2-empty">When a student presses Ask a question, they appear here in order.</div>';
+    const rows = copy.queueOrder(hands);
+    box.innerHTML = rows.length ? rows.map((r, i) => `<div class="r2-hand${r.staged_at ? ' staged' : ''}"><span class="r2-n">${i + 1}</span><div class="r2-who"><b>${esc(nameOf(r.user_id) || copy.capFirst(words.one))}</b><span>${r.kind === 'comment' ? 'Would like to comment' : 'Has a question'}${r.staged_at ? ' · on stage' : ''}</span></div><button type="button" class="r2-mini r2-bring" data-id="${r.id}">Bring on stage</button><button type="button" class="r2-mini r2-done" data-id="${r.id}">Done</button></div>`).join('')
+      : '<div class="r2-empty">When a ' + esc(words.one) + ' presses Ask a question, they appear here in order.</div>';
     box.querySelectorAll('.r2-bring').forEach(b => b.addEventListener('click', () => bringOnStage(hands.find(h => h.id === b.dataset.id))));
     box.querySelectorAll('.r2-done').forEach(b => b.addEventListener('click', () => markDone(hands.find(h => h.id === b.dataset.id))));
   };
-  const loadHands = async () => { const { data } = await sb.from('ea_opil_hands').select('*').eq('session_no', session.no).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
-  async function askQuestion() { const { error } = await sb.from('ea_opil_hands').insert({ session_no: session.no, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
-  async function leaveLine() { await sb.from('ea_opil_hands').delete().eq('session_no', session.no).eq('user_id', uid).is('done_at', null); await loadHands(); }
-  async function markDone(h) { if (!h) return; await sb.from('ea_opil_hands').update({ done_at: new Date().toISOString() }).eq('id', h.id); if (pinnedId === h.user_id) { unpin(); } await loadHands(); }
+  const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
+  async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
+  async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
+  async function markDone(h) { if (!h) return; await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', h.id); if (pinnedId === h.user_id) { unpin(); } await loadHands(); }
   async function bringOnStage(h) {
     if (!h) return;
     try {
       const p = m.participants.joined.toArray().find(x => x.customParticipantId === h.user_id);
-      if (!p) { toast((nameOf(h.user_id) || 'That student') + ' isn’t in the room right now.'); return; }
+      if (!p) { toast((nameOf(h.user_id) || 'That ' + words.one) + ' isn’t in the room right now.'); return; }
       m.participants.joined.toArray().forEach(x => { if (x.isPinned && x.id !== p.id) { try { x.unpin(); } catch (e) {} } });
       try { if (m.self.isPinned) m.self.unpin(); } catch (e) {}
       await p.pin(); pinnedId = h.user_id;
       /* the previous person on stage is done; this one is on stage now */
-      const prev = hands.find(x => x.staged_at && x.id !== h.id); if (prev) await sb.from('ea_opil_hands').update({ done_at: new Date().toISOString() }).eq('id', prev.id);
-      await sb.from('ea_opil_hands').update({ staged_at: new Date().toISOString() }).eq('id', h.id);
+      const prev = hands.find(x => x.staged_at && x.id !== h.id); if (prev) await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', prev.id);
+      await sb.from(handsAt.table).update({ staged_at: new Date().toISOString() }).eq('id', h.id);
       await loadHands();
     } catch (e) { toast('Could not bring them on stage — ' + (e.message || e)); }
   }
   function unpin() { try { m.participants.joined.toArray().forEach(x => { if (x.isPinned) x.unpin(); }); } catch (e) {} pinnedId = null; }
   let handsChan = null;
-  const watchHands = () => { try { handsChan = sb.channel('hands-' + session.no).on('postgres_changes', { event: '*', schema: 'public', table: 'ea_opil_hands', filter: 'session_no=eq.' + session.no }, loadHands).subscribe(); } catch (e) {} setInterval(loadHands, 15000); };
+  const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} setInterval(loadHands, 15000); };
 
   /* the sheet: tools for the host, help for students */
   const sheet = q('.r2-sheet'), sheetBody = q('.r2-sheet-body');
@@ -416,13 +447,13 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
   };
   const toolsPane = () => {
     const p = el(`<div class="r2-tools">
-      <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>Students see your screen instead of the grid</span></button>
+      <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
       <button type="button" class="r2-btn" data-tool="breakout"><b>Breakout rooms</b><span>Split the class into team rooms</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
-      <button type="button" class="r2-btn danger" data-tool="end"><b>End class for everyone</b><span>Closes the room and stops the recording</span></button>
+      <button type="button" class="r2-btn danger" data-tool="end"><b>End ${esc(words.thing)} for everyone</b><span>Closes the room and stops the recording</span></button>
     </div>`);
     p.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', async () => {
       const t = b.dataset.tool;
@@ -432,7 +463,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
       else if (t === 'poll') { const c = document.createElement('rtk-polls'); c.meeting = m; c.className = 'r2-kit'; openSheet('Poll', c); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
-      else if (t === 'end') { if (confirmInline(b, 'End class for everyone?')) { try { if (m.participants.kickAll) await m.participants.kickAll(); } catch (e) {} await onLeave(); } }
+      else if (t === 'end') { if (confirmInline(b, 'End ' + words.thing + ' for everyone?')) { try { if (m.participants.kickAll) await m.participants.kickAll(); } catch (e) {} await onLeave(); } }
     }));
     return p;
   };
@@ -440,7 +471,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
     const p = el(`<div class="r2-tools">
       <button type="button" class="r2-btn" data-h="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
       <button type="button" class="r2-btn" data-h="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
-      <button type="button" class="r2-btn" data-h="share"><b>Share my screen</b><span>Only if your facilitator asks</span></button>
+      <button type="button" class="r2-btn" data-h="share"><b>Share my screen</b><span>Only if ${esc(words.host)} asks</span></button>
       <p class="r2-fine">Can’t hear? Check your speakers under Camera &amp; mic. Can’t be heard? Tap the mic chip — it says whether you’re muted.</p>
     </div>`);
     p.querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', async () => {
@@ -456,7 +487,7 @@ function classRoom({ meeting, ui, host, title, session, facilitator, sb, user, s
 
   /* leave: two taps, never one accidental one */
   const leaveBtn = q('.r2-leave');
-  leaveBtn.addEventListener('click', async () => { if (confirmInline(leaveBtn, 'Leave class?')) await onLeave(); });
+  leaveBtn.addEventListener('click', async () => { if (confirmInline(leaveBtn, isRoom && host ? 'End the session for everyone?' : 'Leave ' + words.thing + '?')) await onLeave(); });
   function confirmInline(btn, label) {
     if (btn.dataset.armed === '1') { btn.dataset.armed = ''; return true; }
     const old = btn.innerHTML; btn.dataset.armed = '1'; btn.innerHTML = esc(label) + ' <em>Tap again</em>';
