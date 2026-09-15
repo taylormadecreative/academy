@@ -1,6 +1,6 @@
 # Academy Room — the OPIL class room for Taylormade Academy, shareable by one link
 
-**Date:** 2026-09-14 · **Owner:** Nelson Taylor · **Status:** design, approved in chat, critiqued (3 lenses, 26 findings folded in), awaiting written review
+**Date:** 2026-09-14 · **Owner:** Nelson Taylor · **Status:** design, approved in chat, critiqued (3 lenses, 26 findings folded in); plan written 2026-09-14 (`docs/superpowers/plans/2026-09-14-academy-room.md`)
 **Supersedes for `/live/`:** §2.2 and §3.1 of `2026-09-10-realtimekit-live-rooms-design.md` (the `ea_live` row, *Start webinar*, the `tma-webinar-host/member` presets) — Task 8 of the 9/11 plan, never built.
 
 ## 1. What Nelson asked for, and what was decided
@@ -176,7 +176,7 @@ Room branch, in order:
 3. Read the room row with the service role (`id, title, link_key, is_live, live_since, meeting_id, max_participants`, `order by created_at limit 1`).
 4. Role, as the caller: `isHost = academyAdmin`. Otherwise `allowed = rpc('ea_is_member') === true || (key && key === row.link_key)`. Not allowed → `key ? 404 bad_link : 403 not_allowed`.
 5. Guest and not open → 409 `not_open`, where open = `row.is_live and row.live_since > now() − 4 h` (a tab that died leaves `is_live` true; after 4 h — the recording cap — guests are refused until he ends and restarts; `/live/` shows End session for the stale row).
-6. Meeting. **Host, room off air** (a Start class): `POST /meetings { title: 'Academy · ' + title + ' · ' + date, persist_chat: false }`; **the function writes the new `meeting_id` on the row with the service role**; then best-effort `PATCH /meetings/{previous} { status: 'INACTIVE' }` (ignore failure) so a token from the last session opens nothing — not even an empty billable session. **Host, room already live** (reload, second device): reuse `row.meeting_id`. **Guest:** `row.meeting_id`. The room branch never reads a client-supplied `meeting_id`.
+6. Meeting. **Host, room off air** (a Start class): `POST /meetings { title: 'Academy · ' + title + ' · ' + date, persist_chat: false }`; **the function writes the new `meeting_id` — and `is_live = true, live_since = now()`, so a row a dead tab left live more than 4 h ago admits people again the moment Nelson re-enters — on the row with the service role**; then best-effort `PATCH /meetings/{previous} { status: 'INACTIVE' }` (ignore failure) so a token from the last session opens nothing — not even an empty billable session. **Host, room already live** (reload, second device): reuse `row.meeting_id`. **Guest:** `row.meeting_id`. The room branch never reads a client-supplied `meeting_id`.
 7. Host → `ensurePresets()` (§5).
 8. Cap (guests only): `GET /meetings/{id}/active-session` → `data.live_participants` (HTTP 404 = no session yet = 0; the field counts Nelson too, hence *Max people (you included)*). `live_participants >= max_participants` → 429 `room_full`.
 9. `POST /meetings/{id}/participants { custom_participant_id: uid, preset_name: host ? 'tma-class-host' : 'tma-class-guest', name }` — name from `ea_profiles.display_name` or the email prefix, `slice(0, 60)`, exactly as today.
