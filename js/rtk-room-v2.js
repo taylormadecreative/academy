@@ -242,7 +242,7 @@ export async function mountRoomV2(o) {
   /* breakout rooms hand the page a NEW meeting: rebind everything to it */
   let switching = false;
   const onMeetingChanged = async (next) => {
-    current = next; room.bind(next); keepTranscripts(next); await loadEffects(next);
+    current = next; room.bind(next); keepTranscripts(next); watchLeft(next); await loadEffects(next);
     try { next.connectedMeetings.on('changingMeeting', () => { switching = true; }); next.connectedMeetings.on('meetingChanged', onMeetingChanged); } catch (e) {}
     setTimeout(() => { switching = false; }, 1500);
   };
@@ -251,7 +251,8 @@ export async function mountRoomV2(o) {
   const gone = (why, reason) => () => { if (switching) return; room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = ''; if (onState) onState(why, current, reason); };
   /* roomLeft carries why: 'left' (we pressed Leave), 'ended' (the host ended it), 'kicked' (removed).
      The first onState argument keeps its two values; the third says which of the three it was. */
-  try { meeting.self.on('roomLeft', (ev) => { const st = ev && ev.state; gone(st === 'ended' ? 'ended' : 'left', st === 'kicked' || st === 'ended' ? st : 'left')(); }); } catch (e) {}
+  const watchLeft = (mtg) => { try { mtg.self.on('roomLeft', (ev) => { if (mtg !== current) return; const st = ev && ev.state; gone(st === 'ended' ? 'ended' : 'left', st === 'kicked' || st === 'ended' ? st : 'left')(); }); } catch (e) {} };
+  watchLeft(meeting);
 
   /* In the Academy room there is one host, so Nelson leaving IS the end: everyone else is removed
      first (what "End class for everyone" does in the Tools sheet), then he leaves. OPIL keeps plain Leave. */
@@ -371,8 +372,18 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   /* a small group is any meeting that is not the one this page started in (the kit's parentMeeting is
      unreliable: it points at the meeting itself in the main room and is empty inside a fresh child) */
   const inBreakout = () => { try { return !!(rootId && m.meta && m.meta.meetingId && m.meta.meetingId !== rootId); } catch (e) { return false; } };
-  /* this build has no moveToParentMeeting: moving yourself is moveParticipants(here, root, [me]) */
-  const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [m.self.id]); };
+  /* this build has no moveToParentMeeting: moving yourself is moveParticipants(here, root, [me]).
+     The id the API wants is the one in getConnectedMeetings() (a room re-issues participant ids), so
+     find yourself there by customParticipantId, never trust m.self.id. */
+  const myIdIn = async (meetingId) => {
+    const cm = m.connectedMeetings; const list = await cm.getConnectedMeetings();
+    const rooms = [list.parentMeeting].concat(list.meetings || []).filter(Boolean);
+    const here = rooms.find(r => r.id === meetingId); const mine = m.self.customParticipantId;
+    const me = here && (here.participants || []).find(x => x.customParticipantId === mine);
+    if (!me) throw new Error('could not find you in this room');
+    return me.id;
+  };
+  const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [await myIdIn(m.meta.meetingId)]); };
   const setNow = () => {
     const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room' } : null;
     q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
@@ -533,7 +544,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         : '<div class="r2-empty">No small groups open.</div>';
       p.querySelector('[data-g="back"]').hidden = !rooms.length;
       p.querySelector('.r2-split').hidden = !!rooms.length;
-      roomsBox.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => { if (b.dataset.visit === m.meta.meetingId) return; b.disabled = true; try { await cm().moveParticipants(m.meta.meetingId, b.dataset.visit, [m.self.id]); sheet.hidden = true; } catch (e) { toast('Could not move you — ' + (e.message || e)); b.disabled = false; } }));
+      roomsBox.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => { if (b.dataset.visit === m.meta.meetingId) return; b.disabled = true; try { await cm().moveParticipants(m.meta.meetingId, b.dataset.visit, [await myIdIn(m.meta.meetingId)]); sheet.hidden = true; } catch (e) { toast('Could not move you — ' + (e.message || e)); b.disabled = false; } }));
     };
     p.querySelector('[data-g="split"]').addEventListener('click', async (ev) => {
       const b = ev.currentTarget; b.disabled = true; b.querySelector('b').textContent = 'Splitting…';
@@ -542,9 +553,10 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         const list = await cm().getConnectedMeetings();
         if (list.meetings && list.meetings.length) { toast('Small groups are already open.'); await refresh(); return; }
         const made = await cm().createMeetings(Array.from({ length: n }, (_, i) => ({ title: 'Room ' + (i + 1) })));
-        /* everyone but the hosts, dealt round-robin; the move is one call per room */
-        const hostsHere = new Set(m.participants.joined.toArray().filter(x => /host/.test(String(x.presetName || ''))).map(x => x.id));
-        const people = ((list.parentMeeting && list.parentMeeting.participants) || []).filter(x => x.id !== m.self.id && !hostsHere.has(x.id));
+        /* everyone but the hosts (you included), dealt round-robin; one move call per room.
+           Match by customParticipantId: the list's ids are not the ids the joined map uses. */
+        const hostIds = new Set(m.participants.joined.toArray().filter(x => /host/.test(String(x.presetName || ''))).map(x => x.customParticipantId)); hostIds.add(m.self.customParticipantId);
+        const people = ((list.parentMeeting && list.parentMeeting.participants) || []).filter(x => !hostIds.has(x.customParticipantId));
         const buckets = made.map(() => []); people.forEach((x, i) => buckets[i % made.length].push(x.id));
         for (let i = 0; i < made.length; i++) if (buckets[i].length) await cm().moveParticipants(rootOf(), made[i].id, buckets[i]);
         toast(people.length ? people.length + ' ' + (people.length === 1 ? words.one : words.many) + ' moved into ' + made.length + ' rooms.' : 'Rooms are open — nobody to move yet.');
