@@ -85,6 +85,8 @@ Deno.serve(async (req: Request) => {
         admin.from("ea_rooms").select("meeting_id").not("meeting_id", "is", null),
         admin.from("ea_room_replays").select("meeting_id"),
       ]);
+      if (rooms.error) console.error("[ea-rtk-record] ea_rooms", rooms.error.message);
+      if (replays.error) console.error("[ea-rtk-record] ea_room_replays", replays.error.message);
       for (const r of rooms.data || []) if (typeof r.meeting_id === "string") ids.add(r.meeting_id);
       for (const r of replays.data || []) if (typeof r.meeting_id === "string") ids.add(r.meeting_id);
       return ids;

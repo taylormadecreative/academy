@@ -25,7 +25,7 @@ export type ReplayStore = {
 };
 export type RecordDeps = ReplayStore & {
   getSession: (no: number) => Promise<SessionRow | null>;
-  cf: (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<CfResult>;
+  cf: (method: "GET" | "POST" | "PUT" | "PATCH", path: string, body?: unknown) => Promise<CfResult>;
   /* Retry: the stored UPLOADED event for a recording, and the same processing the webhook
      does — dedupe bypassed on purpose. */
   uploadedEvent: (recordingId: string) => Promise<Record<string, unknown> | null>;
@@ -117,7 +117,15 @@ async function handleRoom(action: "start" | "stop" | "retry_replay", body: Recor
   const room = await deps.getRoom();
   if (!room) return { status: 404, body: { error: "not_found" } };
   if (!room.meeting_id) return { status: 409, body: { error: "no_room" } };   /* Start class has not run yet */
-  return startOrStop(action, room.meeting_id, { room_id: room.id }, deps.room, deps.cf);
+  const out = await startOrStop(action, room.meeting_id, { room_id: room.id }, deps.room, deps.cf);
+  /* stop = the session is over (Leave, or End session from /live/): close the Cloudflare meeting too, so a
+     guest's kept token cannot re-enter the empty meeting and bill minutes until the next Start class (which
+     always mints a fresh meeting — nothing reuses this one). Best effort, never silent, never the answer. */
+  if (action === "stop" && out.status === 200) {
+    const off = await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
+    if (!off.ok) console.warn("[ea-rtk-record] room meeting not inactivated", room.meeting_id, off.status);
+  }
+  return out;
 }
 
 /* ── start / stop, the same for both tables. `ref` is the column that files the row:

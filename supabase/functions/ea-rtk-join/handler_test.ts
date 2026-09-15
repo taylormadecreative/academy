@@ -268,17 +268,38 @@ Deno.test("room: a person while off air → 409 not_open; when live_since is 5 h
   assertEquals(noMeeting.status, 409); assertEquals(noMeeting.body, { error: "not_open" });
 });
 
-Deno.test("room: Nelson off air → a fresh meeting, saved on the row, the previous one set INACTIVE, meeting_id returned", async () => {
+Deno.test("room: Nelson off air → a fresh meeting; the row goes live only AFTER his participant POST, then the previous meeting is set INACTIVE", async () => {
+  const seq: string[] = [];
   const d = roomDeps({}, OFF_ROOM);
+  const cf = d.cf, set = d.setRoomMeeting, up = d.upsertMember, pre = d.ensurePresets;
+  d.cf = async (m, path, body) => { seq.push(m + " " + path); return cf(m, path, body); };
+  d.setRoomMeeting = async (a, b) => { seq.push("setRoomMeeting"); return set(a, b); };
+  d.upsertMember = async (a, b) => { seq.push("upsertMember"); return up(a, b); };
+  d.ensurePresets = async () => { seq.push("ensurePresets"); return pre(); };
   const r = await handleJoin({ room: true }, NELSON, d);
   assertEquals(r.status, 200);
   assertEquals(r.body, { token: "tok-1", meeting_id: "meet-new", preset: "tma-class-host", host: true, name: "Nelson Taylor" });
-  assertEquals(paths(d), ["POST /meetings", "PATCH /meetings/meet-old", "POST /meetings/meet-new/participants"]);
+  assertEquals(seq, ["POST /meetings", "ensurePresets", "POST /meetings/meet-new/participants", "setRoomMeeting", "PATCH /meetings/meet-old", "upsertMember"]);
   assertEquals(d.calls[0].body, { title: "Academy · Taylormade Academy Live · 2026-09-14", persist_chat: false });
-  assertEquals(d.calls[1].body, { status: "INACTIVE" });
+  assertEquals(d.calls[2].body, { status: "INACTIVE" });
   assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
   assertEquals(d.members, [["room-1", "u-nelson"]]);
   assertEquals(d.presets(), 1);
+});
+
+Deno.test("room: Cloudflare refusing Nelson's participant → 502 and the row stays OFF AIR (no setRoomMeeting, no INACTIVE, no member row)", async () => {
+  const d = roomDeps({
+    cf: async (method, path, body) => {
+      d.calls.push({ method, path, body });
+      if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
+      if (method === "POST" && path.endsWith("/participants")) return { ok: false, status: 502, data: {} };
+      return { ok: true, status: 200, data: {} };
+    },
+  }, OFF_ROOM);
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 502); assertEquals(r.body, { error: "cloudflare_502" });
+  assertEquals(paths(d), ["POST /meetings", "POST /meetings/meet-new/participants"]);
+  assertEquals(d.meetingSet, []); assertEquals(d.members, []);
 });
 
 Deno.test("room: Nelson while live (reload, second device) reuses the meeting — no POST /meetings, no cap check", async () => {
@@ -291,7 +312,15 @@ Deno.test("room: Nelson while live (reload, second device) reuses the meeting �
   assertEquals(d.presets(), 1);
 });
 
-Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like off air; a failed INACTIVE is ignored", async () => {
+/* console.warn captured for the tests that pin a log line (T10 greps the function logs for these) */
+async function withWarn(fn: () => Promise<void>): Promise<string[]> {
+  const orig = console.warn, lines: string[] = [];
+  console.warn = (...a: unknown[]) => { lines.push(a.map(String).join(" ")); };
+  try { await fn(); } finally { console.warn = orig; }
+  return lines;
+}
+
+Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like off air; a failed INACTIVE is ignored but LOGGED", async () => {
   const d = roomDeps({
     cf: async (method, path, body) => {
       d.calls.push({ method, path, body });
@@ -300,10 +329,35 @@ Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like of
       return { ok: true, status: 200, data: { token: "tok-1" } };
     },
   }, STALE_ROOM);
-  const r = await handleJoin({ room: true }, NELSON, d);
-  assertEquals(r.status, 200);
-  assertEquals(paths(d), ["POST /meetings", "PATCH /meetings/meet-live", "POST /meetings/meet-new/participants"]);
+  let r: Awaited<ReturnType<typeof handleJoin>> | null = null;
+  const warned = await withWarn(async () => { r = await handleJoin({ room: true }, NELSON, d); });
+  assertEquals(r!.status, 200);
+  assertEquals(paths(d), ["POST /meetings", "POST /meetings/meet-new/participants", "PATCH /meetings/meet-live"]);
   assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
+  assertEquals(warned, ["[ea-rtk-join] previous meeting not inactivated meet-live 500"]);
+  /* a PATCH that throws (network) is the same: caught, logged with status 0, the join still succeeds */
+  const t = roomDeps({
+    cf: async (method, path, body) => {
+      t.calls.push({ method, path, body });
+      if (method === "PATCH") throw new Error("socket hang up");
+      if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
+      return { ok: true, status: 200, data: { token: "tok-1" } };
+    },
+  }, STALE_ROOM);
+  const warned2 = await withWarn(async () => { assertEquals((await handleJoin({ room: true }, NELSON, t)).status, 200); });
+  assertEquals(warned2, ["[ea-rtk-join] previous meeting not inactivated meet-live 0"]);
+  /* and a clean INACTIVE logs nothing */
+  const clean = await withWarn(async () => { assertEquals((await handleJoin({ room: true }, NELSON, roomDeps({}, OFF_ROOM))).status, 200); });
+  assertEquals(clean, []);
+});
+
+Deno.test("room: a failed ea_room_members write is logged and never costs the person the token", async () => {
+  const d = roomDeps({ upsertMember: async () => { throw new Error("db down"); } });
+  let r: Awaited<ReturnType<typeof handleJoin>> | null = null;
+  const warned = await withWarn(async () => { r = await handleJoin({ room: true, key: KEY }, PERSON, d); });
+  assertEquals(r!.status, 200);
+  assertEquals((r!.body as { token: string }).token, "tok-1");
+  assertEquals(warned, ["[ea-rtk-join] upsertMember room-1 u-guest Error: db down"]);
 });
 
 Deno.test("room: Cloudflare refusing the meeting → 502 cloudflare_<status>, nothing saved", async () => {
@@ -323,6 +377,17 @@ Deno.test("room: the cap — 50 in with max 50 → 429 room_full; 404 from activ
   assertEquals(room.status, 200);
   const under = roomDeps({ cf: async (method, path, body) => { under.calls.push({ method, path, body }); return path.endsWith("/active-session") ? { ok: true, status: 200, data: { live_participants: 49 } } : { ok: true, status: 200, data: { token: "tok-1" } }; } });
   assertEquals((await handleJoin({ room: true, key: KEY }, PERSON, under)).status, 200);
+});
+
+Deno.test("room: the cap fails OPEN on a Cloudflare error (503 from active-session → admitted) and says so in the logs; a 404 logs nothing", async () => {
+  const blip = roomDeps({ cf: async (method, path, body) => { blip.calls.push({ method, path, body }); return path.endsWith("/active-session") ? { ok: false, status: 503, data: {} } : { ok: true, status: 200, data: { token: "tok-1" } }; } }, { ...LIVE_ROOM, max_participants: 2 });
+  let r: Awaited<ReturnType<typeof handleJoin>> | null = null;
+  const warned = await withWarn(async () => { r = await handleJoin({ room: true, key: KEY }, PERSON, blip); });
+  assertEquals(r!.status, 200);
+  assertEquals(paths(blip), ["GET /meetings/meet-live/active-session", "POST /meetings/meet-live/participants"]);
+  assertEquals(warned, ["[ea-rtk-join] active-session 503 — cap not enforced this join"]);
+  const quiet = await withWarn(async () => { assertEquals((await handleJoin({ room: true, key: KEY }, PERSON, roomDeps())).status, 200); });
+  assertEquals(quiet, []);
 });
 
 Deno.test("room: rate limit — false → 429 slow_down before any Cloudflare call; null (limiter down) → allowed", async () => {
@@ -354,5 +419,7 @@ Deno.test("room: no room row → 503 rtk_not_configured; a long title is cut at 
   assertEquals(none.status, 503); assertEquals(none.body, { error: "rtk_not_configured" });
   const d = roomDeps({}, { ...OFF_ROOM, title: "T".repeat(100) });
   await handleJoin({ room: true }, NELSON, d);
-  assertEquals(String((d.calls[0].body as { title: string }).title).length, 80);
+  const title = String((d.calls[0].body as { title: string }).title);
+  assertEquals(title.length, 80);
+  assertEquals(title, "Academy · " + "T".repeat(57) + " · 2026-09-14");   /* the title is cut, never the date */
 });

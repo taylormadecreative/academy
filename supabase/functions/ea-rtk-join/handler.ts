@@ -121,27 +121,30 @@ async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Prom
   /* 4 — is the room open: live, and started less than 4 h ago */
   const open = room.is_live && !!room.live_since && (deps.now().getTime() - Date.parse(room.live_since)) < OPEN_WINDOW_MS;
   if (!isHost && !open) return { status: 409, body: { error: "not_open" } };
-  /* 5 — the meeting: Nelson starting (or re-starting a stale room) gets a fresh one; a live Nelson and people reuse it */
+  /* 5 — the meeting: Nelson starting (or re-starting a stale room) gets a fresh one; a live Nelson and people reuse it.
+     The row is NOT flipped live here: that waits until Nelson's own participant POST succeeds (step 9), so a
+     Cloudflare failure on the second call leaves the room off air instead of open with nobody hosting it. */
   let meetingId: string | null = room.meeting_id;
+  let fresh = false;
   if (isHost && (!open || !meetingId)) {
-    const title = ("Academy · " + room.title + " · " + CHICAGO_DAY.format(deps.now())).slice(0, 80);
+    /* the title people see in the dashboard: room.title is cut first so the date always survives the 80-char cap */
+    const prefix = "Academy · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
+    const title = prefix + String(room.title || "").slice(0, 80 - prefix.length - suffix.length) + suffix;
     const made = await deps.cf("POST", "/meetings", { title, persist_chat: false });
     if (!made.ok) return { status: 502, body: { error: "cloudflare_" + made.status } };
     const id = String(((made.data || {}) as Record<string, unknown>).id || "");
     if (!id) return { status: 502, body: { error: "cloudflare_no_id" } };
-    await deps.setRoomMeeting(room.id, id);
-    if (room.meeting_id) {
-      /* best effort: the previous meeting closes so an old token opens nothing, not even an empty billable session */
-      try { await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }); } catch (_) { /* ignored */ }
-    }
     meetingId = id;
+    fresh = true;
   }
   if (!meetingId) return { status: 409, body: { error: "not_open" } };
   /* 6 — Nelson makes sure the two presets exist on Cloudflare (cached; never throws) */
   if (isHost) await deps.ensurePresets();
-  /* 7 — the cap, people only; Cloudflare counts Nelson too ("Max people (you included)"); 404 = no session yet */
+  /* 7 — the cap, people only; Cloudflare counts Nelson too ("Max people (you included)"); 404 = no session yet.
+     Any other failure fails OPEN (a Cloudflare blip must not lock people out) and says so in the logs. */
   if (!isHost) {
     const r = await deps.cf("GET", `/meetings/${meetingId}/active-session`);
+    if (r.status !== 404 && !r.ok) console.warn("[ea-rtk-join] active-session " + r.status + " — cap not enforced this join");
     const live = r.status === 404 ? 0 : Number(((r.data || {}) as Record<string, unknown>).live_participants ?? 0);
     if (live >= room.max_participants) return { status: 429, body: { error: "room_full" } };
   }
@@ -151,8 +154,18 @@ async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Prom
   const added = await deps.cf("POST", `/meetings/${meetingId}/participants`, { custom_participant_id: uid, preset_name: preset, name });
   if (!added.ok) return { status: 502, body: { error: "cloudflare_" + added.status } };
   const token = ((added.data || {}) as Record<string, unknown>).token;
-  /* 9 — who joined (the Your room card on /live/ reads it) */
-  await deps.upsertMember(room.id, uid);
+  /* 9 — Nelson is in: NOW the row goes live (meeting_id, is_live, live_since — server time), and the previous
+     meeting closes so a token from last time opens nothing, not even an empty billable session. The PATCH
+     is best effort but never silent: T10 reads this log line to confirm invariant 10 on prod. */
+  if (fresh) {
+    await deps.setRoomMeeting(room.id, meetingId);
+    if (room.meeting_id) {
+      const off = await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
+      if (!off.ok) console.warn("[ea-rtk-join] previous meeting not inactivated", room.meeting_id, off.status);
+    }
+  }
+  /* who joined (the Your room card on /live/ reads it) — a failed bookkeeping write never costs anyone the token */
+  try { await deps.upsertMember(room.id, uid); } catch (e) { console.warn("[ea-rtk-join] upsertMember", room.id, uid, String(e)); }
   /* 10 — only Nelson learns the meeting id */
   return { status: 200, body: isHost ? { token, meeting_id: meetingId, preset, host: true, name } : { token, preset, host: false, name } };
 }

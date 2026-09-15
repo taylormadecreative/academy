@@ -185,11 +185,38 @@ Deno.test("room: no meeting yet → 409 no_room; no room row → 404 not_found; 
   assertEquals(noMeeting.calls.length, 0); assertEquals(noRow.calls.length, 0);
 });
 
-Deno.test("room: stop sends the stop action for the room's active recording", async () => {
+Deno.test("room: stop sends the stop action for the room's active recording, then closes the meeting (PATCH INACTIVE)", async () => {
   const d = deps({ getRoom: async () => ROOM, room: { latestActive: async (m) => (m === "meet-room" ? { recording_id: "rec-r9", status: "recording" } : null) } });
   const r = await handleRecord({ room: true, action: "stop" }, NELSON, d);
   assertEquals(r.status, 200); assertEquals(r.body, { stopped: true, recording_id: "rec-r9" });
-  assertEquals(d.calls, [{ method: "PUT", path: "/recordings/rec-r9", body: { action: "stop" } }]);
+  assertEquals(d.calls, [
+    { method: "PUT", path: "/recordings/rec-r9", body: { action: "stop" } },
+    { method: "PATCH", path: "/meetings/meet-room", body: { status: "INACTIVE" } },
+  ]);
+});
+
+Deno.test("room: stop with nothing recording still closes the meeting; a failed PATCH is logged and never changes the answer; a failed stop closes nothing", async () => {
+  const orig = console.warn, warned: string[] = [];
+  console.warn = (...a: unknown[]) => { warned.push(a.map(String).join(" ")); };
+  try {
+    const none = deps({ getRoom: async () => ROOM });
+    const r = await handleRecord({ room: true, action: "stop" }, NELSON, none);
+    assertEquals(r.status, 200); assertEquals(r.body, { stopped: false });
+    assertEquals(none.calls, [{ method: "PATCH", path: "/meetings/meet-room", body: { status: "INACTIVE" } }]);
+    assertEquals(warned, []);
+    const bad = deps({ getRoom: async () => ROOM, cf: async (method, path, body) => { bad.calls.push({ method, path, body }); return method === "PATCH" ? { ok: false, status: 500, data: {} } : { ok: true, status: 200, data: {} }; }, room: { latestActive: async () => ({ recording_id: "rec-r9", status: "recording" }) } });
+    const r2 = await handleRecord({ room: true, action: "stop" }, NELSON, bad);
+    assertEquals(r2.status, 200); assertEquals(r2.body, { stopped: true, recording_id: "rec-r9" });
+    assertEquals(warned, ["[ea-rtk-record] room meeting not inactivated meet-room 500"]);
+    const failStop = deps({ getRoom: async () => ROOM, cf: async (method, path, body) => { failStop.calls.push({ method, path, body }); return { ok: false, status: 502, data: {} }; }, room: { latestActive: async () => ({ recording_id: "rec-r9", status: "recording" }) } });
+    const r3 = await handleRecord({ room: true, action: "stop" }, NELSON, failStop);
+    assertEquals(r3.status, 502);
+    assertEquals(failStop.calls.map((c) => c.method), ["PUT"]);   /* the recording is still going: the meeting stays open */
+    /* OPIL stop never touches the meeting */
+    const opil = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }) });
+    await handleRecord({ session_no: 7, action: "stop" }, HOST, opil);
+    assertEquals(opil.calls.map((c) => c.method), ["PUT"]);
+  } finally { console.warn = orig; }
 });
 
 Deno.test("room: retry_replay by replay_id re-runs that replay's stored UPLOADED event, even after a newer Start class moved the room's meeting on", async () => {

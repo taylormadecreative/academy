@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.from("ea_rooms").select(ROOM_COLS).order("created_at", { ascending: true }).limit(1).maybeSingle();
       return data ?? null;
     },
-    setRoomMeeting: async (roomId, meetingId) => {   /* a fresh meeting IS a fresh session: is_live + live_since move with it, so a row left live by a dead tab (> 4 h, spec §6.1 step 5) admits people again the moment Nelson re-enters — the page's onOpened writes the same two fields a moment later on a normal Start, and nothing at all on a host_live re-entry */
+    setRoomMeeting: async (roomId, meetingId) => {   /* a fresh meeting IS a fresh session: is_live + live_since move with it (server clock — the hands policy compares last_joined_at against live_since), so a row left live by a dead tab (> 4 h, spec §6.1 step 5) admits people again the moment Nelson re-enters. The page writes NOTHING on Start; only the way out (is_live=false, ended_at) is written from a page. */
       const at = new Date().toISOString(), { error } = await admin.from("ea_rooms").update({ meeting_id: meetingId, is_live: true, live_since: at, updated_at: at }).eq("id", roomId);
       if (error) throw new Error(error.message);
     },
