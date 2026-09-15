@@ -104,6 +104,10 @@ create policy room_hands_update_host on public.ea_room_hands for update to authe
 drop policy if exists room_hands_delete_own on public.ea_room_hands;
 create policy room_hands_delete_own on public.ea_room_hands for delete to authenticated
   using (user_id = auth.uid() or public.ea_is_admin());
+-- revoke after create, like the other three tables: anon and public get nothing, authenticated keeps
+-- select / update / delete through the policies above (TRUNCATE is not governed by RLS at all)
+revoke insert, update, delete, truncate, references, trigger on public.ea_room_hands from anon, public;
+revoke truncate, references, trigger on public.ea_room_hands from authenticated;
 -- a person can raise a hand with these four columns only — never staged_at / created_at (no queue jumping)
 revoke insert on public.ea_room_hands from authenticated;
 grant insert (room_id, user_id, kind, note) on public.ea_room_hands to authenticated;

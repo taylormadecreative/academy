@@ -17,6 +17,8 @@ MIG="$ROOT/supabase/migrations/0036_academy_room.sql"
 VERIFY="$ROOT/scripts/verify-0036.sql"
 API="https://api.supabase.com/v1/projects/$REF/database/query"
 MODE="${1:-apply}"
+# only two spellings exist; anything else (a typo like --verify) must not silently APPLY
+case "$MODE" in apply|--verify-only) ;; *) echo "usage: bash scripts/apply-0036.sh [--verify-only]"; exit 1;; esac
 
 command -v jq >/dev/null || { echo "jq is required (brew install jq)"; exit 1; }
 [ -f "$MIG" ] || { echo "missing $MIG"; exit 1; }
@@ -59,5 +61,10 @@ ok="$(jq -r '[.[].line | select(startswith("OK "))] | length' "$TMP/out.json")"
 fail="$(jq -r '[.[].line | select(startswith("FAIL "))] | length' "$TMP/out.json")"
 skip="$(jq -r '[.[].line | select(startswith("SKIP "))] | length' "$TMP/out.json")"
 echo "== $ok OK · $fail FAIL · $skip SKIP"
-[ "$fail" = "0" ] || { echo "VERIFY FAILED — read the FAIL lines above; the migration is applied, fix and re-run with --verify-only"; exit 1; }
+# The gate is the whole tally, not "no FAIL": an empty result, rows without .line, or the SKIP path (no
+# profiles.role = 'admin' row → the admin checks never ran) would otherwise read as verified.
+EXPECT_OK=41
+if [ "$fail" != "0" ] || [ "$skip" != "0" ] || [ "$ok" -lt "$EXPECT_OK" ]; then
+  echo "VERIFY FAILED — expected $EXPECT_OK OK · 0 FAIL · 0 SKIP (got $ok/$fail/$skip; a SKIP means the admin checks never ran). The migration is applied; fix and re-run with --verify-only"; exit 1
+fi
 echo "0036 is on prod and verified. Nothing from the verify was kept."

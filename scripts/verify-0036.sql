@@ -208,7 +208,7 @@ begin
     insert into verify_out(line) values ('FAIL guest update ea_rooms.meeting_id was ALLOWED (no column-level revoke)');
   exception when insufficient_privilege then
     reset role;
-    insert into verify_out(line) values (case when sqlerrm like 'permission denied%' then 'OK ' else 'FAIL ' end || 'guest update ea_rooms.meeting_id → 42501 ' || sqlerrm);
+    insert into verify_out(line) values (case when sqlerrm like 'permission denied for %' then 'OK ' else 'FAIL ' end || 'guest update ea_rooms.meeting_id → 42501 ' || sqlerrm);
   when others then
     reset role;
     insert into verify_out(line) values ('FAIL guest update ea_rooms.meeting_id raised ' || sqlstate || ' ' || sqlerrm);
@@ -222,7 +222,7 @@ begin
     insert into verify_out(line) values ('FAIL guest update ea_rooms.link_key was ALLOWED (no column-level revoke)');
   exception when insufficient_privilege then
     reset role;
-    insert into verify_out(line) values (case when sqlerrm like 'permission denied%' then 'OK ' else 'FAIL ' end || 'guest update ea_rooms.link_key → 42501 ' || sqlerrm);
+    insert into verify_out(line) values (case when sqlerrm like 'permission denied for %' then 'OK ' else 'FAIL ' end || 'guest update ea_rooms.link_key → 42501 ' || sqlerrm);
   when others then
     reset role;
     insert into verify_out(line) values ('FAIL guest update ea_rooms.link_key raised ' || sqlstate || ' ' || sqlerrm);
@@ -278,7 +278,7 @@ begin
     insert into verify_out(line) values ('FAIL hand insert with staged_at was ALLOWED (column grant missing)');
   exception when insufficient_privilege then
     reset role;
-    insert into verify_out(line) values (case when sqlerrm like 'permission denied%' then 'OK ' else 'FAIL ' end || 'hand insert with staged_at → 42501 ' || sqlerrm);
+    insert into verify_out(line) values (case when sqlerrm like 'permission denied for %' then 'OK ' else 'FAIL ' end || 'hand insert with staged_at → 42501 ' || sqlerrm);
   when others then
     reset role;
     insert into verify_out(line) values ('FAIL hand insert with staged_at raised ' || sqlstate || ' ' || sqlerrm);
