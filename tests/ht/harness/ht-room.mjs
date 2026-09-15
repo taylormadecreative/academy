@@ -16,11 +16,12 @@ const settle = (p) => p.waitForFunction(() => !document.querySelector('.ht-room-
    it reads window.__db, which every navigation of the page rebuilds from `db`.
    seed: an {k, t} planted under localStorage 'ht-room-key' before the page runs — a key this
    device remembered on an earlier visit. */
-async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY, stateFor = null, seed = null } = {}) {
+async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY, stateFor = null, seed = null, pollMs = 0 } = {}) {
   const p = await b.newPage({ viewport: { width, height: 900 }, serviceWorkers: 'block' });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   const rec = [];
   await p.addInitScript((d) => { window.__db = d; window.__calls = []; }, db);
+  if (pollMs) await p.addInitScript((ms) => { window.__htRoomPollMs = ms; }, pollMs);   /* the ended card's poll, in seconds not minutes */
   if (stateFor) await p.addInitScript('window.__db.stateFor = ' + stateFor.toString() + ';');
   if (seed) await p.addInitScript((v) => { try { localStorage.setItem('ht-room-key', JSON.stringify(v)); } catch (e) {} }, seed);
   await p.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
@@ -120,7 +121,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   await p.waitForFunction(() => window.__db.room.is_live === true);
   ok('start: room flipped live via onOpened', true);
   ok('start: page never writes live_since', await p.evaluate(() => !window.__calls.some(c => c[0]==='from' && c[1]==='ea_rooms' && c[2]==='update' && c[4] && 'live_since' in c[4])));
-  ok('start: button reads running', (await text(p, '#rmStart')) === 'Class is running');
+  ok('start: Start is gone — the button reads Entering / Enter the running session', /^(Entering…|Enter the running session)$/.test(await text(p, '#rmStart')));
   ok('start: recording NOT started before joined', rec.length === 0);
   await p.evaluate(() => window.__room.state('joined'));
   await p.waitForFunction(() => window.__rec === true);
@@ -130,11 +131,94 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   await p.waitForFunction(() => { const i = document.querySelector('.r2-now .r2-brand-strip'); return !!i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
   { const m = await p.evaluate(() => { const i = document.querySelector('.r2-now .r2-brand-strip'); if (!i) return null; const r = i.getBoundingClientRect(); return { src: i.getAttribute('src'), nat: i.naturalWidth, w: r.width, h: r.height, first: i === i.parentElement.firstElementChild }; });
     ok('joined: the strip opens with the monogram, 24px tall and ≥41px wide', !!m && m.src === '/ht/img/ht-monogram-gold.png' && m.nat > 0 && m.first && Math.abs(m.h - 24) < 1 && m.w >= 41, JSON.stringify(m)); }
+  /* ---- nobody ends a class by accident (Nelson, 9/15) ---- */
+  /* the bar for everyone: Share my screen, Effects, Captions, Tools, Leave — no "Need help?" */
+  ok('host bar: Share my screen + Effects + Captions + Tools + Leave', await p.evaluate(() => ['.r2-share', '.r2-fx-btn', '.r2-cc-btn', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help')));
+  /* Leave: the host is out, the session keeps running — no record stop, no row flip, the still-running card with Rejoin + End */
   await p.evaluate(() => window.__room.leave());
+  await p.waitForFunction(() => !document.getElementById('rmStill').hidden);
+  ok('host leave: is_live stays true', await p.evaluate(() => window.__db.room.is_live === true && window.__db.state.is_live === true));
+  ok('host leave: no record stop, no row update', rec.length === 1 && await p.evaluate(() => !window.__calls.some(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update' && c[4] && 'is_live' in c[4])));
+  ok('host leave: the still-running card', /You left — the session is still running\./.test(await text(p, '#rmStill')));
+  ok('host leave: the room is unmounted, the control is back', await p.evaluate(() => document.getElementById('rtkMount').innerHTML === '' && !document.body.classList.contains('in-room') && getComputedStyle(document.querySelector('.ht-room-ctl')).display !== 'none'));
+  ok('host leave: Start is not reachable — the button reads Rejoin', /^Rejoin the running session/.test(await text(p, '#rmStart')) && !(await p.isDisabled('#rmStart')));
+  ok('host leave: End the session for everyone is offered', !(await p.isHidden('#rmEnd')) && (await text(p, '#rmEnd')) === 'End the session for everyone');
+  ok('host leave: no ended / left card', (await p.$$('.ht-room-card')).length === 0);
+  /* the card's End: two taps → stop + off air */
+  await p.click('#rmEnd');
+  ok('end: first tap arms it', (await text(p, '#rmEnd')) === 'End the session for everyone? Tap again to end it.' && rec.length === 1 && await p.evaluate(() => window.__db.room.is_live === true));
+  await p.click('#rmEnd');
   await p.waitForFunction(() => window.__db.room.is_live === false);
-  ok('leave: stop sent, room off air', rec.length === 2 && rec[1].action === 'stop');
-  ok('leave: note says the replay is being prepared', /replay is being prepared/.test(await text(p, '#rmNote')));
+  ok('end: second tap — stop sent, room off air', rec.length === 2 && rec[1].action === 'stop');
+  ok('end: note says the replay is being prepared', /replay is being prepared/.test(await text(p, '#rmNote')));
+  ok('end: the still-running card is gone; Start is back', await p.evaluate(() => document.getElementById('rmStill').hidden) && (await text(p, '#rmStart')) === 'Start class — everyone on camera');
   ok('host: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 5b the ROOT CAUSE of 9/15: the host page's socket drops (a 'disconnected'-style roomLeft) → NO record stop, NO is_live
+   flip, the Reconnecting strip shows, and after the rejoin lands the host is back in the same meeting with no card */
+{ const { p, errs, rec } = await page({ state: { ...base, is_host: true, people: 0 }, session: sess, admin: false, room: { ...room }, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('#rmStart'); await p.click('#rmStart');
+  await p.waitForFunction(() => window.__db.room.is_live === true);
+  await p.evaluate(() => window.__room.state('joined')); await p.waitForFunction(() => window.__rec === true);
+  await p.evaluate(() => window.__room.state('disconnected'));
+  await p.waitForFunction(() => { const s = document.querySelector('.r2-reconnect'); return !!s && !s.hidden; });
+  ok('drop: the Reconnecting strip shows', /Reconnecting/.test(await text(p, '.r2-reconnect')));
+  ok('drop: the room stays mounted, no card', await p.evaluate(() => !!document.querySelector('#rtkMount .r2') && document.body.classList.contains('in-room') && !document.querySelector('.ht-room-card')));
+  ok('drop: no record stop', rec.length === 1 && rec[0].action === 'start');
+  ok('drop: is_live stays true, no row update', await p.evaluate(() => window.__db.room.is_live === true && !window.__calls.some(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update' && c[4] && 'is_live' in c[4])));
+  ok('drop: the still-running card is NOT shown (nothing left yet)', await p.evaluate(() => document.getElementById('rmStill').hidden));
+  await p.evaluate(() => window.__room.rejoinOk());
+  await p.waitForFunction(() => { const s = document.querySelector('.r2-reconnect'); return !!s && s.hidden; });
+  ok('rejoin: strip gone, same meeting, still in the room, no card', await p.evaluate(() => window.__room.meetingId === 'm-new' && !!document.querySelector('#rtkMount .r2') && document.body.classList.contains('in-room') && !document.querySelector('.ht-room-card') && document.getElementById('rmStill').hidden));
+  ok('rejoin: still one record start, no stop', rec.length === 1);
+  ok('rejoin: is_live still true', await p.evaluate(() => window.__db.room.is_live === true));
+  /* a second drop that cannot be mended → the still-running card with Rejoin, still no end */
+  await p.evaluate(() => window.__room.state('failed'));
+  await p.waitForFunction(() => { const s = document.querySelector('.r2-reconnect'); return !!s && !s.hidden; });
+  await p.evaluate(() => window.__room.rejoinFail());
+  await p.waitForFunction(() => !document.getElementById('rmStill').hidden);
+  ok('drop unmended: the still-running card, Rejoin offered, no stop, row live', rec.length === 1 && /Rejoin/.test(await text(p, '#rmStart')) && /connection dropped/.test(await text(p, '#rmNote')) && await p.evaluate(() => window.__db.room.is_live === true));
+  ok('drop: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 5c End from Tools inside the room (the module says 'ended') → stop + off air; and a second screen taking the seat ('kicked') never ends it */
+{ const { p, errs, rec } = await page({ state: { ...base, is_host: true, people: 0 }, session: sess, admin: false, room: { ...room }, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('#rmStart'); await p.click('#rmStart');
+  await p.waitForFunction(() => window.__db.room.is_live === true);
+  await p.evaluate(() => window.__room.state('joined')); await p.waitForFunction(() => window.__rec === true);
+  await p.evaluate(() => window.__room.state('kicked'));
+  await p.waitForFunction(() => !document.getElementById('rmStill').hidden);
+  ok('host kicked (second screen): still running, no stop, row live', rec.length === 1 && await p.evaluate(() => window.__db.room.is_live === true) && /Another screen took your seat/.test(await text(p, '#rmNote')));
+  await p.click('#rmStart');   /* Rejoin */
+  await p.waitForFunction(() => window.__mount && window.__mount.mode === 'host' && document.body.classList.contains('in-room'));
+  ok('rejoin from the card: back in as host, same meeting, no new row write', await p.evaluate(() => window.__mount.mode === 'host' && !window.__calls.some(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update')));
+  await p.evaluate(() => window.__room.state('joined'));
+  await p.waitForFunction(() => window.__rec === true);
+  ok('rejoin: record start asked again (idempotent server-side), still no stop', rec.length === 2 && rec[1].action === 'start');
+  await p.evaluate(() => window.__room.end());   /* Tools → End the session for everyone, confirmed */
+  await p.waitForFunction(() => window.__db.room.is_live === false);
+  ok('end from Tools: stop sent, room off air', rec.length === 3 && rec[2].action === 'stop');
+  ok('end from Tools: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 5d a guest: Leave → left card with Rejoin; kicked → the ended card that keeps listening and offers Rejoin once the room is live AGAIN */
+{ const { p, errs, rec } = await page({ state: { ...base, is_live: true }, session: sess, room: { ...room, is_live: true }, replays: [], members: [], profiles: [] }, { pollMs: 600 });
+  await p.waitForSelector('.r2-join');
+  await p.evaluate(() => window.__room.state('joined'));
+  await p.waitForSelector('.r2-bar');
+  ok('guest bar: Share my screen + Effects + Captions + Tools + Leave, no "Need help?"', await p.evaluate(() => ['.r2-share', '.r2-fx-btn', '.r2-cc-btn', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help') && !/Need help/.test(document.querySelector('.r2-bar').textContent)));
+  await p.evaluate(() => window.__room.state('left'));
+  await p.waitForSelector('.ht-room-card');
+  ok('guest leave: the left card with Rejoin', /You left the room/.test(await text(p, '.ht-room-card h3')) && /Rejoin/.test(await text(p, '.ht-room-card a.btn')));
+  ok('guest leave: nothing recorded or written', rec.length === 0 && await p.evaluate(() => !window.__calls.some(c => c[0] === 'from' && c[2] === 'update')));
+  /* back in, then removed: the ended card; the room stays live (a kick mid-class) → no Rejoin yet; it goes off air, then live → Rejoin */
+  await p.click('.ht-room-card a.btn'); await settle(p); await p.waitForSelector('.r2-join');
+  await p.evaluate(() => window.__room.state('joined')); await p.waitForSelector('.r2-bar');
+  await p.evaluate(() => window.__room.state('kicked'));
+  await p.waitForSelector('.ht-room-card');
+  ok('guest kicked: the ended card', /This session has ended/.test(await text(p, '.ht-room-card h3')));
+  await p.waitForTimeout(1500);
+  ok('guest kicked, room still live: no Rejoin offered yet', await p.evaluate(() => document.querySelector('.ht-room-back').hidden));
+  await p.evaluate(() => { window.__db.state.is_live = false; }); await p.waitForTimeout(1300);
+  await p.evaluate(() => { window.__db.state.is_live = true; });
+  await p.waitForFunction(() => !document.querySelector('.ht-room-back').hidden, null, { timeout: 5000 });
+  ok('guest kicked, live again: "The session is back on — rejoin" with a Rejoin link that carries the key', /back on/.test(await text(p, '.ht-room-back')) && (await p.getAttribute('.ht-room-back a.btn', 'href')).includes('?k=' + KEY));
+  ok('guest: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
 /* 6 replays: publish → Last session iframe */
 { const reps = [{ id: 'rep1', status: 'ready', watch_url: 'https://customer-x.cloudflarestream.com/abc/watch', duration_s: 1830, published: false, error: null, created_at: '2026-09-17T18:00:00Z' }];
   const { p } = await page({ state: { ...base, is_host: true }, session: sess, admin: true, room: { ...room }, replays: reps, members: [], profiles: [] });

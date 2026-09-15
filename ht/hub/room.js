@@ -2,10 +2,18 @@
    block. The page decides everything from ea_room_state(k, 'ht'); the room itself is the Academy's
    js/rtk-room-v2.js with HT words and HT design tokens (ht/hub/room-words.js). Hosts read the
    ea_rooms row directly (RLS: ea_room_is_host). We never set `display` on a kit element.
-   Spec: docs/superpowers/specs/2026-09-15-ht-class-room-design.md §2, §7.3 */
+   Spec: docs/superpowers/specs/2026-09-15-ht-class-room-design.md §2, §7.3
+   Nobody ends a class by accident (Nelson, 9/15): a host's 'left' — Leave, a drop the room could not
+   mend, a second screen taking the seat — NEVER ends the session here; the card says it is still
+   running and offers Rejoin and End. Only 'ended' (the explicit End, in Tools or on this card, two
+   taps) stops the recording and takes the row off air. A guest's ended card keeps listening and offers
+   the way back in when a class runs again. */
 const SLUG = 'ht';
 const V = new URL(import.meta.url).search;   /* our own ?v= — the HT build stamp from ht/build.mjs */
-const POLL_MS = 20000;
+/* the state poll: 20 s. The harness (tests/ht/harness) shortens it through window.__htRoomPollMs so the ended
+   card's "live again" can be watched in seconds instead of minutes; nothing else reads that. */
+const POLL_MS = Number(window.__htRoomPollMs) > 0 ? Number(window.__htRoomPollMs) : 20000;
+const FIRST_LOOK_MS = Math.min(5000, POLL_MS);   /* the ended card's first look comes early */
 
 /* the stylesheet first, so the cards never paint unstyled */
 await new Promise((res) => {
@@ -13,9 +21,10 @@ await new Promise((res) => {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
-const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey }, { createClient }] = await Promise.all([
+const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey }, { endCopy, backOn }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
+  import('/opil/hub/live-rooms.js' + V),
   import('https://esm.sh/@supabase/supabase-js@2'),
 ]);
 
@@ -66,8 +75,26 @@ function lastSession(st) {
   const u = iframeUrl(st && st.recording_url); if (!u) return '';
   return '<div class="ht-room-last"><b>Last session</b><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a></div>';
 }
-function endedCard() { if (poll) { clearInterval(poll); poll = null; } document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>This session has ended.</h3><p>If you were here, you can rewatch it on this page once your host publishes it.</p>', lastSession(state)); }
-function leftCard() { if (poll) { clearInterval(poll); poll = null; } document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>You left the room.</h3><a class="btn ht-gold" href="' + esc(location.pathname + location.search) + '">Rejoin →</a>'); }
+const here = () => location.pathname + location.search;
+/* The ended card keeps listening (a poll every 20 s, the first look at 5 s because an End takes the row off
+   air a moment after the kick): when the room has been seen off air and is live again, the way back in
+   appears — nobody who was removed or whose class ended is stranded when the next one starts. */
+function endedCard() {
+  if (poll) { clearInterval(poll); poll = null; }
+  document.body.classList.remove('in-room', 'in-room-v2');
+  card('<h3>This session has ended.</h3><p>If you were here, you can rewatch it on this page once your host publishes it.</p>' +
+       '<div class="ht-room-back" hidden><p>' + esc(ec.backOn) + '</p><a class="btn ht-gold" href="' + esc(here()) + '">' + esc(ec.rejoin) + '</a></div>', lastSession(state));
+  let on = backOn({ seenOff: !(state && state.is_live) }, null);
+  const tick = async () => {
+    try {
+      const s = await getState(); if (!s || s.bad_link) return;
+      on = backOn(on, !!s.is_live);
+      if (on.again) { state = s; const b = ctl.querySelector('.ht-room-back'); if (b) b.hidden = false; if (poll) { clearInterval(poll); poll = null; } }
+    } catch (e) {}
+  };
+  poll = setInterval(tick, POLL_MS); setTimeout(tick, FIRST_LOOK_MS);
+}
+function leftCard() { if (poll) { clearInterval(poll); poll = null; } document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>You left the room.</h3><p>The session is still running — come back in whenever you like.</p><a class="btn ht-gold" href="' + esc(here()) + '">' + esc(ec.rejoin) + '</a>'); }
 
 /* ---------- state → branch ---------- */
 let state = null, stateErr = null;
@@ -82,12 +109,15 @@ if (state && state.bad_link && keyFromStore) {
 }
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
+const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
 const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
 let hosting = false;      /* this page started (or re-entered) the class as host */
 let pendingRecord = false;/* start the recording on the host's 'joined' — never on Start class */
+let inRoom = false;       /* joined and in the room (the module resolves once the person is in) */
+let closing = false;      /* the guest poll saw the row go off air and is closing the room itself */
 
 async function mountRoom(mode, extra) {
   const { mountRoomV2 } = await import('/js/rtk-room-v2.js' + V);
@@ -103,18 +133,24 @@ async function mountRoom(mode, extra) {
   window.scrollTo({ top: Math.max(0, mount.getBoundingClientRect().top + window.scrollY - 8), behavior: 'smooth' });
   return r2;
 }
+/* onState: 'joined' (first join, or reason 'rejoined' after a drop the room mended on its own), 'reconnecting'
+   (a drop being mended — nothing to do), 'left' (Leave, a drop that could not be mended = 'dropped', or
+   'kicked'), 'ended' (the explicit End, here or by another host). A host's 'left' never ends anything. */
 function onState(st, meeting, reason) {
-  if (st === 'joined' && pendingRecord) {
+  if (st === 'joined') {
+    inRoom = true; host.left = false;
+    if (!pendingRecord) return;
     pendingRecord = false;
     record('start').then(() => { host.rec(true); if (r2 && r2.setRecording) r2.setRecording(true); })
       .catch((e) => host.note('You’re in, but the replay could not start recording (' + (e.message || e) + '). The session itself is fine.'));
+    return;
   }
-  if (st === 'left' || st === 'ended') {
-    document.body.classList.remove('in-room', 'in-room-v2');
-    if (hosting) host.endSession();
-    else if (st === 'left' && reason !== 'kicked') leftCard();
-    else endedCard();
-  }
+  if (st !== 'left' && st !== 'ended') return;
+  inRoom = false; r2 = null;
+  document.body.classList.remove('in-room', 'in-room-v2');
+  if (hosting) { if (st === 'ended') host.endSession(); else host.stillRunning(reason); return; }
+  if (closing) return;                               /* the poll is already closing the room */
+  if (st === 'left' && reason !== 'kicked') leftCard(); else endedCard();
 }
 async function record(action, extra) {
   const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-rtk-record', {
@@ -137,7 +173,7 @@ async function guestEnter() {
   try { await mountRoom('student'); }
   catch (e) { card('<h3>' + esc(htErrorText(e.code, e.status, words)) + '</h3><p>Reload to try again.</p>'); return; }
   poll = setInterval(async () => {
-    try { const s = await getState(); if (s && !s.is_live) { clearInterval(poll); poll = null; state = s; try { await r2.leave(); } catch (x) {} endedCard(); } } catch (e) {}
+    try { const s = await getState(); if (s && !s.is_live) { clearInterval(poll); poll = null; state = s; closing = true; try { if (r2) await r2.leave(); } catch (x) {} closing = false; endedCard(); } } catch (e) {}
   }, POLL_MS);
 }
 
@@ -145,6 +181,8 @@ async function guestEnter() {
 const START = 'Start class — everyone on camera';
 const host = {
   room: null, admin: false, tick: null, els: {},
+  left: false,      /* this host is out of a session that is still running (Leave, a drop, a second screen) */
+  entering: false,  /* a mount is under way — one at a time */
   note(t) { if (this.els.note) this.els.note.textContent = t; },
   rec(on) { if (this.els.rec) this.els.rec.hidden = !on; },
   async load() {
@@ -162,14 +200,15 @@ const host = {
   <div class="row"><label style="flex:1"><span>The link to send</span><input id="rmLink" readonly aria-label="Link to this room" value="${esc(this.link())}"></label><button type="button" class="pill" id="rmCopy" aria-live="polite">Copy link</button><button type="button" class="pill ghost" id="rmNew">New link</button></div>
   <div class="row two"><label>Title <span class="saved" id="rmTitleSaved"></span><input id="rmTitle" maxlength="120" value="${esc(r.title)}"></label><label>Host name <span class="saved" id="rmHostSaved"></span><input id="rmHost" maxlength="80" value="${esc(r.host_name)}"></label><label>Max people (you included) <span class="saved" id="rmMaxSaved"></span><input id="rmMax" type="number" min="2" max="500" value="${esc(r.max_participants)}"></label></div>
   ${this.admin ? `<label>Hosts — one email per line <span class="saved" id="rmHostsSaved"></span><textarea id="rmHosts" spellcheck="false">${esc((r.host_emails || []).join('\n'))}</textarea></label><div class="row"><button type="button" class="pill" id="rmHostsSave">Save hosts</button><p class="fine" style="margin:0">Anyone on this list who signs in with that email gets this card and can start a session.</p></div>` : ''}
-  <div class="row"><button type="button" class="btn ht-gold" id="rmStart">${START}</button><button type="button" class="pill" id="rmEnd" hidden title="For a session left running from another device. Leaving the room from the device that started it ends the session on its own.">End session</button><span id="rmRec" hidden><i></i>Recording</span><span class="status" id="rmStatus"></span></div>
-  <p class="note" id="rmNote">1. Copy the link and send it. It works before you start — people wait in the room. &nbsp;2. Start class, check your camera, press Enter Class. &nbsp;3. Leave ends the session for everyone; the replay lands below to review and publish.</p>
+  <div class="ht-room-still" id="rmStill" hidden><b>${esc(ec.stillRunning)}</b><span>${esc(ec.stillRunningHint)}</span></div>
+  <div class="row"><button type="button" class="btn ht-gold" id="rmStart">${START}</button><button type="button" class="pill" id="rmEnd" hidden title="${esc(ec.endHint)}. Two taps.">${esc(ec.endButton)}</button><span id="rmRec" hidden><i></i>Recording</span><span class="status" id="rmStatus"></span></div>
+  <p class="note" id="rmNote">1. Copy the link and send it. It works before you start — people wait in the room. &nbsp;2. Start class, check your camera, press Enter Class. &nbsp;3. Leave only leaves — the session keeps running and you can come back. To end it for everyone, use Tools in the room or the End button here; the replay lands below to review and publish.</p>
   <h4>Replays</h4><div id="rmReplays"><p class="fine">Loading…</p></div>
   <details id="rmWho"><summary>Who joined</summary><div></div></details>
 </div>` + '<div id="rmLast">' + lastSession(state) + '</div>';
     const $ = (id) => document.getElementById(id);
     this.els = { link: $('rmLink'), copy: $('rmCopy'), neu: $('rmNew'), title: $('rmTitle'), hostName: $('rmHost'), max: $('rmMax'), hosts: $('rmHosts'), hostsSave: $('rmHostsSave'),
-      start: $('rmStart'), end: $('rmEnd'), rec: $('rmRec'), status: $('rmStatus'), note: $('rmNote'), reps: $('rmReplays'), who: $('rmWho'), last: $('rmLast') };
+      start: $('rmStart'), end: $('rmEnd'), rec: $('rmRec'), status: $('rmStatus'), note: $('rmNote'), reps: $('rmReplays'), who: $('rmWho'), last: $('rmLast'), still: $('rmStill') };
     this.wire(); this.syncCtl(); this.loadReplays(); this.loadWho();
   },
   wire() {
@@ -219,16 +258,44 @@ const host = {
         e.hostsSave.disabled = false;
       }
     });
-    e.start.addEventListener('click', () => this.start());
-    e.end.addEventListener('click', () => { if (r2) { r2.leave(); } else { this.endSession(); } });
+    /* Start is never reachable while the session runs: the same button then reads Enter / Rejoin and re-enters
+       the running meeting (the join function reuses it while the row is live — it never creates a second one) */
+    e.start.addEventListener('click', () => (this.room.is_live ? this.reenter() : this.start()));
+    /* End: two taps within 4 s — the ONLY thing on this page that ends the session for everyone */
+    e.end.addEventListener('click', () => this.endTap());
   },
   syncCtl() {
     const e = this.els, live = !!this.room.is_live;
-    e.start.disabled = live; e.start.textContent = live ? 'Class is running' : START;
+    e.start.disabled = this.entering;
+    e.start.textContent = !live ? START : this.entering ? 'Entering…' : this.left ? 'Rejoin the running ' + words.thing + ' →' : 'Enter the running ' + words.thing;
     e.end.hidden = !live;
+    if (e.still) e.still.hidden = !(live && this.left);
     e.status.textContent = statusLine(Object.assign({}, state, { is_live: live }));
     e.status.classList.toggle('live', live);
     if (live && !this.tick) this.tick = setInterval(() => this.onTick(), POLL_MS);
+  },
+  endTap() {
+    const b = this.els.end;
+    if (b.dataset.armed === '1') { b.dataset.armed = ''; b.textContent = ec.endButton; this.endNow(); return; }
+    b.dataset.armed = '1'; b.textContent = ec.endAsk + ' ' + ec.endAgain;
+    setTimeout(() => { if (b.dataset.armed === '1') { b.dataset.armed = ''; b.textContent = ec.endButton; } }, 4000);
+  },
+  async endNow() {
+    const b = this.els.end; b.disabled = true; b.textContent = 'Ending…';
+    try {
+      /* in the room: the module removes everyone, leaves, and says 'ended' → endSession. Out of it (left, or a
+         session left running from another device): close it from here. */
+      if (r2 && inRoom && r2.end) await r2.end(); else await this.endSession();
+    } finally { b.disabled = false; b.textContent = ec.endButton; }
+  },
+  /* the host is out but the session is not over: say so, offer the way back in and the way to end it */
+  stillRunning(reason) {
+    this.left = true; pendingRecord = false; this.syncCtl();
+    this.note(reason === 'kicked'
+      ? 'Another screen took your seat — you’re hosting from there now. Rejoin here to take it back, or end the ' + words.thing + ' for everyone from Tools there or the button here.'
+      : reason === 'dropped'
+        ? 'Your connection dropped and the room could not get you back in on its own. The ' + words.thing + ' is still running — press Rejoin.'
+        : 'You left the room. The ' + words.thing + ' keeps running for everyone else and the recording keeps going. Press Rejoin to go back in, or End the ' + words.thing + ' for everyone.');
   },
   async onTick() {
     let s; try { s = await getState(); } catch (e) { return; }
@@ -254,17 +321,19 @@ const host = {
      drop the camera we are about to use. */
   async start() {
     const e = this.els;
-    e.start.disabled = true; e.start.textContent = 'Opening the room…';
+    if (this.entering || inRoom) return;
+    this.entering = true; e.start.disabled = true; e.start.textContent = 'Opening the room…';
     let opened = false;
     try {
-      hosting = true; if (poll) { clearInterval(poll); poll = null; }
+      hosting = true; this.left = false; if (poll) { clearInterval(poll); poll = null; }
       await mountRoom('host', { onOpened: async () => {
         await this.load(); try { state = await getState(); } catch (e) {}
         opened = true; pendingRecord = true; this.syncCtl();
-        this.note('Your room is open. Check your camera below and press Enter Class — the recording starts when you’re in. When you’re done, press Leave and the session ends for everyone.');
+        this.note('Your room is open. Check your camera below and press Enter Class — the recording starts when you’re in. When you’re done, open Tools and press End the ' + words.thing + ' for everyone — Leave only leaves.');
       } });
+      this.entering = false; this.syncCtl();
     } catch (x) {
-      hosting = false; e.start.disabled = false; e.start.textContent = START;
+      hosting = false; this.entering = false; e.start.disabled = false; e.start.textContent = START;
       const msg = x.code ? htErrorText(x.code, x.status, words) : (x.message || x);
       if (opened) {
         try { await this.flip(false); } catch (y) {}
@@ -275,20 +344,22 @@ const host = {
       }
     }
   },
-  /* re-entry: a reload or a second device while the class runs — same meeting, no new recording
-     (start is idempotent server-side) */
+  /* re-entry: a reload, a second device, or Rejoin after leaving while the class runs — the SAME meeting
+     (the join function reuses it while the row is live), no new recording (start is idempotent server-side) */
   async reenter() {
+    if (this.entering || inRoom) return;
+    this.entering = true; this.syncCtl();
     hosting = true; pendingRecord = true;
-    try { await mountRoom('host'); }
-    catch (x) { hosting = false; this.note('The class is running but this device could not enter it — ' + (x.code ? htErrorText(x.code, x.status, words) : (x.message || x)) + '. Press End session to close it.'); }
+    try { await mountRoom('host'); this.entering = false; this.left = false; this.syncCtl(); }
+    catch (x) { this.entering = false; this.syncCtl(); this.note('The ' + words.thing + ' is running but this device could not enter it — ' + (x.code ? htErrorText(x.code, x.status, words) : (x.message || x)) + '. Try again, or press End the ' + words.thing + ' for everyone to close it.'); }
   },
-  /* the host leaving IS the end of the session — one action */
+  /* the end of the session — ONLY after the explicit End (Tools in the room, or the two-tap button here) */
   async endSession() {
-    hosting = false; let recorded = false;
+    hosting = false; this.left = false; pendingRecord = false; let recorded = false;
     try { recorded = !!(await record('stop')).stopped; } catch (x) {}
     this.rec(false);
     try { await this.flip(false); }
-    catch (x) { this.syncCtl(); this.note('You left, but the session could not be closed (' + x.message + '). Press End session.'); return; }
+    catch (x) { this.syncCtl(); this.note('The session could not be closed (' + x.message + '). Press End the ' + words.thing + ' for everyone again.'); return; }
     this.syncCtl();
     this.note(recorded ? 'Session ended — the replay is being prepared. It shows below when it is ready to review; the people who were here see it once you publish it.'
                        : 'Session ended — the room is closed for everyone. Start class to open it again.');
@@ -362,7 +433,7 @@ switch (branch) {
       await host.load();
       try { host.admin = (await sb.rpc('ea_is_admin')).data === true; } catch (e) { host.admin = false; }
       host.render();
-      if (branch === 'host_live') { host.note('Class is running. This device is entering it — Leave here ends the session for everyone, or press End session.'); await host.reenter(); }
+      if (branch === 'host_live') { host.note('The ' + words.thing + ' is running — this device is entering it. Leave only leaves; End the ' + words.thing + ' for everyone from Tools in the room or the button here.'); await host.reenter(); }
     } catch (e) { card('<h3>The host card could not load.</h3><p>' + esc(e.message || e) + '</p>'); }
     break;
   case 'waiting': await guestWait(); break;

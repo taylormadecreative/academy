@@ -17,7 +17,7 @@
 .room-shell{padding-block:clamp(22px,4vw,44px) clamp(40px,6vw,80px)}
 body.in-room .room-shell{padding-block:12px 16px}
 body.in-room .room-ctl, body.in-room .site-header, body.in-room #card { display:none }
-#card:empty,#card[hidden],#roomCtl[hidden],#rEnd[hidden],#rRec[hidden]{display:none!important}
+#card:empty,#card[hidden],#roomCtl[hidden],#rEnd[hidden],#rRec[hidden],#rStill[hidden],#rBack[hidden]{display:none!important}
 
 /* ---- the card ---- */
 .gatecard{background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:clamp(26px,4vw,46px);box-shadow:var(--shadow-float);position:relative;overflow:hidden;max-width:760px;margin:0 auto}
@@ -45,6 +45,15 @@ body.in-room .room-ctl, body.in-room .site-header, body.in-room #card { display:
 .ctl-cap a{color:inherit;text-decoration:underline}
 #rNote{font-size:13px;color:#8a6d00;margin:11px 0 0;line-height:1.5}
 #rRec{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#b4451f;background:#fdf0e7;border-radius:var(--pill);padding:0 12px;min-height:44px}
+/* End is two taps: armed, it turns navy and reads the question */
+.ctl-row .end[data-armed="1"]{background:var(--navy);border-color:var(--navy)}
+/* the host is out but the session is still running: said plainly, above the Rejoin / End row */
+#rStill{display:grid;gap:3px;margin:0 0 12px;padding:12px 14px;border:1px solid #eacf85;border-radius:12px;background:#fff}
+#rStill b{font-family:var(--display);font-size:15px;color:var(--ink)}
+#rStill span{font-size:13px;color:#8a6d00;line-height:1.5}
+/* the ended card's way back in, once a session runs again */
+.gatecard #rBack{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14)}
+.gatecard #rBack p{margin:0 0 12px}
 #rRec i{width:8px;height:8px;border-radius:50%;background:#e0492a;animation:rpulse 1.6s ease-in-out infinite}
 @keyframes rpulse{0%,100%{opacity:1}50%{opacity:.35}}
 @media(prefers-reduced-motion:reduce){#rRec i{animation:none}}
@@ -64,7 +73,7 @@ body.in-room .room-ctl, body.in-room .site-header, body.in-room #card { display:
 <script src="/js/config.js?v=76ebe68bd6"></script>
 <script type="module">
 import { roomKey, roomBranch, loginHref, joinErrorText } from '/js/room-page.js?v=76ebe68bd6';
-import { ROOM_WORDS } from '/opil/hub/live-rooms.js?v=76ebe68bd6';
+import { ROOM_WORDS, endCopy, backOn } from '/opil/hub/live-rooms.js?v=76ebe68bd6';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CFG = window.BM_CONFIG || {};
@@ -74,6 +83,7 @@ const POLL_MS = 20000;            /* how often a waiting or joined guest asks th
 /* The link Nelson copies is always the real address, whichever domain this page was opened on (same constant as /live/). */
 const ROOM_ORIGIN = 'https://taylormadeacademy.com';
 const words = ROOM_WORDS;
+const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
 const k = roomKey(location.search);
 const card = $('card'), ctl = $('roomCtl'), mount = $('rtkMount');
 const here = location.pathname + location.search;
@@ -99,11 +109,22 @@ const stopPoll = () => { if (poll) { clearInterval(poll); poll = null; } };
 async function pollState() {
   try { const r = await sb.rpc('ea_room_state', { p_key: k }); return r.error ? null : r.data; } catch (e) { return null; }
 }
+/* The ended card keeps listening (a poll every 20 s, the first look at 5 s because an End takes the row off
+   air a moment after the kick): when the room has been seen off air and is live again, the way back in
+   appears — nobody who was removed or whose session ended is stranded when the next one starts. */
 function endedCard() {
   stopPoll();
   showCard('<span class="kicker gold">Thanks for coming</span><h2>This session has ended.</h2>' +
     '<p class="lede">Members can rewatch it on the Live page.</p>' +
-    '<div class="acts"><a class="btn gold" href="/live/">Live page <span class="arr">&rarr;</span></a></div>');
+    '<div class="acts"><a class="btn gold" href="/live/">Live page <span class="arr">&rarr;</span></a></div>' +
+    '<div id="rBack" hidden><p class="lede">' + esc(ec.backOn) + '</p><div class="acts"><a class="btn gold" href="' + esc(here) + '">' + esc(ec.rejoin) + '</a></div></div>');
+  let on = backOn({ seenOff: !(state && state.is_live) }, null);
+  const tick = async () => {
+    const st = await pollState(); if (!st || st.bad_link) return;
+    on = backOn(on, !!st.is_live);
+    if (on.again) { state = st; const b = $('rBack'); if (b) b.hidden = false; stopPoll(); }
+  };
+  poll = setInterval(tick, POLL_MS); setTimeout(tick, 5000);
 }
 function leftCard() {
   stopPoll();
@@ -183,12 +204,14 @@ async function waitHere() {
     if (st.is_live) location.reload();
   }, POLL_MS);
 }
+/* 'joined' (first join, or reason 'rejoined' after a drop the room mended), 'reconnecting' (a drop being
+   mended — nothing to do here), 'left' (Leave, or 'dropped' = a drop that could not be mended), 'ended' / 'kicked' */
 function guestState(st, m, reason) {
   if (st === 'joined') { inRoom = true; return; }
   if (st !== 'left' && st !== 'ended') return;
   if (closing || !inRoom) return;                 /* the poll is already closing the room, or the kit said it twice */
   inRoom = false;
-  const why = reason || st;                       /* 'ended' (Nelson left) and 'kicked' (Nelson removed them) both end it for this person */
+  const why = reason || st;                       /* 'ended' (the session was ended for everyone) and 'kicked' (Nelson removed them) both end it for this person */
   if (why === 'ended' || why === 'kicked') endedCard(); else leftCard();
 }
 async function guestPoll() {
@@ -212,11 +235,19 @@ async function hostControl(liveNow) {
     '<h2 id="rTitle">' + esc(state.title) + '</h2>' +
     '<div class="ctl-row"><input id="rLink" readonly aria-label="Link to your room" value="" placeholder="Reading your link…"><button type="button" id="rCopy" aria-live="polite">Copy link</button></div>' +
     '<p class="ctl-cap">Send this link to anyone you want in the room. It works before you start &mdash; people wait in the room until you do. Change the title or make a new link on the <a href="/live/">Live page</a>.</p>' +
-    '<div class="ctl-row"><button type="button" class="go" id="rStart">Start class &mdash; everyone on camera</button><button type="button" class="end" id="rEnd" hidden title="For a session left running from another device. Leaving the room from the device you started it on ends the session on its own.">End session</button><span id="rRec" hidden><i></i>Recording</span></div>' +
-    '<p id="rNote">1. Copy the link and send it. &nbsp;2. Start class, check your camera, press Enter. &nbsp;3. When you are done, press Leave &mdash; that ends the session for everyone and the replay lands on the Live page.</p>';
+    '<div id="rStill" hidden><b>' + esc(ec.stillRunning) + '</b><span>' + esc(ec.stillRunningHint) + '</span></div>' +
+    '<div class="ctl-row"><button type="button" class="go" id="rStart">Start class &mdash; everyone on camera</button><button type="button" class="end" id="rEnd" hidden title="' + esc(ec.endHint) + '. Two taps.">' + esc(ec.endButton) + '</button><span id="rRec" hidden><i></i>Recording</span></div>' +
+    '<p id="rNote">1. Copy the link and send it. &nbsp;2. Start class, check your camera, press Enter. &nbsp;3. Leave only leaves &mdash; the session keeps running and you can come back. To end it for everyone, use Tools in the room or the End button here; the replay lands on the Live page.</p>';
   ctl.hidden = false;
-  const startBtn = $('rStart'), endBtn = $('rEnd'), note = $('rNote'), recChip = $('rRec'), linkEl = $('rLink'), copyBtn = $('rCopy');
-  const syncCtl = () => { endBtn.hidden = !live; startBtn.disabled = live; startBtn.innerHTML = live ? 'Class is running' : 'Start class &mdash; everyone on camera'; };
+  const startBtn = $('rStart'), endBtn = $('rEnd'), note = $('rNote'), recChip = $('rRec'), linkEl = $('rLink'), copyBtn = $('rCopy'), stillEl = $('rStill');
+  let left = false, entering = false;   /* out of a running session (Leave, a drop, a second screen) · a mount under way */
+  /* Start is never reachable while the session runs: the same button then reads Enter / Rejoin and re-enters the
+     running meeting (the join function reuses it while the row is live — it never creates a second one) */
+  const syncCtl = () => {
+    endBtn.hidden = !live; stillEl.hidden = !(live && left);
+    startBtn.disabled = entering;
+    startBtn.innerHTML = !live ? 'Start class &mdash; everyone on camera' : entering ? 'Entering…' : left ? 'Rejoin the running session &rarr;' : 'Enter the running session';
+  };
   syncCtl();
 
   /* the link: link_key is admin-only on ea_rooms (RLS), so only Nelson's page can read it */
@@ -252,31 +283,38 @@ async function hostControl(liveNow) {
     if (r.error) throw new Error(r.error.message);
     live = false; syncCtl();
   }
-  /* Leaving IS the end of the session — one action, for everyone (Nelson, 9/14). End session does the same from the control. */
-  async function endSession(fromRoom) {
+  /* The end of the session — ONLY after the explicit End: Tools in the room ("End the session for everyone",
+     two taps), or the two-tap End button here. Leave never reaches this (Nelson, 9/15: "i never asked for a
+     rule anywhere to cut off a class I am in the middle of talking on"). */
+  async function endSession() {
     let recorded = false;
     try { recorded = !!(await record('stop')).stopped; } catch (e) {}   /* a recording that never started has nothing to stop */
-    recChip.hidden = true;
+    recChip.hidden = true; left = false; pendingRecord = false;
     try { await flipOff(); }
-    catch (e) { note.textContent = (fromRoom ? 'You left, but the session could not be closed (' : 'Could not end the session (') + e.message + '). Press End session.'; return; }
-    room = null;
+    catch (e) { syncCtl(); note.textContent = 'The session could not be closed (' + e.message + '). Press ' + ec.endButton + ' again.'; return; }
+    room = null; syncCtl();
     note.textContent = recorded
       ? 'Session ended — the replay is being prepared. Review and publish it on the Live page; members see it once it is published.'
       : 'Session ended — the room is closed for everyone. Start class to open it again.';
   }
+  /* the host is out but the session is not over: say so, offer the way back in and the way to end it */
+  function stillRunning(reason) {
+    left = true; pendingRecord = false; live = true; syncCtl();
+    note.textContent = reason === 'kicked'
+      ? 'Another screen took your seat — you’re hosting from there now. Rejoin here to take it back, or end the session for everyone from Tools there or the button here.'
+      : reason === 'dropped'
+        ? 'Your connection dropped and the room could not get you back in on its own. The session is still running — press Rejoin.'
+        : 'You left the room. The session keeps running for everyone else and the recording keeps going. Press Rejoin to go back in, or ' + ec.endButton + '.';
+  }
   /* the recording starts when Nelson is IN the room (joined), never at Start class: Cloudflare stops a
-     recording that sits with nobody in it for 60 s, and the camera check can take longer than that */
+     recording that sits with nobody in it for 60 s, and the camera check can take longer than that.
+     'joined' comes again with reason 'rejoined' after a drop the room mended on its own; 'reconnecting'
+     while it is mending — nothing to do. A host's 'left' (Leave, 'dropped', or 'kicked' — a second screen
+     took the seat, 9/15: Nelson's Safari knocked his Chrome out and Chrome closed the class for everyone)
+     NEVER ends the session. Only 'ended' does. */
   async function hostState(st, m, reason) {
-    /* the same account entering from a second screen takes this seat: that is not the end of the session
-       (9/15: Nelson's Safari knocked his Chrome out and Chrome closed the class for everyone) */
-    if (st === 'left' && reason === 'kicked' && hostIn) {
-      hostIn = false; unmount();
-      note.textContent = 'You’re hosting from another screen now — this one stepped back. Press Leave there to end the session.';
-      live = true; syncCtl();
-      return;
-    }
     if (st === 'joined') {
-      hostIn = true;
+      hostIn = true; left = false; syncCtl();
       if (!pendingRecord) return;
       pendingRecord = false;
       try { await record('start'); recChip.hidden = false; if (room && room.setRecording) room.setRecording(true); }
@@ -284,39 +322,54 @@ async function hostControl(liveNow) {
       return;
     }
     if (st !== 'left' && st !== 'ended') return;
-    if (!hostIn) return;             /* the kit can say it twice; one end per session */
-    hostIn = false;
-    await endSession(true);
+    if (!hostIn) return;             /* the kit can say it twice; one answer per exit */
+    hostIn = false; unmount(); room = null;
+    if (st === 'ended') await endSession(); else stillRunning(reason);
   }
   /* into the room as host. A fresh Start gets onOpened (the server just made a new meeting and flipped the
      row live: the control mirrors that). A reload or a second device while live joins the running meeting
      with no onOpened and no new recording (start is idempotent on the server). Never location.reload()
      while hosting — that drops the camera. */
   async function goIn(opened) {
-    pendingRecord = true;
-    try { room = await enter('host', opened ? { onState: hostState, onOpened: opened } : { onState: hostState }); }
-    catch (e) { pendingRecord = false; unmount(); syncCtl(); throw e; }
+    if (entering || hostIn) return;
+    entering = true; pendingRecord = true; syncCtl();
+    try { room = await enter('host', opened ? { onState: hostState, onOpened: opened } : { onState: hostState }); entering = false; left = false; syncCtl(); }
+    catch (e) { entering = false; pendingRecord = false; unmount(); syncCtl(); throw e; }
   }
   startBtn.addEventListener('click', async () => {
+    if (live) {
+      /* Enter / Rejoin the running session: the same meeting, no new recording (start is idempotent server-side) */
+      try { await goIn(null); } catch (e) { note.textContent = 'Could not get back in: ' + failText(e); }
+      return;
+    }
     startBtn.disabled = true; startBtn.textContent = 'Opening the room…';
     try {
       await goIn(async () => {
         /* the meeting is open and the server has stamped the row live (is_live + live_since, its clock) — nothing to write here */
         live = true; syncCtl();
-        note.textContent = 'Your room is open. Check your camera below and press Enter — the recording starts when you’re in. When you’re done, press Leave and the session ends for everyone.';
+        note.textContent = 'Your room is open. Check your camera below and press Enter — the recording starts when you’re in. When you’re done, open Tools and press ' + ec.endButton + ' — Leave only leaves.';
       });
     } catch (e) { note.textContent = 'Could not start: ' + failText(e); }
   });
+  /* End: two taps within 4 s — the ONLY thing on this page that ends the session for everyone */
   endBtn.addEventListener('click', async () => {
-    endBtn.disabled = true; endBtn.textContent = 'Ending…';
-    await endSession(false);
-    endBtn.disabled = false; endBtn.textContent = 'End session';
+    if (endBtn.dataset.armed !== '1') {
+      endBtn.dataset.armed = '1'; endBtn.textContent = ec.endAsk + ' ' + ec.endAgain;
+      setTimeout(() => { if (endBtn.dataset.armed === '1') { endBtn.dataset.armed = ''; endBtn.textContent = ec.endButton; } }, 4000);
+      return;
+    }
+    endBtn.dataset.armed = ''; endBtn.disabled = true; endBtn.textContent = 'Ending…';
+    try {
+      /* in the room: the module removes everyone, leaves, and says 'ended' → endSession. Out of it (left, or a
+         session left running from another device): close it from here. */
+      if (room && hostIn && room.end) await room.end(); else await endSession();
+    } finally { endBtn.disabled = false; endBtn.textContent = ec.endButton; }
   });
   if (live) {
     /* already live (a reload, a second device, or a tab that died): straight back in as host */
-    note.textContent = 'Class is running — taking you back in. If it was left running from another device, End session closes it from here.';
+    note.textContent = 'The session is running — taking you back in. Leave only leaves; ' + ec.endButton + ' from Tools in the room or the button here.';
     try { await goIn(null); }
-    catch (e) { note.textContent = 'Could not get back in: ' + failText(e) + ' End session closes the room from here.'; }
+    catch (e) { note.textContent = 'Could not get back in: ' + failText(e) + ' Try again, or ' + ec.endButton + ' closes the room from here.'; }
   }
 }
 </script>
