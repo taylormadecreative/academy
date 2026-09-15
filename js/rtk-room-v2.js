@@ -334,10 +334,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           ${host ? '<button type="button" class="r2-tab" data-tab="queue">Questions <em>0</em></button>' : ''}
           <button type="button" class="r2-tab" data-tab="chat">Chat</button>
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
+          <button type="button" class="r2-tab" data-tab="polls">Polls <em></em></button>
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
+        <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
         <button type="button" class="r2-close" aria-label="Close">Close</button>
       </aside>
     </div>
@@ -491,7 +493,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
       <button type="button" class="r2-btn" data-tool="breakout"><b>Breakout rooms</b><span>Split the ${esc(words.thing)} into team rooms</span></button>
-      <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live</span></button>
+      <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
       <button type="button" class="r2-btn danger" data-tool="end"><b>End ${esc(words.thing)} for everyone</b><span>Closes the room and stops the recording</span></button>
@@ -501,7 +503,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       if (t === 'share') { try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); } catch (e) { toast('Screen share: ' + (e.message || e)); } sheet.hidden = true; }
       else if (t === 'fx') openSheet('Effects', effectsPane());
       else if (t === 'breakout') { const c = document.createElement('rtk-breakout-rooms-manager'); c.meeting = m; c.className = 'r2-kit'; openSheet('Breakout rooms', c); }
-      else if (t === 'poll') { const c = document.createElement('rtk-polls'); c.meeting = m; c.className = 'r2-kit'; openSheet('Poll', c); }
+      else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
       else if (t === 'end') { if (confirmInline(b, 'End ' + words.thing + ' for everyone?')) { try { if (m.participants.kickAll) await m.participants.kickAll(); } catch (e) {} await onLeave(); } }
@@ -540,10 +542,18 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   function toast(msg, ms) { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), ms || 4000); }
 
   /* bind the kit's parts (and re-bind after a breakout switch) */
+  /* polls: the tab counts them; a new one opens the tab for a student so nobody misses the vote */
+  let pollCount = 0;
+  function watchPolls(mm) {
+    const count = () => { try { const n = (mm.polls && mm.polls.items ? mm.polls.items.length : 0); const em = q('.r2-tab[data-tab="polls"] em'); if (em) em.textContent = n || ''; return n; } catch (e) { return 0; } };
+    pollCount = count();
+    try { mm.polls.on('pollsUpdate', () => { const n = count(); if (n > pollCount && !host) { showPane('polls'); toast('New poll from ' + (facilitator || hostName() || words.host) + ' — tap an answer.', 6000); } pollCount = n; }); } catch (e) {}
+  }
   let bound = false;
   function bind(mm) {
     m = mm; if (onSwitch) onSwitch(mm);
-    node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants').forEach(c => { c.meeting = mm; });
+    node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants, rtk-polls').forEach(c => { c.meeting = mm; });
+    watchPolls(mm);
     bindSelf(); peopleCount(); setNow(); renderPrimary(); nudge();
     try { mm.participants.joined.on('participantJoined', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); } catch (e) {}
     if (!handsChan) watchHands();
