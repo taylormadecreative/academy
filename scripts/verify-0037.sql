@@ -46,8 +46,9 @@ begin
   select id, link_key into v_ac, v_ac_key from public.ea_rooms where slug = 'academy';
   insert into verify_out(line) values (case when v_ht is not null and v_ac is not null then 'OK ' else 'FAIL ' end || 'rows academy + ht exist');
   if v_ht is null or v_ac is null then return; end if;
+  update public.ea_rooms set title = 'HT Live', host_name = 'Nelson Taylor' where id = v_ht;   -- as owner: title/host_name ARE host-writable (grant update), so pin them first — survives real use, not just a fresh seed
   select host_preset || '/' || guest_preset || '/' || title || '/' || host_name into v_t from public.ea_rooms where id = v_ht;
-  insert into verify_out(line) values (case when v_t = 'ht-class-host/ht-class-guest/HT Live/Nelson Taylor' then 'OK ' else 'FAIL ' end || 'ht row defaults · ' || v_t);
+  insert into verify_out(line) values (case when v_t = 'ht-class-host/ht-class-guest/HT Live/Nelson Taylor' then 'OK ' else 'FAIL ' end || 'ht row defaults (title/host_name pinned first) · ' || v_t);
   select host_preset || '/' || guest_preset into v_t from public.ea_rooms where id = v_ac;
   insert into verify_out(line) values (case when v_t = 'tma-class-host/tma-class-guest' then 'OK ' else 'FAIL ' end || 'academy row keeps the Academy presets · ' || v_t);
   insert into verify_out(line) values (case when not exists (select 1 from pg_indexes where indexname = 'ea_rooms_single') then 'OK ' else 'FAIL ' end || 'ea_rooms_single is gone');
@@ -135,14 +136,58 @@ begin
     reset role;
     insert into verify_out(line) values ('FAIL ea_room_set_hosts raised ' || sqlstate || ' ' || sqlerrm);
   end;
-  -- (as the migration owner, bypassing the admin check is not possible: call the update directly to stage the host list)
-  select coalesce(array_agg(distinct e order by e), '{}'::text[]) into v_arr
-    from (select lower(trim(x)) as e from unnest(array['  ZZ-Test-0037@Example.com ', v_email, '', 'not-an-email']) as x) s
-    where e ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$';
-  insert into verify_out(line) values (case when v_arr = array[v_email] then 'OK ' else 'FAIL ' end || 'host list normalises (lower, trim, dedupe, drop junk) · ' || v_arr::text);
-  update public.ea_rooms set host_emails = array[v_email] where id = v_ht;
 
-  -- 5. the listed email is now a host of ht — and of nothing else
+  -- 5. the 0037 headline invariant: platform membership opens the Academy room only, never ht.
+  --    v_guest is still NOT a host of anything here. Order matters so each check is meaningful:
+  --    (a) give academy a replay and let the guest JOIN it (a room_members row, no ea_memberships
+  --        row yet) — proves a plain join alone must NOT unlock the Academy replay (the bug 0037
+  --        widened; see the ea_room_state fix above), (b) THEN make the guest an ea_memberships
+  --        member — proves membership opens academy (0036's rule, kept) but never ht (0037's new rule).
+  update public.ea_rooms set recording_url = 'https://example.invalid/ac/watch' where id = v_ac;
+  -- on conflict: a fallback (real) guest may already have joined a real academy session before
+  insert into public.ea_room_members (room_id, user_id) values (v_ac, v_guest)
+    on conflict (room_id, user_id) do update set last_joined_at = now();   -- joined academy, not (yet) a member
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
+    select public.ea_room_state(null, 'academy') into v_state;
+    reset role;
+    insert into verify_out(line) values (case when v_state->'recording_url' = 'null'::jsonb then 'OK ' else 'FAIL ' end || 'joining academy alone (no membership) does not unlock its replay · ' || coalesce(v_state::text, 'null'));
+  exception when others then
+    reset role;
+    insert into verify_out(line) values ('FAIL academy-join-without-membership check raised ' || sqlstate || ' ' || sqlerrm);
+  end;
+  -- on conflict: the fallback guest (an existing account) may already have a row here with a
+  -- non-active status (inactive/canceled/past_due) — flip it active rather than fail on the PK
+  insert into public.ea_memberships (user_id, status) values (v_guest, 'active')
+    on conflict (user_id) do update set status = 'active';
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
+    select public.ea_room_state(null, 'ht') into v_state;
+    reset role;
+    insert into verify_out(line) values (case when v_state->>'can_join' = 'false' and v_state->>'is_host' = 'false' then 'OK ' else 'FAIL ' end || 'platform membership does not open ht · ' || coalesce(v_state::text, 'null'));
+    set local role authenticated;
+    perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
+    select public.ea_room_state(null, 'academy') into v_state;
+    reset role;
+    insert into verify_out(line) values (case when v_state->>'can_join' = 'true' and v_state->>'recording_url' = 'https://example.invalid/ac/watch' then 'OK ' else 'FAIL ' end || 'platform membership opens academy (0036 kept), no key needed · ' || coalesce(v_state::text, 'null'));
+  exception when others then
+    reset role;
+    insert into verify_out(line) values ('FAIL membership checks raised ' || sqlstate || ' ' || sqlerrm);
+  end;
+
+  -- as the migration owner, bypassing the admin check is not possible: set host_emails directly here
+  -- as SETUP, not a check — the real ea_room_set_hosts normalisation is exercised for real as an
+  -- admin in section 8 below (calling the actual function, not re-implementing its regex here)
+  update public.ea_rooms set host_emails = array[v_email] where id = v_ht;
+  -- prod may already have real members from a past live session whose last_joined_at would
+  -- otherwise satisfy the people-count window; pin live_since to just before OUR join so only
+  -- the test member (joined earlier in this same transaction, so last_joined_at = this tx's now())
+  -- counts, regardless of real usage history
+  update public.ea_rooms set live_since = now() - interval '1 minute' where id = v_ht;
+
+  -- 6. the listed email is now a host of ht — and of nothing else
   begin
     set local role authenticated;
     perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
@@ -198,7 +243,7 @@ begin
     insert into verify_out(line) values ('FAIL host_emails update raised ' || sqlstate || ' ' || sqlerrm);
   end;
 
-  -- 6. publish is scoped to the room: publishing ht's replay leaves academy's published
+  -- 7. publish is scoped to the room: publishing ht's replay leaves academy's published
   insert into public.ea_room_replays (room_id, meeting_id, recording_id, status, watch_url, published)
     values (v_ac, 'zz-meet-ac', 'zz-rec-ac', 'ready', 'https://example.invalid/ac/watch', true) returning id into v_rep_ac;
   insert into public.ea_room_replays (room_id, meeting_id, recording_id, status, watch_url)
@@ -231,15 +276,17 @@ begin
   begin
     set local role authenticated;
     perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
-    select count(*) into v_n from public.ea_room_replays;
+    insert into verify_out(line) values (case when
+        (select count(*) from public.ea_room_replays where id = v_rep_ht) = 1
+        and (select count(*) from public.ea_room_replays where room_id = v_ac) = 0
+      then 'OK ' else 'FAIL ' end || 'HT host reads its own replay, none of academy''s — scoped by id/room, robust to prod history');
     reset role;
-    insert into verify_out(line) values (case when v_n = 1 then 'OK ' else 'FAIL ' end || 'HT host reads only HT replays · ' || v_n);
   exception when others then
     reset role;
     insert into verify_out(line) values ('FAIL replay read raised ' || sqlstate || ' ' || sqlerrm);
   end;
 
-  -- 7. Nelson still hosts both rooms
+  -- 8. Nelson still hosts both rooms; ea_room_set_hosts, exercised for real, normalises and refuses
   select p.id into v_adm from public.profiles p where p.role = 'admin' order by p.id limit 1;
   if v_adm is null then
     insert into verify_out(line) values ('SKIP admin checks — no profiles row with role = admin');
@@ -256,9 +303,34 @@ begin
       reset role;
       insert into verify_out(line) values ('FAIL admin checks raised ' || sqlstate || ' ' || sqlerrm);
     end;
+    -- call the REAL ea_room_set_hosts (not a regex re-implementation) as the admin it actually
+    -- requires: normalises (upper→lower, trim, drop blank/invalid), and refuses a nonexistent room
+    begin
+      set local role authenticated;
+      perform set_config('request.jwt.claims', v_adm_claims, true), set_config('request.jwt.claim.sub', v_adm::text, true), set_config('request.jwt.claim.email', '', true);
+      select public.ea_room_set_hosts(v_ht, array['  ' || upper(v_email) || ' ', v_email, '', 'not-an-email']) into v_arr;
+      reset role;
+      insert into verify_out(line) values (case when v_arr = array[v_email] then 'OK ' else 'FAIL ' end || 'ea_room_set_hosts (the real function) normalises the list · ' || v_arr::text);
+    exception when others then
+      reset role;
+      insert into verify_out(line) values ('FAIL ea_room_set_hosts as admin raised ' || sqlstate || ' ' || sqlerrm);
+    end;
+    begin
+      set local role authenticated;
+      perform set_config('request.jwt.claims', v_adm_claims, true), set_config('request.jwt.claim.sub', v_adm::text, true), set_config('request.jwt.claim.email', '', true);
+      perform public.ea_room_set_hosts('00000000-0000-4000-8000-0000000000ff', array[v_email]);
+      reset role;
+      insert into verify_out(line) values ('FAIL ea_room_set_hosts accepted a nonexistent room');
+    exception when no_data_found then
+      reset role;
+      insert into verify_out(line) values ('OK ea_room_set_hosts on a nonexistent room raises P0002');
+    when others then
+      reset role;
+      insert into verify_out(line) values ('FAIL ea_room_set_hosts(nonexistent room) raised ' || sqlstate || ' (expected P0002) ' || sqlerrm);
+    end;
   end if;
 
-  -- 8. the hands column grant still holds (inherited from 0036)
+  -- 9. the hands column grant still holds (inherited from 0036)
   begin
     set local role authenticated;
     perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
@@ -270,7 +342,7 @@ begin
     insert into verify_out(line) values ('OK a hand cannot be inserted with staged_at (42501)');
   when others then
     reset role;
-    insert into verify_out(line) values ('OK a hand with staged_at is refused (' || sqlstate || ')');
+    insert into verify_out(line) values ('FAIL a hand with staged_at raised ' || sqlstate || ' (expected 42501) ' || sqlerrm);
   end;
 end $v$;
 

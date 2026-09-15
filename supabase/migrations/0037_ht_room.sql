@@ -30,7 +30,7 @@ grant update (host_name) on public.ea_rooms to authenticated;
 -- ---------- 4.2 who is a host ----------
 -- the email in the caller's JWT, lowercased; both claim spellings so verify's impersonation works
 create or replace function public.ea_jwt_email() returns text
-language sql stable as
+language sql stable set search_path = public as
 $$ select lower(coalesce(nullif(current_setting('request.jwt.claim.email', true), ''),
                          nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'email')) $$;
 revoke all on function public.ea_jwt_email() from public;
@@ -88,6 +88,9 @@ begin
   v_host := public.ea_room_is_host(r.id);
   v_member := (r.slug = 'academy') and public.ea_is_member();      -- Academy membership opens the Academy room only
   v_joined := auth.uid() is not null and exists (select 1 from public.ea_room_members m where m.room_id = r.id and m.user_id = auth.uid());
+  -- joining alone unlocks another room's replay (e.g. ht) once you've been in a live session; the
+  -- Academy replay stays gated to v_host / v_member only — same rule 0036 gave it, a plain join
+  -- (even via a valid key) must not open it
   v_can := v_host or v_member or (p_key is not null and p_key = r.link_key);
   if (not v_can) and p_key is not null and p_key <> r.link_key then
     return jsonb_build_object('bad_link', true);
@@ -98,7 +101,7 @@ begin
     'is_host', v_host,
     'can_join', v_can,
     'bad_link', false,
-    'recording_url', case when v_host or v_member or v_joined then r.recording_url else null end,
+    'recording_url', case when v_host or v_member or (r.slug <> 'academy' and v_joined) then r.recording_url else null end,
     'people', case when v_host then (select count(*) from public.ea_room_members m
                                       where m.room_id = r.id and m.last_joined_at >= coalesce(r.live_since, 'epoch'::timestamptz))
                    else null end
@@ -132,10 +135,14 @@ create or replace function public.ea_room_publish_replay(p_replay uuid, p_publis
 language plpgsql volatile security definer set search_path = public as $$
 declare r public.ea_room_replays%rowtype;
 begin
-  select * into r from public.ea_room_replays where id = p_replay and status = 'ready' and watch_url is not null;
-  if not found then raise exception 'this replay is not ready' using errcode = 'P0002'; end if;
-  if r.room_id is null then raise exception 'this replay has no room' using errcode = 'P0002'; end if;
-  if not public.ea_room_is_host(r.room_id) then raise exception 'only a host can do that' using errcode = '42501'; end if;
+  -- host-ness is checked BEFORE readiness: a non-host must get the same 42501 whether the id is
+  -- someone else's ready replay, not-ready replay, or bogus — never a P0002 that would let a
+  -- non-host probe which replay ids exist or are ready
+  select * into r from public.ea_room_replays where id = p_replay;
+  if not found or r.room_id is null or not public.ea_room_is_host(r.room_id) then
+    raise exception 'only a host can do that' using errcode = '42501';
+  end if;
+  if r.status <> 'ready' or r.watch_url is null then raise exception 'this replay is not ready' using errcode = 'P0002'; end if;
   if p_publish then
     update public.ea_room_replays set published = true, updated_at = now() where id = r.id;
     update public.ea_room_replays set published = false, updated_at = now() where id <> r.id and published and room_id = r.room_id;

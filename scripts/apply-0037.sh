@@ -63,8 +63,8 @@ skip="$(jq -r '[.[].line | select(startswith("SKIP "))] | length' "$TMP/out.json
 echo "== $ok OK · $fail FAIL · $skip SKIP"
 # The gate is the whole tally, not "no FAIL": an empty result, rows without .line, or the SKIP path (no
 # profiles.role = 'admin' row → the admin checks never ran) would otherwise read as verified.
-# 29 = 23 case-inserts + 6 exception-block checks (the admin block's OK is one of the 23); recount when verify-0037.sql changes
-EXPECT_OK=29
+# 33 = 26 case-inserts + 7 exception-block checks (the admin block's OK is one of the 26); recount when verify-0037.sql changes
+EXPECT_OK=33
 if [ "$fail" != "0" ] || [ "$skip" != "0" ] || [ "$ok" -lt "$EXPECT_OK" ]; then
   echo "VERIFY FAILED — expected $EXPECT_OK OK · 0 FAIL · 0 SKIP (got $ok/$fail/$skip; a SKIP means the admin checks never ran). The migration is applied; fix and re-run with --verify-only"; exit 1
 fi
