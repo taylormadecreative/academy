@@ -110,10 +110,13 @@ async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Prom
   if (!room) return { status: 503, body: { error: "rtk_not_configured" } };
   /* 3 — who is this: Nelson, a member, or someone holding the current link */
   const isHost = ctx.academyAdmin;
-  const key = typeof body.key === "string" && KEY_RX.test(body.key) ? body.key : null;
+  const key = typeof body.key === "string" ? body.key : "";
+  const keyGiven = key.trim() !== "";
+  /* a malformed key (wrong length/charset — e.g. a truncated paste) is still a dead link, not "no key" */
+  const keyOk = keyGiven && KEY_RX.test(key) && key === room.link_key;
   if (!isHost) {
-    const allowed = (await deps.isMember()) || (key !== null && key === room.link_key);
-    if (!allowed) return key ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
+    const allowed = (await deps.isMember()) || keyOk;
+    if (!allowed) return keyGiven ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
   }
   /* 4 — is the room open: live, and started less than 4 h ago */
   const open = room.is_live && !!room.live_since && (deps.now().getTime() - Date.parse(room.live_since)) < OPEN_WINDOW_MS;

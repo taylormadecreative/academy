@@ -235,24 +235,28 @@ Deno.test("room: a person with the right key while live gets a guest token and n
   assertEquals(d.presets(), 0);
 });
 
-Deno.test("room: the wrong key → 404 bad_link; no key and not a member → 403 not_allowed; a malformed key counts as no key", async () => {
+Deno.test("room: the wrong key → 404 bad_link; no key and not a member → 403 not_allowed; a malformed key is also a dead link, not \"no key\"", async () => {
   const wrong = await handleJoin({ room: true, key: WRONG }, PERSON, roomDeps());
   assertEquals(wrong.status, 404); assertEquals(wrong.body, { error: "bad_link" });
   const none = await handleJoin({ room: true }, PERSON, roomDeps());
   assertEquals(none.status, 403); assertEquals(none.body, { error: "not_allowed" });
-  const short = await handleJoin({ room: true, key: "short" }, PERSON, roomDeps());
-  assertEquals(short.status, 403); assertEquals(short.body, { error: "not_allowed" });
   const d = roomDeps();
-  await handleJoin({ room: true, key: WRONG }, PERSON, d);
+  const short = await handleJoin({ room: true, key: "short" }, PERSON, d);
+  assertEquals(short.status, 404); assertEquals(short.body, { error: "bad_link" });
   assertEquals(d.calls.length, 0);   /* refused before any Cloudflare call */
+  const wrongCalls = roomDeps();
+  await handleJoin({ room: true, key: WRONG }, PERSON, wrongCalls);
+  assertEquals(wrongCalls.calls.length, 0);   /* refused before any Cloudflare call */
 });
 
-Deno.test("room: a member without a key is in; a member with a stale key is in too", async () => {
+Deno.test("room: a member without a key is in; a member with a stale OR malformed key is in too", async () => {
   const d = roomDeps({ isMember: async () => true });
   const r = await handleJoin({ room: true }, PERSON, d);
   assertEquals(r.status, 200); assertEquals((r.body as { preset: string }).preset, "tma-class-guest");
   const stale = await handleJoin({ room: true, key: WRONG }, PERSON, roomDeps({ isMember: async () => true }));
   assertEquals(stale.status, 200);
+  const malformed = await handleJoin({ room: true, key: "short" }, PERSON, roomDeps({ isMember: async () => true }));
+  assertEquals(malformed.status, 200); assertEquals((malformed.body as { preset: string }).preset, "tma-class-guest");
 });
 
 Deno.test("room: a person while off air → 409 not_open; when live_since is 5 h old → 409 not_open", async () => {
