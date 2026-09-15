@@ -43,18 +43,19 @@ Leave = end for everyone (two taps). Recording starts when the host is in, never
 
 | State | What they see, in HT's colors |
 |---|---|
-| Opens the link, signed out | A maroon card with the HT wordmark: *<Host name>'s room* · the title · **Sign in to join** → `/login/?next=/ht/hub/live/?k=…`. Line under it: *Email, then the 6-digit code — no app to install.* |
+| Opens the link, signed out | A maroon card with the HT wordmark: *<Host name>'s room* · the title · **Sign in to join** → `/login/?next=/ht/hub/live/?k=…`. Lines under it: *Email, then the 6-digit code — no app to install.* · *After the code, come back to this page — you'll land in the room.* The key is remembered on the device (localStorage `ht-room-key`, 7 days) the moment the page loads with a valid `?k=`. |
+| Opens the link again after signing in elsewhere | Straight into the room (the key is read from the URL and remembered on the device). The same page opened without `?k=` — the code was typed in another app, `/welcome/` lost `bm_next`, a reload — uses the remembered key; one the host has since rotated is forgotten and the page asks again with no key, so a host or past joiner never sees the dead-link card for a stale device key. |
 | Dead or rotated key | *This link isn't active anymore — ask your host for the new one.* No title shown. |
 | Signed in, key good, not started | The join screen in **waiting** mode with **Ada's face beside the line**: *<Host name> hasn't started yet — we'll bring you in the moment they do.* The page checks every 20 s. |
 | Host starts | A waiting guest is walked straight in — muted, camera off, one tap to turn on. A guest arriving after the start gets the camera check → **Enter**. Strip: *This session is being recorded.* |
 | Room full | *The room is full right now.* |
 | Host leaves, or removes them | *This session has ended.* + *If you were here, you can rewatch it on this page once your host publishes it.* |
 | They press Leave | *You left the room.* + **Rejoin →** |
-| Signed in, no key, never joined | *You need your host's link to join this room.* |
+| Signed in, no key, never joined (the code was opened in another browser, which never saw the key) | *Almost in.* · Off air / Live now · *You're signed in — now open the invitation link your host sent you (it ends in ?k=…). It will bring you straight into the room.* · live only: *The session is running now — you'll be in as soon as the link opens.* · small: *On a phone, tap the link in the message; on a laptop, paste it into this window's address bar.* No button — the link is the way in. |
 
 ### 2.3 Everyone else on the Live page
 
-Signed out, or signed in with no key: the HT card reads the room's state — *Off air* or *Live now* — with **Sign in to join** (signed out) or *You need your host's link* (signed in). **Last session** (the published replay, embedded 16:9) shows to hosts and to **anyone who has been in this room before** (an `ea_room_members` row for their account). The sample replay shelf, calendar and FAQ stay below, still chipped *sample*. The sample room chat block is removed — the real chat lives inside the room.
+Signed out, or signed in with no key: the HT card reads the room's state — *Off air* or *Live now* — with **Sign in to join** (signed out) or *Almost in.* (signed in, §2.2). **Last session** (the published replay, embedded 16:9) shows to hosts and to **anyone who has been in this room before** (an `ea_room_members` row for their account). The sample replay shelf, calendar and FAQ stay below, still chipped *sample*. The sample room chat block is removed — the real chat lives inside the room.
 
 ## 3. Architecture
 

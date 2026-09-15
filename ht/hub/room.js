@@ -13,7 +13,7 @@ await new Promise((res) => {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
-const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref }, { createClient }] = await Promise.all([
+const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
   import('https://esm.sh/@supabase/supabase-js@2'),
@@ -24,11 +24,24 @@ const mount = document.getElementById('rtkMount');
 const ctl = document.querySelector('.ht-room-ctl');
 if (!mount || !ctl || !window.BM_CONFIG) throw new Error('room block or config missing');
 
-const k = roomKey(location.search);
+/* The invitation: ?k= from the link, else the one this device remembered. A guest who started here
+   keeps it across the sign-in round trip even when /welcome/ lost bm_next (the code opened in
+   another app), and across a reload. localStorage can throw (private mode, blocked site data), so
+   it sits behind a shim and the helpers never throw. */
+const store = {
+  getItem: (n) => { try { return localStorage.getItem(n); } catch (e) { return null; } },
+  setItem: (n, v) => { try { localStorage.setItem(n, v); } catch (e) {} },
+  removeItem: (n) => { try { localStorage.removeItem(n); } catch (e) {} },
+};
+const urlKey = roomKey(location.search);
+let k = urlKey || recallKey(store, Date.now());
+let keyFromStore = !urlKey && !!k;   /* a remembered key the server may no longer know — see below */
+if (urlKey) rememberKey(store, urlKey, Date.now());
 const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
 const user = (await sb.auth.getSession()).data.session?.user || null;
 /* the header's Sign in must carry the key back through the email code and /welcome/ */
-if (k) document.querySelectorAll('.site-header a[href^="/login/"]').forEach((a) => a.setAttribute('href', htLoginHref(k)));
+const carryKey = () => document.querySelectorAll('.site-header a[href^="/login/"]').forEach((a) => a.setAttribute('href', htLoginHref(k)));
+if (k) carryKey();
 
 async function getState() {
   const { data, error } = await sb.rpc('ea_room_state', { p_key: k, p_slug: SLUG });
@@ -51,9 +64,17 @@ function leftCard() { if (poll) { clearInterval(poll); poll = null; } document.b
 /* ---------- state → branch ---------- */
 let state = null, stateErr = null;
 try { state = await getState(); } catch (e) { stateErr = e; }   /* null state → roomBranch → 'error' → the card below; never throw (ht.js would overwrite the card) */
+/* the host made a new link since this device remembered the old one: forget it and ask again with
+   no key, so a member or a host gets their own card instead of the dead-link one. A dead key in
+   the URL itself keeps today's dead-link card — that link really is gone. */
+if (state && state.bad_link && keyFromStore) {
+  forgetKey(store); k = null; keyFromStore = false; carryKey();
+  state = null; stateErr = null;
+  try { state = await getState(); } catch (e) { stateErr = e; }
+}
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS });   /* key: the guest's ?k= — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -315,9 +336,14 @@ switch (branch) {
     card('<h3>This link isn’t active anymore.</h3><p>Ask your host for the new one.</p>'); break;
   case 'landing':
     card(`<h3>${esc(state.host_name)}’s room</h3><p class="t">${esc(state.title)}</p>` + onAirLine(state) +
-         `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.</p>`, lastSession(state)); break;
+         `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>After the code, come back to this page — you’ll land in the room.</p>`, lastSession(state)); break;
   case 'not_allowed':
-    card(`<h3>${esc(state.host_name)}’s room</h3>` + onAirLine(state) + `<p>${esc(words.notAllowed)}</p>`, lastSession(state)); break;
+    /* signed in with no key on this device (the code was opened in another browser, or they came
+       to the page by hand): the link they were sent is the way in — say so, no dead-end button */
+    card('<h3>Almost in.</h3>' + onAirLine(state) +
+         '<p>You’re signed in — now open the invitation link your host sent you (it ends in ?k=…). It will bring you straight into the room.</p>' +
+         (state.is_live ? '<p>The session is running now — you’ll be in as soon as the link opens.</p>' : '') +
+         '<p class="fine">On a phone, tap the link in the message; on a laptop, paste it into this window’s address bar.</p>', lastSession(state)); break;
   case 'host_idle':
   case 'host_live':
     try {

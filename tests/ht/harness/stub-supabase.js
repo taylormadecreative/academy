@@ -1,9 +1,11 @@
 // stub-supabase.js — createClient() driven by window.__db, which the harness sets per scenario.
+// __db.stateFor(args), when the harness installs one, answers ea_room_state from the args
+// (p_key) instead of the fixed __db.state — for a key the server no longer knows.
 export const createClient = () => ({
   auth: { getSession: async () => ({ data: { session: window.__db.session || null } }) },
   rpc: async (name, args) => {
     window.__calls.push(['rpc', name, args]);
-    if (name === 'ea_room_state') return { data: window.__db.state, error: null };
+    if (name === 'ea_room_state') return { data: typeof window.__db.stateFor === 'function' ? window.__db.stateFor(args) : window.__db.state, error: null };
     if (name === 'ea_is_admin') return { data: !!window.__db.admin, error: null };
     if (name === 'ea_room_rotate_link') { window.__db.room.link_key = 'NEWKEY_NEWKEY_NEWKEY_1'; return { data: window.__db.room.link_key, error: null }; }
     if (name === 'ea_room_set_hosts') { window.__db.room.host_emails = args.p_emails.map(s => s.toLowerCase()); return { data: window.__db.room.host_emails, error: null }; }

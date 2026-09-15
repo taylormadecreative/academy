@@ -10,32 +10,84 @@ const sess = { user: { id: 'u1', email: 'x@y.z' }, access_token: 't' };
 const out = []; const ok = (n, c, d = '') => out.push((c ? 'OK   ' : 'FAIL ') + n + (c ? '' : ' · ' + d));
 
 const b = await chromium.launch({ channel: 'chrome', headless: true });
-async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY } = {}) {
+/* the page has settled once room.js replaced the "Opening the room…" line (or ht.js gave up) */
+const settle = (p) => p.waitForFunction(() => !document.querySelector('.ht-room-loading') || /could not/.test(document.querySelector('.ht-room-loading').textContent));
+/* stateFor: a function (stringified into the browser) that answers ea_room_state from its args;
+   it reads window.__db, which every navigation of the page rebuilds from `db`.
+   seed: an {k, t} planted under localStorage 'ht-room-key' before the page runs — a key this
+   device remembered on an earlier visit. */
+async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY, stateFor = null, seed = null } = {}) {
   const p = await b.newPage({ viewport: { width, height: 900 }, serviceWorkers: 'block' });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   const rec = [];
   await p.addInitScript((d) => { window.__db = d; window.__calls = []; }, db);
+  if (stateFor) await p.addInitScript('window.__db.stateFor = ' + stateFor.toString() + ';');
+  if (seed) await p.addInitScript((v) => { try { localStorage.setItem('ht-room-key', JSON.stringify(v)); } catch (e) {} }, seed);
   await p.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
   await p.route('**/js/rtk-room-v2.js*', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: R2 }));
   await p.route('**/ea-rtk-record', async r => { rec.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, stopped: true }) }); });
   await p.goto('http://127.0.0.1:8790' + url);
-  await p.waitForFunction(() => !document.querySelector('.ht-room-loading') || /could not/.test(document.querySelector('.ht-room-loading').textContent));
+  await settle(p);
   return { p, errs, rec };
 }
+const stateCalls = (p) => p.evaluate(() => window.__calls.filter(c => c[0] === 'rpc' && c[1] === 'ea_room_state').map(c => c[2].p_key));
+const stored = (p) => p.evaluate(() => { try { return JSON.parse(localStorage.getItem('ht-room-key')); } catch (e) { return 'unreadable'; } });
 const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').trim());
 
 /* 1 signed out → landing card in HT colors, sign-in carries the key */
 { const { p, errs } = await page({ state: { ...base, signed_in: false }, session: null, room, replays: [], members: [], profiles: [] });
   ok('landing: host’s room', (await text(p, '.ht-room-card h3')) === 'Dr. Gray’s room');
   ok('landing: sign-in keeps the key', (await p.getAttribute('.ht-room-card a.btn', 'href')).includes(encodeURIComponent('?k=' + KEY)));
+  ok('landing: says to come back to this page after the code', /After the code, come back to this page/.test(await text(p, '.ht-room-card p.fine')));
+  ok('landing: the key is remembered on the device', (await stored(p))?.k === KEY);
+  ok('landing: header Sign in carries the key too', (await p.getAttribute('.site-header a[href^="/login/"]', 'href')).includes(encodeURIComponent('?k=' + KEY)));
   ok('landing: Mahogany card', (await p.evaluate(() => getComputedStyle(document.querySelector('.ht-room-card')).backgroundColor)) === 'rgb(59, 0, 0)');
   ok('landing: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
-/* 2 dead link */
+/* 2 dead link in the URL itself → the dead-link card, one state call, no retry without the key */
 { const { p } = await page({ state: { bad_link: true }, session: sess, room, replays: [], members: [], profiles: [] });
-  ok('dead link card', /isn’t active anymore/.test(await text(p, '.ht-room-card h3'))); await p.close(); }
-/* 3 signed in, no key, never joined */
-{ const { p } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
-  ok('not allowed: host’s link line', /host’s link/.test(await text(p, '.ht-room-card p:not(.s)'))); await p.close(); }
+  ok('dead link card', /isn’t active anymore/.test(await text(p, '.ht-room-card h3')));
+  ok('dead link in the URL: asked once, with the key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY])); await p.close(); }
+/* 3 (b) signed in, no key, never joined → "Almost in." with the invitation-link line; the live line only when live */
+{ const { p, errs } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
+  const t = await text(p, '.ht-room-card');
+  ok('not allowed: Almost in.', (await text(p, '.ht-room-card h3')) === 'Almost in.');
+  ok('not allowed: the invitation link line', /invitation link/.test(t) && /\?k=/.test(t) && /signed in/.test(t));
+  ok('not allowed: phone/laptop line is the fine print', /On a phone, tap the link/.test(await text(p, '.ht-room-card p.fine')));
+  ok('not allowed: off air → no "running now" line', !/running now/.test(t));
+  ok('not allowed: no button that goes nowhere', (await p.$$('.ht-room-card a.btn, .ht-room-card button')).length === 0);
+  ok('not allowed: no host name, no page errors', !/Dr\. Gray/.test(t) && errs.length === 0, errs.join(' | ')); await p.close(); }
+{ const { p } = await page({ state: { ...base, can_join: false, is_live: true }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
+  ok('not allowed, live: the session-is-running line', /The session is running now/.test(await text(p, '.ht-room-card'))); await p.close(); }
+/* 3 (a) open with ?k=, then the same page again WITHOUT ?k= (localStorage kept) → the key still reaches ea_room_state and the join target */
+{ const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('.r2-join');
+  ok('remembered key: first load asked with the URL key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
+  await p.goto('http://127.0.0.1:8790/ht/hub/live/'); await settle(p); await p.waitForSelector('.r2-join');
+  ok('remembered key: reload without ?k= still asks with the key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
+  ok('remembered key: the join target carries it', await p.evaluate(() => window.__mount.target.key === 'AbC123_-xyzXYZ0987ab-_' && window.__mount.mode === 'waiting'));
+  ok('remembered key: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 3 (c) a remembered key the host has since rotated → forget it, ask again with no key, show Almost in. — never the dead-link card */
+{ const rotated = (a) => (a.p_key ? { bad_link: true } : Object.assign({}, window.__db.state, { can_join: false }));
+  const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('.r2-join');
+  await p.addInitScript('window.__db.stateFor = ' + rotated.toString() + ';');   /* the next navigation: the server no longer knows the key */
+  await p.goto('http://127.0.0.1:8790/ht/hub/live/'); await settle(p);
+  ok('rotated key: asked with the stored key, then again with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY, null]));
+  ok('rotated key: forgotten on the device', (await stored(p)) === null);
+  ok('rotated key: Almost in., not the dead-link card', (await text(p, '.ht-room-card h3')) === 'Almost in.' && !/isn’t active anymore/.test(await text(p, '.ht-room-card')));
+  ok('rotated key: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 3 (c″) the same, signed out → the landing card, and neither Sign in carries the dead key */
+{ const { p } = await page({ state: { ...base, signed_in: false }, session: null, room, replays: [], members: [], profiles: [] },
+    { url: '/ht/hub/live/', seed: { k: KEY, t: Date.now() - 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
+  ok('rotated key, signed out: asked with the stored key, then again with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY, null]));
+  ok('rotated key, signed out: landing card, key forgotten', (await text(p, '.ht-room-card h3')) === 'Dr. Gray’s room' && (await stored(p)) === null);
+  ok('rotated key, signed out: neither Sign in carries it', !(await p.getAttribute('.ht-room-card a.btn', 'href')).includes('k%3D') && !(await p.getAttribute('.site-header a[href^="/login/"]', 'href')).includes('k%3D'));
+  await p.close(); }
+/* 3 (c′) a remembered key older than 7 days is ignored: the page asks once, with no key */
+{ const { p } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] },
+    { url: '/ht/hub/live/', seed: { k: KEY, t: Date.now() - 8 * 24 * 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
+  ok('stale key: ignored, asked once with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([null]));
+  ok('stale key: Almost in.', (await text(p, '.ht-room-card h3')) === 'Almost in.'); await p.close(); }
 /* 4 waiting → Ada + the host’s name; flips live → reload */
 { const { p } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
