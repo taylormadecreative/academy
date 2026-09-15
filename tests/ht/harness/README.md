@@ -14,3 +14,9 @@ meeting), End from Tools, a second screen taking the seat, and a guest who is re
 polls and offers Rejoin once the room is live AGAIN), and a Rejoin pressed after another host ended the
 session (the row is re-read first; nothing mounts). `window.__htRoomPollMs` shortens the page's poll for
 the ended card; only the harness sets it.
+
+`room-v2-real.mjs` (R1–R3, run by ht-room.mjs after the page scenarios) loads the REAL `js/rtk-room-v2.js`
+against a fake kit client answered in-browser (the three CDN files, the effects addon, and ea-rtk-join on the
+page's own origin): a drop that cannot be mended tells the dead client to leave, so it never walks the person
+back in behind the card; Leave pressed while a rejoin is in flight wins (the client that lands afterwards leaves
+at once, and the page never hears 'joined' after 'left'); Split students into rooms is two taps.

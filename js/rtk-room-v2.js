@@ -17,7 +17,9 @@
        everyone is removed, we leave, the page hears ('ended', m, 'ended') and closes the row.
      · A drop is never the end. When the kit says roomLeft for any reason but left / kicked / ended
        (the socket died, the tab was throttled), a Reconnecting strip shows and the room rejoins the
-       same meeting on its own — twice — before the page hears ('left', m, 'dropped').
+       same meeting on its own — twice — before the page hears ('left', m, 'dropped'); the dead client
+       is then told to leave, so it never walks the person back in behind the card. Leave pressed while
+       a rejoin is in flight wins: the client that lands afterwards leaves at once.
      · One bar, one Tools sheet, for host and guest alike.
 
    Loading is identical to v1 (proven 9/10): core as the IIFE build, UI kit as ESM, pinned. */
@@ -205,8 +207,8 @@ export async function mountRoomV2(o) {
   loadEffects(meeting);
 
   /* ---------- transcript lines: shown live in the Transcript tab, saved on request ----------
-     Cloudflare only transcribes people whose PRESET has transcription_enabled (host, and since
-     9/15 students and judges too — rtk_presets.ts brings the live presets in line). */
+     Cloudflare only transcribes people whose PRESET has transcription_enabled (every role, since
+     9/15 — rtk_presets.ts brings the live presets in line on the next host join). */
   const lines = [];
   const onLine = [];   /* the Transcript tab registers here to redraw when a line lands */
   const takeLine = (x) => { if (copy.addTranscript(lines, x)) onLine.forEach(f => { try { f(x); } catch (e) {} }); };
@@ -382,6 +384,9 @@ export async function mountRoomV2(o) {
       const old = current; replacing = old;   /* from here the old client's own roomLeft is not ours to hear */
       try {
         const next = await rejoin(attempt > 0, media);
+        /* Leave or End pressed while this attempt was in flight: the page has already been told 'left' — the client
+           that just landed must not become a ghost in the meeting, and the page must never hear 'joined' after 'left' */
+        if (goneOnce || leaving || ending) { try { Promise.resolve(next.leave()).catch(() => {}); } catch (e) {} dropping = false; replacing = null; return; }
         current = next; room.bind(next); keepTranscripts(next); watchLeft(next); watchLink(next); watchBreakouts(next); loadEffects(next);
         back(next);
         try { Promise.resolve(old.leave()).catch(() => {}); } catch (e) {}   /* let go of the camera and mic the dead client still holds; its roomLeft lands on a client that is not current */
@@ -389,7 +394,12 @@ export async function mountRoomV2(o) {
       } catch (e) { replacing = null; console.warn('[room] rejoin ' + (attempt + 1) + ' failed:', String((e && e.message) || e || state)); }
     }
     dropping = false; room.reconnecting(null);
+    /* both attempts failed: the page is told first (goneOnce swallows the roomLeft 'left' the leave below emits), then
+       the dead client is told to leave — it releases the camera and mic and stops its own reconnecting. Without this
+       the kit keeps retrying the socket behind the card and walks the person back in, mic and camera on, while their
+       page says they are out; their Rejoin then puts them in twice. */
     gone('left', 'dropped')();
+    try { Promise.resolve(current.leave()).catch(() => {}); } catch (e) {}
   }
 
   /* Leave: this person leaves; the class keeps running for everyone else, the recording keeps going,
@@ -654,8 +664,9 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const ccBox = q('.r2-cc'), ccBtn = q('.r2-cc-btn');
   let ccOn = false; try { ccOn = localStorage.getItem(CC_KEY) === '1'; } catch (e) {}
   let caps = [], ccWarned = false, ccSeen = false, ccOnAt = 0;
-  /* only people whose PRESET is transcribed are captioned. Where a guest's isn't (the Academy
-     room), the host's words are the only ones that show — the hint and the notice say exactly that */
+  /* only people whose PRESET is transcribed are captioned. Every preset these rooms use says so now (9/15:
+     the Academy guest was the last one off); the "host's words" hint and notice stay as the honest fallback
+     for a live preset the join function has not brought in line yet. */
   const ccMine = () => { try { return m.self.permissions.transcriptionEnabled === true; } catch (e) { return false; } };
   const ccHint = () => ccMine() ? 'Captions appear here as people speak.' : 'Captions appear here when the host speaks.';
   const paintCC = () => {
@@ -778,8 +789,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       p.querySelector('.r2-split').hidden = !!rooms.length;
       roomsBox.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => { if (b.dataset.visit === m.meta.meetingId) return; b.disabled = true; try { await cm().moveParticipants(m.meta.meetingId, b.dataset.visit, [await myIdIn(m.meta.meetingId)]); sheet.hidden = true; } catch (e) { toast('Could not move you — ' + (e.message || e)); b.disabled = false; } }));
     };
+    /* two taps, like Bring everyone back: every role can open small groups now (a tool), and one stray tap
+       must not scatter a whole class mid-lecture. confirmInline rewrites the button's HTML, so the label is
+       set whole below rather than through the <b> it replaced. */
     p.querySelector('[data-g="split"]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; b.disabled = true; b.querySelector('b').textContent = 'Splitting…';
+      const b = ev.currentTarget; if (!confirmInline(b, 'Split ' + words.many + ' into rooms?')) return;
+      b.disabled = true; b.innerHTML = '<b>Splitting…</b>';
       try {
         const n = Number(p.querySelector('.r2-n').value) || 2;
         const list = await cm().getConnectedMeetings();
@@ -793,7 +808,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         for (let i = 0; i < made.length; i++) if (buckets[i].length) await cm().moveParticipants(rootOf(), made[i].id, buckets[i]);
         toast(people.length ? people.length + ' ' + (people.length === 1 ? words.one : words.many) + ' moved into ' + made.length + ' rooms.' : 'Rooms are open — nobody to move yet.');
       } catch (e) { toast('Could not split — ' + (e.message || e)); }
-      b.disabled = false; b.querySelector('b').textContent = 'Split ' + words.many + ' into rooms';
+      b.disabled = false; b.innerHTML = '<b>Split ' + esc(words.many) + ' into rooms</b>';
       await refresh();
     });
     p.querySelector('[data-g="back"]').addEventListener('click', async (ev) => {

@@ -1,6 +1,7 @@
 // ht-room.mjs — run: node tests/ht/harness/ht-room.mjs   (server on :8790 from the repo root; see README.md)
 import { chromium } from 'playwright';
 import fs from 'node:fs';
+import { realModuleScenarios } from './room-v2-real.mjs';   /* the REAL room module against a fake kit client (R1–R3) */
 const H = new URL('./', import.meta.url);
 const SB = fs.readFileSync(new URL('stub-supabase.js', H), 'utf8'), R2 = fs.readFileSync(new URL('stub-room-v2.js', H), 'utf8');
 const KEY = 'AbC123_-xyzXYZ0987ab-_';
@@ -282,6 +283,9 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   }
   ok('phone ' + name + ': no page errors', errs.length === 0, errs.join(' | '));
   await p.close(); }
+/* R1–R3 the real js/rtk-room-v2.js: a drop that cannot be mended tells the dead client to leave; Leave during a
+   rejoin in flight wins; Split students into rooms is two taps (room-v2-real.mjs) */
+await realModuleScenarios(b, ok);
 await b.close();
 console.log(out.join('\n')); console.log(out.filter(l => l.startsWith('OK')).length + ' OK · ' + out.filter(l => l.startsWith('FAIL')).length + ' FAIL');
 process.exit(out.some(l => l.startsWith('FAIL')) ? 1 : 0);
