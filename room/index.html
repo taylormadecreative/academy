@@ -266,7 +266,15 @@ async function hostControl(liveNow) {
   }
   /* the recording starts when Nelson is IN the room (joined), never at Start class: Cloudflare stops a
      recording that sits with nobody in it for 60 s, and the camera check can take longer than that */
-  async function hostState(st) {
+  async function hostState(st, m, reason) {
+    /* the same account entering from a second screen takes this seat: that is not the end of the session
+       (9/15: Nelson's Safari knocked his Chrome out and Chrome closed the class for everyone) */
+    if (st === 'left' && reason === 'kicked' && hostIn) {
+      hostIn = false; unmount();
+      note.textContent = 'You’re hosting from another screen now — this one stepped back. Press Leave there to end the session.';
+      live = true; syncCtl();
+      return;
+    }
     if (st === 'joined') {
       hostIn = true;
       if (!pendingRecord) return;
