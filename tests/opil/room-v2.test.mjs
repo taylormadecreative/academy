@@ -67,7 +67,9 @@ test('queueEmptyCopy no longer says only a student can ask', () => {
 });
 
 /* ---- the transcript: one list, no partials, no duplicates ---- */
-const T = (id, name, text, extra = {}) => ({ id, name, transcript: text, timestamp: '2026-09-16T23:01:00Z', isPartialTranscript: false, ...extra });
+/* the REAL shape the SDK emits (parseTranscript in realtimekit 2.0.2): id, name, peerId,
+   userId, customParticipantId, transcript, isPartialTranscript, and `date` — NOT `timestamp`. */
+const T = (id, name, text, extra = {}) => ({ id, name, transcript: text, date: new Date('2026-09-16T23:01:00Z'), isPartialTranscript: false, ...extra });
 
 test('addTranscript keeps final lines once, drops partials and junk', () => {
   const lines = [];
@@ -83,6 +85,14 @@ test('transcriptText: time, speaker, words — or an honest empty line', () => {
   const when = () => '6:01 PM';
   assert.equal(transcriptText([T('a', 'Nelson', 'Welcome in.'), T('c', null, 'Hi.')], when), '6:01 PM  Nelson: Welcome in.\n6:01 PM  Someone: Hi.');
   assert.match(transcriptText([], when), /^No transcript lines were captured on this device/);
+});
+
+test('transcriptText reads the SDK\'s `date`, and still tolerates a `timestamp`', () => {
+  const seen = [];
+  const when = (v) => { seen.push(v); return 'T'; };
+  transcriptText([T('a', 'Nelson', 'Hi.'), { id: 'b', name: 'Old', transcript: 'x', timestamp: '2026-09-16T23:05:00Z' }], when);
+  assert.equal(seen[0] instanceof Date, true, 'the SDK gives a Date on .date — not undefined');
+  assert.equal(seen[1], '2026-09-16T23:05:00Z');
 });
 
 /* ---- the Recording chip is DERIVED, never stranded (9/15: "it says its still recording even

@@ -490,7 +490,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     if (!tbox) return;
     const atBottom = tbox.scrollHeight - tbox.scrollTop - tbox.clientHeight < 40;
     tbox.innerHTML = transcript.lines.length
-      ? transcript.lines.map(x => `<div class="r2-tline"><span class="r2-twhen">${esc(transcript.whenSaid(x.timestamp))}</span><b>${esc(x.name || 'Someone')}</b><span class="r2-ttext">${esc(x.transcript)}</span></div>`).join('')
+      ? transcript.lines.map(x => `<div class="r2-tline"><span class="r2-twhen">${esc(transcript.whenSaid(copy.saidAt(x)))}</span><b>${esc(x.name || 'Someone')}</b><span class="r2-ttext">${esc(x.transcript)}</span></div>`).join('')
       : '<div class="r2-empty">Nothing yet. Lines appear here as people talk — only those whose role is transcribed.</div>';
     if (atBottom) tbox.scrollTop = tbox.scrollHeight;
     tcount();

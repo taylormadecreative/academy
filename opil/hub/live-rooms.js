@@ -115,9 +115,11 @@ export function addTranscript(lines, x) {
   lines.push(x);
   return true;
 }
+/* the SDK's parseTranscript gives `date` (a Date); `timestamp` is tolerated for safety only */
+export const saidAt = (x) => (x && (x.date != null ? x.date : x.timestamp));
 export function transcriptText(lines, when) {
   return lines.length
-    ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
+    ? lines.map(x => when(saidAt(x)) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
     : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
 }
 

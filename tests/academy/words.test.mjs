@@ -9,7 +9,7 @@ import { capFirst, OPIL_WORDS, ROOM_WORDS, nowCopy, joinCopy } from '../../opil/
 test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS (+ the 9/15 ask/transcript helpers)', () => {
   assert.deepEqual(Object.keys(mod).sort(), [
     'OPIL_WORDS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'capFirst', 'joinCopy', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
-    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'roomFromQuery', 'roomPath', 'sessLabel', 'stateCopy', 'transcriptText', 'useV2',
+    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'roomFromQuery', 'roomPath', 'saidAt', 'sessLabel', 'stateCopy', 'transcriptText', 'useV2',
   ]);
 });
 

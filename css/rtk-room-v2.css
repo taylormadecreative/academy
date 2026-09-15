@@ -52,8 +52,10 @@
 .r2-stage rtk-ui-provider{height:100%}
 .r2-grid{height:100%}
 .r2-panel{border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#0a1733}
-.r2-tabs{display:flex;gap:4px;padding:10px 10px 0}
-.r2-tab{flex:1;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#9fb0d4;font:600 13.5px Inter,sans-serif;cursor:pointer;white-space:nowrap;padding:0 6px}
+/* 5 tabs do not fit one row in a narrow panel, and .r2-panel is overflow:hidden — so the last
+   one clipped (Nelson, 9/15: "the ui is cut off"). Wrap: every tab stays visible and tappable. */
+.r2-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:10px 10px 0}
+.r2-tab{flex:1 1 auto;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#9fb0d4;font:600 13.5px Inter,sans-serif;cursor:pointer;white-space:nowrap;padding:0 6px}
 .r2-tab.on{color:#fff;border-bottom-color:#fdc921}
 .r2-tab em{font-style:normal;color:#fdc921;margin-left:4px}
 .r2-pane{flex:1;min-height:0;display:flex;flex-direction:column}
