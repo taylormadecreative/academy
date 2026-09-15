@@ -233,7 +233,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; } });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -317,7 +317,7 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch, rootId }) {
   const node = el(`<div class="r2">
     <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
@@ -368,8 +368,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   /* the strip. No facilitator filed for this session (the AI Thread, a stand-in)? Then whoever holds the
      host preset is teaching — the reader is told a name, never "class in progress". */
   const hostName = () => { try { if (host) return m.self.name || null; const p = m.participants.joined.toArray().find(x => /host/.test(String(x.presetName || ''))); return p ? p.name : null; } catch (e) { return null; } };
-  /* in the main room the kit points parentMeeting at the meeting itself; a breakout's parent is a different id */
-  const inBreakout = () => { try { const pm = m.connectedMeetings && m.connectedMeetings.parentMeeting; return !!(pm && pm.id && m.meta && pm.id !== m.meta.meetingId); } catch (e) { return false; } };
+  /* a small group is any meeting that is not the one this page started in (the kit's parentMeeting is
+     unreliable: it points at the meeting itself in the main room and is empty inside a fresh child) */
+  const inBreakout = () => { try { return !!(rootId && m.meta && m.meta.meetingId && m.meta.meetingId !== rootId); } catch (e) { return false; } };
+  /* this build has no moveToParentMeeting: moving yourself is moveParticipants(here, root, [me]) */
+  const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [m.self.id]); };
   const setNow = () => {
     const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room' } : null;
     q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
@@ -419,7 +422,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const renderPrimary = () => {
     if (inBreakout()) {
       primary.innerHTML = `<button type="button" class="r2-cta r2-back"><b>Back to the main room</b><span>Leaves this small group</span></button>`;
-      primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { if (m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) await m.connectedMeetings.moveToParentMeeting(); else throw new Error('not available'); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
+      primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await goToRoot(); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
       const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
       return;
     }
@@ -492,7 +495,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     const p = el(`<div class="r2-tools">
       <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-      <button type="button" class="r2-btn" data-tool="breakout"><b>Breakout rooms</b><span>Split the ${esc(words.thing)} into team rooms</span></button>
+      <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>Split ${esc(words.many)} into rooms, visit one, bring everyone back</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
@@ -502,12 +505,61 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const t = b.dataset.tool;
       if (t === 'share') { try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); } catch (e) { toast('Screen share: ' + (e.message || e)); } sheet.hidden = true; }
       else if (t === 'fx') openSheet('Effects', effectsPane());
-      else if (t === 'breakout') { const c = document.createElement('rtk-breakout-rooms-manager'); c.meeting = m; c.className = 'r2-kit'; openSheet('Breakout rooms', c); }
+      else if (t === 'breakout') openSheet('Small groups', groupsPane());
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
       else if (t === 'end') { if (confirmInline(b, 'End ' + words.thing + ' for everyone?')) { try { if (m.participants.kickAll) await m.participants.kickAll(); } catch (e) {} await onLeave(); } }
     }));
+    return p;
+  };
+  /* Small groups, in plain words: split evenly, visit a room, bring everyone back. The kit's own
+     manager assigned people but its Start did nothing inside this layout (9/15), so this drives
+     connectedMeetings directly. The host stays in the main room unless they visit. */
+  const groupsPane = () => {
+    const p = el(`<div class="r2-tools r2-groups">
+      <p class="r2-fine" style="text-align:left;margin:0">${esc(copy.capFirst(words.many))} are split evenly and moved on their own. You stay in the main room; visit any room from the list. Bring everyone back closes the rooms.</p>
+      <div class="r2-split"><label>Rooms <select class="r2-n">${[2,3,4,5,6].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label><button type="button" class="r2-btn" data-g="split"><b>Split ${esc(words.many)} into rooms</b></button></div>
+      <div class="r2-rooms"><div class="r2-empty">No small groups open.</div></div>
+      <button type="button" class="r2-btn danger" data-g="back"><b>Bring everyone back</b><span>Closes every small group; everyone lands in the main room</span></button>
+    </div>`);
+    const cm = () => m.connectedMeetings;
+    const rootOf = () => rootId;
+    const roomsBox = p.querySelector('.r2-rooms');
+    const refresh = async () => {
+      let list; try { list = await cm().getConnectedMeetings(); } catch (e) { roomsBox.innerHTML = `<div class="r2-empty">Could not read the rooms — ${esc(e.message || e)}</div>`; return; }
+      const rooms = (list && list.meetings) || [];
+      roomsBox.innerHTML = rooms.length ? rooms.map(r => `<div class="r2-hand"><span class="r2-n">${esc(String(r.title || '').replace(/\D/g, '') || '•')}</span><div class="r2-who"><b>${esc(r.title || 'Room')}</b><span>${(r.participants || []).length} ${(r.participants || []).length === 1 ? 'person' : 'people'}${(r.participants || []).length ? ' · ' + esc((r.participants || []).map(x => x.displayName).join(', ')) : ''}</span></div><button type="button" class="r2-mini r2-bring" data-visit="${esc(r.id)}">${m.meta.meetingId === r.id ? 'You are here' : 'Visit'}</button></div>`).join('')
+        : '<div class="r2-empty">No small groups open.</div>';
+      p.querySelector('[data-g="back"]').hidden = !rooms.length;
+      p.querySelector('.r2-split').hidden = !!rooms.length;
+      roomsBox.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => { if (b.dataset.visit === m.meta.meetingId) return; b.disabled = true; try { await cm().moveParticipants(m.meta.meetingId, b.dataset.visit, [m.self.id]); sheet.hidden = true; } catch (e) { toast('Could not move you — ' + (e.message || e)); b.disabled = false; } }));
+    };
+    p.querySelector('[data-g="split"]').addEventListener('click', async (ev) => {
+      const b = ev.currentTarget; b.disabled = true; b.querySelector('b').textContent = 'Splitting…';
+      try {
+        const n = Number(p.querySelector('.r2-n').value) || 2;
+        const list = await cm().getConnectedMeetings();
+        if (list.meetings && list.meetings.length) { toast('Small groups are already open.'); await refresh(); return; }
+        const made = await cm().createMeetings(Array.from({ length: n }, (_, i) => ({ title: 'Room ' + (i + 1) })));
+        /* everyone but the hosts, dealt round-robin; the move is one call per room */
+        const hostsHere = new Set(m.participants.joined.toArray().filter(x => /host/.test(String(x.presetName || ''))).map(x => x.id));
+        const people = ((list.parentMeeting && list.parentMeeting.participants) || []).filter(x => x.id !== m.self.id && !hostsHere.has(x.id));
+        const buckets = made.map(() => []); people.forEach((x, i) => buckets[i % made.length].push(x.id));
+        for (let i = 0; i < made.length; i++) if (buckets[i].length) await cm().moveParticipants(rootOf(), made[i].id, buckets[i]);
+        toast(people.length ? people.length + ' ' + (people.length === 1 ? words.one : words.many) + ' moved into ' + made.length + ' rooms.' : 'Rooms are open — nobody to move yet.');
+      } catch (e) { toast('Could not split — ' + (e.message || e)); }
+      b.disabled = false; b.querySelector('b').textContent = 'Split ' + words.many + ' into rooms';
+      await refresh();
+    });
+    p.querySelector('[data-g="back"]').addEventListener('click', async (ev) => {
+      const b = ev.currentTarget; if (!confirmInline(b, 'Bring everyone back?')) return;
+      b.disabled = true;
+      try { const list = await cm().getConnectedMeetings(); const ids = (list.meetings || []).map(r => r.id); if (m.meta.meetingId !== rootOf()) await goToRoot(); if (ids.length) await cm().deleteMeetings(ids); toast('Small groups closed — everyone is coming back.'); }
+      catch (e) { toast('Could not close the rooms — ' + (e.message || e)); }
+      b.disabled = false; await refresh();
+    });
+    refresh(); const tick = setInterval(() => { if (!p.isConnected) return clearInterval(tick); refresh(); }, 8000);
     return p;
   };
   const helpPane = () => {
