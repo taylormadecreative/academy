@@ -340,9 +340,11 @@ export async function mountRoomV2(o) {
     });
     mtg.self.on('roomJoined', (ev) => { if (mtg === current && ev && ev.reconnected && !dropping) { clearTimeout(linkTimer); linkTimer = null; mediaFrozen = false; room.reconnecting(null); } });
   } catch (e) {} };
-  /* the kit mended it on its own (roomJoined { reconnected: true } sets this back): then there is nothing to rejoin —
-     a second client for the same participant would only knock the mended one out */
-  const healed = (mtg) => { try { return mtg.self.roomJoined === true || mtg.self.roomState === 'joined'; } catch (e) { return false; } };
+  /* the kit mended it on its own (ROOM_NODE_RECONNECTED puts self.roomState back to 'joined' and says roomJoined
+     { reconnected: true }): then there is nothing to rejoin — a second client for the same participant would only
+     knock the mended one out. roomState is the word to trust: self.roomJoined is the media transport's memory and
+     can still read true after the room node went. */
+  const healed = (mtg) => { try { const rs = mtg.self.roomState; return typeof rs === 'string' ? rs === 'joined' : mtg.self.roomJoined === true; } catch (e) { return false; } };
   /* what the person had on, so a rejoin brings it back: the host's defaults until the kit says otherwise */
   let lastMedia = { audio: host, video: host }, mediaFrozen = false;
   const trackMedia = (mtg) => {
