@@ -84,3 +84,15 @@ test('transcriptText: time, speaker, words — or an honest empty line', () => {
   assert.equal(transcriptText([T('a', 'Nelson', 'Welcome in.'), T('c', null, 'Hi.')], when), '6:01 PM  Nelson: Welcome in.\n6:01 PM  Someone: Hi.');
   assert.match(transcriptText([], when), /^No transcript lines were captured on this device/);
 });
+
+/* ---- the Recording chip is DERIVED, never stranded (9/15: "it says its still recording even
+       though i'm off" — session not live, zero replay rows, chip still lit) ---- */
+import { recChipHidden } from '../../opil/hub/live-rooms.js';
+
+test('recChipHidden: lit only while THIS session is running and this page started its recording', () => {
+  assert.equal(recChipHidden({ running: true, recFor: 1, sessionNo: 1 }), false);   // the one real case
+  assert.equal(recChipHidden({ running: false, recFor: 1, sessionNo: 1 }), true);   // he left / ended → off
+  assert.equal(recChipHidden({ running: true, recFor: null, sessionNo: 1 }), true); // live class, nothing recording
+  assert.equal(recChipHidden({ running: true, recFor: 2, sessionNo: 1 }), true);    // dropdown moved to another session
+  assert.equal(recChipHidden({ running: false, recFor: null, sessionNo: 1 }), true);
+});

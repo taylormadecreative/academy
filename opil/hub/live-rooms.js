@@ -120,3 +120,13 @@ export function transcriptText(lines, when) {
     ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
     : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
 }
+
+/* The "Recording" chip on the host's control row. It used to be set by hand in three places, so
+   ordinary paths stranded it lit: leaving a class this page did not start returns early without
+   hiding it, and moving the dropdown to another session never touched it (Nelson, 9/15 — the chip
+   said Recording with the session off air and no recording row anywhere). Derive it instead:
+   syncCtl() calls this on every change, and `recFor` is the one session this page started a
+   recording for (null once it stops). */
+export function recChipHidden({ running, recFor, sessionNo }) {
+  return !(running && recFor != null && recFor === sessionNo);
+}

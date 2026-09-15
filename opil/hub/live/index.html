@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=4292ecb2f9">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=4292ecb2f9">
-<link rel="stylesheet" href="/css/rtk-room.css?v=4292ecb2f9">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=4292ecb2f9">
+<link rel="stylesheet" href="/css/build-mode.css?v=4212e956db">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=4212e956db">
+<link rel="stylesheet" href="/css/rtk-room.css?v=4212e956db">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=4212e956db">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -69,10 +69,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=4292ecb2f9"></script>
+<script src="/js/config.js?v=4212e956db"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=4292ecb2f9';
-import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2 } from '/opil/hub/live-rooms.js?v=4292ecb2f9';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=4212e956db';
+import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2, recChipHidden } from '/opil/hub/live-rooms.js?v=4212e956db';
 /* Room v2 (the concept boards: join screen, state in words, question queue).
    ROOM_V2 = true makes it the default for everyone; ?v2=1 opens it for one visit while the flag is
    off (testing), ?classic=1 opens the kit's own shell for one visit while the flag is on. */
@@ -141,7 +141,7 @@ function afterRoom(st, reason) {
 /* v2 takes the session object and a mode; onOpened fires for a host the moment the meeting exists,
    before they press Enter — that is when the session flips live */
 async function enterRoomV2({ session, mode, meetingId, onOpened }) {
-  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=4292ecb2f9');
+  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=4212e956db');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   const facilitator = await facilitatorName(session.no);
   document.getElementById('ttl').textContent = sessLabel(session) + ' · ' + session.title;
@@ -153,7 +153,7 @@ async function enterRoomV2({ session, mode, meetingId, onOpened }) {
 }
 async function enterRoom(no, meetingId, title) {
   if (v2) { const sess = (allSess || []).find(s => s.no === no) || roomSess; return enterRoomV2({ session: sess, mode: 'student', meetingId }); }
-  const { mountRoom } = await import('/js/rtk-room.js?v=4292ecb2f9');
+  const { mountRoom } = await import('/js/rtk-room.js?v=4212e956db');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   room = await mountRoom({
     mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok,
@@ -334,10 +334,11 @@ if (staff) {
        replay lands on the coordinator page as a draft; nobody in the room presses Record. */
     const recChip = document.getElementById('bcRec');
     let pendingRecord = null;   /* the session whose recording starts on the host's 'joined' */
+    let recFor = null;          /* the session this page has a recording running for; syncCtl() owns the chip */
     onJoined = async () => {
       if (pendingRecord == null) return;
       const no = pendingRecord; pendingRecord = null;
-      try { await record('start', no); recChip.hidden = false; if (room && room.setRecording) room.setRecording(true); }
+      try { await record('start', no); recFor = no; syncCtl(); if (room && room.setRecording) room.setRecording(true); }
       catch (e) { bnote.textContent = 'You\u2019re in, but the replay could not start recording (' + (e.message || e) + '). The class itself is fine.'; }
     };
     async function record(action, no) {
@@ -358,7 +359,7 @@ if (staff) {
     (async () => {
       if (!roomSess || !roomSess.is_live) return;
       const { data } = await sb.from('ea_opil_replays').select('status').eq('session_no', roomSess.no).in('status', ['invoked', 'recording']).limit(1);
-      if (data && data.length) recChip.hidden = false;
+      if (data && data.length) { recFor = roomSess.no; syncCtl(); }
     })();
     /* End shows for any session left live; Start is off only while a class is genuinely running in it
        (a session flagged live with a stale non-room stream_url can still be started, which overwrites it) */
@@ -368,17 +369,18 @@ if (staff) {
       goBtn.hidden = !s.is_live;
       classBtn.disabled = running;
       classBtn.innerHTML = running ? 'Class is running' : 'Start class &mdash; everyone on camera';
+      recChip.hidden = recChipHidden({ running, recFor, sessionNo: s.no });
     }
     const onAir = (on) => [sel, goBtn, classBtn].forEach(el => { el.disabled = on; });
     /* The host leaving IS the end of the session — one action, not two (Nelson, 9/14). Only the page
        that started the class ends it; a co-host or coordinator leaving someone else's class does not. */
     onLeft = async () => {
-      if (!hosting) { onAir(false); syncCtl(); return; }
+      if (!hosting) { recFor = null; onAir(false); syncCtl(); return; }
       hosting = false;
       const no = boundNo != null ? boundNo : cur().no;
       let recorded = false;
       try { recorded = !!(await record('stop', no)).stopped; } catch (e) {}
-      recChip.hidden = true;
+      recFor = null;
       try { await flipLive(no, false); }
       catch (e) { onAir(false); syncCtl(); bnote.textContent = 'You left, but the session could not be closed (' + e.message + '). Press End session.'; return; }
       onAir(false); syncCtl();
@@ -430,6 +432,7 @@ if (staff) {
     goBtn.addEventListener('click', async () => {
       goBtn.disabled = true; goBtn.textContent = 'Ending…';
       try { await record('stop', cur().no); } catch (e) {}   /* a recording left running from another device */
+      recFor = null;
       try { await flipLive(cur().no, false); }
       catch (e) { goBtn.disabled = false; syncCtl(); bnote.textContent = 'Could not end: ' + e.message; return; }
       location.reload();
