@@ -3,6 +3,9 @@
    audio, notifications) sit inside OUR layout: a "You're in the right place" join screen, a
    what's-happening-now strip, mic/camera state in words, one big Ask a question, the host's
    Ready-to-speak queue with Bring on stage, and a Tools sheet for the rare stuff.
+   Everyone presses Enter themselves, host included — no walking straight into a live room on
+   reload. A phone will not play any sound until the person has tapped something on the page,
+   so the tap IS the unlock; guests also arrive muted and get a one-time nudge to check their mic.
    v1 (`rtk-room.js`, the kit's own shell) is untouched: `?classic=1` brings it back.
 
    Loading is identical to v1 (proven 9/10): core as the IIFE build, UI kit as ESM, pinned. */
@@ -63,7 +66,6 @@ async function joinTarget(cfg, token, joinBody, words) {
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const AUTO_KEY = 'r2-auto-enter';
 const OWN_BG_KEY = 'r2-own-backdrop';   /* the last photo someone chose, so it is one tap next class */
 
 /* "Use my own photo": pick an image, shrink it to 1280 wide, keep it as a data URL */
@@ -108,7 +110,6 @@ export async function mountRoomV2(o) {
   const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
   const title = isRoom ? target.title : session.title;
   const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
-  const autoKey = isRoom ? 'room:' + target.id : String(session.no);
   const hands = isRoom
     ? { table: 'ea_room_hands', col: 'room_id', val: target.id, chan: 'hands-room-' + target.id }
     : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
@@ -122,7 +123,6 @@ export async function mountRoomV2(o) {
   if (mode === 'waiting') {
     mountEl.innerHTML = '';
     mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom }));
-    try { sessionStorage.setItem(AUTO_KEY, autoKey); } catch (e) {}   /* when the page reloads live, walk straight in */
     return { meetingId: null, leave: () => { mountEl.innerHTML = ''; }, setRecording() {} };
   }
 
@@ -215,13 +215,9 @@ export async function mountRoomV2(o) {
   meeting.self.on('audioUpdate', chips.sync);
   chips.sync();
 
-  let autoEnter = false;
-  try { autoEnter = sessionStorage.getItem(AUTO_KEY) === autoKey; sessionStorage.removeItem(AUTO_KEY); } catch (e) {}
+  /* everyone presses Enter themselves — the tap is what lets a phone play sound (iOS blocks audio until then) */
   const enterBtn = screen.querySelector('.r2-enter');
-  await new Promise((resolve) => {
-    if (autoEnter && !host) return resolve();
-    enterBtn.addEventListener('click', resolve, { once: true });
-  });
+  await new Promise((resolve) => { enterBtn.addEventListener('click', resolve, { once: true }); });
   enterBtn.disabled = true; enterBtn.textContent = host ? 'Starting…' : 'Entering…';
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
@@ -229,6 +225,7 @@ export async function mountRoomV2(o) {
   const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; } });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
+  if (!host) room.toast('You’re muted — tap Mic to talk.');
   if (onState) onState('joined', meeting);
 
   /* breakout rooms hand the page a NEW meeting: rebind everything to it */
@@ -507,5 +504,5 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     loadHands();
   }
   function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} }
-  return { node, bind, destroy, setRecording };
+  return { node, bind, destroy, setRecording, toast };
 }
