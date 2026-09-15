@@ -132,3 +132,22 @@ export function transcriptText(lines, when) {
 export function recChipHidden({ running, recFor, sessionNo }) {
   return !(running && recFor != null && recFor === sessionNo);
 }
+
+/* captions over the video (Nelson, 9/15: "show the transcriptions as she talks with the option to
+   turn it off too"): the last CAPTION_MAX lines, partials included so the words move while someone
+   is still talking. A partial and its final share an id, so the final replaces the partial in
+   place. A final fades CAPTION_TTL_MS after it landed; a partial stays until its final arrives.
+   Pure: returns a new array, never touches the one passed in. x = null just prunes. */
+export const CAPTION_TTL_MS = 8000;
+export const CAPTION_MAX = 2;
+export function takeCaption(caps, x, now) {
+  let next = (caps || []).slice();
+  if (x && typeof x.transcript === 'string' && x.transcript.trim()) {
+    const text = x.transcript.trim(), final = !x.isPartialTranscript;
+    const i = x.id != null ? next.findIndex(c => c.id === x.id) : -1;
+    if (i >= 0) next[i] = { ...next[i], text, final, at: now };
+    else next.push({ id: x.id ?? (x.peerId + ':' + now), name: x.name || 'Someone', text, final, at: now });
+  }
+  next = next.filter(c => !(c.final && now - c.at > CAPTION_TTL_MS));
+  return next.slice(-CAPTION_MAX);
+}
