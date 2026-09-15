@@ -41,9 +41,9 @@ grant execute on function public.ea_jwt_email() to anon, authenticated;
 create or replace function public.ea_room_is_host(p_room uuid) returns boolean
 language sql stable security definer set search_path = public as
 $$ select public.ea_is_admin()
-       or exists (select 1 from public.ea_rooms r
+       or exists (select 1 from public.ea_rooms r, unnest(r.host_emails) e
                   where r.id = p_room and public.ea_jwt_email() is not null
-                    and public.ea_jwt_email() = any(r.host_emails)) $$;
+                    and lower(trim(e)) = public.ea_jwt_email()) $$;
 revoke all on function public.ea_room_is_host(uuid) from public, anon;
 grant execute on function public.ea_room_is_host(uuid) to authenticated;
 
@@ -173,5 +173,28 @@ begin
 end $$;
 revoke all on function public.ea_room_set_hosts(uuid, text[]) from public, anon;
 grant execute on function public.ea_room_set_hosts(uuid, text[]) to authenticated;
+
+-- To undo 0037:
+--   1. drop function public.ea_room_rotate_link(uuid);
+--   2. drop function public.ea_room_state(text, text);
+--   3. drop function public.ea_room_set_hosts(uuid, text[]);
+--   4. drop function public.ea_jwt_email();
+--   5. drop function public.ea_room_is_host(uuid);
+--   6. re-create public.ea_room_state(p_key text default null) as it stood in 0036_academy_room.sql;
+--   7. re-create public.ea_room_rotate_link() as it stood in 0036_academy_room.sql (it currently
+--      delegates to ea_room_rotate_link(uuid), which step 1 removes);
+--   8. re-create public.ea_room_publish_replay(p_replay uuid, p_publish boolean) as it stood in
+--      0036_academy_room.sql (its ea_room_is_host(r.room_id) check reverts to ea_is_admin());
+--   9. re-create the seven policies 0036_academy_room.sql defined and this migration replaced:
+--      rooms_admin_read, rooms_admin_update (on ea_rooms), room_members_admin_read (on
+--      ea_room_members), room_replays_admin_read (on ea_room_replays), room_hands_read,
+--      room_hands_update_host, room_hands_delete_own (on ea_room_hands) — each drop policy if
+--      exists then create policy, using ea_is_admin() in place of ea_room_is_host(...);
+--  10. delete from public.ea_rooms where slug = 'ht';
+--  11. drop index if exists ea_rooms_slug;
+--  12. create unique index if not exists ea_rooms_single on public.ea_rooms ((true));
+--  13. alter table public.ea_rooms drop column if exists slug, drop column if exists host_name,
+--      drop column if exists host_emails, drop column if exists host_preset,
+--      drop column if exists guest_preset;
 
 select 'ht room ready' as status;

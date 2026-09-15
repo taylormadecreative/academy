@@ -105,7 +105,8 @@ begin
     reset role;
     insert into verify_out(line) values ('FAIL stranger checks raised ' || sqlstate || ' ' || sqlerrm);
   end;
-  insert into public.ea_room_members (room_id, user_id) values (v_ht, v_guest);   -- as the join function would (service role)
+  insert into public.ea_room_members (room_id, user_id) values (v_ht, v_guest)   -- as the join function would (service role)
+    on conflict (room_id, user_id) do update set last_joined_at = now();
   begin
     set local role authenticated;
     perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
@@ -180,7 +181,7 @@ begin
   -- as the migration owner, bypassing the admin check is not possible: set host_emails directly here
   -- as SETUP, not a check — the real ea_room_set_hosts normalisation is exercised for real as an
   -- admin in section 8 below (calling the actual function, not re-implementing its regex here)
-  update public.ea_rooms set host_emails = array[v_email] where id = v_ht;
+  update public.ea_rooms set host_emails = array[upper(v_email)] where id = v_ht;   -- staged uppercase, unlowered — proves ea_room_is_host lower()s the row side
   -- prod may already have real members from a past live session whose last_joined_at would
   -- otherwise satisfy the people-count window; pin live_since to just before OUR join so only
   -- the test member (joined earlier in this same transaction, so last_joined_at = this tx's now())
