@@ -95,6 +95,13 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   ok('waiting: HT words + tokens + key + slug reached the room', await p.evaluate(() => window.__mount.target.words.host === 'Dr. Gray' && window.__mount.target.tokens.colors.brand[500] === '#FFCC00' && window.__mount.target.slug === 'ht' && window.__mount.target.key === 'AbC123_-xyzXYZ0987ab-_'));
   ok('waiting: the line names the host', /Dr\. Gray hasn’t started yet/.test(await text(p, '.r2-line')));
   ok('waiting: Ada beside the line', /ada-face\.jpg/.test(await p.evaluate(() => getComputedStyle(document.querySelector('.r2-line'), '::before').backgroundImage)));
+  /* the HT wordmark inside the room (Nelson, 9/15): the target carries it, the join screen draws it above the kicker, the file really loads, and room.css sizes it */
+  ok('waiting: the wordmark reached the room target', await p.evaluate(() => window.__mount.target.logo.src === '/ht/img/ht-wordmark-gold.png'));
+  ok('waiting: the wordmark is the first thing on the join screen', await p.evaluate(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.tagName === 'IMG' && i === document.querySelector('.r2-join-left').firstElementChild && i.nextElementSibling.classList.contains('r2-kicker'); }));
+  await p.waitForFunction(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.complete; }, null, { timeout: 5000 }).catch(() => {});
+  ok('waiting: the wordmark file loads', await p.evaluate(() => { const i = document.querySelector('.r2-join .r2-brand'); return !!i && i.naturalWidth > 0; }));
+  { const h = await p.evaluate(() => document.querySelector('.r2-join .r2-brand').getBoundingClientRect().height);
+    ok('waiting: the wordmark is 20–28px tall', h >= 20 && h <= 28, 'height ' + h); }
   await p.close(); }
 /* 5 the host: idle → Start → opened → live → joined → recording → Leave → stop → off air */
 { const { p, errs, rec } = await page({ state: { ...base, is_host: true, people: 0 }, session: sess, admin: true, room: { ...room }, replays: [], members: [], profiles: [] });

@@ -2,7 +2,9 @@
 export async function mountRoomV2(o) {
   window.__mount = { mode: o.mode, target: o.target, facilitator: o.facilitator };
   o.mountEl.classList.add('r2host');
-  o.mountEl.innerHTML = '<section class="r2-join"><div class="r2-join-left"><div class="r2-kicker">You’re in the right place.</div><h2 class="r2-title">' + o.target.title + '</h2><p class="r2-line">' + (o.mode === 'waiting' ? o.target.words.waiting : 'preview') + '</p>' + (o.mode === 'waiting' ? '<div class="r2-wait"><b>x</b></div>' : '<div class="r2-preview"></div>') + '</div></section>';
+  /* the brand mark, as the real module draws it: first child of .r2-join-left, only when the target brought one */
+  const brand = o.target.logo ? '<img class="r2-brand" src="' + o.target.logo.src + '" alt="' + o.target.logo.alt + '">' : '';
+  o.mountEl.innerHTML = '<section class="r2-join"><div class="r2-join-left">' + brand + '<div class="r2-kicker">You’re in the right place.</div><h2 class="r2-title">' + o.target.title + '</h2><p class="r2-line">' + (o.mode === 'waiting' ? o.target.words.waiting : 'preview') + '</p>' + (o.mode === 'waiting' ? '<div class="r2-wait"><b>x</b></div>' : '<div class="r2-preview"></div>') + '</div></section>';
   document.body.classList.add('in-room', 'in-room-v2');
   if (o.mode === 'waiting') document.body.classList.remove('in-room', 'in-room-v2');
   window.__room = {

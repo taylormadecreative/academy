@@ -51,7 +51,11 @@ async function getState() {
 const token = async () => (await sb.auth.getSession()).data.session?.access_token || '';
 
 /* ---------- the cards ---------- */
-const WM = '<img class="ht-room-wm" src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University">';
+/* the HT wordmark: on the page cards (WM, .ht-room-wm) and, as target.logo, inside the room itself — the
+   join screen and the now-strip — because that is all a guest sees for an hour (Nelson, 9/15, on a call
+   with an HT administrator: "I need to see the HT logo somewhere on the UI"). Gold on transparent. */
+const LOGO = { src: '/ht/img/ht-wordmark-gold.png', alt: 'Huston-Tillotson University' };
+const WM = '<img class="ht-room-wm" src="' + LOGO.src + '" alt="' + LOGO.alt + '">';
 const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air') + '</p>';
 function card(inner, after) { ctl.innerHTML = '<div class="ht-room-card">' + WM + inner + '</div>' + (after || ''); mount.innerHTML = ''; mount.classList.remove('r2host'); }
 function lastSession(st) {
@@ -74,7 +78,7 @@ if (state && state.bad_link && keyFromStore) {
 }
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
