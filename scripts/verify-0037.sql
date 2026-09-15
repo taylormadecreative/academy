@@ -11,7 +11,7 @@ declare
   v_ht uuid; v_ac uuid; v_ht_key text; v_ac_key text;
   v_guest uuid := '00000000-0000-4000-8000-000000000037';
   v_email text := 'zz-test-0037@example.com';
-  v_claims text; v_state jsonb; v_n bigint; v_t text; v_arr text[];
+  v_claims text; v_state jsonb; v_n bigint; v_n2 bigint; v_t text; v_arr text[];
   v_rep_ht uuid; v_rep_ac uuid; v_adm uuid; v_adm_claims text;
 begin
   -- 0. a throwaway account with an email (the members FK and ea_jwt_email need a real row); if this
@@ -277,11 +277,12 @@ begin
   begin
     set local role authenticated;
     perform set_config('request.jwt.claims', v_claims, true), set_config('request.jwt.claim.sub', v_guest::text, true), set_config('request.jwt.claim.email', v_email, true);
-    insert into verify_out(line) values (case when
-        (select count(*) from public.ea_room_replays where id = v_rep_ht) = 1
-        and (select count(*) from public.ea_room_replays where room_id = v_ac) = 0
-      then 'OK ' else 'FAIL ' end || 'HT host reads its own replay, none of academy''s — scoped by id/room, robust to prod history');
+    -- read as the host, then drop the role BEFORE writing the result: verify_out is the owner's temp table
+    select (select count(*) from public.ea_room_replays where id = v_rep_ht),
+           (select count(*) from public.ea_room_replays where room_id = v_ac) into v_n, v_n2;
     reset role;
+    insert into verify_out(line) values (case when v_n = 1 and v_n2 = 0
+      then 'OK ' else 'FAIL ' end || 'HT host reads its own replay, none of academy''s — scoped by id/room, robust to prod history · ' || v_n || '/' || v_n2);
   exception when others then
     reset role;
     insert into verify_out(line) values ('FAIL replay read raised ' || sqlstate || ' ' || sqlerrm);
