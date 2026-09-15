@@ -24,7 +24,7 @@
 // SUPABASE_SERVICE_ROLE_KEY. Deploy: --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { clientIp, resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
-import { ensurePresets } from "../_shared/rtk_presets.ts";
+import { ensurePresets, ensureOpilPresets } from "../_shared/rtk_presets.ts";
 import { handleJoin, type JoinBody, type RoomRow } from "./handler.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
@@ -108,6 +108,7 @@ Deno.serve(async (req: Request) => {
     },
     /* the host's first join creates this room's two presets on Cloudflare (cached per name; never throws) */
     ensurePresets: (h, g) => ensurePresets(cf, [h, g]),
+    ensureOpilPresets: () => ensureOpilPresets(cf),
     now: () => new Date(),
   }).catch((e) => { console.error("[ea-rtk-join]", String(e && e.message || e)); return { status: 500, body: { error: "server" } }; });
 

@@ -6,10 +6,10 @@ import assert from 'node:assert/strict';
 import * as mod from '../../opil/hub/live-rooms.js';
 import { capFirst, OPIL_WORDS, ROOM_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
-test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS', () => {
+test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS (+ the 9/15 ask/transcript helpers)', () => {
   assert.deepEqual(Object.keys(mod).sort(), [
-    'OPIL_WORDS', 'ROOM_WORDS', 'capFirst', 'joinCopy', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
-    'queueOrder', 'queuePosition', 'roomFromQuery', 'roomPath', 'sessLabel', 'stateCopy', 'useV2',
+    'OPIL_WORDS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'capFirst', 'joinCopy', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
+    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'roomFromQuery', 'roomPath', 'sessLabel', 'stateCopy', 'transcriptText', 'useV2',
   ]);
 });
 

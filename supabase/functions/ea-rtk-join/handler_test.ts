@@ -37,6 +37,7 @@ function deps(over: Partial<JoinDeps> = {}) {
     upsertMember: async () => {},
     displayName: async () => null,
     ensurePresets: async () => {},
+    ensureOpilPresets: async () => {},
     now: () => new Date("2026-09-16T19:05:00-05:00"),
     ...over,
   };
@@ -70,6 +71,15 @@ Deno.test("the facilitator of THIS session is a host; of another session, a stud
   assertEquals(other.status, 200); assertEquals((other.body as { preset: string }).preset, "opil-student"); assertEquals((other.body as { host: boolean }).host, false);
   const outsider = await handleJoin({ session_no: 6 }, FAC7, deps());
   assertEquals(outsider.status, 403); assertEquals(err(outsider), "not_allowed");
+});
+
+Deno.test("an OPIL host join brings the presets in line first (9/15: students and judges transcribed); a student join never does", async () => {
+  let presets = 0;
+  const d = deps({ ensureOpilPresets: async () => { presets++; } });
+  const host = await handleJoin({ session_no: 7 }, COORD, d);
+  assertEquals(host.status, 200); assertEquals(presets, 1);
+  const stu = await handleJoin({ session_no: 7 }, STUDENT, deps({ inCohort: async () => true, ensureOpilPresets: async () => { presets++; } }));
+  assertEquals(stu.status, 200); assertEquals(presets, 1);
 });
 
 Deno.test("a judge gets opil-judge without a cohort check", async () => {
@@ -162,10 +172,10 @@ Deno.test("Cloudflare failures surface as 502 cloudflare_<status>", async () => 
   assertEquals(noId.status, 502); assertEquals(err(noId), "cloudflare_no_id");
 });
 
-Deno.test("the OPIL branch never touches the room plumbing except the room-meeting check", async () => {
+Deno.test("the OPIL branch never touches the room plumbing except the room-meeting check (and, for a host, its own preset check)", async () => {
   const d = deps();
   await handleJoin({ session_no: 7 }, COORD, d);
-  assertEquals(d.touched, ["getSession", "roomMeetingIds", "displayName", "cf"]);
+  assertEquals(d.touched, ["getSession", "roomMeetingIds", "ensureOpilPresets", "displayName", "cf"]);
   const s = deps({ inCohort: async () => true });
   await handleJoin({ session_no: 7 }, STUDENT, s);
   assertEquals(s.touched, ["inCohort", "getSession", "roomMeetingIds", "displayName", "cf"]);
@@ -216,6 +226,7 @@ function roomDeps(over: Partial<JoinDeps> = {}, room: RoomRow = LIVE_ROOM) {
     upsertMember: async (roomId, userId) => { members.push([roomId, userId]); },
     displayName: async (id) => (id === "u-nelson" ? "Nelson Taylor" : null),
     ensurePresets: async () => { presets++; },
+    ensureOpilPresets: async () => {},
     now: () => NOW,
     ...over,
   };

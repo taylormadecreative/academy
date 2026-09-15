@@ -52,3 +52,35 @@ test('joinCopy: the sentence under the title for each situation', () => {
   assert.equal(joinCopy({ live: false, host: true, facilitator: 'Casey Dike' }), 'This room is yours. Start the class when you’re ready — students who have the link are waiting here.');
   assert.equal(joinCopy({ live: true, host: true, facilitator: 'Casey Dike', joined: 3 }), 'Your class is running · 3 students joined');
 });
+
+/* ---- anyone in the room can ask (9/15): one copy for the button, wherever it sits ---- */
+import { askLineCopy, queueEmptyCopy, addTranscript, transcriptText } from '../../opil/hub/live-rooms.js';
+
+test('askLineCopy: not in line → Ask; in line → your place and how to leave', () => {
+  assert.deepEqual(askLineCopy(null), { b: 'Ask a question', s: 'Add yourself to the line' });
+  assert.deepEqual(askLineCopy(1), { b: 'You’re #1 in line', s: 'Tap to leave the line' });
+  assert.deepEqual(askLineCopy(3), { b: 'You’re #3 in line', s: 'Tap to leave the line' });
+});
+
+test('queueEmptyCopy no longer says only a student can ask', () => {
+  assert.equal(queueEmptyCopy(), 'When anyone presses Ask a question, they appear here in order.');
+});
+
+/* ---- the transcript: one list, no partials, no duplicates ---- */
+const T = (id, name, text, extra = {}) => ({ id, name, transcript: text, timestamp: '2026-09-16T23:01:00Z', isPartialTranscript: false, ...extra });
+
+test('addTranscript keeps final lines once, drops partials and junk', () => {
+  const lines = [];
+  assert.equal(addTranscript(lines, T('a', 'Nelson', 'Welcome in.')), true);
+  assert.equal(addTranscript(lines, T('a', 'Nelson', 'Welcome in.')), false);            // same id twice (replay + event)
+  assert.equal(addTranscript(lines, T('b', 'Jamal', 'Can you hear', { isPartialTranscript: true })), false);
+  assert.equal(addTranscript(lines, null), false);
+  assert.equal(addTranscript(lines, T('c', 'Jamal', 'Can you hear me?')), true);
+  assert.deepEqual(lines.map(x => x.id), ['a', 'c']);
+});
+
+test('transcriptText: time, speaker, words — or an honest empty line', () => {
+  const when = () => '6:01 PM';
+  assert.equal(transcriptText([T('a', 'Nelson', 'Welcome in.'), T('c', null, 'Hi.')], when), '6:01 PM  Nelson: Welcome in.\n6:01 PM  Someone: Hi.');
+  assert.match(transcriptText([], when), /^No transcript lines were captured on this device/);
+});

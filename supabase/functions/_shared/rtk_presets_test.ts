@@ -109,3 +109,45 @@ Deno.test("an unknown preset name throws, before any network call", async () => 
   await assertRejects(() => ensurePresets(cf, ["not-a-real-preset"]));
   assertEquals(cf.calls.length, 0);
 });
+
+/* ── the OPIL presets: ensureOpilPresets, its own cache (9/15: students and judges are transcribed too) ── */
+const OPIL_STUDENT_OFF = { id: "p-stu", name: "opil-student", permissions: { transcription_enabled: false } };
+const OPIL_JUDGE_OFF = { id: "p-jud", name: "opil-judge", permissions: { transcription_enabled: false } };
+const OPIL_STUDENT_ON = { id: "p-stu", name: "opil-student", permissions: { transcription_enabled: true } };
+const OPIL_JUDGE_ON = { id: "p-jud", name: "opil-judge", permissions: { transcription_enabled: true } };
+
+Deno.test("the OPIL copies the function ships are the committed JSON files, verbatim", async () => {
+  const { OPIL_BODIES } = await import("./rtk_presets.ts?t=opilcopy");
+  for (const name of ["opil-student", "opil-judge"] as const) {
+    const json = JSON.parse(await Deno.readTextFile(new URL(`../../../scripts/rtk-presets/${name}.json`, import.meta.url)));
+    assertEquals(OPIL_BODIES[name], json);
+    assertEquals(OPIL_BODIES[name].permissions.transcription_enabled, true);
+  }
+});
+
+Deno.test("OPIL presets with transcription off → PATCH each by id with the committed body; the Academy/HT pairs are not its business", async () => {
+  const { ensureOpilPresets, OPIL_BODIES } = await import("./rtk_presets.ts?t=opilpatch");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HOST_ON_CF, GUEST_OK_ON_CF, OPIL_STUDENT_OFF, OPIL_JUDGE_OFF] } : { ok: true, status: 200, data: {} }));
+  await ensureOpilPresets(cf);
+  assertEquals(cf.calls, [
+    { method: "GET", path: "/presets", body: undefined },
+    { method: "PATCH", path: "/presets/p-stu", body: OPIL_BODIES["opil-student"] },
+    { method: "PATCH", path: "/presets/p-jud", body: OPIL_BODIES["opil-judge"] },
+  ]);
+});
+
+Deno.test("OPIL presets already transcribing → nothing but the list; a missing OPIL preset is never created here", async () => {
+  const { ensureOpilPresets } = await import("./rtk_presets.ts?t=opilok");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HOST_ON_CF, GUEST_OK_ON_CF, OPIL_STUDENT_ON] } : { ok: true, status: 200, data: {} }));
+  await ensureOpilPresets(cf);
+  assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets"]);
+});
+
+Deno.test("an OPIL PATCH that fails is not cached — the next host join tries again", async () => {
+  const { ensureOpilPresets } = await import("./rtk_presets.ts?t=opilfail");
+  let n = 0;
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HOST_ON_CF, GUEST_OK_ON_CF, OPIL_JUDGE_OFF] } : { ok: false, status: 500, data: {} }));
+  await ensureOpilPresets(cf); await ensureOpilPresets(cf);
+  n = cf.calls.filter((c) => c.method === "GET").length;
+  assertEquals(n, 2);
+});

@@ -41,6 +41,7 @@ export type JoinDeps = {
   upsertMember: (roomId: string, userId: string) => Promise<void>;
   displayName: (userId: string) => Promise<string | null>;      /* ea_profiles.display_name */
   ensurePresets: (hostPreset: string, guestPreset: string) => Promise<void>;
+  ensureOpilPresets: () => Promise<void>;   /* 9/15: opil-student / opil-judge transcribe; checked on an OPIL host join */
   now: () => Date;
 };
 export type Reply = { status: number; body: unknown };
@@ -90,6 +91,10 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
   // The Academy room's meeting is never an OPIL class: a facilitator who points a session's
   // stream_url at it gets nothing, whatever their OPIL role.
   if ((await deps.roomMeetingIds()).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
+
+  // A host join is the moment to make sure Cloudflare's OPIL presets match the committed ones
+  // (9/15: opil-student / opil-judge transcribe now). Never throws, cached once right — rtk_presets.ts.
+  if (isHost) await deps.ensureOpilPresets();
 
   // One participant per person per meeting. custom_participant_id is the Supabase uid — never an email.
   const name = String((await deps.displayName(ctx.user.id)) || (ctx.user.email || "Member").split("@")[0]).slice(0, 60);

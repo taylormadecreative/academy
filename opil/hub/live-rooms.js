@@ -98,3 +98,25 @@ export function joinCopy({ live, host, facilitator, joined, startsAt }, words = 
     ? capFirst(words.thing) + ' hasn’t started yet. You’re all set — it starts at ' + startsAt + ' — press Enter when it does.'
     : capFirst(words.thing) + ' hasn’t started yet. You’re all set — press Enter when ' + (facilitator || words.host) + ' starts it.';
 }
+
+/* the Ask button, in one place: the student's big button and the host's Questions-tab button
+   read the same words (anyone in the room can get in line, Nelson 9/15) */
+export function askLineCopy(pos) {
+  return pos ? { b: 'You’re #' + pos + ' in line', s: 'Tap to leave the line' } : { b: 'Ask a question', s: 'Add yourself to the line' };
+}
+export const queueEmptyCopy = () => 'When anyone presses Ask a question, they appear here in order.';
+
+/* the transcript: RealtimeKit streams a partial line while someone is still talking and a final
+   one when they stop; the same final line can arrive twice (the replay on join + the event).
+   Keep only finals, once. Returns true when a line was added, so a live panel knows to redraw. */
+export function addTranscript(lines, x) {
+  if (!x || x.isPartialTranscript || typeof x.transcript !== 'string' || !x.transcript.trim()) return false;
+  if (x.id != null && lines.some(y => y.id === x.id)) return false;
+  lines.push(x);
+  return true;
+}
+export function transcriptText(lines, when) {
+  return lines.length
+    ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
+    : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
+}

@@ -15,6 +15,13 @@
 //   scripts/rtk-presets/ht-class-host.json    — HT brand colors (maroon/gold), same shape
 //   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, chat files off like every guest
 import type { JoinDeps } from "../ea-rtk-join/handler.ts";
+/* The two OPIL presets whose bodies changed on 9/15 (students and judges are transcribed too, so
+   the Transcript tab and Save transcript carry the whole room, not just the host). Copies of the
+   committed files, because a function bundle cannot reach scripts/; rtk_presets_test.ts proves
+   they match. They are never CREATED here — scripts/rtk-presets.sh made them — only brought in
+   line when Cloudflare's copy disagrees on transcription. */
+import opilStudent from "./rtk-presets/opil-student.json" with { type: "json" };
+import opilJudge from "./rtk-presets/opil-judge.json" with { type: "json" };
 
 const UI = {
   design_tokens: {
@@ -257,6 +264,39 @@ export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promis
       }
       if (ok) okNames.add(name);
     }
+  } catch (e) {
+    console.warn("[rtk_presets]", String((e && (e as Error).message) || e));
+  }
+}
+
+/* ── OPIL (9/15): students and judges are transcribed too ───────────────────────────────────
+   Cloudflare transcribes per PRESET, and only opil-host had it on, so a saved transcript was the
+   host talking. The two OPIL bodies whose flag changed ship here as copies of the committed
+   files (a bundle cannot reach scripts/; rtk_presets_test.ts proves they match). They are never
+   CREATED here — scripts/rtk-presets.sh made them — only brought in line when Cloudflare's copy
+   disagrees on transcription. Same contract as ensurePresets: never throws, cached once right. */
+export const OPIL_BODIES = { "opil-student": opilStudent, "opil-judge": opilJudge } as const;
+const OPIL_NAMES = ["opil-student", "opil-judge"] as const;
+let opilOk = false;
+
+function transcribes(preset: Record<string, unknown>): boolean {
+  return ((preset.permissions || {}) as Record<string, unknown>).transcription_enabled === true;
+}
+
+export async function ensureOpilPresets(cf: JoinDeps["cf"]): Promise<void> {
+  if (opilOk) return;
+  try {
+    const listed = await cf("GET", "/presets");
+    if (!listed.ok) { console.warn("[rtk_presets] list failed", listed.status); return; }
+    const have = presetList(listed.data);
+    let allGood = true;
+    for (const name of OPIL_NAMES) {
+      const found = have.find((p) => p.name === name);
+      if (!found || transcribes(found) === OPIL_BODIES[name].permissions.transcription_enabled) continue;
+      const r = await cf("PATCH", `/presets/${found.id}`, OPIL_BODIES[name]);
+      if (!r.ok) { console.warn("[rtk_presets] update failed", name, r.status); allGood = false; }
+    }
+    opilOk = allGood;
   } catch (e) {
     console.warn("[rtk_presets]", String((e && (e as Error).message) || e));
   }

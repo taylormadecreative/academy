@@ -176,14 +176,18 @@ export async function mountRoomV2(o) {
   }
   loadEffects(meeting);
 
-  /* ---------- transcript lines, saved on request ---------- */
+  /* ---------- transcript lines: shown live in the Transcript tab, saved on request ----------
+     Cloudflare only transcribes people whose PRESET has transcription_enabled (host, and since
+     9/15 students and judges too — rtk_presets.ts brings the live presets in line). */
   const lines = [];
-  const keepTranscripts = (m) => { try { (m.ai && m.ai.transcripts || []).forEach(x => x && !x.isPartialTranscript && lines.push(x)); m.ai && m.ai.on && m.ai.on('transcript', (x) => { if (x && !x.isPartialTranscript && !lines.some(y => y.id === x.id)) lines.push(x); }); } catch (e) {} };
+  const onLine = [];   /* the Transcript tab registers here to redraw when a line lands */
+  const takeLine = (x) => { if (copy.addTranscript(lines, x)) onLine.forEach(f => { try { f(x); } catch (e) {} }); };
+  const keepTranscripts = (m) => { try { (m.ai && m.ai.transcripts || []).forEach(takeLine); m.ai && m.ai.on && m.ai.on('transcript', takeLine); } catch (e) {} };
   keepTranscripts(meeting);
+  const whenSaid = (ts) => new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const transcript = { lines, whenSaid, watch: (f) => onLine.push(f) };
   function saveTranscript() {
-    const when = (ts) => new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const body = lines.length ? lines.map(x => when(x.timestamp) + '  ' + (x.name || 'Someone') + ': ' + x.transcript).join('\n')
-      : 'No transcript lines were captured on this device. Transcripts only include people whose role is transcribed, and only while this page was open.';
+    const body = copy.transcriptText(lines, whenSaid);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([label + '\n' + new Date().toLocaleString() + '\n\n' + body + '\n'], { type: 'text/plain' }));
     a.download = (label.replace(/[^\w\- ]+/g, '').trim() || 'transcript') + ' transcript.txt';
@@ -238,7 +242,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -323,7 +327,7 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch, rootId }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
   const node = el(`<div class="r2">
     <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
@@ -341,11 +345,13 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <button type="button" class="r2-tab" data-tab="chat">Chat</button>
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
           <button type="button" class="r2-tab" data-tab="polls">Polls <em></em></button>
+          <button type="button" class="r2-tab" data-tab="transcript">Transcript <em></em></button>
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
         <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
+        <div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>
         <button type="button" class="r2-close" aria-label="Close">Close</button>
       </aside>
     </div>
@@ -451,9 +457,8 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const b = primary.querySelector('.r2-stage-btn'); if (b) b.addEventListener('click', () => bringOnStage(next));
     } else {
       const pos = copy.queuePosition(hands, uid);
-      primary.innerHTML = pos
-        ? `<button type="button" class="r2-cta on"><b>You’re #${pos} in line</b><span>Tap to leave the line</span></button>`
-        : `<button type="button" class="r2-cta"><b>Ask a question</b><span>Add yourself to the line</span></button>`;
+      const ac = copy.askLineCopy(pos);
+      primary.innerHTML = `<button type="button" class="r2-cta${pos ? ' on' : ''}"><b>${esc(ac.b)}</b><span>${esc(ac.s)}</span></button>`;
       primary.querySelector('.r2-cta').addEventListener('click', () => pos ? leaveLine() : askQuestion());
     }
     const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
@@ -462,10 +467,32 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     const box = q('.r2-queue'); if (!box) return;
     const rows = copy.queueOrder(hands);
     box.innerHTML = rows.length ? rows.map((r, i) => `<div class="r2-hand${r.staged_at ? ' staged' : ''}"><span class="r2-n">${i + 1}</span><div class="r2-who"><b>${esc(nameOf(r.user_id) || copy.capFirst(words.one))}</b><span>${r.kind === 'comment' ? 'Would like to comment' : 'Has a question'}${r.staged_at ? ' · on stage' : ''}</span></div><button type="button" class="r2-mini r2-bring" data-id="${r.id}">Bring on stage</button><button type="button" class="r2-mini r2-done" data-id="${r.id}">Done</button></div>`).join('')
-      : '<div class="r2-empty">When a ' + esc(words.one) + ' presses Ask a question, they appear here in order.</div>';
+      : '<div class="r2-empty">' + esc(copy.queueEmptyCopy()) + '</div>';
     box.querySelectorAll('.r2-bring').forEach(b => b.addEventListener('click', () => bringOnStage(hands.find(h => h.id === b.dataset.id))));
     box.querySelectorAll('.r2-done').forEach(b => b.addEventListener('click', () => markDone(hands.find(h => h.id === b.dataset.id))));
+    /* a host who is not the one teaching (a coordinator sitting in) gets in the same line as everyone
+       else; their big button stays Bring on stage, so the Ask button lives here (Nelson, 9/15) */
+    if (host) {
+      const pos = copy.queuePosition(hands, uid), ac = copy.askLineCopy(pos);
+      const b = el(`<button type="button" class="r2-cta r2-ask-me${pos ? ' on' : ''}"><b>${esc(ac.b)}</b><span>${esc(ac.s)}</span></button>`);
+      b.addEventListener('click', () => pos ? leaveLine() : askQuestion());
+      box.appendChild(b);
+    }
   };
+  /* the Transcript tab: every final line as it lands, newest at the bottom, sticky to the bottom
+     unless the reader has scrolled up. Only people whose preset is transcribed appear. */
+  const tbox = q('.r2-transcript');
+  const tcount = () => { const em = q('.r2-tab[data-tab="transcript"] em'); if (em) em.textContent = transcript.lines.length || ''; };
+  const renderTranscript = () => {
+    if (!tbox) return;
+    const atBottom = tbox.scrollHeight - tbox.scrollTop - tbox.clientHeight < 40;
+    tbox.innerHTML = transcript.lines.length
+      ? transcript.lines.map(x => `<div class="r2-tline"><span class="r2-twhen">${esc(transcript.whenSaid(x.timestamp))}</span><b>${esc(x.name || 'Someone')}</b><span class="r2-ttext">${esc(x.transcript)}</span></div>`).join('')
+      : '<div class="r2-empty">Nothing yet. Lines appear here as people talk — only those whose role is transcribed.</div>';
+    if (atBottom) tbox.scrollTop = tbox.scrollHeight;
+    tcount();
+  };
+  transcript.watch(renderTranscript); renderTranscript();
   const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
   async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
   async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
