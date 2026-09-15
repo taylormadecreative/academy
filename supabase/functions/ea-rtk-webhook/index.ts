@@ -1,7 +1,8 @@
 // ea-rtk-webhook — RealtimeKit calls this when a recording changes state (and when a meeting
 // ends). Signature-verified against Cloudflare's published key, deduped in ea_rtk_events, and
 // on UPLOADED the file is copied into Cloudflare Stream so it never expires. The result is a
-// DRAFT replay row the coordinator publishes from /opil/hub/admin/. See handler.ts.
+// DRAFT replay row: ea_room_replays when the meeting is Nelson's room (published from /live/),
+// ea_opil_replays when it is an OPIL session (published from /opil/hub/admin/). See handler.ts.
 //
 // Registered by ea-rtk-record { action: "register_webhook" } (admin). No browser calls this.
 // Secrets: CF_ACCOUNT_ID, CF_API_TOKEN (Stream:Edit), CF_STREAM_SUBDOMAIN, SUPABASE_URL,
