@@ -233,7 +233,7 @@ def _ensure_pwa_head(html):
 HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
              "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase",
              "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
-             "live")   # the Academy live room: hand-maintained, stamped like the hub pages
+             "live", "room")   # the Academy live page + room: hand-written, stamped like the hub pages
 _HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js))(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
