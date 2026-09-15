@@ -259,8 +259,10 @@ const host = {
       }
     });
     /* Start is never reachable while the session runs: the same button then reads Enter / Rejoin and re-enters
-       the running meeting (the join function reuses it while the row is live — it never creates a second one) */
-    e.start.addEventListener('click', () => (this.room.is_live ? this.reenter() : this.start()));
+       the running meeting (the join function reuses it while the row is live — it never creates a second one).
+       The row is re-read first: a host who left, whose session another host then ended, must not be walked into
+       a fresh meeting by a button that still said Rejoin (the join function opens a new one for a host off air). */
+    e.start.addEventListener('click', () => this.enterOrStart());
     /* End: two taps within 4 s — the ONLY thing on this page that ends the session for everyone */
     e.end.addEventListener('click', () => this.endTap());
   },
@@ -302,6 +304,8 @@ const host = {
     if (!s) return;
     state = s;
     this.room.is_live = !!state.is_live;
+    /* out of a running session that another host has since ended: the still-running line comes down on its own */
+    if (!this.room.is_live && this.left) { this.left = false; hosting = false; this.note('The ' + words.thing + ' has ended since you left — the replay is being prepared. Start class opens a new one.'); }
     this.syncCtl();
     this.els.status.textContent = statusLine(state);
     await this.loadReplays();
@@ -343,6 +347,15 @@ const host = {
         this.note('Could not open the room — ' + msg);
       }
     }
+  },
+  /* the one button: Enter / Rejoin the running session, or Start a new one — decided on what the server says now */
+  async enterOrStart() {
+    if (this.entering || inRoom) return;
+    let live = !!this.room.is_live;
+    try { const s = await getState(); if (s && !s.bad_link) { state = s; live = !!s.is_live; this.room.is_live = live; } } catch (e) {}
+    if (live) return this.reenter();
+    if (this.left) { this.left = false; hosting = false; this.syncCtl(); this.note('The ' + words.thing + ' has ended since you left — the replay is being prepared. Start class opens a new one.'); this.loadReplays(); return; }
+    return this.start();
   },
   /* re-entry: a reload, a second device, or Rejoin after leaving while the class runs — the SAME meeting
      (the join function reuses it while the row is live), no new recording (start is idempotent server-side) */

@@ -459,6 +459,17 @@ if (staff) {
     async function enterRunning(s) {
       if (entering || room) return;
       entering = true; syncCtl();
+      /* the row is re-read first: a host who left, whose class a colleague then ended, must not walk back into a
+         session that is off air (a recording would start on a class nobody can join) */
+      try {
+        const { data } = await sb.from('ea_opil_sessions').select('is_live,stream_url').eq('no', s.no).limit(1);
+        const now = data && data[0];
+        if (now && !(now.is_live && isRoom(now.stream_url))) {
+          s.is_live = !!now.is_live; s.stream_url = now.stream_url; entering = false; leftNo = null; onAir(false); syncCtl();
+          bnote.textContent = 'The class has ended since you left — the replay lands on your sessions page. Start class opens it again.';
+          return;
+        }
+      } catch (e) {}
       try {
         clearInterval(wakePoll); wakePoll = null; hosting = true;
         if (backPoll) { clearInterval(backPoll); backPoll = null; }

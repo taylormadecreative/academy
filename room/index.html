@@ -338,7 +338,11 @@ async function hostControl(liveNow) {
   }
   startBtn.addEventListener('click', async () => {
     if (live) {
-      /* Enter / Rejoin the running session: the same meeting, no new recording (start is idempotent server-side) */
+      /* Enter / Rejoin the running session: the same meeting, no new recording (start is idempotent server-side).
+         The row is re-read first — a host who left, whose session was then ended from another screen, must not be
+         walked into a fresh meeting by a button that still said Rejoin (the join function opens one for a host off air). */
+      const st = await pollState();
+      if (st && st.is_live === false) { live = false; left = false; syncCtl(); note.textContent = 'The session has ended since you left — the replay lands on the Live page. Start class opens a new one.'; return; }
       try { await goIn(null); } catch (e) { note.textContent = 'Could not get back in: ' + failText(e); }
       return;
     }

@@ -196,6 +196,21 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   await p.waitForFunction(() => window.__db.room.is_live === false);
   ok('end from Tools: stop sent, room off air', rec.length === 3 && rec[2].action === 'stop');
   ok('end from Tools: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 5e the host left, and another host ended the session meanwhile: Rejoin re-reads the row and never walks into a
+   fresh meeting — the still-running line comes down, the note says it ended, Start is back; nothing mounted */
+{ const { p, errs, rec } = await page({ state: { ...base, is_host: true, people: 0 }, session: sess, admin: false, room: { ...room }, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('#rmStart'); await p.click('#rmStart');
+  await p.waitForFunction(() => window.__db.room.is_live === true);
+  await p.evaluate(() => window.__room.state('joined')); await p.waitForFunction(() => window.__rec === true);
+  await p.evaluate(() => window.__room.leave());
+  await p.waitForFunction(() => !document.getElementById('rmStill').hidden);
+  await p.evaluate(() => { window.__db.state.is_live = false; window.__db.room.is_live = false; window.__mount = null; });   /* ended from another screen */
+  await p.click('#rmStart');   /* still reads Rejoin — the page must ask the server first */
+  await p.waitForFunction(() => /has ended since you left/.test(document.getElementById('rmNote').textContent));
+  ok('rejoin after an end elsewhere: nothing mounted, no host join', await p.evaluate(() => window.__mount === null && document.getElementById('rtkMount').innerHTML === '' && !document.body.classList.contains('in-room')));
+  ok('rejoin after an end elsewhere: Start is back, the still-running line is down', (await text(p, '#rmStart')) === 'Start class — everyone on camera' && await p.evaluate(() => document.getElementById('rmStill').hidden && document.getElementById('rmEnd').hidden));
+  ok('rejoin after an end elsewhere: no stop sent from here, no row write', rec.length === 1 && await p.evaluate(() => !window.__calls.some(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update' && c[4] && 'is_live' in c[4])));
+  ok('rejoin after an end elsewhere: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
 /* 5d a guest: Leave → left card with Rejoin; kicked → the ended card that keeps listening and offers Rejoin once the room is live AGAIN */
 { const { p, errs, rec } = await page({ state: { ...base, is_live: true }, session: sess, room: { ...room, is_live: true }, replays: [], members: [], profiles: [] }, { pollMs: 600 });
   await p.waitForSelector('.r2-join');
