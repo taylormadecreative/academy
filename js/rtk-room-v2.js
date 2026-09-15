@@ -307,7 +307,8 @@ export async function mountRoomV2(o) {
      connection died, not the class (9/15: the host's socket dropped and the page ended the class for
      everyone). A drop reconnects; it never reaches the page as 'left' until both attempts have failed. */
   const watchLeft = (mtg) => { try { mtg.self.on('roomLeft', (ev) => {
-    if (mtg !== current) return;
+    /* a client being replaced by a rejoin says 'kicked' the moment the new one lands (same participant): not ours to hear */
+    if (mtg !== current || mtg === replacing) return;
     const st = ev && ev.state;
     if (ending) return gone('ended', 'ended')();
     if (leaving) return gone('left', 'left')();
@@ -323,17 +324,25 @@ export async function mountRoomV2(o) {
      both off while it tears a dead connection down, and that is not what the person had on); 'connected' again
      (or roomJoined { reconnected: true }) clears the strip; 'failed' is it giving up — the same drop as a
      roomLeft, guarded so the two never run twice. */
-  let dropping = false;
+  let dropping = false, replacing = null, linkTimer = null;
+  /* the kit reconnects on its own with a backoff and may never say 'failed' (a socket closed cleanly is not
+     retried at all): a socket still not connected LINK_PATIENCE_MS after it went — the "disconnected meeting
+     state" — is a drop too, and the rejoin below takes over (it checks first whether the kit got there itself) */
+  const LINK_PATIENCE_MS = 15000;
+  const linkGone = (mtg, why) => { clearTimeout(linkTimer); linkTimer = setTimeout(() => { linkTimer = null; if (mtg !== current || goneOnce) return; let up = false; try { up = mtg.meta.socketState && mtg.meta.socketState.state === 'connected'; } catch (e) {} if (!up) drop(why); }, LINK_PATIENCE_MS); };
   const watchLink = (mtg) => { try {
     mtg.meta.on('socketConnectionUpdate', (ev) => {
       if (mtg !== current || goneOnce || leaving || ending) return;
       const st = ev && ev.state;
-      if (st === 'reconnecting' || st === 'disconnected') { mediaFrozen = true; if (!dropping) room.reconnecting(copy.reconnectCopy(0)); }
-      else if (st === 'connected') { if (!dropping) { mediaFrozen = false; room.reconnecting(null); } }
-      else if (st === 'failed') drop('failed');
+      if (st === 'reconnecting' || st === 'disconnected') { mediaFrozen = true; if (!dropping) { room.reconnecting(copy.reconnectCopy(0)); linkGone(mtg, st); } }
+      else if (st === 'connected') { clearTimeout(linkTimer); linkTimer = null; if (!dropping) { mediaFrozen = false; room.reconnecting(null); } }
+      else if (st === 'failed') { clearTimeout(linkTimer); linkTimer = null; drop('failed'); }
     });
-    mtg.self.on('roomJoined', (ev) => { if (mtg === current && ev && ev.reconnected && !dropping) { mediaFrozen = false; room.reconnecting(null); } });
+    mtg.self.on('roomJoined', (ev) => { if (mtg === current && ev && ev.reconnected && !dropping) { clearTimeout(linkTimer); linkTimer = null; mediaFrozen = false; room.reconnecting(null); } });
   } catch (e) {} };
+  /* the kit mended it on its own (roomJoined { reconnected: true } sets this back): then there is nothing to rejoin —
+     a second client for the same participant would only knock the mended one out */
+  const healed = (mtg) => { try { return mtg.self.roomJoined === true || mtg.self.roomState === 'joined'; } catch (e) { return false; } };
   /* what the person had on, so a rejoin brings it back: the host's defaults until the kit says otherwise */
   let lastMedia = { audio: host, video: host }, mediaFrozen = false;
   const trackMedia = (mtg) => {
@@ -360,19 +369,22 @@ export async function mountRoomV2(o) {
     const media = lastMedia;
     room.reconnecting(copy.reconnectCopy(0));
     if (onState) onState('reconnecting', current, 'dropped');
+    const back = (m) => { dropping = false; replacing = null; mediaFrozen = false; trackMedia(m); room.reconnecting(null); room.toast('You’re back in.'); if (onState) onState('joined', m, 'rejoined'); };
     for (let attempt = 0; ; attempt++) {
       const wait = copy.rejoinPlan('dropped', attempt);
       if (wait == null) break;
       await new Promise((r) => setTimeout(r, wait));
       if (goneOnce || leaving || ending) { dropping = false; return; }
+      if (healed(current)) { back(current); return; }   /* the kit got there first: nothing to do */
       room.reconnecting(copy.reconnectCopy(attempt));
+      const old = current; replacing = old;   /* from here the old client's own roomLeft is not ours to hear */
       try {
         const next = await rejoin(attempt > 0, media);
         current = next; room.bind(next); keepTranscripts(next); watchLeft(next); watchLink(next); watchBreakouts(next); loadEffects(next);
-        dropping = false; mediaFrozen = false; trackMedia(next); room.reconnecting(null); room.toast('You’re back in.');
-        if (onState) onState('joined', next, 'rejoined');
+        back(next);
+        try { Promise.resolve(old.leave()).catch(() => {}); } catch (e) {}   /* let go of the camera and mic the dead client still holds; its roomLeft lands on a client that is not current */
         return;
-      } catch (e) { console.warn('[room] rejoin ' + (attempt + 1) + ' failed:', String((e && e.message) || e || state)); }
+      } catch (e) { replacing = null; console.warn('[room] rejoin ' + (attempt + 1) + ' failed:', String((e && e.message) || e || state)); }
     }
     dropping = false; room.reconnecting(null);
     gone('left', 'dropped')();
@@ -390,11 +402,17 @@ export async function mountRoomV2(o) {
      stops the recording and closes the row. Reached from Tools ("End the class for everyone", two taps)
      or a page's own End control, never from Leave. */
   async function endNow() {
-    if (goneOnce || ending) return;
+    if (goneOnce || ending) return false;
     ending = true;
-    try { if (current.participants.kickAll) await current.participants.kickAll(); } catch (e) {}
+    /* everyone else out first. The kit lets only a preset with kick_participant do that (hosts — removing people
+       is not a tool, rtk_presets.ts): when it refuses, nothing has ended, so nobody is told it has — the person
+       stays in the room and is told who can end it. A host whose kickAll fails for a passing reason still ends. */
+    let removed = false;
+    try { if (current.participants.kickAll) { await current.participants.kickAll(); removed = true; } } catch (e) { console.warn('[room] kickAll refused:', String((e && e.message) || e)); }
+    if (!removed && !host) { ending = false; room.toast('Only a host can end the ' + words.thing + ' for everyone — Leave takes you out.', 7000); return false; }
     try { await current.leave(); } catch (e) {}
     gone('ended', 'ended')();
+    return true;
   }
 
   return {
@@ -732,7 +750,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
       /* the ONLY way a class ends: two taps, then everyone is removed and the page closes the row */
-      else if (t === 'end') { if (confirmInline(b, ec.endAsk, ec.endAgain)) { b.disabled = true; await onEnd(); } }
+      else if (t === 'end') { if (confirmInline(b, ec.endAsk, ec.endAgain)) { b.disabled = true; const ended = await onEnd(); if (!ended) { b.disabled = false; sheet.hidden = true; sheetBody.innerHTML = ''; } } }
     }));
     return p;
   };
