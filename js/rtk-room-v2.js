@@ -21,6 +21,17 @@ const UI_MAIN = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/d
 const VB_ADDON = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui-addons@0.1.0/dist/video-background.js';
 const BACKDROPS = [{ name: 'Navy', url: '/assets/rtk-bg/navy.jpg' }, { name: 'Paper', url: '/assets/rtk-bg/paper.jpg' }];
 
+/* the Academy's own design tokens for provideRtkDesignSystem; target.tokens overrides this per room (HT) */
+const ACADEMY_TOKENS = {
+  theme: 'dark', borderRadius: 'rounded', spacingBase: 4,
+  colors: {
+    brand: { 300: '#b28a0a', 400: '#d9a90f', 500: '#fdc921', 600: '#fed45a', 700: '#fee38a' },
+    background: { 600: '#22345f', 700: '#162650', 800: '#0f1d44', 900: '#0a1733', 1000: '#04123a' },
+    text: '#ffffff', 'text-on-brand': '#04123a', 'video-bg': '#0a1733',
+    danger: '#ff5c5c', success: '#3ddc97', warning: '#fdc921',
+  },
+};
+
 let kitReady = null;
 function loadKit() {
   if (kitReady) return kitReady;
@@ -98,7 +109,9 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
    Returns { meetingId, leave(), setRecording(bool) }. onState gets ('joined' | 'left' | 'ended', meeting, reason)
    where reason is 'left' | 'kicked' | 'ended' — why the room went away.
    o.target says where the room lives: { kind:'opil', session } (the default, today's OPIL behaviour byte
-   for byte) or { kind:'room', id, title, key } (the Academy room, spec 2026-09-14-academy-room-design.md). */
+   for byte) or { kind:'room', id, title, key, slug?, words?, tokens? } (the Academy room, spec
+   2026-09-14-academy-room-design.md). slug, words and tokens are optional overrides (HT); when absent the
+   defaults are the Academy's own (target.key/words/tokens undefined leaves OPIL and Academy untouched). */
 export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
@@ -109,7 +122,7 @@ export async function mountRoomV2(o) {
   /* derived once; nothing below reads target.session again */
   const isRoom = target.kind === 'room';
   const session = isRoom ? null : target.session;
-  const words = isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS;
+  const words = target.words || (isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS);
   const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
   const title = isRoom ? target.title : session.title;
   const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
@@ -117,7 +130,7 @@ export async function mountRoomV2(o) {
     ? { table: 'ea_room_hands', col: 'room_id', val: target.id, chan: 'hands-room-' + target.id }
     : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
   /* OPIL keeps sending meeting_id; the server ignores it now and uses the session's stored one */
-  const joinBody = isRoom ? { room: true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
+  const joinBody = isRoom ? { room: target.slug || true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
   const facilitator = isRoom ? (o.facilitator || words.host) : o.facilitator;
   mountEl.classList.add('r2host');
   document.body.classList.add('in-room', 'in-room-v2');
@@ -134,15 +147,7 @@ export async function mountRoomV2(o) {
   if (mode === 'host' && onOpened) await onOpened(join.meeting_id);
   const { RealtimeKitClient, ui } = await loadKit();
   if (ui.provideRtkDesignSystem) {
-    ui.provideRtkDesignSystem(mountEl, {
-      theme: 'dark', borderRadius: 'rounded', spacingBase: 4,
-      colors: {
-        brand: { 300: '#b28a0a', 400: '#d9a90f', 500: '#fdc921', 600: '#fed45a', 700: '#fee38a' },
-        background: { 600: '#22345f', 700: '#162650', 800: '#0f1d44', 900: '#0a1733', 1000: '#04123a' },
-        text: '#ffffff', 'text-on-brand': '#04123a', 'video-bg': '#0a1733',
-        danger: '#ff5c5c', success: '#3ddc97', warning: '#fdc921',
-      },
-    });
+    ui.provideRtkDesignSystem(mountEl, target.tokens || ACADEMY_TOKENS);
   }
   const host = !!join.host;
   const meeting = await RealtimeKitClient.init({
