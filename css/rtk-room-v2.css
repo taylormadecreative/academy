@@ -35,7 +35,9 @@
 .r2-wait ol{margin:14px 0 0;padding-left:20px;color:#c9d4ee;font-size:14px;line-height:1.7}
 
 /* ---- in class ---- */
-.r2{display:grid;grid-template-rows:auto 1fr auto;position:relative}
+.r2{display:grid;grid-template-rows:auto 1fr auto;position:relative;min-width:0;max-width:100%;overflow:hidden}
+/* every grid track is minmax(0,…): the kit's grid measures itself wide and, without min-width:0, pushed the whole room past a phone's screen (Amelia's iPhone, 9/15) */
+.r2>*,.r2-main>*,.r2-bar>*{min-width:0}
 .r2-now{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.1);background:#0a1733}
 .r2-dot{width:8px;height:8px;border-radius:50%;background:#3ddc97;animation:r2pulse 1.6s ease-in-out infinite}
 .r2-nowtxt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -106,8 +108,8 @@
   .r2-join-right{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:15}
   .r2-enter{min-height:60px;font-size:19px}
   .r2-fine{display:none}
-  .r2-main{grid-template-columns:1fr}
-  .r2.panel-open .r2-main{grid-template-columns:1fr}
+  .r2-main{grid-template-columns:minmax(0,1fr)}
+  .r2.panel-open .r2-main{grid-template-columns:minmax(0,1fr)}
   .r2-panel{position:absolute;left:0;right:0;bottom:0;top:38%;border-left:0;border-top:1px solid rgba(255,255,255,.16);border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .22s ease;z-index:12}
   .r2.panel-open .r2-panel{transform:none}
   .r2-bar{grid-template-columns:1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
