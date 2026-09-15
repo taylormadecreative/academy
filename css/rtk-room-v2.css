@@ -51,6 +51,14 @@
 .r2-stage{min-height:0;position:relative;padding:12px;overflow:hidden}
 .r2-stage rtk-ui-provider{height:100%}
 .r2-grid{height:100%}
+/* captions over the video: the last two lines, a partial a shade dimmer, never in the way of a tap */
+.r2-cc{position:absolute;left:16px;right:16px;bottom:16px;z-index:5;display:grid;gap:4px;justify-items:center;pointer-events:none}
+.r2-cc[hidden]{display:none}
+.r2-cc-line{max-width:72ch;background:rgba(4,18,58,.86);color:#fff;font:500 17px/1.35 Inter,system-ui,sans-serif;padding:8px 14px;border-radius:10px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.r2-cc-line b{color:#fdc921;margin-right:8px;font-weight:700}
+.r2-cc-line.partial{opacity:.85}
+.r2-cc-empty{color:#9fb0d4;font-weight:400}
+.r2-cc-btn[aria-pressed="true"]{background:#fdc921;color:#04123a;border-color:#fdc921}
 .r2-panel{border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#0a1733}
 /* 5 tabs do not fit one row in a narrow panel, and .r2-panel is overflow:hidden — so the last
    one clipped (Nelson, 9/15: "the ui is cut off"). Wrap: every tab stays visible and tappable. */
@@ -135,6 +143,9 @@
   .r2-bar .r2-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .r2-bar .r2-chip{min-width:0}
   .r2-cta{width:100%;min-width:0}
-  .r2-right{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+  .r2-right{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px}   /* Chat & people · Captions · Tools/Need help? · Leave, one row */
+  .r2-right .r2-btn{padding:0 10px}
+  .r2-cc{left:8px;right:8px;bottom:8px}
+  .r2-cc-line{font-size:14px;padding:6px 10px}
   .r2-sheet-card{max-height:92%}
 }

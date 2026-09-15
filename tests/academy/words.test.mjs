@@ -6,10 +6,10 @@ import assert from 'node:assert/strict';
 import * as mod from '../../opil/hub/live-rooms.js';
 import { capFirst, OPIL_WORDS, ROOM_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
-test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS (+ the 9/15 ask/transcript helpers)', () => {
+test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS (+ the 9/15 ask/transcript/caption helpers)', () => {
   assert.deepEqual(Object.keys(mod).sort(), [
-    'OPIL_WORDS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'capFirst', 'joinCopy', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
-    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'roomFromQuery', 'roomPath', 'saidAt', 'sessLabel', 'stateCopy', 'transcriptText', 'useV2',
+    'CAPTION_MAX', 'CAPTION_TTL_MS', 'OPIL_WORDS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'capFirst', 'joinCopy', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
+    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'roomFromQuery', 'roomPath', 'saidAt', 'sessLabel', 'stateCopy', 'takeCaption', 'transcriptText', 'useV2',
   ]);
 });
 

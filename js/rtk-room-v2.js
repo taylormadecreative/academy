@@ -185,10 +185,13 @@ export async function mountRoomV2(o) {
   const lines = [];
   const onLine = [];   /* the Transcript tab registers here to redraw when a line lands */
   const takeLine = (x) => { if (copy.addTranscript(lines, x)) onLine.forEach(f => { try { f(x); } catch (e) {} }); };
-  const keepTranscripts = (m) => { try { (m.ai && m.ai.transcripts || []).forEach(takeLine); m.ai && m.ai.on && m.ai.on('transcript', takeLine); } catch (e) {} };
+  /* the captions overlay wants every event as it comes, partials included: a second list, bound
+     beside takeLine so a breakout meeting picks it up through the same keepTranscripts */
+  const onRaw = [];
+  const keepTranscripts = (m) => { try { (m.ai && m.ai.transcripts || []).forEach(takeLine); if (m.ai && m.ai.on) { m.ai.on('transcript', takeLine); m.ai.on('transcript', (x) => onRaw.forEach(f => { try { f(x); } catch (e) {} })); } } catch (e) {} };
   keepTranscripts(meeting);
   const whenSaid = (ts) => new Date(ts || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const transcript = { lines, whenSaid, watch: (f) => onLine.push(f) };
+  const transcript = { lines, whenSaid, watch: (f) => onLine.push(f), watchRaw: (f) => onRaw.push(f) };
   function saveTranscript() {
     const body = copy.transcriptText(lines, whenSaid);
     const a = document.createElement('a');
@@ -341,6 +344,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <rtk-notifications></rtk-notifications>
           <rtk-dialog-manager></rtk-dialog-manager>
         </rtk-ui-provider>
+        <div class="r2-cc" hidden aria-live="polite" aria-label="Captions"></div>
       </div>
       <aside class="r2-panel">
         <div class="r2-tabs">
@@ -366,6 +370,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-primary"></div>
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
+        <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false">Captions</button>
         ${host ? '<button type="button" class="r2-btn r2-tools">Tools</button>' : '<button type="button" class="r2-btn r2-help">Need help?</button>'}
         <button type="button" class="r2-leave">Leave</button>
       </div>
@@ -496,6 +501,33 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     tcount();
   };
   transcript.watch(renderTranscript); renderTranscript();
+  /* captions over the video (Nelson, 9/15: "show the transcriptions as she talks with the option
+     to turn it off too"): the last two lines, partials included, for everyone. Off until you tap
+     Captions; the choice is remembered on this device. The raw listener is bound per meeting
+     (keepTranscripts), so turning captions on inside a small group works the same. */
+  const CC_KEY = 'r2-captions';
+  const ccBox = q('.r2-cc'), ccBtn = q('.r2-cc-btn');
+  let ccOn = false; try { ccOn = localStorage.getItem(CC_KEY) === '1'; } catch (e) {}
+  let caps = [], ccWarned = false;
+  const paintCC = () => {
+    if (!ccBox) return;
+    ccBox.innerHTML = caps.length
+      ? caps.map(c => `<div class="r2-cc-line${c.final ? '' : ' partial'}"><b>${esc(c.name)}</b>${esc(c.text)}</div>`).join('')
+      : '<div class="r2-cc-line r2-cc-empty">Captions appear here as people speak.</div>';
+  };
+  const syncCC = () => { if (ccBtn) ccBtn.setAttribute('aria-pressed', ccOn ? 'true' : 'false'); if (ccBox) ccBox.hidden = !ccOn; if (ccOn) paintCC(); };
+  if (ccBtn) ccBtn.addEventListener('click', () => {
+    ccOn = !ccOn; try { localStorage.setItem(CC_KEY, ccOn ? '1' : '0'); } catch (e) {}
+    syncCC();
+    /* only people whose role is transcribed are captioned — say so once, the first time captions go on */
+    if (ccOn && !ccWarned) {
+      let mine = false; try { mine = m.self.permissions.transcriptionEnabled === true; } catch (e) {}
+      if (!mine) { ccWarned = true; toast('Your own voice isn’t captioned in this room yet — other people’s words still show.', 7000); }
+    }
+  });
+  if (transcript.watchRaw) transcript.watchRaw((x) => { caps = copy.takeCaption(caps, x, Date.now()); if (ccOn) paintCC(); });
+  const ccTick = setInterval(() => { caps = copy.takeCaption(caps, null, Date.now()); if (ccOn) paintCC(); }, 2000);   /* finals fade on their own; cleared in destroy() */
+  syncCC();
   const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
   async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
   async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
@@ -660,6 +692,6 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); }
   return { node, bind, destroy, setRecording, toast };
 }

@@ -55,6 +55,14 @@
 .r2-stage{min-height:0;position:relative;padding:12px;overflow:hidden}
 .r2-stage rtk-ui-provider{height:100%}
 .r2-grid{height:100%}
+/* captions over the video: the last two lines, a partial a shade dimmer, never in the way of a tap */
+.r2-cc{position:absolute;left:16px;right:16px;bottom:16px;z-index:5;display:grid;gap:4px;justify-items:center;pointer-events:none}
+.r2-cc[hidden]{display:none}
+.r2-cc-line{max-width:72ch;background:rgba(59,0,0,.86);color:#FFFFFF;font:500 17px/1.35 Inter,system-ui,sans-serif;padding:8px 14px;border-radius:10px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.r2-cc-line b{color:#FFCC00;margin-right:8px;font-weight:700}
+.r2-cc-line.partial{opacity:.85}
+.r2-cc-empty{color:#F7E3B8;font-weight:400}
+.r2-cc-btn[aria-pressed="true"]{background:#FFCC00;color:#3B0000;border-color:#FFCC00}
 .r2-panel{border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#3B0000}
 .r2-tabs{display:flex;gap:4px;padding:10px 10px 0}
 .r2-tab{flex:1;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#C09780;font:600 13.5px Inter,sans-serif;cursor:pointer;white-space:nowrap;padding:0 6px}
@@ -73,6 +81,16 @@
 .r2-mini{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:none;color:#FFFFFF;font:600 12.5px Inter,sans-serif;cursor:pointer}
 .r2-mini.r2-bring{background:#FFCC00;color:#3B0000;border-color:#FFCC00}
 .r2-empty{color:#C09780;font-size:13.5px;padding:14px;line-height:1.5}
+/* a host getting in line (Questions tab foot): the same pill as the student's, one size down, full width */
+.r2-ask-me{min-width:0;width:100%;margin-top:10px;min-height:52px;border:1px solid rgba(255,204,0,.55);background:none;color:#FFFFFF}
+.r2-ask-me.on{background:#C7EDBF;color:#00373E}
+.r2-ask-me b{font-size:15px}
+/* the Transcript tab */
+.r2-transcript{flex:1;min-height:0;overflow:auto;padding:10px 12px}
+.r2-tline{display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px;line-height:1.5}
+.r2-tline b{grid-column:2;font-size:12.5px;color:#FFCC00}
+.r2-twhen{grid-row:1/3;font-size:11.5px;color:#C09780;padding-top:3px;font-variant-numeric:tabular-nums}
+.r2-ttext{grid-column:2;color:#FFFFFF}
 
 /* the bar */
 .r2-bar{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);background:#3B0000}
@@ -127,7 +145,10 @@
   .r2-bar .r2-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .r2-bar .r2-chip{min-width:0}
   .r2-cta{width:100%;min-width:0}
-  .r2-right{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+  .r2-right{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px}   /* Chat & people · Captions · Tools/Need help? · Leave, one row */
+  .r2-right .r2-btn{padding:0 10px}
+  .r2-cc{left:8px;right:8px;bottom:8px}
+  .r2-cc-line{font-size:14px;padding:6px 10px}
   .r2-sheet-card{max-height:92%}
 }
 
