@@ -2,6 +2,7 @@
    no supabase; tests/ht/room-words.test.mjs covers it. Imported by ht/hub/room.js (both ride the
    HT build stamp from ht/build.mjs). The words object has the same keys as OPIL_WORDS /
    ROOM_WORDS in opil/hub/live-rooms.js — the room module reads them through nowCopy/joinCopy. */
+import { KEY_RX } from '../../js/room-page.js';   /* the shape ea_room_new_key() mints; relative so node and the browser both resolve it */
 
 /* The host is whoever the room row names (ea_rooms.host_name): Nelson today, an HT staffer once
    Nelson adds their email. Nobody in HT's room is assumed to be Nelson. */
@@ -55,4 +56,40 @@ export function htErrorText(code, status, words) {
 /* "Sign in to join" → /login/?next=/ht/hub/live/?k=… so the key survives the email code and /welcome/ */
 export function htLoginHref(k) {
   return '/login/?next=' + encodeURIComponent('/ht/hub/live/' + (k ? '?k=' + k : ''));
+}
+
+/* ---------- the invitation, remembered on this device ----------
+   The link a host sends carries ?k=. Two things lose it: the sign-in round trip when the email
+   code is opened in another browser (no bm_next there), and a reload after the URL was cleaned.
+   So the room page keeps the last good key here for 7 days and uses it when the URL has none.
+   `store` is {getItem,setItem,removeItem}: localStorage behind a try/catch shim in room.js, a
+   Map-backed fake in the tests. Nothing here throws. */
+export const ROOM_KEY_STORE = 'ht-room-key';
+export const ROOM_KEY_MAX_AGE_MS = 7 * 24 * 3600e3;
+
+/* keep k as {k, t}; anything that is not a key (or a store that cannot write) is a no-op → false */
+export function rememberKey(store, k, now) {
+  if (!store || typeof k !== 'string' || !KEY_RX.test(k)) return false;
+  const t = Number.isFinite(now) ? now : Date.now();
+  try { store.setItem(ROOM_KEY_STORE, JSON.stringify({ k, t })); return true; } catch (e) { return false; }
+}
+
+/* the remembered key, or null when there is none, it is malformed, it is not key-shaped, or it
+   is maxAgeMs old or older ("younger than 7 days" is the rule) */
+export function recallKey(store, now, maxAgeMs = ROOM_KEY_MAX_AGE_MS) {
+  if (!store) return null;
+  let raw; try { raw = store.getItem(ROOM_KEY_STORE); } catch (e) { return null; }
+  if (typeof raw !== 'string' || !raw) return null;
+  let v; try { v = JSON.parse(raw); } catch (e) { return null; }
+  if (!v || typeof v !== 'object' || typeof v.k !== 'string' || !KEY_RX.test(v.k)) return null;
+  if (typeof v.t !== 'number' || !Number.isFinite(v.t)) return null;   /* Number(null) is 0: a missing stamp is malformed, not ancient */
+  const at = Number.isFinite(now) ? now : Date.now();
+  if (at - v.t >= maxAgeMs) return null;
+  return v.k;
+}
+
+/* the host made a new link, or the server said bad_link for the stored one: drop it */
+export function forgetKey(store) {
+  if (!store) return;
+  try { store.removeItem(ROOM_KEY_STORE); } catch (e) {}
 }

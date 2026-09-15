@@ -2,7 +2,8 @@
 // The words and colors that make the Academy room HT's. Pure module, no DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { htWords, HT_TOKENS, htErrorText, htLoginHref } from '../../ht/hub/room-words.js';
+import { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, ROOM_KEY_STORE, ROOM_KEY_MAX_AGE_MS } from '../../ht/hub/room-words.js';
+import { KEY_RX } from '../../js/room-page.js';
 import { OPIL_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
 test('htWords carries exactly the OPIL_WORDS keys, frozen, with the host name threaded in', () => {
@@ -75,4 +76,86 @@ test('htLoginHref carries the key back through the email code', () => {
   assert.equal(htLoginHref(null), '/login/?next=' + encodeURIComponent('/ht/hub/live/'));
   assert.equal(htLoginHref('AbC123_-xyzXYZ0987ab-_'), '/login/?next=' + encodeURIComponent('/ht/hub/live/?k=AbC123_-xyzXYZ0987ab-_'));
   assert.doesNotMatch(htLoginHref('AbC123_-xyzXYZ0987ab-_'), /[?&]k=/);   // the key is inside 'next', not a top-level param
+});
+
+/* ---- the key remembered on the device: a Map-backed store, no localStorage ---- */
+const KEY = 'AbC123_-xyzXYZ0987ab-_';
+const DAY = 24 * 3600e3;
+const fakeStore = () => { const m = new Map(); return { m, getItem: (n) => (m.has(n) ? m.get(n) : null), setItem: (n, v) => { m.set(n, String(v)); }, removeItem: (n) => { m.delete(n); } }; };
+
+test('rememberKey writes {k, t} under ht-room-key and recallKey reads it back while it is young', () => {
+  const st = fakeStore();
+  assert.equal(rememberKey(st, KEY, 1000), true);
+  assert.deepEqual(JSON.parse(st.getItem(ROOM_KEY_STORE)), { k: KEY, t: 1000 });
+  assert.equal(ROOM_KEY_STORE, 'ht-room-key');
+  assert.equal(recallKey(st, 1000), KEY);
+  assert.equal(recallKey(st, 1000 + 6 * DAY), KEY);
+  assert.equal(recallKey(st, 1000 + 7 * DAY - 1), KEY);          // younger than 7 days
+  assert.equal(recallKey(st, 1000 + 7 * DAY), null);              // exactly 7 days = stale
+  assert.equal(recallKey(st, 1000 + 30 * DAY), null);
+  assert.equal(ROOM_KEY_MAX_AGE_MS, 7 * DAY);
+  assert.equal(recallKey(st, 1000 + 2 * DAY, DAY), null);         // a shorter maxAgeMs is honoured
+  assert.equal(recallKey(st, 1000 + DAY - 1, DAY), KEY);
+  assert.equal(recallKey(st, 500), KEY);                          // a clock that went backwards is not "stale"
+});
+
+test('rememberKey refuses anything that is not a key and never throws', () => {
+  const st = fakeStore();
+  for (const bad of [null, undefined, '', 'short', KEY + 'x', KEY.replace('_', '+'), 123, {}]) {
+    assert.equal(rememberKey(st, bad, 1000), false, String(bad));
+    assert.equal(st.m.size, 0);
+  }
+  assert.ok(KEY_RX.test(KEY));
+  assert.equal(rememberKey(null, KEY, 1000), false);
+  const broken = { getItem: () => null, setItem: () => { throw new Error('quota'); }, removeItem: () => {} };
+  assert.equal(rememberKey(broken, KEY, 1000), false);
+  /* no `now` → Date.now() */
+  const before = Date.now(); assert.equal(rememberKey(st, KEY), true);
+  const t = JSON.parse(st.getItem(ROOM_KEY_STORE)).t; assert.ok(t >= before && t <= Date.now());
+});
+
+test('recallKey is null for a missing, malformed, wrong-shaped or stale entry, and for a store that throws', () => {
+  const st = fakeStore();
+  assert.equal(recallKey(st, 1000), null);                                                 // missing
+  for (const raw of ['', 'not json', '{', 'null', '"' + KEY + '"', '[]', '{}', '{"k":1,"t":1000}',
+                     JSON.stringify({ k: 'short', t: 1000 }), JSON.stringify({ k: KEY + 'x', t: 1000 }),
+                     JSON.stringify({ k: KEY.replace('-', '/'), t: 1000 }),
+                     JSON.stringify({ k: KEY }), JSON.stringify({ k: KEY, t: 'yesterday' }), JSON.stringify({ k: KEY, t: null })]) {
+    st.setItem(ROOM_KEY_STORE, raw);
+    assert.equal(recallKey(st, 1000), null, raw);
+  }
+  st.setItem(ROOM_KEY_STORE, JSON.stringify({ k: KEY, t: 1000 - 8 * DAY }));
+  assert.equal(recallKey(st, 1000), null);                                                 // stale
+  assert.equal(recallKey(null, 1000), null);
+  assert.equal(recallKey({ getItem: () => { throw new Error('blocked'); } }, 1000), null);
+  assert.equal(recallKey({ getItem: () => 42 }, 1000), null);
+  /* no `now` → Date.now() */
+  st.setItem(ROOM_KEY_STORE, JSON.stringify({ k: KEY, t: Date.now() - DAY }));
+  assert.equal(recallKey(st), KEY);
+});
+
+test('forgetKey removes the entry, tolerates an empty or throwing store, and recallKey is null after', () => {
+  const st = fakeStore();
+  rememberKey(st, KEY, 1000);
+  forgetKey(st);
+  assert.equal(st.getItem(ROOM_KEY_STORE), null);
+  assert.equal(recallKey(st, 1000), null);
+  forgetKey(st);                                                                           // nothing there: fine
+  forgetKey(null);
+  forgetKey({ removeItem: () => { throw new Error('blocked'); } });
+  /* remembering again after forgetting works */
+  assert.equal(rememberKey(st, KEY, 2000), true);
+  assert.equal(recallKey(st, 2000), KEY);
+});
+
+test('the round trip: URL key → remembered → the same page without ?k= recalls it; a bad key never lands', () => {
+  const st = fakeStore();
+  const now = 1_700_000_000_000;
+  const fromUrl = KEY;                       /* roomKey(location.search) on the first load */
+  if (fromUrl) rememberKey(st, fromUrl, now);
+  const k2 = null || recallKey(st, now + 3600e3);   /* the next load, ?k= gone */
+  assert.equal(k2, KEY);
+  const st2 = fakeStore();
+  rememberKey(st2, 'not-a-key', now);
+  assert.equal(null || recallKey(st2, now), null);
 });
