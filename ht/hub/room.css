@@ -10,6 +10,8 @@
 /* ---- getting in ---- */
 .r2-join{display:grid;grid-template-columns:1.25fr 1fr;gap:32px;padding:32px 36px;box-sizing:border-box;align-items:center}
 .r2-kicker{font-family:'Space Grotesk',Inter,sans-serif;font-weight:700;font-size:clamp(26px,3vw,38px);letter-spacing:-.01em;line-height:1.1}
+/* the brand mark a target may bring (HT): above the kicker on the join screen; the image is gold on transparent, so no color here */
+.r2-brand{display:block;height:26px;width:auto;margin:0 0 14px;object-fit:contain}
 .r2-title{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:clamp(18px,2vw,24px);color:#C09780;margin:10px 0 6px}
 .r2-line{font-size:15px;color:#F7E3B8;margin:0 0 18px;line-height:1.5}
 .r2-preview{position:relative;border-radius:16px;overflow:hidden;background:#3B0000;aspect-ratio:16/9;max-height:46vh}
@@ -45,6 +47,7 @@
 .r2>*,.r2-main>*,.r2-bar>*{min-width:0}
 .r2-now{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.1);background:#3B0000}
 .r2-dot{width:8px;height:8px;border-radius:50%;background:#94CCAB;animation:r2pulse 1.6s ease-in-out infinite}
+.r2-now .r2-brand-strip{height:18px;margin:0 6px 0 0;flex:0 0 auto}
 .r2-nowtxt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r2-rec{font-size:12.5px;font-weight:700;color:#FFCC00}
 .r2-rectime{font-variant-numeric:tabular-nums;margin:0 2px}
@@ -132,6 +135,8 @@
   #rtkMount.r2host:not(:empty){height:calc(100dvh - 64px);min-height:0;border-radius:12px}
   .r2-join{grid-template-columns:1fr;padding:18px 16px 110px;align-content:start;gap:16px;overflow:auto}
   .r2-kicker{font-size:26px}
+  .r2-brand{height:22px;margin-bottom:10px}
+  .r2-now .r2-brand-strip{height:16px}
   .r2-preview{max-height:40vh;aspect-ratio:4/3}
   .r2-preview .r2-chips{left:8px;right:8px;bottom:8px;gap:6px}
   .r2-chip{min-width:0;padding:6px 10px;min-height:48px}

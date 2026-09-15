@@ -77,6 +77,10 @@ async function joinTarget(cfg, token, joinBody, words) {
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+/* the brand mark, when the target brought one: an <img> and nothing else — no logo, no markup (OPIL and the
+   Academy pass none and keep today's DOM byte for byte). height is a hint for the moment before the stylesheet
+   sizes it; the CSS (.r2-brand) is what actually sets the size. */
+const brandMark = (logo, cls = 'r2-brand') => logo ? `<img class="${cls}" src="${esc(logo.src)}" alt="${esc(logo.alt)}"${Number.isFinite(logo.height) ? ` height="${Math.round(logo.height)}"` : ''}>` : '';
 const OWN_BG_KEY = 'r2-own-backdrop';   /* the last photo someone chose, so it is one tap next class */
 
 /* "Use my own photo": pick an image, shrink it to 1280 wide, keep it as a data URL */
@@ -109,9 +113,12 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
    Returns { meetingId, leave(), setRecording(bool) }. onState gets ('joined' | 'left' | 'ended', meeting, reason)
    where reason is 'left' | 'kicked' | 'ended' — why the room went away.
    o.target says where the room lives: { kind:'opil', session } (the default, today's OPIL behaviour byte
-   for byte) or { kind:'room', id, title, key, slug?, words?, tokens? } (the Academy room, spec
-   2026-09-14-academy-room-design.md). slug, words and tokens are optional overrides (HT); when absent the
-   defaults are the Academy's own (target.key/words/tokens undefined leaves OPIL and Academy untouched). */
+   for byte) or { kind:'room', id, title, key, slug?, words?, tokens?, logo?: { src, alt } } (the Academy
+   room, spec 2026-09-14-academy-room-design.md). slug, words, tokens and logo are optional overrides (HT);
+   when absent the defaults are the Academy's own (target.key/words/tokens/logo undefined leaves OPIL and
+   Academy untouched). logo is a brand mark drawn inside the room — top of the join screen and the head of
+   the what's-happening-now strip — so a guest who sees nothing but the room for an hour still sees whose
+   room it is (HT, 9/15). No logo → not one extra byte of DOM. */
 export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
@@ -123,6 +130,7 @@ export async function mountRoomV2(o) {
   const isRoom = target.kind === 'room';
   const session = isRoom ? null : target.session;
   const words = target.words || (isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS);
+  const logo = (target.logo && target.logo.src) ? target.logo : null;   /* { src, alt, height? } or nothing */
   const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
   const title = isRoom ? target.title : session.title;
   const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
@@ -138,7 +146,7 @@ export async function mountRoomV2(o) {
   /* ---------- waiting: no video library yet, just the promise of what happens next ---------- */
   if (mode === 'waiting') {
     mountEl.innerHTML = '';
-    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom }));
+    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom, logo }));
     return { meetingId: null, leave: () => { mountEl.innerHTML = ''; }, setRecording() {} };
   }
 
@@ -202,7 +210,7 @@ export async function mountRoomV2(o) {
 
   /* ---------- getting in ---------- */
   const joinedCount = () => { try { return meeting.participants.joined.toArray().length; } catch (e) { return 0; } };
-  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words, isRoom });
+  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words, isRoom, logo });
   mountEl.innerHTML = ''; mountEl.appendChild(screen);
   const preview = screen.querySelector('video');
   const attachPreview = () => {
@@ -248,7 +256,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, logo, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -285,12 +293,12 @@ export async function mountRoomV2(o) {
 }
 
 /* ---------- the join screen ---------- */
-function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words, isRoom }) {
+function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words, isRoom, logo }) {
   const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
   const cta = !live && !host ? '' : `<button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
       <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p>`;
   return el(`<section class="r2-join">
-    <div class="r2-join-left">
+    <div class="r2-join-left">${brandMark(logo)}
       <div class="r2-kicker">You’re in the right place.</div>
       <h2 class="r2-title">${esc(label)}</h2>
       <p class="r2-line">${esc(line)}</p>
@@ -333,9 +341,9 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, logo, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
   const node = el(`<div class="r2">
-    <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
+    <div class="r2-now">${brandMark(logo, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
       <div class="r2-stage">
         <rtk-ui-provider>
