@@ -59,7 +59,7 @@ function steps(page, role, ctx) {
     { at: ['#dmForm', '#threadTitle'], up: '.hcard', title: 'One-to-one', body: 'A message here goes to that one person and nobody else. Team-wide talk belongs in your team chat.' },
   ];
   const live = [
-    { at: ['#player'], title: 'The live room', body: staff ? 'When a session is on air its video plays here, and every student\u2019s home shows a banner pointing at this page. Between sessions it is quiet, which is normal.' : 'When a facilitator goes live, the video plays here and a banner on your home points you to it. Between sessions it is quiet, which is normal.' },
+    { at: ['#rtkMount', '#player'], title: 'The class room', body: staff ? 'Your class runs here, everyone on camera. Start it from Your class above, check your camera, press Enter. Students press one big Ask a question button and you bring them on stage in order; Tools holds share screen, polls, breakout rooms and effects. Leaving ends the class for everyone and the recording lands on your sessions page as a draft.' : 'When your facilitator starts the class it opens here: you see everyone, your mic and camera state is spelled out, one big Ask a question button puts you in line, and chat and people sit beside the video. Between classes it is quiet, which is normal.' },
     { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: role === 'judge' ? 'The cohort\u2019s room chat. Judges watch; posting is for students and the program team.' : 'Everyone in the cohort sees this chat. Questions for the facilitator go here during the session.' },
   ];
   const survey = [

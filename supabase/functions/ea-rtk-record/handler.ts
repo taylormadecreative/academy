@@ -93,7 +93,18 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     const out = await deps.reprocess(payload);
     return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
   }
-  return startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
+  const out = await startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
+  /* Leave = end of the class for everyone (Nelson, 9/14): once the host's recording is stopped, close the
+     meeting so students are not left in an empty room, and a kept token cannot re-enter it. The page that
+     started the class also removes everyone before it leaves; this is the server-side backstop. */
+  if (action === "stop" && out.status === 200) await inactivate(meetingId, deps.cf, "class");
+  return out;
+}
+
+/* Close a Cloudflare meeting. Best effort, never silent, never the answer. */
+async function inactivate(meetingId: string, cf: RecordDeps["cf"], what: "room" | "class"): Promise<void> {
+  const off = await cf("PATCH", `/meetings/${meetingId}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
+  if (!off.ok) console.warn(`[ea-rtk-record] ${what} meeting not inactivated`, meetingId, off.status);
 }
 
 /* ── Room branch: Nelson's Academy room. Only the Academy admin is its host. ── */
@@ -121,10 +132,7 @@ async function handleRoom(action: "start" | "stop" | "retry_replay", body: Recor
   /* stop = the session is over (Leave, or End session from /live/): close the Cloudflare meeting too, so a
      guest's kept token cannot re-enter the empty meeting and bill minutes until the next Start class (which
      always mints a fresh meeting — nothing reuses this one). Best effort, never silent, never the answer. */
-  if (action === "stop" && out.status === 200) {
-    const off = await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
-    if (!off.ok) console.warn("[ea-rtk-record] room meeting not inactivated", room.meeting_id, off.status);
-  }
+  if (action === "stop" && out.status === 200) await inactivate(room.meeting_id, deps.cf, "room");
   return out;
 }
 

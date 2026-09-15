@@ -103,6 +103,9 @@ export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
   const target = o.target || { kind: 'opil', session: o.session };
+  /* Leave = end of the session for everyone, but only from the page that STARTED the class (a co-host
+     who joined a colleague's class just leaves). The Academy room has one host, so there it is Nelson. */
+  const endsAll = (target.kind === 'room') ? undefined : !!o.endsSession;
   /* derived once; nothing below reads target.session again */
   const isRoom = target.kind === 'room';
   const session = isRoom ? null : target.session;
@@ -217,7 +220,7 @@ export async function mountRoomV2(o) {
     }));
     screen.querySelector('.r2-preview').insertAdjacentElement('afterend', tray);
   });
-  const chips = wireChips(screen, () => meeting, attachPreview);
+  const chips = wireChips(screen, () => meeting, attachPreview, (msg) => { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); screen.appendChild(t); setTimeout(() => t.remove(), 7000); });
   attachPreview();
   meeting.self.on('videoUpdate', () => { attachPreview(); chips.sync(); });
   meeting.self.on('audioUpdate', chips.sync);
@@ -253,7 +256,7 @@ export async function mountRoomV2(o) {
   /* In the Academy room there is one host, so Nelson leaving IS the end: everyone else is removed
      first (what "End class for everyone" does in the Tools sheet), then he leaves. OPIL keeps plain Leave. */
   async function leaveNow() {
-    if (isRoom && host) { try { await current.participants.kickAll?.(); } catch (e) {} }
+    if ((isRoom && host) || endsAll) { try { await current.participants.kickAll?.(); } catch (e) {} }
     try { await current.leave(); } catch (e) {}
     gone('left', 'left')();
   }
@@ -289,7 +292,9 @@ function joinScreen({ label, title, startsAt, live, host, facilitator, joined, p
 }
 
 /* the two word-chips (mic / camera) — shared by the join screen and the class bar */
-function wireChips(root, getMeeting, onVideo) {
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' did not respond')), ms))]);
+const MEDIA_HELP = { mic: 'Your mic didn’t turn on. Allow the microphone for taylormadeacademy.com in your browser (Safari: Settings ▸ Websites ▸ Microphone), then tap again.', cam: 'Your camera didn’t turn on. Allow the camera for taylormadeacademy.com in your browser (Safari: Settings ▸ Websites ▸ Camera), close any other app using it, then tap again.' };
+function wireChips(root, getMeeting, onVideo, onError) {
   const mic = root.querySelector('.r2-chip[data-t="mic"]'), cam = root.querySelector('.r2-chip[data-t="cam"]');
   const sync = () => {
     const s = getMeeting().self;
@@ -297,15 +302,24 @@ function wireChips(root, getMeeting, onVideo) {
     if (mic) { mic.querySelector('b').textContent = c.mic[0]; mic.querySelector('span').textContent = c.mic[1]; mic.classList.toggle('on', !!s.audioEnabled); }
     if (cam) { cam.querySelector('b').textContent = c.cam[0]; cam.querySelector('span').textContent = c.cam[1]; cam.classList.toggle('on', !!s.videoEnabled); }
   };
-  if (mic) mic.addEventListener('click', async () => { const s = getMeeting().self; try { s.audioEnabled ? await s.disableAudio() : await s.enableAudio(); } catch (e) {} sync(); });
-  if (cam) cam.addEventListener('click', async () => { const s = getMeeting().self; try { s.videoEnabled ? await s.disableVideo() : await s.enableVideo(); } catch (e) {} sync(); if (onVideo) onVideo(); });
+  const flip = async (btn, kind) => {
+    const s = getMeeting().self; const on = kind === 'mic' ? s.audioEnabled : s.videoEnabled;
+    btn.disabled = true;
+    try { await withTimeout(kind === 'mic' ? (on ? s.disableAudio() : s.enableAudio()) : (on ? s.disableVideo() : s.enableVideo()), 12000, kind); }
+    catch (e) { if (!on && onError) onError(MEDIA_HELP[kind], e); }
+    btn.disabled = false; sync(); if (kind === 'cam' && onVideo) onVideo();
+    /* a browser that reports success but never turns the track on: say so instead of a chip that reads "on" */
+    if (!on && kind === 'cam' && onError) setTimeout(() => { const t = getMeeting().self; if (t.videoEnabled && !t.videoTrack) onError(MEDIA_HELP.cam); }, 3000);
+  };
+  if (mic) mic.addEventListener('click', () => flip(mic, 'mic'));
+  if (cam) cam.addEventListener('click', () => flip(cam, 'cam'));
   return { sync };
 }
 
 /* ---------- in class ---------- */
 function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, sb, user, saveTranscript, getEffects, onLeave, onSwitch }) {
   const node = el(`<div class="r2">
-    <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording · saves automatically for ${esc(words.replayFor)}</span></div>
+    <div class="r2-now"><span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
       <div class="r2-stage">
         <rtk-ui-provider>
@@ -328,6 +342,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       </aside>
     </div>
     <div class="r2-bar">
+      <button type="button" class="r2-btn r2-back" hidden>Back to the main room</button>
       <div class="r2-chips">
         <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
         <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
@@ -349,13 +364,28 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const q = (s) => node.querySelector(s);
   let m = meeting, recording = !host, pinnedId = null;   /* every class records; students are told so, hosts are told once it actually starts */
 
-  /* the strip */
-  const setNow = () => { q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator, title, recording: false }, words); q('.r2-rec').hidden = !recording || !host; if (recording && !host) q('.r2-nowtxt').textContent += ' · This ' + words.thing + ' is being recorded'; };
-  const setRecording = (on) => { recording = on; setNow(); };
+  /* the strip. No facilitator filed for this session (the AI Thread, a stand-in)? Then whoever holds the
+     host preset is teaching — the reader is told a name, never "class in progress". */
+  const hostName = () => { try { if (host) return m.self.name || null; const p = m.participants.joined.toArray().find(x => /host/.test(String(x.presetName || ''))); return p ? p.name : null; } catch (e) { return null; } };
+  const inBreakout = () => { try { return !!(m.connectedMeetings && m.connectedMeetings.parentMeeting); } catch (e) { return false; } };
+  const setNow = () => {
+    const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room' } : null;
+    q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
+    q('.r2-rec').hidden = !recording || !host;
+    if (recording && !host && !breakout) q('.r2-nowtxt').textContent += ' · This ' + words.thing + ' is being recorded';
+    node.classList.toggle('in-breakout', !!breakout);
+  };
+  let recStart = null, recTick = null;
+  const setRecording = (on) => {
+    recording = on;
+    if (on && host && !recStart) { recStart = Date.now(); const tick = () => { const s = Math.floor((Date.now() - recStart) / 1000); q('.r2-rectime').textContent = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(x => String(x).padStart(2, '0')).join(':'); }; tick(); recTick = setInterval(tick, 1000); }
+    if (!on && recTick) { clearInterval(recTick); recTick = null; recStart = null; }
+    setNow();
+  };
   setNow();
 
   /* mic / camera in words — wired once; a breakout switch only re-points them at the new meeting */
-  const chips = wireChips(node, () => m);
+  const chips = wireChips(node, () => m, null, (msg) => toast(msg, 7000));
   const bindSelf = () => { try { m.self.on('audioUpdate', chips.sync); m.self.on('videoUpdate', chips.sync); } catch (e) {} chips.sync(); };
 
   /* the side panel (desktop) / sheet (phone) */
@@ -488,6 +518,9 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     return p;
   };
   const tb = q('.r2-tools'); if (tb) tb.addEventListener('click', () => openSheet('Tools', toolsPane()));
+  const back = q('.r2-back');
+  back.addEventListener('click', async () => { back.disabled = true; try { if (m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) await m.connectedMeetings.moveToParentMeeting(); else throw new Error('not available'); } catch (e) { toast('Could not move you back — ' + (e.message || e)); back.disabled = false; } });
+  const syncBack = () => { let can = false; try { can = inBreakout() && !!(m.connectedMeetings && m.connectedMeetings.moveToParentMeeting) && (m.self.permissions.connectedMeetings ? m.self.permissions.connectedMeetings.canSwitchToParentMeeting !== false : true); } catch (e) {} back.hidden = !can; if (!can) back.disabled = false; };
   const hb = q('.r2-help'); if (hb) hb.addEventListener('click', () => openSheet('Need help?', helpPane()));
 
   /* leave: two taps, never one accidental one */
@@ -500,16 +533,19 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     return false;
   }
 
-  function toast(msg) { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), 4000); }
+  function toast(msg, ms) { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), ms || 4000); }
 
   /* bind the kit's parts (and re-bind after a breakout switch) */
+  let bound = false;
   function bind(mm) {
     m = mm; if (onSwitch) onSwitch(mm);
     node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants').forEach(c => { c.meeting = mm; });
-    bindSelf(); peopleCount(); nudge();
-    try { mm.participants.joined.on('participantJoined', () => { peopleCount(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); renderQueue(); renderPrimary(); }); } catch (e) {}
+    bindSelf(); peopleCount(); setNow(); syncBack(); nudge();
+    try { mm.participants.joined.on('participantJoined', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); } catch (e) {}
     if (!handsChan) watchHands();
     loadHands();
+    /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
+    if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
   function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} }
   return { node, bind, destroy, setRecording, toast };

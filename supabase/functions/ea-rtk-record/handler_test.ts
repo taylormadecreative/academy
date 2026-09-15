@@ -98,17 +98,21 @@ Deno.test("unknown session → 404; bad body → 400", async () => {
   assertEquals((await handleRecord({ session_no: 7, action: "dance" as never }, ADMIN, d)).status, 400);
 });
 
-Deno.test("stop with an active recording sends the stop action", async () => {
+Deno.test("stop with an active recording sends the stop action, then closes the class's meeting (PATCH INACTIVE)", async () => {
   const d = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }) });
   const r = await handleRecord({ session_no: 7, action: "stop" }, HOST, d);
   assertEquals(r.status, 200); assertEquals(r.body, { stopped: true, recording_id: "rec-9" });
-  assertEquals(d.calls, [{ method: "PUT", path: "/recordings/rec-9", body: { action: "stop" } }]);
+  assertEquals(d.calls, [
+    { method: "PUT", path: "/recordings/rec-9", body: { action: "stop" } },
+    { method: "PATCH", path: "/meetings/meet-7", body: { status: "INACTIVE" } },
+  ]);
 });
 
-Deno.test("stop with nothing recording is a calm 200", async () => {
+Deno.test("stop with nothing recording is a calm 200 that still closes the meeting", async () => {
   const d = deps();
   const r = await handleRecord({ session_no: 7, action: "stop" }, HOST, d);
-  assertEquals(r.status, 200); assertEquals(r.body, { stopped: false }); assertEquals(d.calls.length, 0);
+  assertEquals(r.status, 200); assertEquals(r.body, { stopped: false });
+  assertEquals(d.calls, [{ method: "PATCH", path: "/meetings/meet-7", body: { status: "INACTIVE" } }]);
 });
 
 Deno.test("Cloudflare failure on start surfaces as 502 and inserts nothing", async () => {
@@ -212,10 +216,10 @@ Deno.test("room: stop with nothing recording still closes the meeting; a failed 
     const r3 = await handleRecord({ room: true, action: "stop" }, NELSON, failStop);
     assertEquals(r3.status, 502);
     assertEquals(failStop.calls.map((c) => c.method), ["PUT"]);   /* the recording is still going: the meeting stays open */
-    /* OPIL stop never touches the meeting */
+    /* OPIL stop closes the class's meeting the same way (9/15: students were left sitting in an empty room) */
     const opil = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }) });
     await handleRecord({ session_no: 7, action: "stop" }, HOST, opil);
-    assertEquals(opil.calls.map((c) => c.method), ["PUT"]);
+    assertEquals(opil.calls.map((c) => c.method), ["PUT", "PATCH"]);
   } finally { console.warn = orig; }
 });
 

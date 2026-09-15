@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=4b71cf6498">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=4b71cf6498">
-<link rel="stylesheet" href="/css/rtk-room.css?v=4b71cf6498">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=4b71cf6498">
+<link rel="stylesheet" href="/css/build-mode.css?v=f73f4c837a">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=f73f4c837a">
+<link rel="stylesheet" href="/css/rtk-room.css?v=f73f4c837a">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=f73f4c837a">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -69,10 +69,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=4b71cf6498"></script>
+<script src="/js/config.js?v=f73f4c837a"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=4b71cf6498';
-import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2 } from '/opil/hub/live-rooms.js?v=4b71cf6498';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=f73f4c837a';
+import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2 } from '/opil/hub/live-rooms.js?v=f73f4c837a';
 /* Room v2 (the concept boards: join screen, state in words, question queue).
    ROOM_V2 = true makes it the default for everyone; ?v2=1 opens it for one visit while the flag is
    off (testing), ?classic=1 opens the kit's own shell for one visit while the flag is on. */
@@ -110,26 +110,50 @@ let room = null;       /* the joined class, so Start can tear a viewer's room do
 let onLeft = null;     /* the class control hooks this so End session wakes up once the host leaves the room */
 let onJoined = null;   /* …and starts the recording the moment the host is actually in the room */
 
-const roomState = (st) => {
+const roomState = (st, meeting, reason) => {
   if (st === 'joined' && onJoined) onJoined();
-  if (st === 'ended' || st === 'left') { document.body.classList.remove('in-room', 'in-room-v2'); if (onLeft) onLeft(); }
+  if (st === 'ended' || st === 'left') { document.body.classList.remove('in-room', 'in-room-v2'); if (onLeft) onLeft(); afterRoom(st, reason); }
 };
+/* What the room becomes once this person is out of it (the page that started the class has its own
+   control and skips this): they left on their own → an honest line and one Rejoin button; the class
+   ended or they were removed → said plainly, with the way back to their hub, and the page keeps
+   listening so a class that starts again pulls them straight back in. */
+function afterRoom(st, reason) {
+  if (hosting) return;
+  document.getElementById('badge').style.display = 'none';
+  const no = boundNo != null ? boundNo : (roomSess ? roomSess.no : sessionNo);
+  if (reason === 'left') {
+    idleEl.innerHTML = '<b>You left the class.</b><span>Need to come back? It picks up where it is.</span><button type="button" class="pillbtn" id="rejoinBtn" style="margin-top:6px">Rejoin the class &rarr;</button>';
+    document.getElementById('rejoinBtn').addEventListener('click', async (ev) => {
+      ev.target.disabled = true; ev.target.textContent = 'Rejoining…';
+      const { data } = await sb.from('ea_opil_sessions').select('no,title,is_live,stream_url').eq('no', no).limit(1);
+      const s = data && data[0];
+      if (!s || !s.is_live || !isRoom(s.stream_url)) { afterRoom('ended', 'ended'); return; }
+      document.getElementById('badge').style.display = '';
+      try { await enterRoom(s.no, s.stream_url.slice(RTK_PREFIX.length), sessLabel(s) + ' · ' + s.title); }
+      catch (e) { idleEl.innerHTML = '<b>' + esc(e.message || 'Could not rejoin.') + '</b><span>Reload to try again.</span>'; }
+    });
+    return;
+  }
+  idleEl.innerHTML = '<b>Class ended.</b><span>Thanks for being here. The replay shows on your hub home once the program team publishes it.</span><a class="pillbtn" href="/opil/hub/" style="margin-top:6px">Back to my hub &rarr;</a>';
+  if (!wakePoll) armWake();   /* a facilitator who starts the class again brings this page back in on its own */
+}
 /* v2 takes the session object and a mode; onOpened fires for a host the moment the meeting exists,
    before they press Enter — that is when the session flips live */
 async function enterRoomV2({ session, mode, meetingId, onOpened }) {
-  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=4b71cf6498');
+  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=f73f4c837a');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   const facilitator = await facilitatorName(session.no);
   document.getElementById('ttl').textContent = sessLabel(session) + ' · ' + session.title;
   if (mode !== 'waiting') { document.getElementById('badge').style.display = ''; }
   const top = document.getElementById('rtkMount').getBoundingClientRect().top + window.scrollY - 72;
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-  room = await mountRoomV2({ mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok, sb, user, session, mode, meetingId: meetingId || null, facilitator, onState: roomState, onOpened });
+  room = await mountRoomV2({ mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok, sb, user, session, mode, meetingId: meetingId || null, facilitator, onState: roomState, onOpened, endsSession: mode === 'host' });
   return room;
 }
 async function enterRoom(no, meetingId, title) {
   if (v2) { const sess = (allSess || []).find(s => s.no === no) || roomSess; return enterRoomV2({ session: sess, mode: 'student', meetingId }); }
-  const { mountRoom } = await import('/js/rtk-room.js?v=4b71cf6498');
+  const { mountRoom } = await import('/js/rtk-room.js?v=f73f4c837a');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   room = await mountRoom({
     mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok,
