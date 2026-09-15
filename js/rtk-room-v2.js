@@ -113,12 +113,14 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
    Returns { meetingId, leave(), setRecording(bool) }. onState gets ('joined' | 'left' | 'ended', meeting, reason)
    where reason is 'left' | 'kicked' | 'ended' — why the room went away.
    o.target says where the room lives: { kind:'opil', session } (the default, today's OPIL behaviour byte
-   for byte) or { kind:'room', id, title, key, slug?, words?, tokens?, logo?: { src, alt } } (the Academy
-   room, spec 2026-09-14-academy-room-design.md). slug, words, tokens and logo are optional overrides (HT);
-   when absent the defaults are the Academy's own (target.key/words/tokens/logo undefined leaves OPIL and
-   Academy untouched). logo is a brand mark drawn inside the room — top of the join screen and the head of
-   the what's-happening-now strip — so a guest who sees nothing but the room for an hour still sees whose
-   room it is (HT, 9/15). No logo → not one extra byte of DOM. */
+   for byte) or { kind:'room', id, title, key, slug?, words?, tokens?, logo?: { src, alt }, mark?: { src, alt } }
+   (the Academy room, spec 2026-09-14-academy-room-design.md). slug, words, tokens, logo and mark are optional
+   overrides (HT); when absent the defaults are the Academy's own (target.key/words/tokens/logo undefined leaves
+   OPIL and Academy untouched). logo is a brand mark drawn inside the room so a guest who sees nothing but the
+   room for an hour still sees whose room it is (HT, 9/15): the top of the join screen, where there is room for
+   a full wordmark. mark is the small version for the head of the what's-happening-now strip — a monogram that
+   stays legible and inside its minimum reproduction size at strip height, and leaves the status line its
+   width on a phone; when absent the strip uses logo. No logo → not one extra byte of DOM. */
 export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
@@ -131,6 +133,7 @@ export async function mountRoomV2(o) {
   const session = isRoom ? null : target.session;
   const words = target.words || (isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS);
   const logo = (target.logo && target.logo.src) ? target.logo : null;   /* { src, alt, height? } or nothing */
+  const mark = (target.mark && target.mark.src) ? target.mark : logo;   /* the strip's small mark; the logo when none */
   const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
   const title = isRoom ? target.title : session.title;
   const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
@@ -256,7 +259,7 @@ export async function mountRoomV2(o) {
   await (meeting.join ? meeting.join() : meeting.joinRoom());
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, logo, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -341,9 +344,9 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, logo, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects, onLeave, onSwitch, rootId }) {
   const node = el(`<div class="r2">
-    <div class="r2-now">${brandMark(logo, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
+    <div class="r2-now">${brandMark(mark, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
     <div class="r2-main">
       <div class="r2-stage">
         <rtk-ui-provider>

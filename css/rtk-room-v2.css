@@ -42,7 +42,8 @@
 .r2>*,.r2-main>*,.r2-bar>*{min-width:0}
 .r2-now{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.1);background:#0a1733}
 .r2-dot{width:8px;height:8px;border-radius:50%;background:#3ddc97;animation:r2pulse 1.6s ease-in-out infinite}
-.r2-now .r2-brand-strip{height:18px;margin:0 6px 0 0;flex:0 0 auto}
+/* the strip's small mark (a monogram): 24px tall keeps it inside its minimum reproduction width and legible; never smaller on a phone */
+.r2-now .r2-brand-strip{height:24px;margin:0 6px 0 0;flex:0 0 auto}
 .r2-nowtxt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r2-rec{font-size:12.5px;font-weight:700;color:#fdc921}
 .r2-rectime{font-variant-numeric:tabular-nums;margin:0 2px}
@@ -134,7 +135,7 @@
   .r2-join{grid-template-columns:1fr;padding:18px 16px 110px;align-content:start;gap:16px;overflow:auto}
   .r2-kicker{font-size:26px}
   .r2-brand{height:22px;margin-bottom:10px}
-  .r2-now .r2-brand-strip{height:16px}
+  .r2-nowtxt{white-space:normal;line-height:1.3}   /* the status line wraps: a guest is told the session is being recorded — that must never ellipsize */
   .r2-preview{max-height:40vh;aspect-ratio:4/3}
   .r2-preview .r2-chips{left:8px;right:8px;bottom:8px;gap:6px}
   .r2-chip{min-width:0;padding:6px 10px;min-height:48px}
