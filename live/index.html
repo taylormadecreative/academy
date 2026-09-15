@@ -142,7 +142,8 @@
 
 <script src="/js/config.js?v=163a5ff6fe"></script>
 <script type="module">
-import { statusLine, replayLabel, iframeUrl } from "/js/room-page.js?v=163a5ff6fe";
+import { statusLine, replayLabel, iframeUrl, joinErrorText } from "/js/room-page.js?v=163a5ff6fe";
+import { ROOM_WORDS } from "/opil/hub/live-rooms.js?v=163a5ff6fe";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
@@ -151,6 +152,10 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&
 const ROOM_ORIGIN = "https://taylormadeacademy.com";
 /* Explicit columns: the raw download link on a replay row is server-only. */
 const REPLAY_COLS = "id, room_id, meeting_id, recording_id, status, stream_uid, watch_url, duration_s, file_size, error, published, created_at, updated_at";
+/* one cheap ea_room_state read every 20 s for every signed-in visitor (a harness shortens it) */
+const POLL_MS = window.__ROOM_POLL_MS || 20000;
+/* what the door shows when the state RPC itself fails (0036 not applied yet, a PostgREST hiccup): today's off-air door */
+const OFF_AIR = { title: "Taylormade Academy Live", is_live: false, recording_url: null, people: null, is_host: false, can_join: false, bad_link: false };
 
 function when(iso){
   const d = new Date(iso), s = Math.floor((Date.now() - d.getTime())/1000);
@@ -161,7 +166,10 @@ function when(iso){
 }
 
 const sb = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
-let me = null, isMember = false, isAdmin = false, state = null, bootError = false;
+let me = null, isMember = false, isAdmin = false, state = null, bootError = false, stateError = false;
+/* is_live + recording_url: when either changes the member stage is redrawn (never for nothing — the replay iframe would restart) */
+let stageKey = "";
+const keyOf = (st) => String(st.is_live) + "|" + (st.recording_url || "");
 
 /* One read path for everyone: the room's state, never its link or meeting. */
 async function roomState(){
@@ -183,8 +191,13 @@ try {
     ]);
     isMember = !!mem; isAdmin = !!adm;
   }
-  state = await roomState();
 } catch (e) { bootError = true; }
+/* The state read fails on its own: /live/ is in the site nav on every page, so a state-RPC failure
+   degrades to the off-air door (title, Off air chip, the gate card or "Nothing is live right now"),
+   never to an error card for the whole site. Nelson's card says what to run. */
+try { state = await roomState(); }
+catch (e) { stateError = true; state = Object.assign({ signed_in: !!me }, OFF_AIR); }
+stageKey = keyOf(state);
 
 /* ---------- header: every visitor ---------- */
 function paintHead(){
@@ -234,7 +247,7 @@ if (bootError) {
       : "I teach live, on camera, building the actual thing. Members get the room, the questions, and every replay.") + '</p>' +
     '<ul>' +
     '<li>' + check + '<span>Live classes with the room chat open the whole time</span></li>' +
-    '<li>' + check + '<span>Every replay, kept in your library</span></li>' +
+    '<li>' + check + '<span>Every replay, kept on this page</span></li>' +
     '<li>' + check + '<span>Every ebook and every video course on the shelf</span></li>' +
     '<li>' + check + '<span>Cancel anytime, 7-day refund</span></li>' +
     '</ul>' +
@@ -251,13 +264,29 @@ if (bootError) {
     '</div></div>';
 }
 
+/* ---------- the light poll: every signed-in visitor learns that a session started (or a replay was
+   published) without a reload — the page promises "Join the room shows up here". One anon-callable
+   RPC per 20 s; the heavier ea_rooms / replays / members loads stay behind the admin card's busy(). ---------- */
+let paintStatus = null;   /* set by yourRoom() once the admin card is drawn */
+if (me && !bootError) setInterval(async () => {
+  try {
+    const s = await roomState();
+    state = s; paintHead();
+    if (paintStatus) paintStatus();
+    const key = keyOf(s);
+    if (key !== stageKey) { stageKey = key; if (isMember) memberStage(); }
+  } catch (e) { /* the next tick tries again */ }
+}, POLL_MS);
+
 /* ---------- Your room (admin only) ---------- */
-if (isAdmin && !bootError) await yourRoom();
+if (isAdmin && !bootError) {
+  if (stateError) $("admin").innerHTML = '<div class="adminbar"><div class="ah"><b>Your room</b><span>ADMIN ONLY</span></div><p class="adminnote">Your room is not on the database yet — run bash scripts/apply-0036.sh, then reload.</p></div>';
+  else await yourRoom();
+}
 
 async function yourRoom(){
   const box = $("admin");
-  let room = null, replays = [], newArmed = null, endArmed = null;
-  let stageKey = String(state.is_live) + "|" + (state.recording_url || "");
+  let room = null, replays = [], replaysError = null, peopleError = null, newArmed = null, endArmed = null;
   const note = (t) => { $("yrNote").textContent = t; };
   const linkOf = () => ROOM_ORIGIN + "/room/?k=" + room.link_key;
   const tokenOf = async () => (await sb.auth.getSession()).data.session?.access_token || "";
@@ -268,7 +297,7 @@ async function yourRoom(){
       body: JSON.stringify(Object.assign({ room:true }, body))
     });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error({ no_replay: "that replay row is gone", nothing_to_retry: "that replay is not failed, so there is nothing to retry", no_upload: "that recording never finished uploading, so there is nothing to retry", not_host: "only Nelson can do that", no_room: "the room isn’t open yet", sign_in: "you were signed out — reload and sign in again", rtk_not_configured: "the recording service isn’t set up" }[d.error] || (/^cloudflare_/.test(String(d.error)) ? "the recording service didn’t answer" : "the server said " + r.status));
+    if (!r.ok) throw new Error(joinErrorText(d.error, r.status, ROOM_WORDS));   /* the same sentences /room/ shows */
     return d;
   }
 
@@ -279,14 +308,19 @@ async function yourRoom(){
     if (!data) throw new Error("no room row yet — run migration 0036");
     room = data;
   }
+  /* a failed read is said out loud: an empty state that is really a grant or RLS mistake would send
+     Nelson debugging the webhook instead of the database */
   async function loadReplays(){
     const { data, error } = await sb.from("ea_room_replays").select(REPLAY_COLS).order("created_at", { ascending:false }).limit(5);
+    replaysError = error ? error.message : null;
     if (!error) replays = data || [];
   }
   /* who joined the most recent session: rows since live_since, names from profiles */
   async function loadPeople(){
+    peopleError = null;
     if (!room.live_since) return [];
-    const { data } = await sb.from("ea_room_members").select("user_id, last_joined_at").eq("room_id", room.id).gte("last_joined_at", room.live_since);
+    const { data, error } = await sb.from("ea_room_members").select("user_id, last_joined_at").eq("room_id", room.id).gte("last_joined_at", room.live_since);
+    if (error) { peopleError = error.message; return []; }
     const rows = data || [], names = {};
     if (rows.length) {
       const { data: profs } = await sb.from("ea_profiles").select("user_id, display_name").in("user_id", rows.map(r => r.user_id));
@@ -320,13 +354,14 @@ async function yourRoom(){
     '<div class="yr-sec"><b>Who joined</b><div id="yrPeople" class="yr-people"></div></div>' +
     '</div>';
 
-  function paintStatus(){
+  paintStatus = function(){
     $("yrStatus").className = state.is_live ? "airchip live" : "airchip off";
     $("yrStatus").innerHTML = (state.is_live ? "<i></i>" : "") + esc(statusLine(state));
     $("yrEnd").hidden = !state.is_live;
-  }
+  };
   function renderReplays(){
     const el = $("yrReplays");
+    if (replaysError) { el.innerHTML = '<p class="yr-empty">Could not load replays: ' + esc(replaysError) + '</p>'; return; }
     if (!replays.length) { el.innerHTML = '<p class="yr-empty">Nothing yet. Every session records itself and lands here as a draft.</p>'; return; }
     el.innerHTML = replays.map(r => {
       let acts = "";
@@ -344,21 +379,30 @@ async function yourRoom(){
   }
   async function renderPeople(){
     const names = await loadPeople(), n = names.length;
+    if (peopleError) { $("yrPeople").innerHTML = '<p class="yr-empty">Could not load who joined: ' + esc(peopleError) + '</p>'; return; }
     $("yrPeople").innerHTML = n
       ? '<details><summary>Last session &middot; ' + n + (n === 1 ? " person" : " people") + '</summary><ul>' + names.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul></details>'
       : '<p class="yr-empty">No one has joined yet.</p>';
   }
+  /* one refresh at a time: a slow one overlapping the next tick, a Publish and an End click must never
+     paint an older state over a newer one */
+  let refreshing = false;
   async function refresh(){
-    try { state = await roomState(); await loadRoom(); await loadReplays(); } catch (e) { return; }
-    paintHead(); paintStatus(); renderReplays(); await renderPeople();
-    const key = String(state.is_live) + "|" + (state.recording_url || "");
-    if (key !== stageKey) { stageKey = key; memberStage(); }   /* never re-create the replay iframe for nothing */
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      try { state = await roomState(); await loadRoom(); await loadReplays(); } catch (e) { return; }
+      paintHead(); paintStatus(); renderReplays(); await renderPeople();
+      const key = keyOf(state);
+      if (key !== stageKey) { stageKey = key; memberStage(); }   /* never re-create the replay iframe for nothing */
+    } finally { refreshing = false; }
   }
   paintStatus(); renderReplays(); await renderPeople();
 
-  /* poll while a session is live or a replay is still being prepared */
+  /* the heavy refresh (room row, replays, who joined) only while a session is live or a replay is still
+     being prepared; the light state poll above runs regardless */
   const busy = () => !!state.is_live || replays.some(r => r.status !== "ready" && r.status !== "error");
-  setInterval(() => { if (busy()) refresh(); }, 20000);
+  setInterval(() => { if (busy()) refresh(); }, POLL_MS);
 
   $("yrCopy").addEventListener("click", async () => {
     const link = linkOf();
@@ -396,6 +440,7 @@ async function yourRoom(){
   $("yrMax").addEventListener("blur", async () => {
     const n = Math.round(Number($("yrMax").value));
     if (!Number.isInteger(n) || n < 2 || n > 500) { $("yrMax").value = room.max_participants; note("Max people must be between 2 and 500."); return; }
+    $("yrMax").value = n;   /* the field always shows the integer that is (or is about to be) saved, never "12.7" or " 20" */
     if (n === room.max_participants) return;
     await saveField("max_participants", n, "Saved — the room stops at " + n + " people, you included");
   });
@@ -430,7 +475,7 @@ async function yourRoom(){
     if (rt) {
       const id = rt.dataset.id; rt.disabled = true; rt.textContent = "Retrying…";
       try { await recordCall({ action:"retry_replay", replay_id: id }); }
-      catch (e) { rt.disabled = false; rt.textContent = "Retry"; note("Could not retry: " + e.message); return; }
+      catch (e) { rt.disabled = false; rt.textContent = "Retry"; note("Could not retry — " + e.message); return; }
       note("Retrying — it shows as preparing here until Cloudflare finishes.");
       await refresh();
     }

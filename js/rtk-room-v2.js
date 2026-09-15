@@ -54,7 +54,7 @@ async function joinTarget(cfg, token, joinBody, words) {
       bad_link: 'This link isn’t active anymore — ask Nelson for the new one.',
       room_full: 'The room is full right now.',
       slow_down: 'Too many tries — wait a minute and try again.',
-      rtk_not_configured: 'The class room is not set up yet.',
+      rtk_not_configured: words.notConfigured,
     }[d.error] || ('The server said ' + r.status + '.'));
     e.code = d.error; e.status = r.status; throw e;
   }

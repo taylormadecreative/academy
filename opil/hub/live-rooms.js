@@ -58,11 +58,13 @@ export const OPIL_WORDS = Object.freeze({
   one: 'student', many: 'students', host: 'your facilitator', teaching: 'is teaching', thing: 'class',
   waiting: null, replayFor: 'your students',
   notAllowed: 'Your account is not in this cohort.', notOpen: 'The room opens when your facilitator starts the class.',
+  notConfigured: 'The class room is not set up yet.',
 });
 export const ROOM_WORDS = Object.freeze({
   one: 'person', many: 'people', host: 'Nelson', teaching: 'is live', thing: 'session',
   waiting: 'Nelson hasn’t started yet — we’ll bring you in the moment he does.', replayFor: 'members',
   notAllowed: 'You need Nelson’s link or an Academy membership.', notOpen: 'Nelson hasn’t started yet.',
+  notConfigured: 'The room is not set up yet.',
 });
 
 /* the "what's happening now" strip */

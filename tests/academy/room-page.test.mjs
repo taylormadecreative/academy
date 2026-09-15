@@ -105,10 +105,14 @@ test('joinErrorText: every code ea-rtk-join / ea-rtk-record send, in the room\'s
   assert.equal(joinErrorText('rtk_not_configured', 503, ROOM_WORDS), 'The room is not set up yet.');
   assert.equal(joinErrorText('cloudflare_502', 502, ROOM_WORDS), 'The server said 502.');
   assert.equal(joinErrorText(undefined, 500, ROOM_WORDS), 'The server said 500.');
-  assert.equal(joinErrorText('nothing_to_retry', 409, ROOM_WORDS), 'The server said 409.');
-  // the two words-driven lines read the OPIL words when given OPIL_WORDS
+  // the record codes Nelson's card translates (spec §6.4)
+  assert.equal(joinErrorText('no_replay', 404, ROOM_WORDS), 'That replay is gone.');
+  assert.equal(joinErrorText('nothing_to_retry', 409, ROOM_WORDS), 'That replay is not failed, so there is nothing to retry.');
+  assert.equal(joinErrorText('no_upload', 409, ROOM_WORDS), 'That recording never finished uploading, so there is nothing to retry.');
+  // the three words-driven lines read the OPIL words when given OPIL_WORDS
   assert.equal(joinErrorText('not_allowed', 403, OPIL_WORDS), 'Your account is not in this cohort.');
   assert.equal(joinErrorText('not_open', 409, OPIL_WORDS), 'The room opens when your facilitator starts the class.');
+  assert.equal(joinErrorText('rtk_not_configured', 503, OPIL_WORDS), 'The class room is not set up yet.');
 });
 
 test('statusLine: Off air, or Live now with the head count', () => {

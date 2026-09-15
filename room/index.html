@@ -71,6 +71,8 @@ const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const POLL_MS = 20000;            /* how often a waiting or joined guest asks the server whether the room is live */
+/* The link Nelson copies is always the real address, whichever domain this page was opened on (same constant as /live/). */
+const ROOM_ORIGIN = 'https://taylormadeacademy.com';
 const words = ROOM_WORDS;
 const k = roomKey(location.search);
 const card = $('card'), ctl = $('roomCtl'), mount = $('rtkMount');
@@ -89,6 +91,7 @@ const tryAgain = '<div class="acts"><a class="btn gold" href="' + esc(here) + '"
 const failText = (e) => (e && e.code) ? joinErrorText(e.code, e.status, words) : ((e && e.message) || 'Could not open the room.');
 
 let poll = null;
+let room = null, closing = false, inRoom = false;   /* declared before the dispatch below: the flows assign them after an await, but nothing may ever hit the TDZ */
 const stopPoll = () => { if (poll) { clearInterval(poll); poll = null; } };
 async function pollState() {
   try { const r = await sb.rpc('ea_room_state', { p_key: k }); return r.error ? null : r.data; } catch (e) { return null; }
@@ -109,6 +112,12 @@ function leftCard() {
 function failCard(e) {
   stopPoll();
   showCard('<span class="kicker gold">Hold on</span><h2>' + esc(failText(e)) + '</h2>' + tryAgain);
+}
+/* a dead or rotated key: the same card at boot and when the server starts saying so to someone who was waiting */
+function deadLinkCard() {
+  stopPoll();
+  showCard('<span class="kicker gold">This link</span><h2>' + esc(joinErrorText('bad_link', 404, words)) + '</h2>' +
+    '<p class="lede">Nelson makes a new link now and then. The newest one he sent is the one that works.</p>');
 }
 /* a mount that threw after marking the body: put the page back the way it was */
 function unmount() { document.body.classList.remove('in-room', 'in-room-v2'); mount.innerHTML = ''; }
@@ -134,8 +143,7 @@ if (branch === 'error') {
   showCard('<span class="kicker gold">Hold on</span><h2>The room could not load.</h2>' +
     '<p class="lede">That is on us, not you. Refresh in a moment. If Nelson is live and this keeps happening, message him and he will get you in.</p>' + tryAgain);
 } else if (branch === 'dead_link') {
-  showCard('<span class="kicker gold">This link</span><h2>' + esc(joinErrorText('bad_link', 404, words)) + '</h2>' +
-    '<p class="lede">Nelson makes a new link now and then. The newest one he sent is the one that works.</p>');
+  deadLinkCard();
 } else if (branch === 'landing') {
   showCard('<span class="kicker gold">' + esc(state.host_name) + '’s room</span><h2>' + esc(state.title) + '</h2>' +
     '<p class="lede">Sign in and you walk straight in. Your email, then a 6-digit code — no password.</p>' +
@@ -154,12 +162,18 @@ if (branch === 'error') {
 }
 
 /* ---------- a guest: wait, or go in ---------- */
-let room = null, closing = false, inRoom = false;
-
 async function waitHere() {
   try { room = await enter('waiting', {}); } catch (e) { failCard(e); return; }
-  /* the server says when Nelson starts; the reload then walks them straight in (v2 remembered the auto-enter) */
-  poll = setInterval(async () => { const st = await pollState(); if (st && st.is_live) location.reload(); }, POLL_MS);
+  /* the server says when Nelson starts; the reload then walks them straight in (v2 remembered the auto-enter).
+     {bad_link:true} (Nelson made a new link while they waited) has no is_live: the waiting screen would sit
+     forever, so it becomes the dead-link card — no reload, the poll stops. Ruling 2 (an in-room guest is never
+     pulled out by a new link) lives in guestPoll, not here. */
+  poll = setInterval(async () => {
+    const st = await pollState();
+    if (!st) return;
+    if (st.bad_link) { if (room) { try { room.leave(); } catch (e) {} } room = null; deadLinkCard(); return; }
+    if (st.is_live) location.reload();
+  }, POLL_MS);
 }
 function guestState(st, m, reason) {
   if (st === 'joined') { inRoom = true; return; }
@@ -200,7 +214,7 @@ async function hostControl(liveNow) {
   /* the link: link_key is admin-only on ea_rooms (RLS), so only Nelson's page can read it */
   let row = null;
   try { row = (await sb.from('ea_rooms').select('link_key,title').eq('id', state.id).single()).data; } catch (e) {}
-  if (row && row.link_key) { linkEl.value = location.origin + '/room/?k=' + row.link_key; if (row.title) $('rTitle').textContent = row.title; }
+  if (row && row.link_key) { linkEl.value = ROOM_ORIGIN + '/room/?k=' + row.link_key; if (row.title) $('rTitle').textContent = row.title; }
   else { linkEl.placeholder = 'Could not read your link — open the Live page.'; }
   copyBtn.addEventListener('click', async () => {
     linkEl.select();

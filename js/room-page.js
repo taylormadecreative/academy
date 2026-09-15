@@ -30,8 +30,9 @@ export function loginHref(k) {
   return '/login/?next=' + encodeURIComponent('/room/' + (k ? '?k=' + k : ''));
 }
 
-/* what an ea-rtk-join / ea-rtk-record error says on this page; the two words-driven lines
-   (not_allowed, not_open) read from ROOM_WORDS or OPIL_WORDS in opil/hub/live-rooms.js */
+/* what an ea-rtk-join / ea-rtk-record error says on this page — the one source of truth for /room/
+   and for Nelson's card on /live/; the three words-driven lines (not_allowed, not_open,
+   rtk_not_configured) read from ROOM_WORDS or OPIL_WORDS in opil/hub/live-rooms.js */
 export function joinErrorText(code, status, words) {
   switch (code) {
     case 'sign_in': return 'Sign in again and retry.';
@@ -42,7 +43,10 @@ export function joinErrorText(code, status, words) {
     case 'slow_down': return 'Too many tries — wait a minute and try again.';
     case 'no_room': return 'The room isn’t open yet.';
     case 'not_host': return 'Only Nelson can do that.';
-    case 'rtk_not_configured': return 'The room is not set up yet.';
+    case 'no_replay': return 'That replay is gone.';
+    case 'nothing_to_retry': return 'That replay is not failed, so there is nothing to retry.';
+    case 'no_upload': return 'That recording never finished uploading, so there is nothing to retry.';
+    case 'rtk_not_configured': return words.notConfigured;
     default: return 'The server said ' + status + '.';
   }
 }
