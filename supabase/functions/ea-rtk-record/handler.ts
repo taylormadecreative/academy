@@ -124,7 +124,7 @@ async function handleRoom(slug: string, action: "start" | "stop" | "retry_replay
   let isHost = ctx.academyAdmin;
   if (!isHost) {
     const r = await getRoomOnce();
-    isHost = !!r && email !== "" && (r.host_emails || []).some((e) => e.toLowerCase() === email);
+    isHost = !!r && email !== "" && (r.host_emails || []).some((e) => String(e || "").trim().toLowerCase() === email);
   }
   if (!isHost) return { status: 403, body: { error: "not_host" } };
 
@@ -135,6 +135,12 @@ async function handleRoom(slug: string, action: "start" | "stop" | "retry_replay
     if (!UUID_RX.test(replayId)) return { status: 400, body: { error: "bad_replay" } };
     const row = await deps.room.replayById(replayId);
     if (!row) return { status: 404, body: { error: "no_replay" } };
+    /* a listed host of one room must never reprocess (or read the recording_id of) another room's
+       replay — only the Academy admin keeps today's unrestricted reach across every room */
+    if (!ctx.academyAdmin) {
+      const r = await getRoomOnce();
+      if (!r || row.room_id !== r.id) return { status: 403, body: { error: "not_host" } };
+    }
     if (row.status !== "error") return { status: 409, body: { error: "nothing_to_retry" } };
     const payload = await deps.uploadedEvent(row.recording_id);
     if (!payload) return { status: 409, body: { error: "no_upload" } };

@@ -123,7 +123,7 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
   if (!room) return { status: 503, body: { error: "rtk_not_configured" } };
   /* 3 — who is this: the Academy admin, a listed host, a member (Academy room only), or someone holding the current link */
   const email = (ctx.user.email || "").trim().toLowerCase();
-  const isHost = ctx.academyAdmin || (email !== "" && (room.host_emails || []).some((e) => e.toLowerCase() === email));
+  const isHost = ctx.academyAdmin || (email !== "" && (room.host_emails || []).some((e) => String(e || "").trim().toLowerCase() === email));
   const key = typeof body.key === "string" ? body.key : "";
   const keyGiven = key.trim() !== "";
   /* a malformed key (wrong length/charset — e.g. a truncated paste) is still a dead link, not "no key" */

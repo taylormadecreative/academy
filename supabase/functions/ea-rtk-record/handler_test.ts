@@ -267,7 +267,7 @@ Deno.test("room:'ht' — a listed email is the host and can start; an unlisted o
   assertEquals(d2.calls.length, 0);
 });
 
-Deno.test("room:'ht' — the Academy admin alone is not a host of 'ht' without a listed email", async () => {
+Deno.test("room:'ht' — an OPIL coordinator is not a host of 'ht'", async () => {
   const d = deps({ getRoom: async () => HT_ROOM });
   const r = await handleRecord({ room: "ht", action: "start" }, ADMIN, d);
   assertEquals(r.status, 403); assertEquals((r.body as { error: string }).error, "not_host");
@@ -276,6 +276,31 @@ Deno.test("room:'ht' — the Academy admin alone is not a host of 'ht' without a
 Deno.test("room:'Bad Slug!' is a 400", async () => {
   const r = await handleRecord({ room: "Bad Slug!", action: "start" }, ADMIN, deps());
   assertEquals(r.status, 400);
+});
+
+Deno.test("room:'ht' — a listed HT host retrying a replay that belongs to the Academy room gets 403 not_host, never reprocessed", async () => {
+  const seen: unknown[] = [];
+  const d = deps({
+    getRoom: async () => HT_ROOM,
+    reprocess: async (p) => { seen.push(p); return { status: "ready" }; },
+    room: { replayById: async (id) => (id === REPLAY_ID ? { id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "error" } : null) },
+  });
+  const r = await handleRecord({ room: "ht", action: "retry_replay", replay_id: REPLAY_ID }, GRAY, d);
+  assertEquals(r.status, 403); assertEquals((r.body as { error: string }).error, "not_host");
+  assertEquals(seen.length, 0);
+});
+
+Deno.test("room:'ht' — the Academy admin retrying that same cross-room replay proceeds as before (unrestricted reach)", async () => {
+  const seen: unknown[] = [];
+  const d = deps({
+    getRoom: async () => HT_ROOM,
+    uploadedEvent: async (id) => (id === "rec-old" ? { event: "recording.statusUpdate", recording: { id: "rec-old" } } : null),
+    reprocess: async (p) => { seen.push(p); return { status: "ready" }; },
+    room: { replayById: async (id) => (id === REPLAY_ID ? { id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "error" } : null) },
+  });
+  const r = await handleRecord({ room: "ht", action: "retry_replay", replay_id: REPLAY_ID }, NELSON, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { recording_id: "rec-old", status: "ready" });
+  assertEquals(seen, [{ event: "recording.statusUpdate", recording: { id: "rec-old" } }]);
 });
 
 Deno.test("OPIL: a session whose meeting is the Academy room's is refused with 403 not_allowed before any Cloudflare call", async () => {
