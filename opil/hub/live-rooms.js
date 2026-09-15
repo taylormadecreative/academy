@@ -159,11 +159,15 @@ export function takeCaption(caps, x, now) {
    every room (OPIL, the Academy, HT): Leave only leaves; the one way to end is the explicit End; a drop
    reconnects. The words and the plan live here so the pages and the module agree, and node tests them. */
 
-/* Why the kit says you are out, in one of four words: 'left' (you pressed Leave), 'kicked' (a host
-   removed you), 'ended' (the meeting ended) — anything else ('disconnected', 'failed', undefined…) is
-   a DROP: the connection died. A drop is never the end of anything. */
+/* Why the kit says you are out, in one of five words. The kit's LeaveRoomState is kicked | ended | left |
+   rejected | connected-meeting | disconnected | failed | stageLeft: 'left' (you pressed Leave), 'kicked' (a
+   host removed you), 'ended' (the meeting ended) keep their word; 'connected-meeting' and 'stageLeft' are a
+   'switch' — a move to a small group or off a stage, not an exit; anything else ('disconnected', 'failed',
+   'rejected', undefined…) is a DROP: the connection died. A drop is never the end of anything. */
 export function leftKind(state) {
-  return state === 'left' || state === 'kicked' || state === 'ended' ? state : 'dropped';
+  if (state === 'left' || state === 'kicked' || state === 'ended') return state;
+  if (state === 'connected-meeting' || state === 'stageLeft') return 'switch';
+  return 'dropped';
 }
 
 /* the reconnect plan: how long to wait before attempt N (0-based), or null when there is no attempt N —

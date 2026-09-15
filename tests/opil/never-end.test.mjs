@@ -5,11 +5,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { leftKind, rejoinPlan, REJOIN_DELAYS_MS, reconnectCopy, endCopy, backOn, OPIL_WORDS, ROOM_WORDS } from '../../opil/hub/live-rooms.js';
 
-test('leftKind: left / kicked / ended keep their word; everything else is a drop', () => {
+test('leftKind: left / kicked / ended keep their word; a move to a small group or off a stage is a switch; everything else is a drop', () => {
   assert.equal(leftKind('left'), 'left');
   assert.equal(leftKind('kicked'), 'kicked');
   assert.equal(leftKind('ended'), 'ended');
-  for (const s of ['disconnected', 'failed', 'rejected', 'unauthorized', 'connected-meeting', '', undefined, null, 0, {}]) assert.equal(leftKind(s), 'dropped', String(s));
+  /* the kit's LeaveRoomState (realtimekit 2.0.2 index.d.ts): kicked | ended | left | rejected | connected-meeting | disconnected | failed | stageLeft */
+  assert.equal(leftKind('connected-meeting'), 'switch');
+  assert.equal(leftKind('stageLeft'), 'switch');
+  for (const s of ['disconnected', 'failed', 'rejected', 'unauthorized', '', undefined, null, 0, {}]) assert.equal(leftKind(s), 'dropped', String(s));
 });
 
 test('rejoinPlan: a drop gets two attempts (2 s, then 4 s more); Leave, a kick and an ended meeting get none', () => {
@@ -20,7 +23,7 @@ test('rejoinPlan: a drop gets two attempts (2 s, then 4 s more); Leave, a kick a
   assert.equal(rejoinPlan('dropped', 2), null);
   assert.equal(rejoinPlan('dropped', -1), null);
   assert.equal(rejoinPlan('dropped', 'x'), null);
-  for (const k of ['left', 'kicked', 'ended', undefined]) { assert.equal(rejoinPlan(k, 0), null, String(k)); assert.equal(rejoinPlan(k, 1), null, String(k)); }
+  for (const k of ['left', 'kicked', 'ended', 'switch', undefined]) { assert.equal(rejoinPlan(k, 0), null, String(k)); assert.equal(rejoinPlan(k, 1), null, String(k)); }
 });
 
 test('reconnectCopy: one line, no vendor, no name', () => {

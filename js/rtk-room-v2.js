@@ -300,29 +300,39 @@ export async function mountRoomV2(o) {
     room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = '';
     if (onState) onState(why, current, reason);
   };
-  /* roomLeft carries why. 'left' (we pressed Leave), 'kicked' (a host removed you), 'ended' (the meeting ended)
-     keep their word; ANYTHING ELSE — 'disconnected', 'failed', an undefined state — is a drop: the connection
-     died, not the class (9/15: the host's socket dropped and the page ended the class for everyone). A drop
-     reconnects; it never reaches the page as 'left' until both attempts have failed. */
+  /* roomLeft carries why (the kit's LeaveRoomState: kicked | ended | left | rejected | connected-meeting |
+     disconnected | failed | stageLeft). 'left' (we pressed Leave), 'kicked' (a host removed you), 'ended' (the
+     meeting ended) keep their word; 'connected-meeting' and 'stageLeft' are a move, not an exit (the breakout
+     path rebinds); ANYTHING ELSE — 'disconnected', 'failed', 'rejected', an undefined state — is a drop: the
+     connection died, not the class (9/15: the host's socket dropped and the page ended the class for
+     everyone). A drop reconnects; it never reaches the page as 'left' until both attempts have failed. */
   const watchLeft = (mtg) => { try { mtg.self.on('roomLeft', (ev) => {
     if (mtg !== current) return;
     const st = ev && ev.state;
     if (ending) return gone('ended', 'ended')();
     if (leaving) return gone('left', 'left')();
     const kind = copy.leftKind(st);
+    if (kind === 'switch') return;
     if (kind === 'left') return gone('left', 'left')();
     if (kind === 'kicked') return gone('left', 'kicked')();
     if (kind === 'ended') return gone('ended', 'ended')();
     drop(st);
   }); } catch (e) {} };
-  /* the kit's own reconnect (before it gives up): say so on the strip; 'disconnected' = it gave up.
-     'reconnecting' also freezes the mic/camera memory below — the kit turns both off while it tears a dead
-     connection down, and that is not what the person had on. */
+  /* the kit's own socket: meta 'socketConnectionUpdate' { state: connected | disconnected | reconnecting | failed }.
+     While it reconnects on its own, say so on the strip and freeze the mic/camera memory below (the kit turns
+     both off while it tears a dead connection down, and that is not what the person had on); 'connected' again
+     (or roomJoined { reconnected: true }) clears the strip; 'failed' is it giving up — the same drop as a
+     roomLeft, guarded so the two never run twice. */
   let dropping = false;
   const watchLink = (mtg) => { try {
-    mtg.meta.on('reconnecting', () => { if (mtg === current && !goneOnce && !leaving && !ending) { mediaFrozen = true; room.reconnecting(copy.reconnectCopy(0)); } });
-    mtg.meta.on('reconnected', () => { if (mtg === current && !dropping) { mediaFrozen = false; room.reconnecting(null); } });
-    mtg.meta.on('disconnected', () => { if (mtg === current) drop('disconnected'); });
+    mtg.meta.on('socketConnectionUpdate', (ev) => {
+      if (mtg !== current || goneOnce || leaving || ending) return;
+      const st = ev && ev.state;
+      if (st === 'reconnecting' || st === 'disconnected') { mediaFrozen = true; if (!dropping) room.reconnecting(copy.reconnectCopy(0)); }
+      else if (st === 'connected') { if (!dropping) { mediaFrozen = false; room.reconnecting(null); } }
+      else if (st === 'failed') drop('failed');
+    });
+    mtg.self.on('roomJoined', (ev) => { if (mtg === current && ev && ev.reconnected && !dropping) { mediaFrozen = false; room.reconnecting(null); } });
   } catch (e) {} };
   /* what the person had on, so a rejoin brings it back: the host's defaults until the kit says otherwise */
   let lastMedia = { audio: host, video: host }, mediaFrozen = false;
