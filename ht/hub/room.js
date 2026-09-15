@@ -336,7 +336,7 @@ switch (branch) {
     card('<h3>This link isn’t active anymore.</h3><p>Ask your host for the new one.</p>'); break;
   case 'landing':
     card(`<h3>${esc(state.host_name)}’s room</h3><p class="t">${esc(state.title)}</p>` + onAirLine(state) +
-         `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>After the code, come back to this page — you’ll land in the room.</p>`, lastSession(state)); break;
+         `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>Type the code and you’ll be brought straight back here.</p>`, lastSession(state)); break;
   case 'not_allowed':
     /* signed in with no key on this device (the code was opened in another browser, or they came
        to the page by hand): the link they were sent is the way in — say so, no dead-end button */

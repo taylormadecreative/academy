@@ -38,7 +38,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
 { const { p, errs } = await page({ state: { ...base, signed_in: false }, session: null, room, replays: [], members: [], profiles: [] });
   ok('landing: host’s room', (await text(p, '.ht-room-card h3')) === 'Dr. Gray’s room');
   ok('landing: sign-in keeps the key', (await p.getAttribute('.ht-room-card a.btn', 'href')).includes(encodeURIComponent('?k=' + KEY)));
-  ok('landing: says to come back to this page after the code', /After the code, come back to this page/.test(await text(p, '.ht-room-card p.fine')));
+  ok('landing: says the code brings you straight back', /Type the code and you’ll be brought straight back here/.test(await text(p, '.ht-room-card p.fine')));
   ok('landing: the key is remembered on the device', (await stored(p))?.k === KEY);
   ok('landing: header Sign in carries the key too', (await p.getAttribute('.site-header a[href^="/login/"]', 'href')).includes(encodeURIComponent('?k=' + KEY)));
   ok('landing: Mahogany card', (await p.evaluate(() => getComputedStyle(document.querySelector('.ht-room-card')).backgroundColor)) === 'rgb(59, 0, 0)');
