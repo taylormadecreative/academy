@@ -43,6 +43,7 @@ const ACTIONS = ["start", "stop", "retry_replay", "register_webhook", "list_webh
 const MAX_SECONDS = 4 * 3600;   /* a tab left open cannot record for a day */
 const CF_STATUS: Record<string, string> = { INVOKED: "invoked", RECORDING: "recording", UPLOADING: "uploading", UPLOADED: "uploaded", ERRORED: "error" };
 const WEBHOOK_EVENTS = ["recording.statusUpdate", "meeting.ended"];
+const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;   /* ea_room_replays.id */
 
 export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
   const action = body.action;
@@ -67,6 +68,9 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     return { status: 200, body: { webhooks: list.map((x) => ({ id: x.id, url: x.url, events: x.events, enabled: x.enabled })) } };
   }
 
+  if (body.room === true) return handleRoom(action, body, ctx, deps);
+
+  // ── OPIL branch: exactly the rules the cohort has today ──
   const no = Number(body.session_no);
   if (!Number.isInteger(no)) return { status: 400, body: { error: "bad_session" } };
   const isHost = ctx.role.admin || ctx.role.facilitator_sessions.includes(no);
@@ -75,6 +79,9 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
   if (!s) return { status: 404, body: { error: "not_found" } };
   const meetingId = typeof s.stream_url === "string" && s.stream_url.startsWith(RTK_PREFIX) ? s.stream_url.slice(RTK_PREFIX.length) : null;
   if (!meetingId) return { status: 409, body: { error: "no_room" } };
+  /* A session whose stream_url points at Nelson's Academy room meeting records nothing:
+     no OPIL role can record or file a replay of the room (room spec §6.2, §9.11). */
+  if ((await deps.roomMeetingIds()).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
 
   if (action === "retry_replay") {
     const last = await deps.latestAny(meetingId);
@@ -86,31 +93,60 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     const out = await deps.reprocess(payload);
     return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
   }
+  return startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
+}
 
-  let active = await deps.latestActive(meetingId);
+/* ── Room branch: Nelson's Academy room. Only the Academy admin is its host. ── */
+async function handleRoom(action: "start" | "stop" | "retry_replay", body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
+  if (!ctx.academyAdmin) return { status: 403, body: { error: "not_host" } };
+
+  if (action === "retry_replay") {
+    /* Every Start class is a NEW meeting, so "latest replay of the current meeting" is the wrong
+       row the morning after. The page names the replay it wants retried. */
+    const replayId = typeof body.replay_id === "string" ? body.replay_id.trim() : "";
+    if (!UUID_RX.test(replayId)) return { status: 400, body: { error: "bad_replay" } };
+    const row = await deps.room.replayById(replayId);
+    if (!row) return { status: 404, body: { error: "no_replay" } };
+    if (row.status !== "error") return { status: 409, body: { error: "nothing_to_retry" } };
+    const payload = await deps.uploadedEvent(row.recording_id);
+    if (!payload) return { status: 409, body: { error: "no_upload" } };
+    const out = await deps.reprocess(payload);
+    return { status: 200, body: { recording_id: row.recording_id, status: out.status } };
+  }
+
+  const room = await deps.getRoom();
+  if (!room) return { status: 404, body: { error: "not_found" } };
+  if (!room.meeting_id) return { status: 409, body: { error: "no_room" } };   /* Start class has not run yet */
+  return startOrStop(action, room.meeting_id, { room_id: room.id }, deps.room, deps.cf);
+}
+
+/* ── start / stop, the same for both tables. `ref` is the column that files the row:
+   { session_no } for OPIL, { room_id } for the room. ── */
+async function startOrStop(action: "start" | "stop", meetingId: string, ref: { session_no?: number; room_id?: string }, store: ReplayStore, cf: RecordDeps["cf"]): Promise<Reply> {
+  let active = await store.latestActive(meetingId);
   if (action === "start") {
     if (active) {
       /* Trust but verify: a lost webhook would leave this row "recording" forever and block every
          later class of this session. Ask Cloudflare; if it is over, record that and start fresh. */
-      const chk = await deps.cf("GET", `/recordings/${active.recording_id}`);
+      const chk = await cf("GET", `/recordings/${active.recording_id}`);
       const raw = String(((chk.data || {}) as Record<string, unknown>).status || "");
       if (chk.ok && raw && raw !== "INVOKED" && raw !== "RECORDING") {
-        await deps.updateReplayStatus(active.recording_id, CF_STATUS[raw] || "error");
+        await store.updateReplayStatus(active.recording_id, CF_STATUS[raw] || "error");
         active = null;
       } else {
         return { status: 200, body: { recording_id: active.recording_id, status: active.status, reused: true } };
       }
     }
-    const r = await deps.cf("POST", "/recordings", { meeting_id: meetingId, max_seconds: MAX_SECONDS });
+    const r = await cf("POST", "/recordings", { meeting_id: meetingId, max_seconds: MAX_SECONDS });
     const d = (r.data || {}) as Record<string, unknown>;
     const recordingId = typeof d.id === "string" ? d.id : "";
     if (!r.ok || !recordingId) return { status: 502, body: { error: "cloudflare_" + r.status } };
-    await deps.insertReplay({ session_no: no, meeting_id: meetingId, recording_id: recordingId, status: "invoked" });
+    await store.insertReplay({ ...ref, meeting_id: meetingId, recording_id: recordingId, status: "invoked" });
     return { status: 200, body: { recording_id: recordingId, status: "invoked", reused: false } };
   }
   // stop
   if (!active) return { status: 200, body: { stopped: false } };
-  const r = await deps.cf("PUT", `/recordings/${active.recording_id}`, { action: "stop" });
+  const r = await cf("PUT", `/recordings/${active.recording_id}`, { action: "stop" });
   if (!r.ok) return { status: 502, body: { error: "cloudflare_" + r.status } };
   return { status: 200, body: { stopped: true, recording_id: active.recording_id } };
 }

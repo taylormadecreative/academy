@@ -151,3 +151,86 @@ Deno.test("retry_replay: nothing recorded → 404; not failed → 409 nothing_to
   assertEquals(noUp.status, 409); assertEquals((noUp.body as { error: string }).error, "no_upload");
   assertEquals((await handleRecord({ session_no: 7, action: "retry_replay" }, STUDENT, deps())).status, 403);
 });
+
+/* ── The Academy room ── */
+
+Deno.test("room: start as the Academy admin records the room meeting and files a draft with room_id, never session_no", async () => {
+  const d = deps({ getRoom: async () => ROOM });
+  const r = await handleRecord({ room: true, action: "start" }, NELSON, d);
+  assertEquals(r.status, 200);
+  assertEquals(r.body, { recording_id: "rec-1", status: "invoked", reused: false });
+  assertEquals(d.calls, [{ method: "POST", path: "/recordings", body: { meeting_id: "meet-room", max_seconds: 14400 } }]);
+  assertEquals(d.roomInserted, [{ room_id: "room-1", meeting_id: "meet-room", recording_id: "rec-1", status: "invoked" }]);
+  assertEquals("session_no" in (d.roomInserted[0] as object), false);   /* ea_room_replays has no such column */
+  assertEquals(d.inserted.length, 0);   /* nothing lands in ea_opil_replays */
+});
+
+Deno.test("room: an OPIL coordinator who is not the Academy admin gets 403 not_host and no Cloudflare call", async () => {
+  const d = deps({ getRoom: async () => ROOM });
+  for (const action of ["start", "stop", "retry_replay"] as const) {
+    const r = await handleRecord({ room: true, action, replay_id: REPLAY_ID }, ADMIN, d);
+    assertEquals(r.status, 403); assertEquals((r.body as { error: string }).error, "not_host");
+  }
+  assertEquals((await handleRecord({ room: true, action: "start" }, STUDENT, d)).status, 403);
+  assertEquals(d.calls.length, 0); assertEquals(d.roomInserted.length, 0);
+});
+
+Deno.test("room: no meeting yet → 409 no_room; no room row → 404 not_found; nothing is posted to Cloudflare", async () => {
+  const noMeeting = deps({ getRoom: async () => ({ id: "room-1", meeting_id: null }) });
+  const r = await handleRecord({ room: true, action: "start" }, NELSON, noMeeting);
+  assertEquals(r.status, 409); assertEquals((r.body as { error: string }).error, "no_room");
+  const noRow = deps();
+  const r2 = await handleRecord({ room: true, action: "stop" }, NELSON, noRow);
+  assertEquals(r2.status, 404); assertEquals((r2.body as { error: string }).error, "not_found");
+  assertEquals(noMeeting.calls.length, 0); assertEquals(noRow.calls.length, 0);
+});
+
+Deno.test("room: stop sends the stop action for the room's active recording", async () => {
+  const d = deps({ getRoom: async () => ROOM, room: { latestActive: async (m) => (m === "meet-room" ? { recording_id: "rec-r9", status: "recording" } : null) } });
+  const r = await handleRecord({ room: true, action: "stop" }, NELSON, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { stopped: true, recording_id: "rec-r9" });
+  assertEquals(d.calls, [{ method: "PUT", path: "/recordings/rec-r9", body: { action: "stop" } }]);
+});
+
+Deno.test("room: retry_replay by replay_id re-runs that replay's stored UPLOADED event, even after a newer Start class moved the room's meeting on", async () => {
+  const seen: unknown[] = [];
+  const d = deps({
+    getRoom: async () => ({ id: "room-1", meeting_id: "meet-newer" }),
+    uploadedEvent: async (id) => (id === "rec-old" ? { event: "recording.statusUpdate", recording: { id: "rec-old" } } : null),
+    reprocess: async (p) => { seen.push(p); return { status: "ready" }; },
+    room: {
+      replayById: async (id) => (id === REPLAY_ID ? { id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "error" } : null),
+      latestAny: async () => { throw new Error("a room retry never looks up the latest replay"); },
+    },
+  });
+  const r = await handleRecord({ room: true, action: "retry_replay", replay_id: REPLAY_ID }, NELSON, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { recording_id: "rec-old", status: "ready" });
+  assertEquals(seen, [{ event: "recording.statusUpdate", recording: { id: "rec-old" } }]);
+  assertEquals(d.calls.length, 0);
+});
+
+Deno.test("room: retry_replay → 400 bad_replay without an id, 404 no_replay for an unknown id, 409 nothing_to_retry when ready, 409 no_upload when it never uploaded", async () => {
+  const bad = await handleRecord({ room: true, action: "retry_replay" }, NELSON, deps());
+  assertEquals(bad.status, 400); assertEquals((bad.body as { error: string }).error, "bad_replay");
+  const junk = await handleRecord({ room: true, action: "retry_replay", replay_id: "not-a-uuid" }, NELSON, deps());
+  assertEquals(junk.status, 400); assertEquals((junk.body as { error: string }).error, "bad_replay");
+  const unknown = await handleRecord({ room: true, action: "retry_replay", replay_id: REPLAY_ID }, NELSON, deps());
+  assertEquals(unknown.status, 404); assertEquals((unknown.body as { error: string }).error, "no_replay");
+  const ready = await handleRecord({ room: true, action: "retry_replay", replay_id: REPLAY_ID }, NELSON,
+    deps({ room: { replayById: async () => ({ id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "ready" }) } }));
+  assertEquals(ready.status, 409); assertEquals((ready.body as { error: string }).error, "nothing_to_retry");
+  const noUp = await handleRecord({ room: true, action: "retry_replay", replay_id: REPLAY_ID }, NELSON,
+    deps({ room: { replayById: async () => ({ id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "error" }) } }));
+  assertEquals(noUp.status, 409); assertEquals((noUp.body as { error: string }).error, "no_upload");
+});
+
+Deno.test("OPIL: a session whose meeting is the Academy room's is refused with 403 not_allowed before any Cloudflare call", async () => {
+  const d = deps({ roomMeetingIds: async () => new Set(["meet-room"]), latestAny: async () => ({ recording_id: "rec-x", status: "error" }) });
+  for (const action of ["start", "stop", "retry_replay"] as const) {
+    const r = await handleRecord({ session_no: 9, action }, ADMIN, d);
+    assertEquals(r.status, 403); assertEquals((r.body as { error: string }).error, "not_allowed");
+  }
+  assertEquals(d.calls.length, 0); assertEquals(d.inserted.length, 0);
+  /* session 7's meeting is not the room's: untouched */
+  assertEquals((await handleRecord({ session_no: 7, action: "start" }, ADMIN, d)).status, 200);
+});
