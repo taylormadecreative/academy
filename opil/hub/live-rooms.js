@@ -51,11 +51,25 @@ export function stateCopy({ audio, video }) {
   };
 }
 
+/* The words that differ between the OPIL class room and Nelson's Academy room. Every helper
+   below defaults to OPIL_WORDS, so the OPIL pages read exactly what they read before. */
+export const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+export const OPIL_WORDS = Object.freeze({
+  one: 'student', many: 'students', host: 'your facilitator', teaching: 'is teaching', thing: 'class',
+  waiting: null, replayFor: 'your students',
+  notAllowed: 'Your account is not in this cohort.', notOpen: 'The room opens when your facilitator starts the class.',
+});
+export const ROOM_WORDS = Object.freeze({
+  one: 'person', many: 'people', host: 'Nelson', teaching: 'is live', thing: 'session',
+  waiting: 'Nelson hasn’t started yet — we’ll bring you in the moment he does.', replayFor: 'members',
+  notAllowed: 'You need Nelson’s link or an Academy membership.', notOpen: 'Nelson hasn’t started yet.',
+});
+
 /* the "what's happening now" strip */
-export function nowCopy({ facilitator, title, recording, breakout }) {
+export function nowCopy({ facilitator, title, recording, breakout }, words = OPIL_WORDS) {
   if (breakout) return 'Small groups · ' + breakout.name + (breakout.left ? ' · ' + breakout.left + ' left' : '');
-  const who = facilitator ? facilitator + ' is teaching: ' + title : 'Class in progress: ' + title;
-  return recording ? who + ' · This class is being recorded' : who;
+  const who = facilitator ? facilitator + ' ' + words.teaching + ': ' + title : capFirst(words.thing) + ' in progress: ' + title;
+  return recording ? who + ' · This ' + words.thing + ' is being recorded' : who;
 }
 
 /* the question queue: open hands in the order raised; a staged hand is "on deck" first */
@@ -71,12 +85,14 @@ export function queuePosition(rows, uid) {
 }
 export function nextInLine(rows) { return queueOrder(rows)[0] || null; }
 
-/* the sentence under the title on the join screen */
-export function joinCopy({ live, host, facilitator, joined, startsAt }) {
-  const n = Number(joined || 0), students = n === 1 ? '1 student joined' : n + ' students joined';
-  if (host) return live ? 'Your class is running · ' + students : 'This room is yours. Start the class when you’re ready — students who have the link are waiting here.';
-  if (live) return (facilitator ? facilitator + ' is in the room' : 'The class is running') + ' · ' + students;
+/* the sentence under the title on the join screen; words.waiting (the Academy room) replaces
+   the two "hasn’t started yet" sentences because that room has no scheduled start time */
+export function joinCopy({ live, host, facilitator, joined, startsAt }, words = OPIL_WORDS) {
+  const n = Number(joined || 0), people = n === 1 ? '1 ' + words.one + ' joined' : n + ' ' + words.many + ' joined';
+  if (host) return live ? 'Your ' + words.thing + ' is running · ' + people : 'This room is yours. Start the ' + words.thing + ' when you’re ready — ' + words.many + ' who have the link are waiting here.';
+  if (live) return (facilitator ? facilitator + ' is in the room' : 'The ' + words.thing + ' is running') + ' · ' + people;
+  if (words.waiting) return words.waiting;
   return startsAt
-    ? 'Class hasn’t started yet. You’re all set — it starts at ' + startsAt + ' and you’ll enter on your own.'
-    : 'Class hasn’t started yet. You’re all set — you’ll enter on your own when ' + (facilitator || 'your facilitator') + ' starts it.';
+    ? capFirst(words.thing) + ' hasn’t started yet. You’re all set — it starts at ' + startsAt + ' and you’ll enter on your own.'
+    : capFirst(words.thing) + ' hasn’t started yet. You’re all set — you’ll enter on your own when ' + (facilitator || words.host) + ' starts it.';
 }
