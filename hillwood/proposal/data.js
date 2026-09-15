@@ -1,338 +1,338 @@
-/* Hillwood proposal data. PRICES live in index.html (window.HW_PRICES); every total on the page is computed from them. */
+/* Hillwood proposal data. No prices: pricing is set after the scope call (online vs in person, headcount, cadence). Format names live in index.html (window.HW_FORMATS). */
 window.HW_DATA={
  "catalog": [
   {
    "lane": "Everyone",
-   "blurb": "The shared baseline for all 1,300 employees at Turtle Creek and Alliance, any role, any comfort level.",
+   "blurb": "The shared starting line for all 1,300 employees, any role, any comfort level.",
    "items": [
     {
      "t": "AI Foundations, All-Staff",
      "k": "s60",
-     "who": "All employees, both offices, run as a broadcast with chat or hybrid with one office in person with me; it can double as the rollout kickoff with HR and IT opening the hour on the rules and me running the live demo",
-     "out": "Every employee has opened the tool IT approved, done three real tasks in it (summarize a document, draft an email, turn notes into a checklist), checked the answers against the source, and knows what never goes into the prompt. Replay and one-page guide stay in the room.",
-     "why": "This is the session you titled the call after, and one broadcast is the only way to reach both offices in a day, and the recording becomes the seed for every new hire after it. I teach by doing the task live in the approved tool, no slides.",
+     "out": "Everyone opens the AI tool IT approved and does three real tasks with it: sum up a document, write an email, and turn notes into a checklist. They check the answers. They learn what should never go into the tool. The recording and a one-page guide stay in the room.",
+     "who": "All employees, both offices. Run as one big broadcast, or one office in person with me and the other online.",
+     "why": "This is the class you named the call after. One broadcast reaches both offices in a day, and the recording works for every new hire after that.",
      "nov": "low"
     },
     {
-     "t": "Foundations Hands-on Cohort",
+     "t": "Foundations Hands-on Group",
      "k": "hands",
-     "who": "Up to 25 people from one division or one office at a time, laptops open, breakout rooms; hybrid works with one office in person with me and the other in the Hillwood room",
-     "out": "Each person leaves with three prompts built on their own real work that week, saved where they can reuse them, a weekly-report and a meeting-notes routine, and a verification habit they practiced live, plus follow-up materials.",
-     "why": "Five divisions do very different daily work, so one broadcast will not stick everywhere; a cohort per division lets the exercises use that division's own document types. This is the format I run most: people build alongside me and I walk the room.",
+     "out": "Each person builds three prompts on their own real work and saves them to use again. They practice a weekly-report routine and a meeting-notes routine, and they practice checking the AI's answers.",
+     "who": "Up to 25 people from one division or one office, laptops open.",
+     "why": "The all-staff hour shows people what is possible. This is where they get good at it, on their own work.",
      "nov": "medium"
     },
     {
      "t": "Safe Use Inside the Rules",
      "k": "s60",
-     "who": "All staff, especially anyone who handles tenant, resident, financial, or personnel information",
-     "out": "People can tell the difference between a task that belongs in an approved tool and one that does not, using IT's rules in plain language, and know who to ask when they are not sure.",
-     "why": "IT will publish rules; the rules only work if the people using the tools understand them in terms they can act on. I teach inside the rules IT and legal set, with worked examples, and I never write the rules.",
+     "out": "People can tell which tasks belong in an approved AI tool and which do not, using IT's rules in plain words. They know who to ask when they are not sure.",
+     "who": "All employees, or one team at a time.",
+     "why": "IT will publish the rules. Rules only work when people understand them in words they can act on. I teach inside the rules. I never write them.",
      "nov": "medium"
     },
     {
      "t": "Meeting Notes to Action Items",
      "k": "s60",
-     "who": "Anyone who sits in recurring meetings: leasing pipeline reviews, OAC calls, builder meetings, committee and staff meetings at both offices",
-     "out": "Turn a page of typed notes or an approved transcript into a clean summary, a decision list, and an owner-by-owner action list, check it against the original, and send the follow-up email in the same sitting.",
-     "why": "A developer and owner runs on meetings, and the notes from those meetings drive the next week's work. I run client and production meetings every week and use this exact workflow, including the ways it gets things wrong.",
+     "out": "Turn a page of notes into a clean summary, a list of decisions, and a to-do list with names on it. Check it against the original. Send the follow-up email in the same sitting.",
+     "who": "Anyone who runs meetings or sits in them.",
+     "why": "It is the most common task at any company, and the fastest win.",
      "nov": "medium"
     },
     {
      "t": "Admin and Assistant Workflows",
      "k": "hands",
-     "who": "Executive assistants, office coordinators, and project coordinators at both offices, up to 25",
-     "out": "Attendees can turn meeting notes into action lists, draft and tidy correspondence, summarize long documents, and leave with a personal set of reusable prompts, on non-confidential material unless IT clears more.",
-     "why": "These roles touch every executive's calendar and inbox; when they adopt, their leaders see the benefit without taking a class themselves. I run my own studio operations on these workflows every day.",
+     "out": "Assistants and coordinators turn notes into action lists. They draft and tidy emails. They sum up long documents. And they leave with their own set of reusable prompts.",
+     "who": "Executive assistants, coordinators, and office managers, up to 25.",
+     "why": "These are the people who keep both offices running. Give them an hour back a day and everyone feels it.",
      "nov": "medium"
     },
     {
      "t": "AI Office Hours",
      "k": "s60",
-     "who": "Anyone who has taken Foundations and has a task that is not working, drop-in, in the Hillwood room, recorded",
-     "out": "Priced per session, run monthly or quarterly as HR chooses. Employees bring a task that is stuck and leave with it working, and HR gets a recorded list of the questions people actually have, which becomes a searchable FAQ in the room.",
-     "why": "After a rollout, the questions start; office hours keep adoption moving without HR fielding every ask. Priced as one 60-minute session per month, never bundled into the Hub price.",
+     "out": "People bring a task that is stuck and leave with it working. HR gets a recorded list of the real questions people ask, which becomes a searchable FAQ in the room.",
+     "who": "Anyone can drop in. Run monthly or every quarter, whichever HR chooses.",
+     "why": "Training fades unless there is a place to ask the next question.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "Real estate teams",
-   "blurb": "Division-specific sessions for Industrial-Logistics, Communities, Urban, and Properties, built on the team's own documents; the division brings the domain, I bring the method.",
+   "blurb": "Classes for Industrial-Logistics, Communities, Urban, and Properties, built on each team's own documents. The team brings the real estate. I bring the method.",
    "items": [
     {
      "t": "Division Use-Case Day",
      "k": "half",
-     "who": "One division at a time, up to 25, at Turtle Creek or Alliance, laptops open, recorded into the room",
-     "out": "Each attendee leaves with one working workflow built on their own documents (a market summary, a site memo, an RFP response first draft, a tenant update), and the division leaves with a shared prompt library its own people tested.",
-     "why": "Each division has different daily work, and a generic prompt list would fit none of them; a library built by the team during the day gets used the same week and gives IT real examples of what people need. Nothing touches Yardi, JDE, or Salesforce; work stays in the approved AI tool.",
+     "out": "Each person leaves with one working AI routine built on their own documents. That could be a market summary, a site memo, a first draft of an RFP answer, or a tenant update. The division leaves with a shared set of prompts its own people tested.",
+     "who": "One division at a time, in person, up to 25.",
+     "why": "A half day is long enough to build something real and test it on the spot.",
      "nov": "medium"
     },
     {
      "t": "Reading Long Documents Safely",
      "k": "hands",
-     "who": "Land, entitlement, development, and community teams who read city agendas, ordinances, staff reports, and consultant deliverables, up to 25",
-     "out": "Ask a 200-page document the questions you actually have, get answers with page references, verify each one against the page, and know when to stop and hand it to counsel or the consultant.",
-     "why": "Master-planned work at AllianceTexas and in Hillwood Communities means constant public-process documents; reading faster with a verification habit is a real time win without changing who makes the call. This is reading and checking, never legal or entitlement advice.",
+     "out": "Ask a 200-page document the questions you actually have. Get answers with page numbers. Check each one against the page. Know when to stop and hand it to a lawyer or a consultant.",
+     "who": "Anyone who reads long leases, contracts, reports, or studies.",
+     "why": "Long documents are everywhere in real estate. This is the safest, most useful thing AI does with them.",
      "nov": "medium"
     },
     {
      "t": "Leasing and Tenant Correspondence",
      "k": "hands",
-     "who": "Industrial-Logistics leasing, property management at AllianceTexas, and the coordinators who support them, up to 25",
-     "out": "Draft broker follow-ups, tour recaps, tenant notices, vendor emails, and a plain-English summary of a long proposal from their own examples, in Hillwood's tone, with every fact checked against the source document.",
-     "why": "Hillwood Properties runs a large tenant base at Alliance and Industrial-Logistics leases across North America and Europe; correspondence is where hours go and where a bad draft costs a relationship. I teach the writing, not the lease.",
+     "out": "Draft broker follow-ups, tour recaps, tenant notices, and vendor emails from your own examples. Keep Hillwood's tone. Check every fact against the source.",
+     "who": "Leasing, property management, and tenant relations teams, up to 25.",
+     "why": "Most of this writing repeats. AI drafts it. Your people check it and make it sound like Hillwood.",
      "nov": "medium"
     },
     {
      "t": "Project Meeting to Status Report",
      "k": "hands",
-     "who": "Construction and project management, development managers, and the assistants who assemble weekly reports, up to 25",
-     "out": "Take OAC notes, an RFI log, and a schedule update and produce a one-page weekly status report and an owner update email in the format the team already uses, then verify every date and number.",
-     "why": "Hillwood builds at the same time across industrial parks, communities, urban projects, and the data-center and airport work at Alliance; status reporting is a weekly chore in every one of them. The report format and the facts come from the team; I teach the drafting and the checking.",
+     "out": "Take meeting notes, a list of open questions, and a schedule update. Turn them into a one-page weekly status report and an owner update email. Then check every date and number.",
+     "who": "Development and construction project teams, up to 25.",
+     "why": "Project teams write the same report every week. This gives them the week back and keeps the report accurate.",
      "nov": "medium"
     },
     {
-     "t": "Numbers into Narrative",
+     "t": "Numbers Into Plain Words",
      "k": "hands",
-     "who": "Finance, underwriting, asset management, and investor reporting teams, up to 25",
-     "out": "Paste a variance table or a set of assumptions into the approved tool and get a first-draft explanation, a list of questions to ask about the spreadsheet, and a quarterly update paragraph, all checked back against the numbers before anyone sees it.",
-     "why": "A privately held owner with co-investment partners writes a lot of narrative from numbers; the narrative is where AI helps and the model itself stays with the analysts. Only what IT allows goes into the tool, and nothing touches JDE.",
+     "out": "Paste a table of numbers into the approved tool. Get a first-draft explanation, a list of questions to ask about the spreadsheet, and a short quarterly update. Then check it all against the numbers.",
+     "who": "Finance, asset management, and anyone who explains numbers to other people, up to 25.",
+     "why": "The numbers are done by people. AI helps explain them. The check at the end is the whole point.",
      "nov": "medium"
     },
     {
      "t": "Presentations That Hold Up",
      "k": "hands",
-     "who": "Anyone who presents to investment committee, partners, city councils, or tenants: development, urban, leasing, and communities leads, up to 25",
-     "out": "Turn a memo into a presentation outline, tighten the story, generate the hard questions the room will ask, rehearse the answers, then build the slides in the tools Hillwood already uses.",
-     "why": "Every division presents to someone with money or authority at stake, and a clearer story with better-prepared answers is an outcome people notice. I pitch and present for a living.",
+     "out": "Turn a memo into a presentation outline and tighten the story. Get the hard questions the room will ask, so you can practice the answers. Then build the slides in the tools Hillwood already uses.",
+     "who": "Anyone who presents to leadership, investors, partners, or a city council, up to 25.",
+     "why": "Every division presents to someone with money or a vote at stake. A clearer story is something people notice. I pitch and present for a living.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "HR & recruiting",
-   "blurb": "Your team first, so HR sees the format on its own work and carries the program afterward.",
+   "blurb": "Your team first, so HR learns the format on its own work and can carry the program afterward.",
    "items": [
     {
      "t": "AI in the Recruiting Workflow",
      "k": "hands",
-     "who": "Recruiters, HR generalists, and hiring managers who write postings and interview, up to 25, everyone working on a live requisition",
-     "out": "Three live job postings rewritten, a candidate outreach sequence, structured interview question sets, and new-hire communications, all drafted in the approved tool and checked before anything goes out, following HR's own hiring rules the whole way.",
-     "why": "You own Training and Recruiting; a session on your own workflow is the fastest proof the program pays for itself, and you have drafts to show around the same week. No candidate screening or scoring, nothing that touches hiring decisions or employment law, no ATS training.",
+     "out": "Rewrite three live job postings. Build a candidate outreach sequence. Write structured interview questions. Draft new-hire emails. All in the approved tool, all checked before anything goes out, and all following HR's own hiring rules.",
+     "who": "Recruiters, HR generalists, and hiring managers, up to 25, each working on a real opening.",
+     "why": "You own Training and Recruiting. A class on your own work is the fastest proof this pays off, and you have drafts to show around the same week. No candidate screening or scoring, and nothing that touches hiring decisions or employment law.",
      "nov": "medium"
     },
     {
      "t": "HR Team Working Session",
      "k": "hands",
-     "who": "The HR department itself: benefits, payroll, HRBPs, training staff, up to 25",
-     "out": "HR staff can draft policy explainers, employee FAQs, onboarding checklists, and a plain summary of a long benefits document with AI, then edit them to Hillwood's voice, with a clear line on which HR decisions stay with a person.",
-     "why": "HR is the department asked to sponsor adoption; it is easier to champion something the team already uses in its own inbox. Exercises run on sample documents unless IT confirms the tool is cleared for employee data.",
+     "out": "The HR team drafts policy explainers, employee FAQs, onboarding checklists, and plain summaries of long benefits documents. Then they edit them to sound like Hillwood, with a clear line on which decisions stay with a person.",
+     "who": "The whole HR department, up to 25.",
+     "why": "HR is the team asked to lead this rollout. It is easier to lead something you already use every day.",
      "nov": "medium"
     },
     {
-     "t": "HR Facilitator Handoff",
+     "t": "HR Runs Foundations Itself",
      "k": "hands",
-     "who": "You and the training staff who will keep running Foundations after me, small group, inside the Hillwood room",
-     "out": "With the Hub, HR can run its own Foundations session in the room, use the materials library, start a recording, and manage breakouts without me on the call. Without it, HR runs Foundations from the kit and the one-page guide on Hillwood's own tools. This is running the room and the existing materials, not certifying anyone to teach AI.",
-     "why": "Training and Recruiting is one person's title; a handoff means the program keeps running when the budget for outside sessions pauses. I built and operate the room, and I teach by having people drive while I coach.",
+     "out": "With the Hillwood room for the year, HR can run its own Foundations class in it. That means using the materials, starting a recording, and managing breakout groups without me on the call. Without the room, HR runs Foundations from the kit and the one-page guide on Hillwood's own tools. This is learning to run the room and the materials, not becoming an AI teacher.",
+     "who": "You and the training staff who will keep running Foundations after me. Small group, in the Hillwood room.",
+     "why": "At 1,300 people, the program only lasts if HR can run the basics without booking me every time.",
      "nov": "high"
     },
     {
-     "t": "Employer Brand Video Day",
+     "t": "Recruiting Video Day",
      "k": "half",
-     "who": "HR, recruiting, and internal comms staff who need team and culture video, up to 25, phones and laptops out",
-     "out": "The team plans, shoots, and rough-cuts two short recruiting or culture videos on their phones, using AI for scripts, shot lists, and captions, and leaves with a process it can repeat monthly. Rough cuts and a process, not polished pieces.",
-     "why": "Hillwood recruits against other DFW employers for the same talent, and its culture is easier to show than to describe; AllianceTexas is a visual place. I run a production studio and already teach a Content Creator Workshop for people who shoot on phones.",
+     "out": "The team plans, shoots, and rough-cuts two short recruiting or culture videos on their phones, using AI for scripts, shot lists, and captions. They leave with two videos and a process they can repeat.",
+     "who": "Recruiting and communications staff, in person, up to 25.",
+     "why": "Recruiting is half of your title, and video is where candidates look first. This is my studio's daily work.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "Marketing & communications",
-   "blurb": "Where a working creative director's studio work shows most: corporate marketing, division marketing, community and internal communications.",
+   "blurb": "Where my studio work shows most: corporate marketing, division marketing, community and internal communications.",
    "items": [
     {
      "t": "Property Marketing Working Day",
      "k": "half",
-     "who": "Corporate marketing and the division marketing leads for industrial, urban, and communities, at Turtle Creek or Alliance, laptops open",
-     "out": "A complete first-draft content set for one real property or community: listing and brochure copy, a web page outline, a shot list and video brief, and a social plan, built together in the room and ready for the team's own review.",
-     "why": "Hillwood markets everything from a master-planned development to a single industrial building; getting to a good first draft in hours instead of days changes how many properties one team can serve. This is my home ground: 14 years of creative direction, a working studio, and daily AI use for exactly these deliverables.",
+     "out": "A complete first-draft content set for one real property or community. Listing and brochure copy, a web page outline, a shot list and video brief, and a social media plan. Built together in the room, ready for the team's own review.",
+     "who": "The marketing team for one property or community, in person, up to 25.",
+     "why": "Hillwood markets everything from a whole master-planned community to a single building. Getting a good first draft in hours instead of days changes how many properties one team can serve. This is my home ground: 14 years of creative direction.",
      "nov": "medium"
     },
     {
      "t": "Marketing Content Sprint",
      "k": "hands",
-     "who": "Marketing teams for Communities, Urban, Industrial-Logistics, and AllianceTexas, up to 25",
-     "out": "Each person leaves with a brand-voice prompt built from Hillwood's own guidelines (supplied ahead of time) and a week of first drafts: property page copy, newsletter, social captions, and an email, all produced inside the approved tool with a human review step.",
-     "why": "Master-planned communities, mixed-use projects, and industrial parks each need a steady stream of copy, and these teams will feel AI first. The brand-voice prompt is built from Hillwood's real guidelines, not a generic template.",
+     "out": "Each person leaves with a brand-voice prompt built from Hillwood's own guidelines, plus a month of drafts: emails, social captions, and web copy, ready for review.",
+     "who": "Corporate and division marketing teams, up to 25.",
+     "why": "Communities, mixed-use projects, and industrial parks each need a steady stream of copy. The brand-voice prompt built from real guidelines is what keeps it sounding like Hillwood.",
      "nov": "medium"
     },
     {
      "t": "Community Communications Workshop",
      "k": "hands",
-     "who": "Hillwood Communities lifestyle, marketing, and resident-relations staff, plus builder-relations coordinators, up to 25",
-     "out": "A month of resident newsletter drafts, event announcements, builder updates, and social captions from one set of community facts, in a consistent voice, with a habit for keeping names, dates, and amenities accurate.",
-     "why": "Master-planned communities live on a steady stream of resident and builder communication, and every community needs its own voice kept consistent across years. Examples use Hillwood's own community facts, never invented amenities.",
+     "out": "A month of resident newsletter drafts, event announcements, builder updates, and social captions. All from one set of facts, in one steady voice.",
+     "who": "The teams that talk to residents in the master-planned communities, up to 25.",
+     "why": "Residents notice when a community stops talking to them. This keeps the voice steady without adding staff.",
      "nov": "medium"
     },
     {
-     "t": "Internal Comms From One Source",
+     "t": "Internal Messages From One Source",
      "k": "hands",
-     "who": "Internal communications, HR communications, and executive assistants who publish company updates, up to 25",
-     "out": "Take one source, a leadership memo or a program update, and turn it into an email, an intranet post, a two-office announcement, and a short video script inside the approved tool, in Hillwood's voice, in under an hour.",
-     "why": "Two offices, five divisions, and an AI rollout that IT and HR both need to explain means a lot of internal communication in the next year, most of it the same message in different shapes. I teach the workflow; Hillwood writes the messages.",
+     "out": "Take one source, like a leadership memo or a program update. Turn it into an email, an intranet post, a two-minute video script, and a talking-points sheet for managers. Same message, four shapes.",
+     "who": "Corporate communications and HR, up to 25.",
+     "why": "Two offices and five divisions means a lot of internal messages, most of them the same message in different shapes. I teach the method. Hillwood writes the messages.",
      "nov": "medium"
     },
     {
      "t": "Keeping AI Work on Brand",
      "k": "s60",
-     "who": "In-house marketing, design, and communications staff, plus anyone who approves creative",
-     "out": "Reviewers use a one-page brand review pass on any AI-assisted draft or image before it goes out, and can say specifically why something is off instead of just feeling it. A creative review pass; legal and brand owners still make final calls.",
-     "why": "When five divisions start producing more with AI, the volume goes up faster than the number of people who can judge it; brand drift is the quiet cost of adoption. This is creative direction applied to AI output.",
+     "out": "Reviewers learn a one-page brand check. They run it on any AI-written draft or AI-made image before it goes out. And they can say clearly why something is off.",
+     "who": "Anyone who signs off on marketing, messages, or slide decks.",
+     "why": "When more people produce more, the number of people who can judge it does not grow as fast. Brand drift is the quiet cost. This is creative direction applied to AI work.",
      "nov": "high"
     },
     {
-     "t": "Marketing Visuals with AI",
+     "t": "Marketing Visuals With AI",
      "k": "hands",
-     "who": "Marketing and design staff for Communities, Urban, and Properties who produce collateral for real projects, up to 25, in person preferred",
-     "out": "The team can use IT-approved image tools for mood boards, concept visuals, and collateral variations, with a clear line between concept imagery and photographs of real property and a labeling habit to match. Runs only if IT has approved an image tool.",
-     "why": "Communities and mixed-use projects are sold on imagery, and the temptation to use AI images of real places is exactly where a real estate marketing team can get hurt. AI image work is a daily practice in my studio alongside real photography; fair housing and advertising law stay with their marketing and legal leads.",
+     "out": "The team uses IT-approved image tools for mood boards, concept visuals, and new versions of existing collateral. They also learn where the line is: what needs a real photographer or a real rendering.",
+     "who": "Marketing and design staff, up to 25.",
+     "why": "AI images are useful for thinking and risky for publishing. Knowing the difference is the skill.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "Leadership",
-   "blurb": "Division presidents and senior leaders who will be asked to sponsor Champions and approved use cases.",
+   "blurb": "For division presidents and senior leaders who will be asked to back the Champions and the use cases.",
    "items": [
     {
      "t": "Leadership AI Briefing",
      "k": "s60",
-     "who": "Division heads, executive team, and senior leaders, small group, in person at Turtle Creek or in the Hillwood room",
-     "out": "Each leader has run one real task in the approved tool with their own hands, can explain in plain words what the tools do and do not do, and can name two use cases in their own division worth sponsoring this quarter, instead of a general instruction to use AI more.",
-     "why": "Division AI Champions and approved use cases only happen if division leaders sponsor them, and leaders need a working picture before they sponsor anything. No projections, no productivity percentages; I show real work and let them judge. Policy stays IT's lane.",
+     "out": "Each leader runs one real task in the approved tool, with their own hands. They can explain in plain words what the tool does well and what it does poorly. And they name two use cases their division should try first.",
+     "who": "Division presidents, senior leaders, and department heads. In person at Turtle Creek or in the Hillwood room.",
+     "why": "AI Champions and approved use cases only happen if leaders back them, and leaders need a working picture before they back anything. No projections and no percentages. I show real work and let leaders judge. Policy stays IT's lane.",
      "nov": "medium"
     },
     {
      "t": "Champions Showcase",
      "k": "s60",
-     "who": "Champions or division teams presenting; leadership, HR, and all staff invited, hybrid so both offices can watch, recorded",
-     "out": "Leadership sees five to eight real workflows built by their own people, staff pick one thing to try, and HR has a recording to point to when someone asks what the training produced. Evidence of work, not a statistic.",
-     "why": "A training budget survives when leaders can see the result. The AUC Build Your First AI Agent workshop ended with each participant pitching what they built, and my current OPIL lab ends in a showcase; I know how to run one so it lands. Only offered after a cohort or lab has produced something real.",
+     "out": "Leadership watches five to eight real AI routines built by their own people. Staff pick one thing to try. HR gets a recording that sells the next round of the program better than any memo.",
+     "who": "Champions or division teams presenting; leadership, HR, and all staff invited; both offices can watch; recorded.",
+     "why": "Nothing builds belief like seeing a coworker do it.",
      "nov": "medium"
     },
     {
-     "t": "Leadership Message, Produced",
+     "t": "A Leader's Video Message",
      "k": "module",
-     "who": "Every employee, as the opening of the new-hire module or the Hub; a Hillwood leader on camera, not me",
-     "out": "A two-to-three minute studio-shot message from a Hillwood leader on why Hillwood is adopting AI, what is approved, and what is expected, played before the Foundations exercises. Scoped inside the new-hire module range, not a separate line item.",
-     "why": "A privately held company with a strong founder identity communicates best in its own voice. Interview and message videos are a core studio service; I direct, light, shoot, and cut them. The script is theirs; I help shape it and never write policy into it.",
+     "out": "A two-to-three-minute studio-shot video from a Hillwood leader on why Hillwood is adopting AI, what is approved, and what is expected. Made in the same shoot as the new-hire video when the timing works.",
+     "who": "One senior leader on camera; HR and communications on the script.",
+     "why": "A rollout lands better when a leader says it in their own words. Interview and message videos are a core studio service. The script is Hillwood's. I help shape it.",
      "nov": "high"
     }
    ]
   },
   {
    "lane": "Managers",
-   "blurb": "The layer most AI training skips and the one that decides whether adoption sticks.",
+   "blurb": "The layer most AI training skips, and the one that decides whether it sticks.",
    "items": [
     {
      "t": "Managing a Team That Uses AI",
      "k": "s60",
-     "who": "People managers and team leads across divisions and both offices, any headcount, recorded",
-     "out": "Managers can set three team norms (what to use AI for, what to check before sending, what stays out of the tool), delegate a task so the first draft comes back usable, know what to escalate to IT or HR, and run a ten-minute team huddle on it the same week.",
-     "why": "Once 1,300 people have the tools, quality depends on managers exercising judgment day to day. I have directed a team for 14 years and review AI-assisted work from my own people daily; managers set norms inside whatever IT and HR have approved.",
+     "out": "Managers set three team rules: what to use AI for, what to check before sending, and what stays out of the tool. They learn to hand off a task so the first draft comes back usable. And they run a ten-minute team huddle on it the same week.",
+     "who": "People managers and team leads across both offices; recorded.",
+     "why": "Once 1,300 people have the tools, quality depends on managers using judgment every day. I have directed a team for 14 years and review AI-assisted work from my own people daily.",
      "nov": "medium"
     },
     {
      "t": "Reviewing AI-Assisted Work",
      "k": "hands",
-     "who": "People managers who review documents drafted by their reports, up to 25, bringing real drafts from their own teams",
-     "out": "Managers practice a five-question review pass on their team's actual AI-assisted drafts: what was the source, what was checked, what changed, what would you defend, what should not have gone in the tool. They leave able to review a draft quickly and spot overreliance.",
-     "why": "Reviewing work and giving notes is the daily job of a creative director, and it is a distinct skill from using the tools; most AI training skips it. The last question points back to IT's rules; it does not replace them.",
+     "out": "Managers practice a five-question review on real AI-assisted drafts from their own teams: What was the source? What was checked? What changed? What would you defend? What should not have gone into the tool? They leave able to review a draft fast and spot over-reliance.",
+     "who": "People managers who review their reports' documents, up to 25, bringing real drafts.",
+     "why": "Reviewing work and giving notes is the daily job of a creative director, and it is a separate skill from using the tools. Most AI training skips it. The last question points back to IT's rules.",
      "nov": "high"
     },
     {
-     "t": "Use-Case Discovery Sprint",
+     "t": "Find Your Team's Use Cases",
      "k": "hands",
-     "who": "One division or department at a time, the manager plus their team, up to 25",
-     "out": "The team leaves with a scored list of its repeating tasks and three written candidates for approved use cases, each with the task, the tool, the data involved, and who owns it, in a form that is easy to hand to IT.",
-     "why": "IT's program runs on approved business use cases; those have to come from the divisions, and someone has to help the divisions find them. I run a studio, so I know what a repeating task looks like from the inside. A facilitated inventory, not a technical assessment, and no promised time savings.",
+     "out": "The team leaves with a scored list of its repeating tasks. They also leave with three written ideas for approved use cases. Each idea names the task, the tool, the data involved, and an owner, in a form that is easy to hand to IT.",
+     "who": "One division or department at a time, the manager plus their team, up to 25.",
+     "why": "Approved use cases have to come from the divisions, and someone has to help them find them. I run a studio, so I know what a repeating task looks like from the inside. No promised time savings.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "AI Champions & power users",
-   "blurb": "The Division AI Champions IT has named, plus self-selected power users; the internal bench that outlasts the vendor.",
+   "blurb": "The people in each division who lead on AI, plus anyone who wants to go deeper. The team that keeps things going after I leave.",
    "items": [
     {
-     "t": "Division AI Champions Cohort",
+     "t": "Division AI Champions Group",
      "k": "series",
-     "who": "One to three named Champions per division plus HR and Marketing, up to 25, in the Hillwood room, with build work between sessions",
-     "out": "Each Champion finishes with one documented, working use case from their own division built inside the approved tools, a shared prompt library, one teach-back already delivered to their own team, and a write-up ready to hand to IT as a candidate approved use case.",
-     "why": "Division AI Champions and approved business use cases need people behind them; this cohort is that people side and hands IT a pipeline of real use cases from the field. It is the shape of the three-night AUC agent workshop and the multi-week OPIL lab I am running now: a cohort, a build each, a showcase at the end. Champions bring use cases to IT; I do not select or approve them, and I do not build integrations.",
+     "out": "Each Champion is the person who leads on AI for their division. Each one finishes with four things. A working use case from their own division, built in the approved tools. A shared set of prompts. One class already taught to their own team. And a write-up ready to hand to IT.",
+     "who": "One to three named Champions per division plus HR and Marketing, up to 25, in the Hillwood room, with build work between sessions.",
+     "why": "Champions and approved use cases need people behind them. This cohort is those people. It is the shape of the AUC workshop and the lab I run now: a group, a build each, a showcase at the end. Champions bring ideas to IT. I do not select or approve them, and I do not build integrations.",
      "nov": "medium"
     },
     {
-     "t": "Champions Train the Trainer",
+     "t": "Champions Teach Their Teams",
      "k": "hands",
-     "who": "Champions who will run short sessions for their own divisions after the cohort ends, up to 25",
-     "out": "Each Champion can run a 30-minute hands-on session for their team using a kit they built during the workshop. With the Hub, the replay and materials live in the room and Champions can host their own sessions there; without it, they run from the kit on Hillwood's own tools.",
-     "why": "With 1,300 people across two offices, Hillwood cannot bring an outside trainer to every team; Champions who can teach make the program sustainable. I have run a creative team for 14 years and know what makes a hands-on session work and what makes it fall flat.",
+     "out": "Each Champion can run a 30-minute hands-on class for their own team, using a kit they built in the workshop. With the Hillwood room, the recording and materials live there, and Champions can host their own sessions. Without it, they run from the kit on Hillwood's own tools.",
+     "who": "Champions who will teach their own divisions, up to 25.",
+     "why": "With 1,300 people across two offices, Hillwood cannot bring an outside trainer to every team. Champions who can teach make the program last. I have run a creative team for 14 years and know what makes a hands-on class work.",
      "nov": "medium"
     },
     {
      "t": "Build Your First AI Agent",
      "k": "hands",
-     "who": "Champions and power users comfortable with the basics, from any division, up to 25, laptops open, in whichever agent builder IT has approved",
-     "out": "Each person leaves with one working agent they built themselves that handles a small real task from their own job (documents, email, summaries), plus the steps to rebuild it and a sense of what makes a task worth handing off.",
-     "why": "We build in whichever agent builder IT approves, and the fastest way to build belief is to have staff build something small that works. I ran this workshop for the AUC Data Science Initiative in June 2026 over three nights, roughly 35 to 50 students, each of whom built an agent and pitched it, and I run it publicly for business owners. No agents touch Yardi, JDE, or Salesforce.",
+     "out": "Each person builds one working AI agent. An agent is a small helper that does a task on its own, like sorting documents, drafting email replies, or writing summaries. They build it for a real job from their own work. They leave with the steps to rebuild it, and a sense of which tasks are worth handing off.",
+     "who": "Champions and power users who know the basics, up to 25, laptops open, in whichever agent builder IT has approved.",
+     "why": "The fastest way to build belief is to have people build something small that works. I ran this workshop for the AUC Data Science Initiative in June 2026 over three nights, and I run it publicly for business owners. No agents touch Yardi, JDE, or Salesforce.",
      "nov": "medium"
     }
    ]
   },
   {
    "lane": "Programs & platform",
-   "blurb": "The shapes that turn sessions into a program HR owns for the year: the room, the onboarding asset, the rollout arc, and the check-in.",
+   "blurb": "The pieces that turn classes into a program HR owns for the year: the room, the new-hire video, the rollout plan, and the check-in.",
    "items": [
     {
-     "t": "Hillwood Hub Year",
+     "t": "The Hillwood Room, for a Year",
      "k": "hub",
-     "who": "All staff as members with a Hillwood email; HR as owner; Champions as hosts and contributors",
-     "out": "Twelve months of a private Hillwood room on Taylormade Academy: every replay, the one-page guides and materials library, a new-hire track, a sign-in list for each session, and HR and Champions can run their own sessions in it without booking me. One link, browser only, nothing to install. It does not connect to SharePoint or any Hillwood system.",
-     "why": "HR needs somewhere the adoption materials, the replays, and the onboarding path live together, reachable from either office. The room is my own platform, the same one running OPIL today with sessions, a live class room, materials, and a showcase; this is something that exists, not a roadmap.",
+     "out": "Twelve months of a private Hillwood room on Taylormade Academy. Inside: every recording, the one-page guides and materials, a track for new hires, and a sign-in list for each session. HR and the Champions can run their own sessions in it without booking me. One link, browser only, nothing to install. It does not connect to SharePoint or any Hillwood system.",
+     "who": "All staff with a Hillwood email; HR as the owner; Champions as hosts.",
+     "why": "HR needs one place where the materials, the recordings, and the new-hire path live together, reachable from either office. This is my own platform, the same one running the AUC lab today. It exists now. It is not a roadmap.",
      "nov": "medium"
     },
     {
-     "t": "New-Hire Foundations Module",
+     "t": "New-Hire Foundations Video",
      "k": "module",
-     "who": "Every new hire in their first week, assigned by HR through onboarding, plus anyone who missed the live session",
-     "out": "A studio-shot, chaptered video version of Foundations, roughly 20 to 30 minutes of watch time with three do-it-now exercises and the one-page guide. A new hire finishes it in week one and starts with the same verification habit as everyone who attended live. Priced as a range until scope and shoot days are set; a refresh when IT's approved tools change is a separate job.",
-     "why": "At 1,300 people there is always someone new, and a live session cannot repeat for every start date. Taylormade Creative is a video and photo production studio, so the module is shot, lit, cut, and captioned in house rather than screen-recorded.",
+     "out": "A studio-shot video version of Foundations, split into chapters, about 20 to 30 minutes long. It comes with three do-it-now exercises and the one-page guide. A new hire finishes it in week one and starts with the same habits as everyone who attended live. A refresh when IT's approved tools change is a separate job.",
+     "who": "Every new hire in their first week, assigned by HR, plus anyone who missed the live class.",
+     "why": "At 1,300 people there is always someone new, and a live class cannot repeat for every start date. Taylormade Creative is a video and photo production studio, so the video is shot, lit, cut, and captioned in house rather than screen-recorded.",
      "nov": "medium"
     },
     {
-     "t": "Foundations Rollout Arc",
+     "t": "Foundations Rollout Plan",
      "k": "series",
-     "who": "All staff for session one, then three hands-on cohorts of up to 25: Turtle Creek, Alliance, and virtual for field and remote staff",
-     "out": "HR can say every employee has seen Foundations, and three cohorts of up to 25 have been through the hands-on version, with replays in the room for anyone who missed a date. One curriculum arc, each session building on the last.",
-     "why": "This is the honest answer to how you train 1,300 people: one broadcast everyone can watch, then cohorts at each office and online. I already run multi-session arcs (the three-night AUC workshop, the ongoing OPIL lab). It is the training layer of IT's rollout, not the adoption program itself; IT owns adoption.",
+     "out": "HR can say every employee has seen Foundations. Three groups of up to 25 have done the hands-on version. Recordings sit in the room for anyone who missed a date. One plan, four sessions, each building on the last.",
+     "who": "All staff for session one, then three hands-on groups: Turtle Creek, Alliance, and online for field and remote staff.",
+     "why": "This is the honest answer to how you train 1,300 people: one broadcast everyone can watch, then small groups at each office and online. I already run multi-session programs. It is the training layer of IT's rollout. IT owns the rest.",
      "nov": "medium"
     },
     {
      "t": "Quarterly AI Refresher",
      "k": "s60",
-     "who": "All staff as a broadcast with chat, or a returning cohort; HR picks the topic from this menu",
-     "out": "People know what changed in the approved tools this quarter and pick up one new routine they can use that week. Priced as one session per quarter, not a retainer.",
-     "why": "The tools IT sanctions will change during the year; a quarterly refresher keeps Foundations current without re-running the whole program. I use these tools daily to run my studio, so I see the changes as they land and can show what is actually different, not a vendor announcement.",
+     "out": "People learn what changed in the approved tools this quarter and pick up one new routine they can use that week. One session per quarter.",
+     "who": "All staff as a broadcast with chat, or a returning group. HR picks the topic from this menu.",
+     "why": "The tools will change during the year. A quarterly refresher keeps Foundations current without re-running the whole program. I use these tools daily, so I see the changes as they land.",
      "nov": "medium"
     },
     {
-     "t": "Adoption Pulse Readout",
+     "t": "Adoption Check-in",
      "k": "s60",
-     "who": "HR, the Champions, and whoever leads AI for IT, in the Hillwood room, after the first quarter of the program",
-     "out": "HR has a short before-and-after picture from plain self-report check-ins and session sign-ins: who is using the approved tools, for what, where people are stuck, and a short list of what to run next. Surveys and session records only; no analytics, no ROI figures, nothing tied to Hillwood's systems.",
-     "why": "A program with named Champions will be asked whether it worked; HR needs a simple, honest way to answer. A short before-and-after check-in is all it takes.",
+     "out": "HR gets a short before-and-after picture, built from simple check-in surveys and session sign-ins. It shows who is using the approved tools, for what, and where people are stuck, plus a short list of what to run next. Surveys and sign-in records only. No analytics, and nothing tied to Hillwood's systems.",
+     "who": "HR, the Champions, and whoever leads AI for IT, after the first quarter of the program.",
+     "why": "A program with named Champions will be asked whether it worked. HR needs a simple, honest way to answer.",
      "nov": "medium"
     }
    ]
@@ -341,7 +341,7 @@ window.HW_DATA={
  "paths": [
   {
    "name": "Start",
-   "who": "HR wants to see the format on its own work before asking anyone else to sit through it, and needs one all-staff moment that reaches both offices.",
+   "who": "Two classes. You see the format on your own team's work, and everyone gets one all-staff hour.",
    "comps": [
     {
      "t": "AI in the Recruiting Workflow",
@@ -352,14 +352,14 @@ window.HW_DATA={
      "k": "s60"
     }
    ],
-   "gets": "Your team leaves with live postings rewritten and a repeatable set of prompts the same week; every employee has done three real tasks in the approved tool; a replay and a one-page guide HR can share the next day. Nothing recurring."
+   "gets": "Your team leaves with live postings rewritten and a set of prompts to reuse. Every employee has done three real tasks in the approved tool. HR gets a recording and a one-page guide to share the next day."
   },
   {
    "name": "Rollout Year",
-   "who": "HR has budget for a real rollout and wants both offices covered, managers brought along, and a place where the replays and materials live for the year.",
+   "who": "Both offices covered, managers brought along, and one place where the recordings and materials live all year.",
    "comps": [
     {
-     "t": "Foundations Rollout Arc",
+     "t": "Foundations Rollout Plan",
      "k": "series"
     },
     {
@@ -367,22 +367,22 @@ window.HW_DATA={
      "k": "s60"
     },
     {
-     "t": "Hillwood Hub Year",
+     "t": "The Hillwood Room, for a Year",
      "k": "hub"
     }
    ],
-   "gets": "Every employee has seen Foundations and three cohorts of up to 25 have been through the hands-on version at Turtle Creek, Alliance, and online; managers have three team norms and a huddle to run; HR owns a private room for twelve months with every replay, the materials library, sign-in lists, and the ability to run its own sessions without booking me. Additional menu sessions are bought one at a time."
+   "gets": "Every employee has seen Foundations, and three groups have done the hands-on version. Managers have three team rules and a huddle to run. HR owns a private room for twelve months, with every recording, the materials, and sign-in lists. HR can run its own sessions in it."
   },
   {
    "name": "Program",
-   "who": "HR and IT want the people side of the enterprise AI program Hillwood is building: everyone trained, leaders sponsoring, Division AI Champions ready, new hires covered from day one.",
+   "who": "The people side of Hillwood's AI rollout: everyone trained, leaders on board, Champions ready, and new hires covered from day one.",
    "comps": [
     {
-     "t": "Foundations Rollout Arc",
+     "t": "Foundations Rollout Plan",
      "k": "series"
     },
     {
-     "t": "Division AI Champions Cohort",
+     "t": "Division AI Champions Group",
      "k": "series"
     },
     {
@@ -398,90 +398,90 @@ window.HW_DATA={
      "k": "s60"
     },
     {
-     "t": "Hillwood Hub Year",
+     "t": "The Hillwood Room, for a Year",
      "k": "hub"
     },
     {
-     "t": "New-Hire Foundations Module",
+     "t": "New-Hire Foundations Video",
      "k": "module"
     }
    ],
-   "gets": "Everything in Rollout Year, plus leaders who have used the tools and named two use cases each, a cohort of Champions with one documented working use case per division handed to IT, a recorded showcase leadership can watch, and a studio-produced onboarding module so every new hire reaches the same baseline without another live session. The Hub is the only line that recurs."
+   "gets": "Everything in Rollout Year. Plus: leaders who have used the tools and named two use cases each. A Champion in every division, each with one working use case handed to IT. A recorded showcase. And a studio-made onboarding video, so every new hire starts at the same place."
   }
  ],
  "rhythm": [
   {
    "when": "Q4 2026",
-   "what": "Scope confirmed with HR and IT: which tools are approved, what data may go in them, who the Division AI Champions will be. HR and recruiting hands-on session runs first so your team sees the format on its own work.",
+   "what": "We confirm the basics with HR and IT: which tools are approved, what data can go in them, and who the Champions are. The HR and recruiting class runs first, so your team sees the format on its own work.",
    "who": "You, whoever leads AI for IT, and me; the HR and recruiting team"
   },
   {
    "when": "Q4 2026",
-   "what": "AI Foundations, All-Staff broadcast, hybrid across Turtle Creek and Alliance, timed to IT's tool rollout; the Hillwood Hub opens with the replay and one-page guide inside.",
-   "who": "All staff; HR and IT open the hour, I run the demo"
+   "what": "AI Foundations for all staff, both offices at once, timed to IT's rollout. The Hillwood room opens with the recording and the one-page guide inside.",
+   "who": "All staff. HR and IT open the hour; I run the demo."
   },
   {
    "when": "Q1 2027",
-   "what": "Hands-on Foundations cohorts at Turtle Creek, at Alliance, and online; Managing a Team That Uses AI for people managers; Leadership AI Briefing for division heads.",
-   "who": "Cohorts of up to 25 by division or office; managers; senior leaders"
+   "what": "Hands-on Foundations groups at Turtle Creek, at Alliance, and online. Managing a Team That Uses AI for managers. The Leadership Briefing for division heads.",
+   "who": "Groups of up to 25; managers; senior leaders"
   },
   {
    "when": "Q1 to Q2 2027",
-   "what": "Division AI Champions Cohort, four sessions with build work between them; each Champion documents one use case for IT and delivers one teach-back to their own team.",
-   "who": "Named Champions from each division plus HR and Marketing; whoever leads AI for IT invited"
+   "what": "The Champions Group: four sessions with build work in between. Each Champion documents one use case for IT and teaches one class to their own team.",
+   "who": "Named Champions from each division plus HR and Marketing; whoever leads AI for IT is invited"
   },
   {
    "when": "Q2 2027",
-   "what": "Champions Showcase, hybrid and recorded; the new-hire module is shot at Turtle Creek or Alliance and added to the Hub's onboarding track.",
+   "what": "The Champions Showcase, both offices, recorded. The new-hire video is shot at Turtle Creek or Alliance and added to the room.",
    "who": "Champions presenting; leadership, HR, and all staff watching; my studio for the shoot"
   },
   {
    "when": "Q3 2027",
-   "what": "Menu sessions by team: marketing, real estate divisions, admin and assistants; monthly office hours or a quarterly refresher as the approved tools change.",
+   "what": "Classes by team: marketing, the real estate divisions, admin and assistants. Office hours or a quarterly refresher as the tools change.",
    "who": "HR picks from the menu; division teams; anyone with a stuck task"
   },
   {
    "when": "Q3 2027",
-   "what": "Adoption Pulse Readout and the year-two decision: what to keep, what to hand to HR and the Champions to run themselves in the room.",
+   "what": "The Adoption Check-in and the year-two decision: what to keep, and what HR and the Champions can run on their own.",
    "who": "HR, the Champions, whoever leads AI for IT, and me"
   }
  ],
  "objections": [
   {
    "q": "How do you know what IT is building?",
-   "a": "Only from what Hillwood has said publicly about its enterprise AI program: named Division AI Champions, approved business use cases, adoption materials. I built the catalog around that people side. Correct me on the call and I will reshape it."
+   "a": "Only from what Hillwood has said publicly about its AI program: named Division AI Champions, approved use cases, and adoption materials. I built this catalog around the people side of that. Tell me where I am wrong on the call and I will reshape it."
   },
   {
-   "q": "IT will need to run a security review of your platform. What is on it?",
-   "a": "Send me IT's questionnaire and I will answer it line by line. The room holds what a class produces: names and Hillwood email addresses for sign-in, the session chat, the recording, and the materials I bring. A recording captures whatever is on screen, so recorded sessions run on sample documents or on documents IT has cleared, and anything Hillwood-confidential stays in your approved tool on your own accounts."
+   "q": "IT will want to review your platform. What is on it?",
+   "a": "Send me IT's questionnaire and I will answer every line. The room holds what a class produces: names and Hillwood emails for sign-in, the chat, the recording, and the materials I bring. A recording captures whatever is on screen. So recorded classes use sample documents, or documents IT has cleared. Anything confidential stays in your approved tool, on your own accounts."
   },
   {
-   "q": "What Hillwood data goes where during a session?",
-   "a": "The work happens in Copilot, ChatGPT, or Claude, whichever IT has sanctioned, on Hillwood's own accounts. In the room, people share their screen, so a recorded session uses sample documents I bring or documents IT has cleared; nothing Hillwood-confidential is uploaded to my platform, and I only ever teach in the tools IT approves."
+   "q": "What Hillwood data goes where during a class?",
+   "a": "The work happens in Copilot, ChatGPT, or Claude, whichever IT has approved, on Hillwood's own accounts. Nothing confidential is uploaded to my platform. I only teach in the tools IT approves."
   },
   {
-   "q": "We only use Copilot, or the licenses are not rolled out yet.",
-   "a": "Then the whole session runs in Copilot; I teach the method, not a tool. If licenses are still coming, we time the session to the rollout so people are ready the day they get access."
+   "q": "We only use Copilot, or the licenses are not out yet.",
+   "a": "Then the whole class runs in Copilot. I teach the method, not a tool. If licenses are still coming, we time the class to the rollout so people are ready the day they get access."
   },
   {
-   "q": "Can you not just run it on Teams?",
-   "a": "Teams is where Hillwood meets, and I will join the scope call there. The training itself runs in a room built for a class: breakouts, spotlight, screen share, auto-recording, one browser link with nothing to install. That is why replays and materials stay in one place."
+   "q": "Can you just run it on Teams?",
+   "a": "Teams is where Hillwood meets, and I will join our call there. The training itself runs in a room built for a class: breakout groups, a spotlight, screen sharing, automatic recording, and one browser link with nothing to install. That is why the recordings and materials stay in one place."
   },
   {
    "q": "How do we train 1,300 people across two offices?",
-   "a": "You do not schedule 1,300 people. You schedule one broadcast that both offices watch, with the replay in the room, then cohorts of about 25 by division across a quarter, one office in person with me and the other in the Hillwood room."
+   "a": "You do not schedule 1,300 people. You schedule one broadcast that both offices watch, with the recording in the room. Then small groups of about 25 by division over a quarter, one office in person with me and the other in the Hillwood room."
   },
   {
-   "q": "Does this overlap with IT's AI program, and will you write our policy?",
-   "a": "No on both. IT builds the tools and the policy; I train the people who use them, inside the approved use cases, and I adapt every exercise to whatever IT and legal publish. Champions bring use cases to IT; I do not select or approve them."
+   "q": "Does this overlap with IT's program? Will you write our policy?",
+   "a": "No on both. IT builds the tools and the policy. I train the people who use them, inside the approved use cases, and I adapt every exercise to whatever IT and legal publish. Champions bring ideas to IT. I do not pick or approve them."
   },
   {
    "q": "Do you know real estate?",
-   "a": "I am not a real estate operator, and I will say so in the room. Your divisions bring the documents and the domain, I bring the method and the hands-on format. Nothing I teach touches Yardi, JDE, Salesforce, lease terms, or underwriting models."
+   "a": "I am not a real estate operator, and I will say so in the room. Your divisions bring the documents and the know-how. I bring the method and the hands-on format. Nothing I teach touches Yardi, JDE, Salesforce, lease terms, or underwriting models."
   },
   {
    "q": "Who else have you done this for, and how do we measure it?",
-   "a": "I facilitated the Johns Hopkins-funded Build Your First AI Agent workshop for the AUC Data Science Initiative in June 2026: three nights, roughly 35 to 50 students, each of whom built and pitched an agent. Right now I am running a live innovation lab for AUC students on my platform. For measurement I report attendance from Hillwood-email sign-in and what each cohort built. Adoption of specific use cases is IT's dashboard, so I build sessions around the approved list and the two line up."
+   "a": "In June 2026 I ran the Johns Hopkins-funded Build Your First AI Agent workshop for the AUC Data Science Initiative. Three nights, about 35 to 50 students, and each one built and pitched an agent. Right now I run a live innovation lab for AUC students on my platform. For measuring: I report attendance from sign-ins and what each group built. Whether specific use cases get adopted is IT's dashboard, so I build classes around the approved list and the two line up."
   }
  ]
 };
