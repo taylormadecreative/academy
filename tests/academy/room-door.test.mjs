@@ -56,6 +56,14 @@ test('room/: a waiting guest whose link died gets the dead-link card, an in-room
   assert.ok(decl > 0 && dispatch > 0 && decl < dispatch, 'room/closing/inRoom must be declared above the dispatch');
 });
 
+test('room/: the room module gets one retry before the fail card, with a plain-English connection message', () => {
+  assert.ok(room.includes('async function loadRoom()'));
+  const hits = room.match(/import\('\/js\/rtk-room-v2\.js\?v=[a-z0-9]+'\)/g) || [];
+  assert.equal(hits.length, 2, 'expected the try and the retry, found ' + hits.length);
+  assert.ok(room.includes('const { mountRoomV2 } = await loadRoom();'), 'enter() must call loadRoom()');
+  assert.ok(room.includes('The room didn’t load. Check your connection, then try again.'));
+});
+
 test('room/: the cards say what the spec says', () => {
   assert.ok(room.includes('The room could not load.'));
   assert.ok(room.includes('Sign in and you walk straight in.'));

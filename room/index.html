@@ -88,7 +88,10 @@ function showCard(html) {
 }
 const tryAgain = '<div class="acts"><a class="btn gold" href="' + esc(here) + '">Try again <span class="arr">&rarr;</span></a></div>';
 /* a join or record refusal carries a code from the server; anything else (the video library, a lost connection) speaks for itself */
-const failText = (e) => (e && e.code) ? joinErrorText(e.code, e.status, words) : ((e && e.message) || 'Could not open the room.');
+const failText = (e) => {
+  if (e && /module script|Failed to fetch|Load failed|NetworkError|dynamically imported module/i.test(String(e.message || e))) return 'The room didn’t load. Check your connection, then try again.';
+  return (e && e.code) ? joinErrorText(e.code, e.status, words) : ((e && e.message) || 'Could not open the room.');
+};
 
 let poll = null;
 let room = null, closing = false, inRoom = false;   /* declared before the dispatch below: the flows assign them after an await, but nothing may ever hit the TDZ */
@@ -132,10 +135,15 @@ try {
 const user = session ? session.user : null;
 const branch = roomBranch(state);
 
+/* the room's code, with one retry: a dropped fetch on a phone connection should not be the end of it */
+async function loadRoom() {
+  try { return await import('/js/rtk-room-v2.js?v=f01a5d68eb'); }
+  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js?v=f01a5d68eb'); }
+}
 /* v2 in room mode: the same module OPIL uses, pointed at the room instead of a session */
 async function enter(mode, hooks) {
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
-  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=f01a5d68eb');
+  const { mountRoomV2 } = await loadRoom();
   return mountRoomV2({ mountEl: mount, cfg: CFG, token: tok, sb, user, mode, target: { kind: 'room', id: state.id, title: state.title, key: k }, ...hooks });
 }
 
