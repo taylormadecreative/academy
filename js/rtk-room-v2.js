@@ -114,14 +114,14 @@ export async function mountRoomV2(o) {
     : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
   /* OPIL keeps sending meeting_id; the server ignores it now and uses the session's stored one */
   const joinBody = isRoom ? { room: true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
-  const facilitator = o.facilitator ?? (isRoom ? words.host : null);
+  const facilitator = isRoom ? (o.facilitator || words.host) : o.facilitator;
   mountEl.classList.add('r2host');
   document.body.classList.add('in-room', 'in-room-v2');
 
   /* ---------- waiting: no video library yet, just the promise of what happens next ---------- */
   if (mode === 'waiting') {
     mountEl.innerHTML = '';
-    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words }));
+    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom }));
     try { sessionStorage.setItem(AUTO_KEY, autoKey); } catch (e) {}   /* when the page reloads live, walk straight in */
     return { meetingId: null, leave: () => { mountEl.innerHTML = ''; }, setRecording() {} };
   }
@@ -176,7 +176,7 @@ export async function mountRoomV2(o) {
 
   /* ---------- getting in ---------- */
   const joinedCount = () => { try { return meeting.participants.joined.toArray().length; } catch (e) { return 0; } };
-  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words });
+  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words, isRoom });
   mountEl.innerHTML = ''; mountEl.appendChild(screen);
   const preview = screen.querySelector('video');
   const attachPreview = () => {
@@ -261,7 +261,7 @@ export async function mountRoomV2(o) {
 }
 
 /* ---------- the join screen ---------- */
-function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words }) {
+function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words, isRoom }) {
   const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
   const cta = !live && !host ? '' : `<button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
       <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p>`;
@@ -276,7 +276,7 @@ function joinScreen({ label, title, startsAt, live, host, facilitator, joined, p
           <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
           <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
           <button type="button" class="r2-chip r2-fx" data-t="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-        </div></div>` : `<div class="r2-wait"><b>${esc(title)}</b><span>${startsAt ? 'Starts at ' + esc(startsAt) : 'Starts when ' + esc(words.host) + ' opens it'}</span>
+        </div></div>` : `<div class="r2-wait"><b>${esc(title)}</b><span>${startsAt ? 'Starts at ' + esc(startsAt) : isRoom ? 'Starts when ' + esc(words.host) + ' opens the room' : 'Starts when ' + esc(words.host) + ' opens it'}</span>
         <ol><li>You’ll enter the ${esc(words.thing)} on your own.</li><li>${esc(copy.capFirst(words.host))} will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
     </div>
     <div class="r2-join-right">${cta}<p class="r2-fine">No downloads. Works in your browser.</p></div>
@@ -449,7 +449,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     const p = el(`<div class="r2-tools">
       <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-      <button type="button" class="r2-btn" data-tool="breakout"><b>Breakout rooms</b><span>Split the class into team rooms</span></button>
+      <button type="button" class="r2-btn" data-tool="breakout"><b>Breakout rooms</b><span>Split the ${esc(words.thing)} into team rooms</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
