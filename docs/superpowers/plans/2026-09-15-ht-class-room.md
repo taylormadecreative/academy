@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Work in the worktree `~/taylormade-academy-ht` on branch `ht-class-room`** (off `academy-room`). Another Claude session is building the Academy room in `~/taylormade-academy` on `academy-room` — never edit that directory, never `git stash`. Tasks 8–9 touch files that session owns and run ONLY after `academy-room` has merged into `domain-migration` (rebase this branch first: `git rebase academy-room`).
+- **Work in the worktree `~/taylormade-academy-ht` on branch `ht-class-room`** (off `academy-room`). Another Claude session is building the Academy room in `~/taylormade-academy` on `academy-room` — never edit that directory, never `git stash`. The Academy room finished on `academy-room` at `096ec3e` (9/15 08:17) and this branch is rebased on it; Tasks 8–9 edit the shared files on THIS branch, and HT ships only after the Academy room's own rollout.
 - **Never sign in to prod from a test.** Every page test stubs Supabase and the kit (memory: `gotcha-e2e-hits-prod-supabase`). Prod DB writes are staged as a script Nelson runs with `!` (memory: `gotcha-prod-deploy-classifier-use-bang-script`).
 - **HT brand hex is authoritative:** Maroon `#660100`, Gold `#FFCC00`, Mahogany `#3B0000`, Terra `#291C14`, Brick `#8F0000`, Ember `#F7E3B8`, Taupe `#C09780`, Sage `#94CCAB`, Fresh `#C7EDBF`, Eco Green `#00373E`, Lumen `#F2B00D`, Crimson `#FA2626`, Bloom `#FAA88A`, Cinder `#BA2E2E`, Sand `#FFFAEB`. One off-palette ramp step is allowed: `#4D0000` (background 800).
 - **HT page copy rules:** no prices, no vendor/tool names on any page ("HT's own room", never RealtimeKit/Cloudflare/Supabase), never the word "avatar" (Ada = "HT's student ambassador"), sample chips on everything still sample, pronoun for an unknown host = they/them.
@@ -53,7 +53,7 @@
 - RPCs after 0037: `ea_room_state(p_key text default null, p_slug text default 'academy') → jsonb`; `ea_room_is_host(p_room uuid) → boolean`; `ea_room_rotate_link(p_room uuid) → text` (and the zero-arg Academy overload kept); `ea_room_publish_replay(p_replay uuid, p_publish boolean) → jsonb`; `ea_room_set_hosts(p_room uuid, p_emails text[]) → text[]`; `ea_jwt_email() → text`.
 - State object keys: `id, slug, title, is_live, host_name, signed_in, is_host, can_join, bad_link, recording_url, people` — or exactly `{bad_link:true}`.
 - Function bodies: `ea-rtk-join { room:'ht', key? }`, `ea-rtk-record { room:'ht', action:'start'|'stop'|'retry_replay', replay_id? }`.
-- `mountRoomV2({ mountEl, cfg, token, sb, user, mode:'waiting'|'student'|'host', target:{ kind:'room', slug:'ht', id, title, host_name, words, tokens }, facilitator, onState(st, meeting, reason), onOpened(meetingId) })` → `{ meetingId, leave(), setRecording(bool) }`. `st ∈ 'joined'|'left'|'ended'`.
+- `mountRoomV2({ mountEl, cfg, token, sb, user, mode:'waiting'|'student'|'host', target:{ kind:'room', slug:'ht', id, title, host_name, key, words, tokens }, facilitator, onState(st, meeting, reason), onOpened(meetingId) })` → `{ meetingId, leave(), setRecording(bool) }`. `st ∈ 'joined'|'left'|'ended'`.
 - Words object keys (must equal `OPIL_WORDS`'s): `one, many, host, teaching, thing, waiting, replayFor, notAllowed, notOpen`.
 - Page ids: `#rtkMount` (the mount, inside the `room` block), `.ht-room-ctl` (cards / host card, same block).
 
@@ -1392,7 +1392,7 @@ let state = null, stateErr = null;
 try { state = await getState(); } catch (e) { stateErr = e; }   /* null state → roomBranch → 'error' → the card below; never throw (ht.js would overwrite the card) */
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, words, tokens: HT_TOKENS });
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS });   /* key: the guest's ?k= — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -1888,13 +1888,16 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 Run: `cd ~/taylormade-academy-ht && grep -n "target.words\|target.tokens\|o.target" js/rtk-room-v2.js`
 Expected: if both `target.words` and `target.tokens` appear, this task is done — skip to Step 4.
 
-- [ ] **Step 2: Words**
+- [ ] **Step 2: Words, and the slug in the join body**
 
-Where the module picks its words (after the merge it reads `ROOM_WORDS` for `target.kind === 'room'` and `OPIL_WORDS` otherwise), make it:
+The module (L106-116 after the rebase) derives everything from `target` once. Two lines change:
 
 ```js
-const words = (target && target.words) || (target && target.kind === 'room' ? ROOM_WORDS : OPIL_WORDS);
+const words = target.words || (isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS);
+…
+const joinBody = isRoom ? { room: target.slug || true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
 ```
+The Academy `/room/` page passes no `slug`, so its body stays `{ room: true, key }` byte for byte; HT passes `slug: 'ht'`. Update the header comment's `{ kind:'room', id, title, key }` to `{ kind:'room', id, title, key, slug?, words?, tokens? }`.
 
 - [ ] **Step 3: Tokens**
 
@@ -1911,7 +1914,7 @@ const ACADEMY_TOKENS = {
   },
 };
 …
-if (ui.provideRtkDesignSystem) ui.provideRtkDesignSystem(mountEl, (target && target.tokens) || ACADEMY_TOKENS);
+if (ui.provideRtkDesignSystem) ui.provideRtkDesignSystem(mountEl, target.tokens || ACADEMY_TOKENS);
 ```
 The values are exactly the ones in the file today — copy them from there, do not retype from this plan.
 
@@ -2035,7 +2038,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
 { const { p } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
   ok('waiting: mode', await p.evaluate(() => window.__mount.mode === 'waiting'));
-  ok('waiting: HT words + tokens reached the room', await p.evaluate(() => window.__mount.target.words.host === 'Dr. Gray' && window.__mount.target.tokens.colors.brand[500] === '#FFCC00' && window.__mount.target.slug === 'ht'));
+  ok('waiting: HT words + tokens + key + slug reached the room', await p.evaluate(() => window.__mount.target.words.host === 'Dr. Gray' && window.__mount.target.tokens.colors.brand[500] === '#FFCC00' && window.__mount.target.slug === 'ht' && window.__mount.target.key === 'AbC123_-xyzXYZ0987ab-_'));
   ok('waiting: the line names the host', /Dr\. Gray hasn’t started yet/.test(await text(p, '.r2-line')));
   ok('waiting: Ada beside the line', /ada-face\.jpg/.test(await p.evaluate(() => getComputedStyle(document.querySelector('.r2-line'), '::before').backgroundImage)));
   await p.close(); }
