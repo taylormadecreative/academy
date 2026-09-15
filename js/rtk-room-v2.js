@@ -344,7 +344,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <rtk-notifications></rtk-notifications>
           <rtk-dialog-manager></rtk-dialog-manager>
         </rtk-ui-provider>
-        <div class="r2-cc" hidden aria-live="polite" aria-label="Captions"></div>
+        <div class="r2-cc" role="region" aria-label="Captions" hidden></div>
       </div>
       <aside class="r2-panel">
         <div class="r2-tabs">
@@ -505,28 +505,32 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
      to turn it off too"): the last two lines, partials included, for everyone. Off until you tap
      Captions; the choice is remembered on this device. The raw listener is bound per meeting
      (keepTranscripts), so turning captions on inside a small group works the same. */
-  const CC_KEY = 'r2-captions';
+  const CC_KEY = 'r2-captions', CC_HINT_MS = 6000;
   const ccBox = q('.r2-cc'), ccBtn = q('.r2-cc-btn');
   let ccOn = false; try { ccOn = localStorage.getItem(CC_KEY) === '1'; } catch (e) {}
-  let caps = [], ccWarned = false;
+  let caps = [], ccWarned = false, ccSeen = false, ccOnAt = 0;
+  /* only people whose PRESET is transcribed are captioned. Where a guest's isn't (the Academy
+     room), the host's words are the only ones that show — the hint and the notice say exactly that */
+  const ccMine = () => { try { return m.self.permissions.transcriptionEnabled === true; } catch (e) { return false; } };
+  const ccHint = () => ccMine() ? 'Captions appear here as people speak.' : 'Captions appear here when the host speaks.';
   const paintCC = () => {
     if (!ccBox) return;
-    ccBox.innerHTML = caps.length
-      ? caps.map(c => `<div class="r2-cc-line${c.final ? '' : ' partial'}"><b>${esc(c.name)}</b>${esc(c.text)}</div>`).join('')
-      : '<div class="r2-cc-line r2-cc-empty">Captions appear here as people speak.</div>';
+    if (caps.length) { ccBox.innerHTML = caps.map(c => `<div class="r2-cc-line${c.final ? '' : ' partial'}"><b>${esc(c.name)}</b>${esc(c.text)}</div>`).join(''); return; }
+    /* the hint shows until the first caption ever lands, and for a few seconds after Captions goes
+       on; after that a pause shows nothing, like any caption track (the grid is pointer-events:none) */
+    ccBox.innerHTML = (!ccSeen || Date.now() - ccOnAt < CC_HINT_MS) ? `<div class="r2-cc-line r2-cc-empty">${esc(ccHint())}</div>` : '';
   };
   const syncCC = () => { if (ccBtn) ccBtn.setAttribute('aria-pressed', ccOn ? 'true' : 'false'); if (ccBox) ccBox.hidden = !ccOn; if (ccOn) paintCC(); };
   if (ccBtn) ccBtn.addEventListener('click', () => {
     ccOn = !ccOn; try { localStorage.setItem(CC_KEY, ccOn ? '1' : '0'); } catch (e) {}
+    if (ccOn) ccOnAt = Date.now();
     syncCC();
-    /* only people whose role is transcribed are captioned — say so once, the first time captions go on */
-    if (ccOn && !ccWarned) {
-      let mine = false; try { mine = m.self.permissions.transcriptionEnabled === true; } catch (e) {}
-      if (!mine) { ccWarned = true; toast('Your own voice isn’t captioned in this room yet — other people’s words still show.', 7000); }
-    }
+    /* say so once, the first time captions go on for someone whose own voice isn't transcribed */
+    if (ccOn && !ccWarned && !ccMine()) { ccWarned = true; toast('Your voice isn’t captioned in this room — the host’s words are.', 7000); }
   });
-  if (transcript.watchRaw) transcript.watchRaw((x) => { caps = copy.takeCaption(caps, x, Date.now()); if (ccOn) paintCC(); });
+  if (transcript.watchRaw) transcript.watchRaw((x) => { caps = copy.takeCaption(caps, x, Date.now()); if (caps.length) ccSeen = true; if (ccOn) paintCC(); });
   const ccTick = setInterval(() => { caps = copy.takeCaption(caps, null, Date.now()); if (ccOn) paintCC(); }, 2000);   /* finals fade on their own; cleared in destroy() */
+  if (ccOn) ccOnAt = Date.now();
   syncCC();
   const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
   async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }

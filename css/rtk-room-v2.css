@@ -120,7 +120,9 @@
 .r2-split select{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;background:#162650;color:#fff;border:1px solid rgba(255,255,255,.16)}
 .r2-groups .r2-rooms .r2-hand{margin-bottom:8px}
 .r2-kit{display:block;position:relative;height:min(60vh,520px);width:100%;overflow:auto}
-.r2-toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:#fdf0e7;color:#b4451f;font:600 13.5px Inter,sans-serif;padding:10px 16px;border-radius:999px;z-index:30;max-width:90%}
+/* a notice sits under the now-strip, never on the bar or the captions, and never blocks a tap; on the join screen it stays above Enter */
+.r2-toast{position:absolute;top:56px;left:12px;right:12px;width:fit-content;max-width:90%;margin:0 auto;pointer-events:none;background:#fdf0e7;color:#b4451f;font:600 13.5px Inter,sans-serif;padding:10px 16px;border-radius:999px;z-index:30}
+.r2-join .r2-toast{top:auto;bottom:96px}
 @keyframes r2pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ---- phone ---- */
