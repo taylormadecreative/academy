@@ -151,17 +151,20 @@ export async function mountRoomV2(o) {
   try { window.__r2 = { get meeting() { return current; }, get effects() { return effects; } }; } catch (e) {}   /* support hook, read-only */
 
   /* ---------- effects (blur / backdrops), reused from v1's addon, driven by our own buttons ---------- */
-  let effects = null;
+  let effects = null, effectsError = null;
+  /* the fast engine needs WebAssembly SIMD (older iPhones do not have it): probe once, fall back to plain wasm */
+  const wasmSimd = (() => { try { return WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11])); } catch (e) { return false; } })();
   async function loadEffects(m) {
     try {
       const { default: VideoBackground } = await import(VB_ADDON);
       effects = await VideoBackground.init({
         meeting: m, modes: ['blur', 'virtual'], blurStrength: 70, images: BACKDROPS.map(b => location.origin + b.url),
         /* the "meet" person model with edge smoothing: cleaner hair/shoulder edges than the default 256x256 model (Nelson, 9/15: the blur "wasn't that great") */
-        segmentationConfig: { model: 'meet', inputResolution: '256x144', pipeline: 'webgl2', backend: 'wasmSimd', targetFps: 30 },
+        segmentationConfig: { model: 'meet', inputResolution: '256x144', pipeline: 'webgl2', backend: wasmSimd ? 'wasmSimd' : 'wasm', targetFps: 30 },
         postProcessingConfig: { smoothSegmentationMask: true, jointBilateralFilter: { sigmaSpace: 2, sigmaColor: 0.15 }, coverage: [0.45, 0.8], lightWrapping: 0.2 },
       });
-    } catch (e) { effects = null; }
+      effectsError = null;
+    } catch (e) { effects = null; effectsError = String((e && e.message) || e || 'unknown'); console.warn('[room] effects did not load:', effectsError); }
   }
   loadEffects(meeting);
 
@@ -202,7 +205,7 @@ export async function mountRoomV2(o) {
     tray = el(`<div class="r2-fxtray"><button type="button" data-fx="none">No effect</button><button type="button" data-fx="blur">Blur</button>${BACKDROPS.map(b => `<button type="button" data-fx="${b.url}">${b.name}</button>`).join('')}${ownPhoto() ? '<button type="button" data-fx="own">My photo</button>' : ''}<button type="button" data-fx="pick">Use my own photo…</button></div>`);
     tray.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', async () => {
       const kind = b.dataset.fx;
-      if (!effects) { const old = b.textContent; b.textContent = 'Loading…'; setTimeout(() => { b.textContent = old; }, 1500); return; }
+      if (!effects) { const old = b.textContent; b.textContent = effectsError ? 'Not on this device: ' + effectsError.slice(0, 60) : 'Loading…'; setTimeout(() => { b.textContent = old; }, effectsError ? 6000 : 1500); return; }
       try {
         if (kind === 'none') await effects.removeBackground();
         else if (kind === 'blur') await effects.applyBlurBackground();
@@ -435,7 +438,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const effectsPane = () => {
     const p = el(`<div class="r2-fxpane"><button type="button" class="r2-btn" data-fx="none">No effect</button><button type="button" class="r2-btn" data-fx="blur">Blur my background</button>${BACKDROPS.map(b => `<button type="button" class="r2-btn" data-fx="${b.url}">${b.name} backdrop</button>`).join('')}${ownPhoto() ? '<button type="button" class="r2-btn" data-fx="own">My photo</button>' : ''}<button type="button" class="r2-btn" data-fx="pick">Use my own photo…</button><p class="r2-fine">Effects can take a few seconds the first time. Your own photo stays on this device only.</p></div>`);
     p.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', async () => {
-      const fx = getEffects(); if (!fx) { toast('Effects are still loading — try again in a moment.'); return; }
+      const fx = getEffects(); if (!fx) { toast(effectsError ? 'Effects can’t run on this device: ' + effectsError.slice(0, 80) : 'Effects are still loading — try again in a moment.'); return; }
       const kind = b.dataset.fx;
       try {
         if (kind === 'none') await fx.removeBackground();
