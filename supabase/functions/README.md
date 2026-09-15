@@ -87,3 +87,37 @@ single fulfilment path). Run the helper tests with `deno test -A _shared/email_t
 ```bash
 supabase functions deploy ea-stripe-webhook --project-ref pgqdmnmessbbzyszjfvr --no-verify-jwt
 ```
+
+## RealtimeKit rooms (OPIL class rooms 2026-09-11 · the Academy room 2026-09-14)
+
+Three functions, all `verify_jwt` OFF with their own auth (Bearer user token → service-role
+`auth.getUser` → role RPCs run **as the caller**), CORS locked to `https://taylormadeacademy.com`.
+No Cloudflare credential ever reaches a page: pages only ever hold a per-person participant token.
+
+| Function | verify_jwt | What it does | Secrets it reads |
+| --- | --- | --- | --- |
+| `ea-rtk-join` | false | Mints a RealtimeKit participant token. `{ session_no }` = an OPIL class (host / judge / cohort student presets). `{ room: true, key? }` = the Academy room: Nelson (`ea_is_admin`) gets a **fresh** meeting at every Start and the previous one is set INACTIVE; anyone else needs the current link key or a membership, the room must be live (< 4 h), the cap applies, and joins are rate-limited through `ea_rate_check`. Creates the `tma-class-host` / `tma-class-guest` presets the first time Nelson joins. | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CF_ACCOUNT_ID`, `CF_RTK_APP_ID`, `CF_RTK_API_TOKEN` |
+| `ea-rtk-record` | false | `start` / `stop` the meeting recording (OPIL by `session_no`, Academy with `{ room: true }`), `retry_replay` (OPIL by `session_no`, Academy by `replay_id`), `register_webhook` / `list_webhooks` (OPIL admin). Retry re-runs the stored UPLOADED event through the same Stream copy the webhook uses. | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CF_ACCOUNT_ID`, `CF_RTK_APP_ID`, `CF_RTK_API_TOKEN`, `CF_API_TOKEN` (Stream:Edit), `CF_STREAM_SUBDOMAIN` |
+| `ea-rtk-webhook` | false (checks RealtimeKit's signature against its published public key; no browser calls it) | Recording status events → copy the file to Cloudflare Stream → a draft row in `ea_room_replays` (the meeting is looked up in `ea_rooms` first, then `ea_room_replays`) or `ea_opil_replays` (last). Nelson / the coordinator publish from the page. | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CF_ACCOUNT_ID`, `CF_API_TOKEN` (Stream:Edit), `CF_STREAM_SUBDOMAIN` |
+
+Tests (stubbed fetch + supabase, Deno std 0.224.0 asserts):
+
+```bash
+deno test supabase/functions/ea-rtk-join/ supabase/functions/ea-rtk-record/ supabase/functions/ea-rtk-webhook/
+```
+
+Deploy (CLI):
+
+```bash
+supabase functions deploy ea-rtk-join    --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+supabase functions deploy ea-rtk-record  --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+supabase functions deploy ea-rtk-webhook --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
+```
+
+**Retired 2026-09-14: `ea-live-publish`** — the camera broadcast behind `js/broadcast.js`. The class
+room is now the only way to go live on the Academy (`/live/` → `/room/`) as it already was on OPIL, so
+the function directory, `js/broadcast.js` and `css/broadcast.css` are deleted from the repo. It is
+removed from the project in the rollout with
+`supabase functions delete ea-live-publish --project-ref pgqdmnmessbbzyszjfvr`. Its secrets
+`CF_STREAM_INPUT_ID` and `CF_STREAM_WHIP_KEY` have no remaining reader. `ea_live`, `ea_live_chat` and
+the Cloudflare Stream live input stay untouched: `/agent/live/` (the ticket-holder room) still reads them.

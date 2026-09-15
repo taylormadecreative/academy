@@ -6,32 +6,15 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=3ef77ddd84">
+<link rel="stylesheet" href="/css/build-mode.css?v=163a5ff6fe">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-shell{padding-block:clamp(26px,4vw,52px) clamp(50px,7vw,90px)}
 .live-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,30px)}
-.live-grid{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,27%,380px);gap:clamp(18px,2.4vw,28px);align-items:stretch}
-@media(max-width:1024px){.live-grid{grid-template-columns:minmax(0,1fr)}}
 
-/* ---- player ---- */
+/* ---- player (the published replay, members only) ---- */
 .player{background:#000;border-radius:var(--r);overflow:hidden;border:1px solid var(--hair);box-shadow:var(--shadow-card);aspect-ratio:16/9;position:relative}
-.player iframe,.player video{width:100%;height:100%;border:0;display:block;background:#000}
-.player .brandbar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(rgba(4,18,58,.78),transparent);z-index:5;pointer-events:none;opacity:1;transition:opacity .4s var(--ease)}
-.player.playing .brandbar{opacity:0}
-.player:hover .brandbar{opacity:1}
-.player .brandbar img{width:26px;height:26px}
-.player .brandbar b{font-family:var(--display);font-weight:600;color:#fff;font-size:14px;text-shadow:0 1px 6px rgba(0,0,0,.5);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@media(max-width:700px){.player .brandbar b{font-size:12.5px}}
-@media(max-width:520px){.player .brandbar b{display:none}}
-.player .brandbar .lv{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.5);color:#7ce8c3;font-weight:700;font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:var(--pill)}
-.player .brandbar .lv i{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:lvpulse 1.6s ease-in-out infinite}
-.player .wm{position:absolute;right:16px;bottom:72px;z-index:5;pointer-events:none;opacity:.5}
-.player.muted::after{content:"Tap for sound";position:absolute;left:50%;bottom:64px;transform:translateX(-50%);z-index:6;background:var(--gold);color:var(--navy);font-weight:700;font-size:13px;padding:9px 18px;border-radius:var(--pill);pointer-events:none}
-.player .wm img{width:30px;height:30px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
-.player .idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--navy);color:#9fb0d4;text-align:center;padding:clamp(20px,4vw,44px)}
-.player .idle b{font-family:var(--display);color:#fff;font-size:clamp(19px,2.4vw,30px);letter-spacing:-.01em}
-.player .idle p{max-width:44ch;font-size:14.5px;line-height:1.55}
+.player iframe{width:100%;height:100%;border:0;display:block;background:#000}
 @keyframes lvpulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 .airchip{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:12.5px;padding:7px 14px;border-radius:var(--pill)}
@@ -43,22 +26,15 @@
 .nowline h2{font-family:var(--display);font-size:clamp(19px,2.2vw,25px);letter-spacing:-.015em;margin:0}
 .nowline p{color:var(--muted);font-size:14.5px;margin:0;max-width:62ch;line-height:1.6}
 
-/* ---- chat ---- */
-.roomchat{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;height:100%;max-height:min(72vh,620px);min-height:380px;overflow:hidden}
-@media(max-width:1024px){.roomchat{height:min(58vh,460px)}}
-.roomchat .rh{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--hair-soft)}
-.roomchat .rh h3{font-family:var(--display);font-size:15px;margin:0}
-.roomchat .rs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
-.roomchat .empty{color:var(--muted);font-size:14px;margin:auto 0;text-align:center;line-height:1.6}
-.bub{max-width:88%;background:var(--bg-soft);border-radius:14px;padding:9px 13px;align-self:flex-start}
-.bub.me{background:var(--blue-soft);align-self:flex-end}
-.bub .who{font-size:11.5px;font-weight:700;color:var(--blue-deep);margin-bottom:3px}
-.bub p{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2);word-wrap:break-word}
-.bub .w{font-size:11.5px;color:var(--muted);margin-top:4px}
-.roomchat form{display:flex;gap:8px;padding:13px 14px;border-top:1px solid var(--hair-soft)}
-.roomchat input{flex:1;min-width:0;padding:11px 15px;border:1px solid var(--hair);border-radius:var(--pill);font:inherit;font-size:14px;outline-offset:2px}
-.roomchat button{border:0;background:var(--blue);color:#fff;font:inherit;font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--pill);cursor:pointer;transition:transform .16s var(--ease)}
-.roomchat button:active{transform:scale(.97)}
+/* ---- member stage ---- */
+.stagecard{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:clamp(20px,3vw,30px)}
+.stagecard .nowline{margin-top:0}
+.stagecard .cta-row{margin-top:18px}
+.stagecard .lastsess{margin-top:26px}
+.stagecard .lastsess .kicker{margin-bottom:12px}
+.replayline{margin:12px 0 0;font-size:13.5px}
+.replayline a{color:var(--blue-deep);font-weight:600}
+[hidden]{display:none!important}
 
 /* ---- upsell / signed-out ---- */
 .gatecard{background:var(--navy);color:#fff;border-radius:var(--r-lg);padding:clamp(26px,4vw,46px);box-shadow:var(--shadow-float);position:relative;overflow:hidden}
@@ -83,7 +59,7 @@
 .lockcap p{margin:0;font-size:13px;line-height:1.5;color:#c3cfe8}
 @media(max-width:980px){.lockshell{order:-1;margin-bottom:6px}}
 
-/* ---- admin ---- */
+/* ---- Your room (admin) ---- */
 .adminbar{background:var(--gold-soft);border:1px solid #f4e2ac;border-radius:var(--r);padding:16px 18px;margin-bottom:22px}
 .adminbar .ah{display:flex;align-items:center;gap:10px;margin-bottom:13px}
 .adminbar .ah b{font-family:var(--display);font-size:14px;color:var(--gold-ink)}
@@ -94,8 +70,23 @@
 .adminrow button:active{transform:scale(.97)}
 .adminrow .go{background:var(--navy);color:#fff}
 .adminrow .end{background:var(--clay);color:#fff}
-.adminrow .demo{background:#fff;color:var(--gold-ink);border:1px solid #eacf85}
+.adminrow .plain{background:#fff;color:var(--gold-ink);border:1px solid #eacf85}
 .adminnote{font-size:12.5px;color:#8a6d00;margin:11px 0 0;line-height:1.5}
+.yr-fields{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:9px;margin-bottom:9px}
+@media(max-width:600px){.yr-fields{grid-template-columns:1fr}}
+.yr-fields label{display:flex;flex-direction:column;gap:5px;font-size:11.5px;font-weight:700;letter-spacing:.05em;color:#8a6d00}
+.yr-fields input{padding:10px 14px;border:1px solid #eacf85;border-radius:10px;font:inherit;font-size:13.5px;font-weight:400;letter-spacing:0;color:var(--ink);background:#fff;outline-offset:2px}
+.yr-sec{margin-top:16px;padding-top:14px;border-top:1px solid #f0dfa8}
+.yr-sec>b{font-family:var(--display);font-size:13.5px;color:var(--gold-ink);display:block;margin-bottom:9px}
+.yr-replay{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:8px 0;border-top:1px dashed #f0dfa8;font-size:13.5px}
+.yr-replay:first-child{border-top:0;padding-top:0}
+.yr-replay .lbl{font-weight:600;color:var(--ink)}
+.yr-replay .w{color:#8a6d00;font-size:12.5px}
+.yr-replay a,.yr-replay button{font:inherit;font-weight:600;font-size:12.5px;padding:7px 12px;border-radius:var(--pill);cursor:pointer;background:#fff;color:var(--gold-ink);border:1px solid #eacf85;text-decoration:none}
+.yr-replay button.pub{background:var(--navy);color:#fff;border-color:var(--navy)}
+.yr-people summary{cursor:pointer;font-weight:600;font-size:13.5px}
+.yr-people ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;line-height:1.7}
+.yr-empty{font-size:13.5px;color:#8a6d00;margin:0}
 
 /* ---- how it works ---- */
 .hiw{margin-top:clamp(46px,6vw,78px);border-top:1px solid var(--hair);padding-top:clamp(30px,4vw,46px)}
@@ -130,7 +121,7 @@
   <div class="hiw-grid">
     <div><span class="n">01</span><h3>You watch it get built</h3><p>Not a polished course. The real thing, in real time, including the parts that break and how I get out of them.</p></div>
     <div><span class="n">02</span><h3>You ask while it matters</h3><p>The room chat sits next to the video. Ask when you are stuck, not three days later in a comment section.</p></div>
-    <div><span class="n">03</span><h3>The replay stays yours</h3><p>Every session lands in your library afterward, so missing one costs you nothing but the questions.</p></div>
+    <div><span class="n">03</span><h3>The replay stays here</h3><p>Every published session, on this page, for members.</p></div>
   </div>
 </div>
 
@@ -149,15 +140,17 @@
 <span class="mono">LEARN THE CRAFT / BUILD REAL THINGS</span></div>
 </div></footer>
 
-<link rel="stylesheet" href="/css/broadcast.css?v=3ef77ddd84">
-<script src="/js/config.js?v=3ef77ddd84"></script>
+<script src="/js/config.js?v=163a5ff6fe"></script>
 <script type="module">
-import { panelHTML, wirePanel, play } from "/js/broadcast.js?v=3ef77ddd84";
+import { statusLine, replayLabel, iframeUrl } from "/js/room-page.js?v=163a5ff6fe";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-const DEMO_URL = "/assets/live-demo/stream.m3u8";
+/* The link people get is always the real address, whichever domain this page was opened on. */
+const ROOM_ORIGIN = "https://taylormadeacademy.com";
+/* Explicit columns: the raw download link on a replay row is server-only. */
+const REPLAY_COLS = "id, room_id, meeting_id, recording_id, status, stream_uid, watch_url, duration_s, file_size, error, published, created_at, updated_at";
 
 function when(iso){
   const d = new Date(iso), s = Math.floor((Date.now() - d.getTime())/1000);
@@ -166,13 +159,17 @@ function when(iso){
   const h = Math.floor(m/60); if (h < 24) return h + "h";
   return d.toLocaleDateString(undefined, { month:"short", day:"numeric" });
 }
-function whenFull(iso){
-  if (!iso) return "";
-  return new Date(iso).toLocaleString(undefined, { weekday:"long", month:"long", day:"numeric", hour:"numeric", minute:"2-digit" });
-}
 
 const sb = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
-let me = null, isMember = false, isAdmin = false, show = null, bootError = false;
+let me = null, isMember = false, isAdmin = false, state = null, bootError = false;
+
+/* One read path for everyone: the room's state, never its link or meeting. */
+async function roomState(){
+  const { data, error } = await sb.rpc("ea_room_state");
+  if (error) throw new Error(error.message);
+  if (!data || typeof data !== "object") throw new Error("no room");
+  return data;
+}
 
 try {
   const { data:{ session } } = await sb.auth.getSession();
@@ -186,209 +183,36 @@ try {
     ]);
     isMember = !!mem; isAdmin = !!adm;
   }
-
-  /* Members read the row itself (stream_url included). Everyone else gets the
-     teaser view, which does not contain a playback URL at all. Both windows are
-     scoped the same way so members are not shown the first class ever broadcast. */
-  const cutoff = new Date(Date.now() - 3*3600e3).toISOString();
-  if (isMember) {
-    const { data } = await sb.from("ea_live").select("*")
-      .or("starts_at.is.null,starts_at.gt." + cutoff)
-      .order("is_live", { ascending:false })
-      .order("starts_at", { ascending:true, nullsFirst:false })
-      .limit(1).maybeSingle();
-    show = data || null;
-  }
-  if (!show) {
-    const { data } = await sb.from("ea_live_upcoming").select("*")
-      .order("is_live", { ascending:false })
-      .order("starts_at", { ascending:true, nullsFirst:false })
-      .limit(1).maybeSingle();
-    show = data || null;
-  }
+  state = await roomState();
 } catch (e) { bootError = true; }
 
-/* ---------- the branded player ---------- */
-function brandChrome(player, title){
-  const bar = document.createElement("div");
-  bar.className = "brandbar";
-  bar.innerHTML = '<img src="/assets/logo-nav.webp" alt=""><b>Taylormade Academy Live &middot; ' + esc(title) + '</b><span class="lv"><i></i>LIVE</span>';
-  player.appendChild(bar);
-  const wm = document.createElement("div");
-  wm.className = "wm"; wm.innerHTML = '<img src="/assets/logo-nav.webp" alt="">';
-  player.appendChild(wm);
+/* ---------- header: every visitor ---------- */
+function paintHead(){
+  if (!state) return;
+  $("hTitle").textContent = state.title;
+  $("hChip").className = state.is_live ? "airchip live" : "airchip off";
+  $("hChip").innerHTML = state.is_live ? "<i></i>LIVE NOW" : "Off air";
 }
-/* Only https gets near a player. new URL() with no base throws on anything
-   relative, and the protocol check kills javascript: and data:. */
-function safeUrl(u){
-  let url; try { url = new URL(u); } catch (e) { return null; }
-  return url.protocol === "https:" ? url : null;
-}
-function embedUrl(u){
-  const url = safeUrl(u); if (!url) return null;
-  const host = url.hostname.toLowerCase();
-  const yt = (id) => "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(id) + "?autoplay=1";
-  if ((host === "youtube.com" || host === "www.youtube.com")) {
-    if (url.searchParams.get("v")) return yt(url.searchParams.get("v"));
-    if (url.pathname.startsWith("/live/")) return yt(url.pathname.split("/")[2] || "");
-  }
-  if (host === "youtu.be") return yt(url.pathname.slice(1));
-  return url.href;
-}
-function playerFail(player, msg){
-  player.querySelectorAll("video,iframe,.brandbar,.wm").forEach(el => el.remove());
-  player.classList.remove("playing");
-  const d = document.createElement("div");
-  d.className = "idle";
-  d.innerHTML = "<b>This stream will not play here.</b><p>" + esc(msg) + "</p>";
-  player.appendChild(d);
-}
-async function mountStream(player, u, title){
-  const isDemo = (u === DEMO_URL);
-  const abs = isDemo ? new URL(u, location.origin).href : (safeUrl(u) ? u : null);
-  if (!abs) { playerFail(player, "That playback link is not a secure https address."); return; }
-  const idle = player.querySelector(".idle"); if (idle) idle.remove();
+paintHead();
 
-  if (/\/webRTC\/play(\?|$)/i.test(abs)) {
-    /* a browser broadcast: watched over WebRTC, under a second behind. Cloudflare answers
-       409 until the broadcaster is connected, so keep knocking; reconnect if the link drops. */
-    const v = document.createElement("video");
-    v.controls = true; v.playsInline = true; v.autoplay = true;
-    player.appendChild(v);
-    let stopped = false;
-    const connect = async () => {
-      if (stopped) return;
-      try {
-        const s = await play(abs, v);
-        v.play().catch(() => { v.muted = true; player.classList.add("muted"); v.play().catch(() => {}); });
-        s.pc.addEventListener("connectionstatechange", () => {
-          if (["failed", "disconnected", "closed"].includes(s.pc.connectionState) && !stopped) { try { s.stop(); } catch (e) {} setTimeout(connect, 3000); }
-        });
-      } catch (e) { setTimeout(connect, e && e.status === 409 ? 4000 : 6000); }
-    };
-    connect();
-    window.addEventListener("pagehide", () => { stopped = true; });
-    v.addEventListener("playing", () => player.classList.add("playing"));
-    v.addEventListener("volumechange", () => { if (!v.muted) player.classList.remove("muted"); });
-    brandChrome(player, title);
+/* ---------- member stage: the door ---------- */
+const stage = $("stage");
+function memberStage(){
+  if (state.is_live) {
+    stage.innerHTML = '<div class="stagecard">' +
+      '<div class="nowline"><h2>Nelson is live: ' + esc(state.title) + '</h2><p>Everyone on camera, chat open, questions taken in order.</p></div>' +
+      '<div class="cta-row"><a id="joinRoom" class="btn gold" href="/room/">Join the room <span class="arr">&rarr;</span></a></div></div>';
     return;
   }
-  if (/\.m3u8(\?|$)/i.test(abs)) {
-    const v = document.createElement("video");
-    v.controls = true; v.playsInline = true; v.autoplay = true;
-    /* loop is for the looping demo clip only. On a real broadcast it would replay
-       the tail forever once the encoder stops, with the LIVE chip still lit. */
-    v.loop = isDemo;
-    v.addEventListener("error", () => playerFail(player, "The stream stopped responding."));
-    player.appendChild(v);
-    if (v.canPlayType("application/vnd.apple.mpegurl")) {
-      v.src = abs;
-    } else {
-      let Hls;
-      try { ({ default: Hls } = await import("https://cdn.jsdelivr.net/npm/hls.js@1.5.13/+esm")); }
-      catch (e) { playerFail(player, "The video player could not load. Check your connection or any blocker."); return; }
-      if (Hls.isSupported()) {
-        const h = new Hls({ liveSyncDurationCount: 3 });
-        h.loadSource(abs); h.attachMedia(v);
-        h.on(Hls.Events.ERROR, (ev, data) => {
-          if (!data.fatal) return;
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) { try { h.startLoad(); } catch (e) {} }
-          else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { h.recoverMediaError(); } catch (e) {} }
-          else { try { h.destroy(); } catch (e) {} playerFail(player, "The stream stopped responding."); }
-        });
-      } else { playerFail(player, "This browser cannot play live video. Try Chrome, Safari, or Edge."); return; }
-    }
-    v.addEventListener("playing", () => player.classList.add("playing"));
-    v.play().catch(() => { v.muted = true; player.classList.add("muted"); v.play().catch(() => {}); });
-    v.addEventListener("volumechange", () => { if (!v.muted) player.classList.remove("muted"); });
-  } else {
-    const src = embedUrl(abs);
-    if (!src) { playerFail(player, "That playback link is not one this player can open."); return; }
-    const f = document.createElement("iframe");
-    f.src = src; f.title = "Live class video"; f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; f.allowFullscreen = true;
-    player.appendChild(f);
+  let h = '<div class="stagecard"><div class="nowline"><h2>Nothing is live right now</h2><p>When Nelson starts a session, <b>Join the room</b> shows up here.</p></div>';
+  /* the /watch page is Cloudflare's hosted player and refuses to embed; /iframe is the embeddable one */
+  if (state.recording_url && /^https:\/\//.test(state.recording_url)) {
+    h += '<div class="lastsess"><span class="kicker gold">Last session</span>' +
+      '<div class="player"><iframe id="replayFrame" src="' + esc(iframeUrl(state.recording_url)) + '" title="Last session" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>' +
+      '<p class="replayline"><a id="replayOpen" href="' + esc(state.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a></p></div>';
   }
-  brandChrome(player, title);
+  stage.innerHTML = h + '</div>';
 }
-
-/* ---------- states ---------- */
-const stage = $("stage");
-const liveNow = !!(show && show.is_live);
-if (show) {
-  $("hTitle").textContent = show.title;
-  $("hChip").className = liveNow ? "airchip live" : "airchip off";
-  $("hChip").innerHTML = liveNow ? "<i></i>LIVE NOW" : "Off air";
-}
-
-/* ---------- admin control ---------- */
-if (isAdmin) {
-  $("admin").innerHTML =
-    '<div class="adminbar">' +
-    '<div class="ah"><b>Broadcast control</b><span>ADMIN ONLY</span></div>' +
-    '<div class="adminrow" style="margin-bottom:9px"><input id="aTitle" placeholder="Class title" aria-label="Class title" value="' + esc(show ? show.title : "") + '"></div>' +
-    '<div class="adminrow"><button class="demo" id="aDemo" type="button"' + (liveNow ? " disabled" : "") + '>' + (liveNow && show && show.stream_url === DEMO_URL ? "Sample video is playing" : "Rehearse with a sample video") + '</button>' +
-    (liveNow ? '<button class="end" id="aGo" type="button">End broadcast</button>' : '') + '</div>' +
-    '<p class="adminnote" id="aNote">Go live from this device below &mdash; your camera, nothing to install, and the class records itself for members to rewatch.</p>' +
-    panelHTML("bcPanel") +
-    '</div>';
-  /* the DB enforces one live broadcast; clear the others first or the write trips the unique index */
-  async function setLive(payload) {
-    if (payload.is_live) await sb.from("ea_live").update({ is_live:false }).eq("is_live", true);
-    const res = show && show.id
-      ? await sb.from("ea_live").update(payload).eq("id", show.id)
-      : await sb.from("ea_live").insert(payload);
-    if (res.error) throw new Error(res.error.message);
-  }
-  /* The sample clip is hosted here and costs nothing: it is how you show the room, or rehearse the
-     flow, without going on camera. It is not a recording — nothing is saved from it. */
-  $("aDemo").addEventListener("click", async () => {
-    const btn = $("aDemo"), note = $("aNote");
-    btn.disabled = true; btn.textContent = "Starting...";
-    try {
-      await setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: DEMO_URL, is_live: true });
-    } catch (e) {
-      btn.disabled = false; btn.textContent = "Rehearse with a sample video";
-      note.textContent = "Could not start: " + e.message;
-      return;
-    }
-    location.reload();
-  });
-  /* End only appears for a broadcast this page did not start (a rehearsal, or a class left live).
-     A camera broadcast is ended from the panel's own End button, which also saves the recording. */
-  if ($("aGo")) $("aGo").addEventListener("click", async () => {
-    const btn = $("aGo"), note = $("aNote");
-    btn.disabled = true; btn.textContent = "Ending...";
-    try { await setLive({ is_live: false }); }
-    catch (e) { btn.disabled = false; btn.textContent = "End broadcast"; note.textContent = "Could not end: " + e.message; return; }
-    location.reload();
-  });
-  /* Go live from this device: camera → Cloudflare → the room, no software. The server
-     hands out the address only to an admin, at the moment they tap. */
-  const { data: { session: adminSession } } = await sb.auth.getSession();
-  wirePanel($("bcPanel"), {
-    cfg: window.BM_CONFIG, token: adminSession ? adminSession.access_token : "", room: "academy",
-    title: () => $("aTitle").value.trim() || "Taylormade Academy Live",
-    go: (watch) => setLive({ title: $("aTitle").value.trim() || "Taylormade Academy Live", stream_url: watch, is_live: true }),
-    end: () => setLive({ is_live: false }),
-    /* the replay: Cloudflare's hosted watch page for the uploaded recording */
-    saved: async (d) => { if (show && show.id) { const r = await sb.from("ea_live").update({ replay_url: d.watch }).eq("id", show.id); if (r.error) throw new Error(r.error.message); } },
-  });
-}
-
-function shellHTML(bodyRight){
-  return '<div class="live-grid"><div>' +
-    '<div class="player" id="player"><div class="idle" id="idle"><b id="idleT">Nothing is streaming right now.</b><p id="idleP">When a class goes live you will see it here, and the room opens with it.</p></div></div>' +
-    (show && show.blurb ? '<div class="nowline"><p>' + esc(show.blurb) + '</p></div>' : '') +
-    (show && show.starts_at && !liveNow ? '<div class="nowline"><p><b>Next:</b> ' + esc(whenFull(show.starts_at)) + '</p></div>' : '') +
-    '</div>' + bodyRight + '</div>';
-}
-
-const chatHTML =
-  '<div class="roomchat">' +
-  '<div class="rh"><h3>Room chat</h3><span class="mono" style="font-size:11px;color:var(--emerald)">MEMBERS</span></div>' +
-  '<div class="rs" id="rs" role="log" aria-live="polite" aria-label="Room chat"><div class="empty">Say what you are seeing. Ask when you get stuck.</div></div>' +
-  '<form id="cForm"><input id="cIn" placeholder="Message the room" aria-label="Message the room" maxlength="1000" autocomplete="off"><button type="submit">Send</button></form>' +
-  '</div>';
 
 const check = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
@@ -398,20 +222,13 @@ if (bootError) {
     '<p class="lede">That is on us, not you. Refresh in a moment. If a class is running and this keeps happening, message me and I will get you in.</p>' +
     '<div class="acts"><a class="btn gold" href="/live/">Try again <span class="arr">&rarr;</span></a></div></div>';
 } else if (isMember) {
-  stage.innerHTML = shellHTML(chatHTML);
-  if (liveNow && show.stream_url) {
-    mountStream($("player"), show.stream_url, show.title).catch(() => {});
-  } else {
-    $("idleT").textContent = show && show.starts_at ? "Next class is on the calendar." : "Nothing is streaming right now.";
-    $("idleP").textContent = show && show.starts_at ? whenFull(show.starts_at) + ". The room opens when it starts." : "When a class goes live you will see it here, and the room opens with it.";
-  }
-  wireChat();
+  memberStage();
 } else {
-  const signedOut = !me;
+  const signedOut = !me, liveNow = !!state.is_live;
   stage.innerHTML =
     '<div class="gatecard on-ink"><div class="gate-grid"><div>' +
     '<span class="kicker gold">' + (liveNow ? "Happening right now" : "Members only") + '</span>' +
-    '<h2>' + (liveNow ? esc(show.title) : "Live classes are part of the membership.") + '</h2>' +
+    '<h2>' + (liveNow ? esc(state.title) : "Live classes are part of the membership.") + '</h2>' +
     '<p class="lede">' + (liveNow
       ? "This one is on the air right now. Members are in the room watching it and asking questions as it happens."
       : "I teach live, on camera, building the actual thing. Members get the room, the questions, and every replay.") + '</p>' +
@@ -434,61 +251,190 @@ if (bootError) {
     '</div></div>';
 }
 
-/* ---------- chat ---------- */
-let nm = {}, seq = 0, poll = null;
-function wireChat(){
-  const rs = $("rs");
-  /* no room means no room. Without a live_id filter the query would return the
-     last 200 messages from every class ever held. */
-  if (!show || !show.id) {
-    rs.innerHTML = '<div class="empty">The room opens when the next class starts.</div>';
-    const f = $("cForm"); f.querySelector("input").disabled = true;
-    f.querySelector("button").disabled = true;
-    f.addEventListener("submit", ev => ev.preventDefault());
+/* ---------- Your room (admin only) ---------- */
+if (isAdmin && !bootError) await yourRoom();
+
+async function yourRoom(){
+  const box = $("admin");
+  let room = null, replays = [], newArmed = null, endArmed = null;
+  let stageKey = String(state.is_live) + "|" + (state.recording_url || "");
+  const note = (t) => { $("yrNote").textContent = t; };
+  const linkOf = () => ROOM_ORIGIN + "/room/?k=" + room.link_key;
+  const tokenOf = async () => (await sb.auth.getSession()).data.session?.access_token || "";
+  /* every recording call is the room's: the server refuses anyone but Nelson (not_host) */
+  async function recordCall(body){
+    const r = await fetch(CFG.FUNCTIONS_BASE + "/ea-rtk-record", {
+      method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer " + await tokenOf() },
+      body: JSON.stringify(Object.assign({ room:true }, body))
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error({ no_replay: "that replay row is gone", nothing_to_retry: "that replay is not failed, so there is nothing to retry", no_upload: "that recording never finished uploading, so there is nothing to retry", not_host: "only Nelson can do that", no_room: "the room isn’t open yet", sign_in: "you were signed out — reload and sign in again", rtk_not_configured: "the recording service isn’t set up" }[d.error] || (/^cloudflare_/.test(String(d.error)) ? "the recording service didn’t answer" : "the server said " + r.status));
+    return d;
+  }
+
+  async function loadRoom(){
+    /* admin RLS lets this page read the link; meeting_id is never asked for */
+    const { data, error } = await sb.from("ea_rooms").select("id, title, link_key, is_live, live_since, max_participants").order("created_at").limit(1).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("no room row yet — run migration 0036");
+    room = data;
+  }
+  async function loadReplays(){
+    const { data, error } = await sb.from("ea_room_replays").select(REPLAY_COLS).order("created_at", { ascending:false }).limit(5);
+    if (!error) replays = data || [];
+  }
+  /* who joined the most recent session: rows since live_since, names from profiles */
+  async function loadPeople(){
+    if (!room.live_since) return [];
+    const { data } = await sb.from("ea_room_members").select("user_id, last_joined_at").eq("room_id", room.id).gte("last_joined_at", room.live_since);
+    const rows = data || [], names = {};
+    if (rows.length) {
+      const { data: profs } = await sb.from("ea_profiles").select("user_id, display_name").in("user_id", rows.map(r => r.user_id));
+      (profs || []).forEach(p => { if (p.display_name) names[p.user_id] = p.display_name; });
+    }
+    return rows.map(r => names[r.user_id] || "Member");
+  }
+
+  try { await loadRoom(); } catch (e) {
+    box.innerHTML = '<div class="adminbar"><div class="ah"><b>Your room</b><span>ADMIN ONLY</span></div><p class="adminnote">Could not load your room: ' + esc(e.message) + '</p></div>';
     return;
   }
-  async function names(ids){
-    const need = [...new Set(ids.filter(id => !nm[id]))];
-    if (!need.length) return;
-    const { data } = await sb.from("ea_profiles").select("user_id, display_name").in("user_id", need);
-    /* cache the misses too, otherwise a member with no display name is re-queried
-       on every tick for the life of the tab */
-    need.forEach(id => { nm[id] = "Member"; });
-    (data || []).forEach(r => { if (r.display_name) nm[r.user_id] = r.display_name; });
+  await loadReplays();
+
+  box.innerHTML =
+    '<div class="adminbar">' +
+    '<div class="ah"><b>Your room</b><span>ADMIN ONLY</span></div>' +
+    '<div class="adminrow" style="margin-bottom:9px">' +
+      '<input id="yrLink" readonly aria-label="Your room link" value="' + esc(linkOf()) + '">' +
+      '<button class="go" id="yrCopy" type="button">Copy link</button>' +
+      '<button class="plain" id="yrNew" type="button">New link</button></div>' +
+    '<div class="yr-fields">' +
+      '<label>Title<input id="yrTitle" maxlength="120" value="' + esc(room.title) + '"></label>' +
+      '<label>Max people (you included)<input id="yrMax" type="number" min="2" max="500" inputmode="numeric" value="' + esc(room.max_participants) + '"></label></div>' +
+    '<div class="adminrow">' +
+      '<a class="btn gold sm" id="yrOpen" href="/room/">Open your room <span class="arr">&rarr;</span></a>' +
+      '<span class="airchip off" id="yrStatus">Off air</span>' +
+      '<button class="end" id="yrEnd" type="button" hidden>End session</button></div>' +
+    '<p class="adminnote" id="yrNote">Send the link to anyone. They sign in with their email and walk in when you start. New link cuts off everyone holding the old one.</p>' +
+    '<div class="yr-sec"><b>Replays</b><div id="yrReplays"></div></div>' +
+    '<div class="yr-sec"><b>Who joined</b><div id="yrPeople" class="yr-people"></div></div>' +
+    '</div>';
+
+  function paintStatus(){
+    $("yrStatus").className = state.is_live ? "airchip live" : "airchip off";
+    $("yrStatus").innerHTML = (state.is_live ? "<i></i>" : "") + esc(statusLine(state));
+    $("yrEnd").hidden = !state.is_live;
   }
-  async function load(){
-    const mine = ++seq;
-    const { data, error } = await sb.from("ea_live_chat").select("*")
-      .eq("live_id", show.id).order("created_at", { ascending:false }).limit(200);
-    if (mine !== seq) return;                       /* a newer load already won */
-    if (error) { rs.innerHTML = '<div class="empty">Could not load the room. Retrying.</div>'; return; }
-    const msgs = (data || []).reverse();
-    await names(msgs.map(m => m.user_id));
-    if (mine !== seq) return;
-    const near = rs.scrollHeight - rs.scrollTop - rs.clientHeight < 60;
-    const prev = rs.scrollTop;
-    rs.innerHTML = msgs.length
-      ? msgs.map(m => '<div class="bub' + (m.user_id === me.id ? ' me' : '') + '">' +
-          (m.user_id === me.id ? '' : '<div class="who">' + esc(nm[m.user_id] || "Member") + '</div>') +
-          '<p>' + esc(m.body) + '</p><div class="w">' + when(m.created_at) + '</div></div>').join("")
-      : '<div class="empty">Say what you are seeing. Ask when you get stuck.</div>';
-    rs.scrollTop = near ? rs.scrollHeight : prev;   /* do not yank people out of history */
+  function renderReplays(){
+    const el = $("yrReplays");
+    if (!replays.length) { el.innerHTML = '<p class="yr-empty">Nothing yet. Every session records itself and lands here as a draft.</p>'; return; }
+    el.innerHTML = replays.map(r => {
+      let acts = "";
+      if (r.status === "ready" && r.watch_url) {
+        acts = '<a href="' + esc(r.watch_url) + '" target="_blank" rel="noopener">Review</a>' +
+          (r.published
+            ? '<button type="button" class="pubReplay" data-id="' + esc(r.id) + '" data-pub="0">Unpublish</button>'
+            : '<button type="button" class="pubReplay pub" data-id="' + esc(r.id) + '" data-pub="1">Publish to members</button>');
+      } else if (r.status === "error") {
+        acts = '<button type="button" class="retryReplay" data-id="' + esc(r.id) + '">Retry</button>' +
+          '<span class="w" title="' + esc(r.error || "") + '">Press Retry. If it fails again, the original file is gone after 7 days.</span>';
+      }
+      return '<div class="yr-replay" data-id="' + esc(r.id) + '"><span class="lbl">' + esc(replayLabel(r)) + '</span><span class="w">' + esc(when(r.created_at)) + '</span>' + acts + '</div>';
+    }).join("");
   }
-  load();
-  try {
-    sb.channel("academy-live").on("postgres_changes", { event:"INSERT", schema:"public", table:"ea_live_chat" }, load).subscribe();
-  } catch (e) {}
-  if (liveNow) poll = setInterval(load, 12000);     /* no reason to poll an empty room */
-  $("cForm").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const input = $("cIn"), body = input.value.trim();
-    if (!body) return;
-    const { error } = await sb.from("ea_live_chat").insert({ live_id: show ? show.id : null, user_id: me.id, body });
-    if (error) { input.setCustomValidity("Could not send."); input.reportValidity(); setTimeout(() => input.setCustomValidity(""), 1500); return; }
-    input.value = ""; load();
+  async function renderPeople(){
+    const names = await loadPeople(), n = names.length;
+    $("yrPeople").innerHTML = n
+      ? '<details><summary>Last session &middot; ' + n + (n === 1 ? " person" : " people") + '</summary><ul>' + names.map(x => '<li>' + esc(x) + '</li>').join("") + '</ul></details>'
+      : '<p class="yr-empty">No one has joined yet.</p>';
+  }
+  async function refresh(){
+    try { state = await roomState(); await loadRoom(); await loadReplays(); } catch (e) { return; }
+    paintHead(); paintStatus(); renderReplays(); await renderPeople();
+    const key = String(state.is_live) + "|" + (state.recording_url || "");
+    if (key !== stageKey) { stageKey = key; memberStage(); }   /* never re-create the replay iframe for nothing */
+  }
+  paintStatus(); renderReplays(); await renderPeople();
+
+  /* poll while a session is live or a replay is still being prepared */
+  const busy = () => !!state.is_live || replays.some(r => r.status !== "ready" && r.status !== "error");
+  setInterval(() => { if (busy()) refresh(); }, 20000);
+
+  $("yrCopy").addEventListener("click", async () => {
+    const link = linkOf();
+    try { await navigator.clipboard.writeText(link); note("Copied — the link is on your clipboard. Paste it anywhere you send it."); }
+    catch (e) { $("yrLink").select(); note("The browser blocked copying — the link is selected, press Ctrl+C or Cmd+C."); }
+  });
+  /* two taps: a new link cuts off everyone holding the old one */
+  $("yrNew").addEventListener("click", async () => {
+    const btn = $("yrNew");
+    if (!newArmed) {
+      newArmed = setTimeout(() => { newArmed = null; btn.textContent = "New link"; }, 6000);
+      btn.textContent = "Tap again to cut off the old link";
+      return;
+    }
+    clearTimeout(newArmed); newArmed = null;
+    btn.disabled = true; btn.textContent = "Making…";
+    const { data, error } = await sb.rpc("ea_room_rotate_link");
+    btn.disabled = false; btn.textContent = "New link";
+    if (error || typeof data !== "string") { note("Could not make a new link: " + (error ? error.message : "no key came back")); return; }
+    room.link_key = data; $("yrLink").value = linkOf();
+    note("New link made — the old one is dead. Copy this one and send it.");
+  });
+  async function saveField(field, value, okNote){
+    const patch = {}; patch[field] = value;
+    const { error } = await sb.from("ea_rooms").update(patch).eq("id", room.id);
+    if (error) { note("Could not save: " + error.message); return false; }
+    room[field] = value; note(okNote); return true;
+  }
+  $("yrTitle").addEventListener("blur", async () => {
+    const t = $("yrTitle").value.trim() || "Taylormade Academy Live";
+    $("yrTitle").value = t;
+    if (t === room.title) return;
+    if (await saveField("title", t, "Saved — shows on the join screen")) { state.title = t; paintHead(); if (state.is_live) memberStage(); }
+  });
+  $("yrMax").addEventListener("blur", async () => {
+    const n = Math.round(Number($("yrMax").value));
+    if (!Number.isInteger(n) || n < 2 || n > 500) { $("yrMax").value = room.max_participants; note("Max people must be between 2 and 500."); return; }
+    if (n === room.max_participants) return;
+    await saveField("max_participants", n, "Saved — the room stops at " + n + " people, you included");
+  });
+  /* a session left live from a tab that died: stop the recording, flip the row off air */
+  $("yrEnd").addEventListener("click", async () => {
+    const btn = $("yrEnd");
+    if (!endArmed) {
+      endArmed = setTimeout(() => { endArmed = null; btn.textContent = "End session"; }, 6000);
+      btn.textContent = "Tap again to end it for everyone";
+      return;
+    }
+    clearTimeout(endArmed); endArmed = null;
+    btn.disabled = true; btn.textContent = "Ending…";
+    try { await recordCall({ action:"stop" }); } catch (e) { /* nothing recording is fine — the row still goes off air */ }
+    const { error } = await sb.from("ea_rooms").update({ is_live:false, ended_at: new Date().toISOString() }).eq("id", room.id);
+    btn.disabled = false; btn.textContent = "End session";
+    if (error) { note("Could not end the session: " + error.message); return; }
+    note("Session ended — the room is off air. A replay, if one was recording, lands under Replays in a few minutes.");
+    await refresh();
+  });
+  $("yrReplays").addEventListener("click", async (ev) => {
+    const pub = ev.target.closest(".pubReplay");
+    if (pub) {
+      const id = pub.dataset.id, on = pub.dataset.pub === "1";
+      pub.disabled = true; pub.textContent = on ? "Publishing…" : "Unpublishing…";
+      const { error } = await sb.rpc("ea_room_publish_replay", { p_replay: id, p_publish: on });
+      if (error) { pub.disabled = false; pub.textContent = on ? "Publish to members" : "Unpublish"; note("Could not " + (on ? "publish" : "unpublish") + ": " + error.message); return; }
+      note(on ? "Published — members see it under Last session on this page." : "Unpublished — members no longer see it on this page.");
+      await refresh(); return;
+    }
+    const rt = ev.target.closest(".retryReplay");
+    if (rt) {
+      const id = rt.dataset.id; rt.disabled = true; rt.textContent = "Retrying…";
+      try { await recordCall({ action:"retry_replay", replay_id: id }); }
+      catch (e) { rt.disabled = false; rt.textContent = "Retry"; note("Could not retry: " + e.message); return; }
+      note("Retrying — it shows as preparing here until Cloudflare finishes.");
+      await refresh();
+    }
   });
 }
-
-
 </script>
 </body></html>
