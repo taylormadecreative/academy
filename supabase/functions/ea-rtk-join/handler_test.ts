@@ -454,6 +454,36 @@ Deno.test("room:'ht' — a listed email is the host and gets ht-class-host", asy
   assertEquals(calls, ["presets:ht-class-host,ht-class-guest"]);
 });
 
+/* nobody ends a class by accident (9/15): a host who left, dropped, reloaded or opened a second tab comes back into
+   the SAME meeting — while the row is live the join never creates one, for any room, for a guest either */
+Deno.test("room:'ht' — the host while live (Rejoin, reload, second tab) gets the SAME meeting id — no POST /meetings, no row write, no INACTIVE", async () => {
+  const d = roomDeps({}, htRow());
+  const r = await handleJoin({ room: "ht" }, HT_HOST, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { meeting_id: string }).meeting_id, "m-ht");
+  assertEquals((r.body as { host: boolean }).host, true);
+  assertEquals(paths(d), ["POST /meetings/m-ht/participants"]);
+  assertEquals(d.meetingSet, []);
+  /* a second join a minute later — the same again */
+  const again = await handleJoin({ room: "ht" }, HT_HOST, roomDeps({ now: () => new Date(NOW.getTime() + 60000) }, htRow()));
+  assertEquals((again.body as { meeting_id: string }).meeting_id, "m-ht");
+  /* and a guest rejoining after a drop lands in that meeting too */
+  const g = roomDeps({}, htRow());
+  const gr = await handleJoin({ room: "ht", key: "AbC123_-xyzXYZ0987ab-_" }, PERSON, g);
+  assertEquals(gr.status, 200);
+  assertEquals(paths(g), ["GET /meetings/m-ht/active-session", "POST /meetings/m-ht/participants"]);
+});
+
+Deno.test("OPIL — a host rejoining a live session gets the stored meeting, never a new one", async () => {
+  const d = deps();
+  for (const who of [COORD, FAC7]) {
+    const r = await handleJoin({ session_no: 7 }, who, d);
+    assertEquals(r.status, 200);
+    assertEquals((r.body as { meeting_id: string }).meeting_id, "meet-7");
+  }
+  assertEquals(d.calls.filter((c) => c.method === "POST" && c.path === "/meetings").length, 0);
+});
+
 Deno.test("room:'ht' — an Academy member without the key is refused (membership opens the Academy room only)", async () => {
   const d = roomDeps({ isMember: async () => true }, htRow());
   const r = await handleJoin({ room: "ht" }, PERSON, d);

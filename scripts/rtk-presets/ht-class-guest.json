@@ -37,7 +37,7 @@
     "can_accept_production_requests": false,
     "accept_waiting_requests": false,
     "kick_participant": false,
-    "pin_participant": false,
+    "pin_participant": true,
     "can_spotlight": false,
     "disable_participant_audio": false,
     "disable_participant_video": false,
@@ -49,17 +49,17 @@
       "public": {
         "can_send": true,
         "text": true,
-        "files": false
+        "files": true
       },
       "private": {
         "can_send": true,
         "can_receive": true,
         "text": true,
-        "files": false
+        "files": true
       }
     },
     "polls": {
-      "can_create": false,
+      "can_create": true,
       "can_view": true,
       "can_vote": true
     },
@@ -70,7 +70,7 @@
       "config": {}
     },
     "connected_meetings": {
-      "can_alter_connected_meetings": false,
+      "can_alter_connected_meetings": true,
       "can_switch_connected_meetings": true,
       "can_switch_to_parent_meeting": true
     },

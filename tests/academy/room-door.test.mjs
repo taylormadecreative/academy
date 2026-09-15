@@ -19,7 +19,7 @@ test('room/: every id the spine names is rendered (static or from the control te
 
 test('room/: imports room-page.js, the room words and rtk-room-v2.js on a ?v= stamp; the kit is loaded in room mode', () => {
   assert.match(room, /import \{ roomKey, roomBranch, loginHref, joinErrorText \} from '\/js\/room-page\.js\?v=[a-z0-9]+'/);
-  assert.match(room, /import \{ ROOM_WORDS \} from '\/opil\/hub\/live-rooms\.js\?v=[a-z0-9]+'/);
+  assert.match(room, /import \{ ROOM_WORDS, endCopy, backOn \} from '\/opil\/hub\/live-rooms\.js\?v=[a-z0-9]+'/);
   assert.match(room, /import\('\/js\/rtk-room-v2\.js\?v=[a-z0-9]+'\)/);
   assert.match(room, /<link rel="stylesheet" href="\/css\/rtk-room-v2\.css\?v=[a-z0-9]+">/);
   assert.match(room, /<link rel="stylesheet" href="\/css\/build-mode\.css\?v=[a-z0-9]+">/);
@@ -54,6 +54,22 @@ test('room/: a waiting guest whose link died gets the dead-link card, an in-room
   const decl = room.indexOf('let room = null, closing = false, inRoom = false;');
   const dispatch = room.indexOf("if (branch === 'error')");
   assert.ok(decl > 0 && dispatch > 0 && decl < dispatch, 'room/closing/inRoom must be declared above the dispatch');
+});
+
+/* nobody ends a session by accident (Nelson, 9/15): the static half — the behaviour is exercised by the HT harness on
+   the same module contract */
+test('room/: a host\'s left never ends the session; only ended does; End is two taps; Start is never reachable while live; the ended card keeps listening', () => {
+  assert.ok(room.includes("if (st === 'ended') await endSession(); else stillRunning(reason);"), 'left → stillRunning, ended → endSession');
+  assert.ok(room.includes('id="rStill"'), 'the still-running block');
+  assert.ok(room.includes("endBtn.dataset.armed"), 'End is two taps');
+  assert.ok(room.includes("if (room && hostIn && room.end) await room.end(); else await endSession();"), 'in the room End goes through the module');
+  assert.ok(room.includes("'Enter the running session'") && room.includes("'Rejoin the running session &rarr;'"), 'Start reads Enter / Rejoin while live');
+  assert.ok(room.includes("if (live) {\n      /* Enter / Rejoin the running session"), 'the Start button re-enters while live');
+  assert.ok(room.includes("setTimeout(tick, 5000)") && room.includes("backOn(on, !!st.is_live)"), 'the ended card polls and uses backOn');
+  assert.ok(room.includes('id="rBack"'), 'the way back in');
+  for (const dead of ['press Leave and the session ends', 'Leave ends the session', 'Leaving IS the end', 'ends the session for everyone and the replay', 'End session</button>', "endSession(true)"])
+    assert.equal(room.includes(dead), false, dead + ' still in room/index.html');
+  assert.ok(room.includes('Leave only leaves'));
 });
 
 test('room/: the room module gets one retry before the fail card, with a plain-English connection message', () => {

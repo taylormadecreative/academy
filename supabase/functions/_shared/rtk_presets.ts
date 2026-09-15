@@ -2,26 +2,33 @@
 // pair a room's join needs. Nelson (or a host like Dr. Gray) has no shell token on the road, so
 // the join function's room branch calls ensurePresets(cf, [hostPreset, guestPreset]) the first
 // time a room is opened: list the app's presets, create any of the given names that is missing,
-// and re-send a body if a guest's file-sharing switches are not off or the live copy disagrees
-// with the body on transcription (HT guests are captioned since 9/15). Idempotent per name (cached
+// and re-send a body when the live copy disagrees with ours on any TOOL flag (needsPatch below:
+// screen share, polls, chat text + files, pin, small groups, transcription). That is how prod
+// picks a widened preset up — the next host join, no dashboard step. Idempotent per name (cached
 // per isolate, one Set<string> of confirmed-good names); never throws for a Cloudflare problem —
 // a preset problem must not block a join (the participant POST will 4xx and the page says
 // cloudflare_<status>). An unknown name (not in PRESET_BODIES) IS a throw — that is a bug in the
 // caller (a room row with a typo'd preset column), not a Cloudflare hiccup.
 //
+// Every person gets every tool (Nelson, 9/15: "every single person should have access to ALL THE
+// TOOLS on every platform! students, facilitator and everyone else should be able to share a
+// screen"): every preset these rooms use ALLOWS screen share, polls create + vote, chat text +
+// files, pin and small groups — guests, students, judges included. Removing someone (kick) and
+// the moderation switches over other people stay host-only; removing someone is not a tool.
+//
 // PRESET_BODIES are the committed JSON files, verbatim (rtk_presets_test.ts proves they match):
 //   scripts/rtk-presets/tma-class-host.json   — a copy of opil-host.json, name changed
-//   scripts/rtk-presets/tma-class-guest.json  — a copy of opil-student.json, name changed,
-//                                               chat.public.files and chat.private.files false
+//   scripts/rtk-presets/tma-class-guest.json  — a copy of opil-student.json, name changed
 //   scripts/rtk-presets/ht-class-host.json    — HT brand colors (maroon/gold), same shape
-//   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, chat files off like every guest,
-//                                               transcription_enabled true (captions show the guest)
+//   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, transcription_enabled true
+//                                               (captions show the guest)
 import type { JoinDeps } from "../ea-rtk-join/handler.ts";
-/* The two OPIL presets whose bodies changed on 9/15 (students and judges are transcribed too, so
-   the Transcript tab and Save transcript carry the whole room, not just the host). Copies of the
-   committed files, because a function bundle cannot reach scripts/; rtk_presets_test.ts proves
-   they match. They are never CREATED here — scripts/rtk-presets.sh made them — only brought in
-   line when Cloudflare's copy disagrees on transcription. */
+/* The two OPIL presets whose bodies changed on 9/15 (students and judges are transcribed too, and
+   — later that day — get every tool: screen share, polls, chat files, pin, small groups; a judge
+   also gets mic and camera). Copies of the committed files, because a function bundle cannot reach
+   scripts/; rtk_presets_test.ts proves they match. They are never CREATED here —
+   scripts/rtk-presets.sh made them — only brought in line when Cloudflare's copy disagrees on a
+   tool flag (needsPatch). */
 import opilStudent from "./rtk-presets/opil-student.json" with { type: "json" };
 import opilJudge from "./rtk-presets/opil-judge.json" with { type: "json" };
 
@@ -124,7 +131,7 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       can_accept_production_requests: false,
       accept_waiting_requests: false,
       kick_participant: false,
-      pin_participant: false,
+      pin_participant: true,
       can_spotlight: false,
       disable_participant_audio: false,
       disable_participant_video: false,
@@ -133,12 +140,12 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       can_record: false,
       can_livestream: false,
       chat: {
-        public: { can_send: true, text: true, files: false },
-        private: { can_send: true, can_receive: true, text: true, files: false },
+        public: { can_send: true, text: true, files: true },
+        private: { can_send: true, can_receive: true, text: true, files: true },
       },
-      polls: { can_create: false, can_view: true, can_vote: true },
+      polls: { can_create: true, can_view: true, can_vote: true },
       plugins: { can_start: false, can_close: false, can_edit_config: false, config: {} },
-      connected_meetings: { can_alter_connected_meetings: false, can_switch_connected_meetings: true, can_switch_to_parent_meeting: true },
+      connected_meetings: { can_alter_connected_meetings: true, can_switch_connected_meetings: true, can_switch_to_parent_meeting: true },
       show_participant_list: true,
       can_edit_display_name: false,
       hidden_participant: false,
@@ -194,7 +201,7 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       can_accept_production_requests: false,
       accept_waiting_requests: false,
       kick_participant: false,
-      pin_participant: false,
+      pin_participant: true,
       can_spotlight: false,
       disable_participant_audio: false,
       disable_participant_video: false,
@@ -203,12 +210,12 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       can_record: false,
       can_livestream: false,
       chat: {
-        public: { can_send: true, text: true, files: false },
-        private: { can_send: true, can_receive: true, text: true, files: false },
+        public: { can_send: true, text: true, files: true },
+        private: { can_send: true, can_receive: true, text: true, files: true },
       },
-      polls: { can_create: false, can_view: true, can_vote: true },
+      polls: { can_create: true, can_view: true, can_vote: true },
       plugins: { can_start: false, can_close: false, can_edit_config: false, config: {} },
-      connected_meetings: { can_alter_connected_meetings: false, can_switch_connected_meetings: true, can_switch_to_parent_meeting: true },
+      connected_meetings: { can_alter_connected_meetings: true, can_switch_connected_meetings: true, can_switch_to_parent_meeting: true },
       show_participant_list: true,
       can_edit_display_name: false,
       hidden_participant: false,
@@ -235,25 +242,53 @@ function presetList(data: unknown): Record<string, unknown>[] {
   return Array.isArray(cur) ? cur.filter((x) => x && typeof x === "object").map((x) => x as Record<string, unknown>) : [];
 }
 
-function guestFilesOff(preset: Record<string, unknown>): boolean {
-  const perms = (preset.permissions || {}) as Record<string, unknown>;
-  const chat = (perms.chat || {}) as Record<string, unknown>;
-  const pub = (chat.public || {}) as Record<string, unknown>;
-  const priv = (chat.private || {}) as Record<string, unknown>;
-  return pub.files === false && priv.files === false;
+/* The TOOL flags: a live preset is re-sent when it disagrees with our body on ANY of these, either
+   way. Paths under `permissions`. Everything a person can do for themselves — mic, camera, screen
+   share, polls, chat with files, pin, small groups, being transcribed — and nothing about other
+   people (kick, mute-others, change-permissions stay whatever the body says but are not compared:
+   a live copy that differs only there is left alone, as before). */
+export const TOOL_FLAGS: readonly string[] = [
+  "media.audio.can_produce",
+  "media.video.can_produce",
+  "media.screenshare.can_produce",
+  "stage_access",
+  "polls.can_create",
+  "polls.can_vote",
+  "polls.can_view",
+  "chat.public.can_send",
+  "chat.public.text",
+  "chat.public.files",
+  "chat.private.can_send",
+  "chat.private.can_receive",
+  "chat.private.text",
+  "chat.private.files",
+  "pin_participant",
+  "connected_meetings.can_alter_connected_meetings",
+  "connected_meetings.can_switch_connected_meetings",
+  "connected_meetings.can_switch_to_parent_meeting",
+  "transcription_enabled",
+];
+
+function flagAt(preset: Record<string, unknown>, path: string): unknown {
+  let cur: unknown = preset.permissions;
+  for (const k of path.split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[k];
+  }
+  return cur;
 }
 
-/* whether a preset body (ours, or Cloudflare's live copy) has transcription on */
-function transcribes(preset: Record<string, unknown>): boolean {
-  return ((preset.permissions || {}) as Record<string, unknown>).transcription_enabled === true;
+/* the first TOOL flag on which the live copy disagrees with the body, or null when they agree on all */
+export function toolFlagMismatch(body: Record<string, unknown>, found: Record<string, unknown>): string | null {
+  for (const f of TOOL_FLAGS) if (flagAt(found, f) !== flagAt(body, f)) return f;
+  return null;
 }
 
-/* a live preset is re-sent when a guest's file switches are on, or when it disagrees with our
-   body on transcription either way (ht-class-guest went true on 9/15; tma-class-guest stays
-   false, so an Academy guest preset that matches is left alone) */
-function needsPatch(name: PresetName, found: Record<string, unknown>): boolean {
-  if (name.endsWith("-guest") && !guestFilesOff(found)) return true;
-  return transcribes(found) !== transcribes(PRESET_BODIES[name]);
+/* a live preset is re-sent when it disagrees with our body on any tool flag (9/15: screen share, polls,
+   chat files, pin, small groups opened to every role; transcription on for HT guests, students, judges;
+   tma-class-guest keeps transcription off, so an Academy guest copy that matches is left alone) */
+export function needsPatch(name: PresetName, found: Record<string, unknown>): boolean {
+  return toolFlagMismatch(PRESET_BODIES[name], found) !== null;
 }
 
 export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promise<void> {
@@ -303,7 +338,7 @@ export async function ensureOpilPresets(cf: JoinDeps["cf"]): Promise<void> {
     let allGood = true;
     for (const name of OPIL_NAMES) {
       const found = have.find((p) => p.name === name);
-      if (!found || transcribes(found) === OPIL_BODIES[name].permissions.transcription_enabled) continue;
+      if (!found || toolFlagMismatch(OPIL_BODIES[name] as unknown as Record<string, unknown>, found) === null) continue;
       const r = await cf("PATCH", `/presets/${found.id}`, OPIL_BODIES[name]);
       if (!r.ok) { console.warn("[rtk_presets] update failed", name, r.status); allGood = false; }
     }
