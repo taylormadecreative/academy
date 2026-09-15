@@ -26,17 +26,17 @@ test('ht-class-host = opil-host with HT name + HT tokens, nothing else changed',
   assert.equal(ht.config.view_type, 'GROUP_CALL');
 });
 
-test('ht-class-guest = opil-student with HT name + HT tokens + no file sharing + no transcription, nothing else changed', () => {
+test('ht-class-guest = opil-student with HT name + HT tokens + no file sharing + transcription on, nothing else changed', () => {
   const ht = read('ht-class-guest'), opil = read('opil-student');
   assert.equal(ht.name, 'ht-class-guest');
   assert.deepEqual(ht.ui.design_tokens, HT_UI);
   assert.equal(ht.permissions.chat.public.files, false);
   assert.equal(ht.permissions.chat.private.files, false);
   assert.equal(ht.permissions.chat.public.text, true);          // text chat stays
-  assert.equal(ht.permissions.transcription_enabled, false);    // HT guests are not transcribed (OPIL students are, since 9/15)
+  assert.equal(ht.permissions.transcription_enabled, true);     // HT guests are captioned (9/15: "show the transcriptions as she talks")
   const a = stripUiAndName(ht), b = stripUiAndName(opil);
   b.permissions.chat.public.files = false; b.permissions.chat.private.files = false;
-  b.permissions.transcription_enabled = false;
+  b.permissions.transcription_enabled = true;
   assert.deepEqual(a, b);
 });
 

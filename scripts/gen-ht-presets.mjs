@@ -26,5 +26,8 @@ guest.name = 'ht-class-guest'; guest.ui = { design_tokens: HT_UI };
 /* strangers under HT's name must not push files to each other; text chat stays */
 guest.permissions.chat.public.files = false;
 guest.permissions.chat.private.files = false;
+/* HT guests are captioned too (Nelson, 9/15: "show the transcriptions as she talks") — the room
+   transcribes per preset, so a guest whose preset says false never appears in the captions */
+guest.permissions.transcription_enabled = true;
 write('ht-class-guest', guest);
 console.log('wrote ht-class-host.json, ht-class-guest.json');

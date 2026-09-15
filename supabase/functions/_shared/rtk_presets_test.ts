@@ -110,6 +110,51 @@ Deno.test("an unknown preset name throws, before any network call", async () => 
   assertEquals(cf.calls.length, 0);
 });
 
+/* ── transcription (9/15): HT guests are captioned, so a live ht-class-guest that still says false is re-sent ── */
+const HT_NAMES = ["ht-class-host", "ht-class-guest"];
+const HT_HOST_ON_CF = { id: "p-hthost", name: "ht-class-host", permissions: PRESET_BODIES["ht-class-host"].permissions };
+const HT_GUEST_OK_ON_CF = { id: "p-htguest", name: "ht-class-guest", permissions: PRESET_BODIES["ht-class-guest"].permissions };
+/* the shape Cloudflare holds from before 9/15: files already off, transcription still off */
+const HT_GUEST_NO_TRANSCRIPT = { id: "p-htguest", name: "ht-class-guest", permissions: { ...(PRESET_BODIES["ht-class-guest"].permissions as Record<string, unknown>), transcription_enabled: false } };
+const TMA_GUEST_NO_TRANSCRIPT = { id: "p-guest", name: "tma-class-guest", permissions: { chat: { public: { can_send: true, text: true, files: false }, private: { can_send: true, can_receive: true, text: true, files: false } }, transcription_enabled: false } };
+
+Deno.test("the HT guest body says transcription on; the Academy guest body still says off", () => {
+  assertEquals((PRESET_BODIES["ht-class-guest"].permissions as Record<string, unknown>).transcription_enabled, true);
+  assertEquals((PRESET_BODIES["tma-class-guest"].permissions as Record<string, unknown>).transcription_enabled, false);
+});
+
+Deno.test("ht-class-guest live with transcription off (files already off) → one PATCH with the body; the host untouched", async () => {
+  const { ensurePresets } = await import("./rtk_presets.ts?t=ht-transcribe");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HT_HOST_ON_CF, HT_GUEST_NO_TRANSCRIPT] } : { ok: true, status: 200, data: {} }));
+  await ensurePresets(cf, HT_NAMES);
+  assertEquals(cf.calls, [
+    { method: "GET", path: "/presets", body: undefined },
+    { method: "PATCH", path: "/presets/p-htguest", body: PRESET_BODIES["ht-class-guest"] },
+  ]);
+});
+
+Deno.test("ht-class-guest live and matching → nothing but the list", async () => {
+  const { ensurePresets } = await import("./rtk_presets.ts?t=ht-matching");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HT_HOST_ON_CF, HT_GUEST_OK_ON_CF] } : { ok: true, status: 200, data: {} }));
+  await ensurePresets(cf, HT_NAMES);
+  assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets"]);
+});
+
+Deno.test("tma-class-guest live with transcription off → no PATCH (the Academy guest body says off too)", async () => {
+  const { ensurePresets } = await import("./rtk_presets.ts?t=tma-no-transcribe");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HOST_ON_CF, TMA_GUEST_NO_TRANSCRIPT] } : { ok: true, status: 200, data: {} }));
+  await ensurePresets(cf, TMA_NAMES);
+  assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets"]);
+});
+
+Deno.test("a transcription PATCH that fails is not cached as ok — the next join lists and tries again", async () => {
+  const { ensurePresets } = await import("./rtk_presets.ts?t=ht-patchfail");
+  const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HT_HOST_ON_CF, HT_GUEST_NO_TRANSCRIPT] } : { ok: false, status: 500, data: {} }));
+  await ensurePresets(cf, HT_NAMES);
+  await ensurePresets(cf, HT_NAMES);
+  assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets", "PATCH /presets/p-htguest", "GET /presets", "PATCH /presets/p-htguest"]);
+});
+
 /* ── the OPIL presets: ensureOpilPresets, its own cache (9/15: students and judges are transcribed too) ── */
 const OPIL_STUDENT_OFF = { id: "p-stu", name: "opil-student", permissions: { transcription_enabled: false } };
 const OPIL_JUDGE_OFF = { id: "p-jud", name: "opil-judge", permissions: { transcription_enabled: false } };

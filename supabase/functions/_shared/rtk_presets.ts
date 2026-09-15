@@ -2,7 +2,8 @@
 // pair a room's join needs. Nelson (or a host like Dr. Gray) has no shell token on the road, so
 // the join function's room branch calls ensurePresets(cf, [hostPreset, guestPreset]) the first
 // time a room is opened: list the app's presets, create any of the given names that is missing,
-// and re-send a guest body if its file-sharing switches are not off. Idempotent per name (cached
+// and re-send a body if a guest's file-sharing switches are not off or the live copy disagrees
+// with the body on transcription (HT guests are captioned since 9/15). Idempotent per name (cached
 // per isolate, one Set<string> of confirmed-good names); never throws for a Cloudflare problem —
 // a preset problem must not block a join (the participant POST will 4xx and the page says
 // cloudflare_<status>). An unknown name (not in PRESET_BODIES) IS a throw — that is a bug in the
@@ -13,7 +14,8 @@
 //   scripts/rtk-presets/tma-class-guest.json  — a copy of opil-student.json, name changed,
 //                                               chat.public.files and chat.private.files false
 //   scripts/rtk-presets/ht-class-host.json    — HT brand colors (maroon/gold), same shape
-//   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, chat files off like every guest
+//   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, chat files off like every guest,
+//                                               transcription_enabled true (captions show the guest)
 import type { JoinDeps } from "../ea-rtk-join/handler.ts";
 /* The two OPIL presets whose bodies changed on 9/15 (students and judges are transcribed too, so
    the Transcript tab and Save transcript carry the whole room, not just the host). Copies of the
@@ -212,7 +214,7 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       hidden_participant: false,
       waiting_room_type: "SKIP",
       recorder_type: "NONE",
-      transcription_enabled: false,
+      transcription_enabled: true,
     },
     ui: HT_UI,
   },
@@ -241,6 +243,19 @@ function guestFilesOff(preset: Record<string, unknown>): boolean {
   return pub.files === false && priv.files === false;
 }
 
+/* whether a preset body (ours, or Cloudflare's live copy) has transcription on */
+function transcribes(preset: Record<string, unknown>): boolean {
+  return ((preset.permissions || {}) as Record<string, unknown>).transcription_enabled === true;
+}
+
+/* a live preset is re-sent when a guest's file switches are on, or when it disagrees with our
+   body on transcription either way (ht-class-guest went true on 9/15; tma-class-guest stays
+   false, so an Academy guest preset that matches is left alone) */
+function needsPatch(name: PresetName, found: Record<string, unknown>): boolean {
+  if (name.endsWith("-guest") && !guestFilesOff(found)) return true;
+  return transcribes(found) !== transcribes(PRESET_BODIES[name]);
+}
+
 export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promise<void> {
   /* a name not in PRESET_BODIES is a caller bug (a room row with a typo'd preset column), not a
      Cloudflare hiccup — that gets a real throw, checked before any network call and before the cache */
@@ -258,7 +273,7 @@ export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promis
       if (!found) {
         const r = await cf("POST", "/presets", PRESET_BODIES[name]);
         if (!r.ok) { console.warn("[rtk_presets] create failed", name, r.status); ok = false; }
-      } else if (name.endsWith("-guest") && !guestFilesOff(found)) {
+      } else if (needsPatch(name, found)) {
         const r = await cf("PATCH", `/presets/${found.id}`, PRESET_BODIES[name]);
         if (!r.ok) { console.warn("[rtk_presets] update failed", name, r.status); ok = false; }
       }
@@ -278,10 +293,6 @@ export async function ensurePresets(cf: JoinDeps["cf"], names: string[]): Promis
 export const OPIL_BODIES = { "opil-student": opilStudent, "opil-judge": opilJudge } as const;
 const OPIL_NAMES = ["opil-student", "opil-judge"] as const;
 let opilOk = false;
-
-function transcribes(preset: Record<string, unknown>): boolean {
-  return ((preset.permissions || {}) as Record<string, unknown>).transcription_enabled === true;
-}
 
 export async function ensureOpilPresets(cf: JoinDeps["cf"]): Promise<void> {
   if (opilOk) return;
