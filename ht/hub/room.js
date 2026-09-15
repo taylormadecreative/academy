@@ -45,8 +45,8 @@ function lastSession(st) {
   const u = iframeUrl(st && st.recording_url); if (!u) return '';
   return '<div class="ht-room-last"><b>Last session</b><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a></div>';
 }
-function endedCard() { document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>This session has ended.</h3><p>If you were here, you can rewatch it on this page once your host publishes it.</p>'); }
-function leftCard() { document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>You left the room.</h3><a class="btn ht-gold" href="' + esc(location.pathname + location.search) + '">Rejoin →</a>'); }
+function endedCard() { if (poll) { clearInterval(poll); poll = null; } document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>This session has ended.</h3><p>If you were here, you can rewatch it on this page once your host publishes it.</p>', lastSession(state)); }
+function leftCard() { if (poll) { clearInterval(poll); poll = null; } document.body.classList.remove('in-room', 'in-room-v2'); card('<h3>You left the room.</h3><a class="btn ht-gold" href="' + esc(location.pathname + location.search) + '">Rejoin →</a>'); }
 
 /* ---------- state → branch ---------- */
 let state = null, stateErr = null;
@@ -70,7 +70,7 @@ async function mountRoom(mode, extra) {
   }, extra || {}));
   return r2;
 }
-function onState(st) {
+function onState(st, meeting, reason) {
   if (st === 'joined' && pendingRecord) {
     pendingRecord = false;
     record('start').then(() => { host.rec(true); if (r2 && r2.setRecording) r2.setRecording(true); })
@@ -79,7 +79,7 @@ function onState(st) {
   if (st === 'left' || st === 'ended') {
     document.body.classList.remove('in-room', 'in-room-v2');
     if (hosting) host.endSession();
-    else if (st === 'left') leftCard();
+    else if (st === 'left' && reason !== 'kicked') leftCard();
     else endedCard();
   }
 }
@@ -95,7 +95,7 @@ async function record(action, extra) {
 
 /* ---------- guests ---------- */
 async function guestWait() {
-  ctl.innerHTML = lastSession(state);
+  ctl.innerHTML = '';
   await mountRoom('waiting');
   poll = setInterval(async () => { try { const s = await getState(); if (s && s.is_live) location.reload(); } catch (e) {} }, POLL_MS);
 }
@@ -104,7 +104,7 @@ async function guestEnter() {
   try { await mountRoom('student'); }
   catch (e) { card('<h3>' + esc(htErrorText(e.code, e.status, words)) + '</h3><p>Reload to try again.</p>'); return; }
   poll = setInterval(async () => {
-    try { const s = await getState(); if (s && !s.is_live) { clearInterval(poll); try { await r2.leave(); } catch (x) {} endedCard(); } } catch (e) {}
+    try { const s = await getState(); if (s && !s.is_live) { clearInterval(poll); poll = null; state = s; try { await r2.leave(); } catch (x) {} endedCard(); } } catch (e) {}
   }, POLL_MS);
 }
 
@@ -153,10 +153,13 @@ const host = {
     e.neu.addEventListener('click', async () => {
       if (!armed) { armed = setTimeout(() => { armed = null; e.neu.textContent = 'New link'; }, 4000); e.neu.textContent = 'Tap again to cut off the old link'; return; }
       clearTimeout(armed); armed = null; e.neu.disabled = true;
-      const { data, error } = await sb.rpc('ea_room_rotate_link', { p_room: this.room.id });
-      e.neu.disabled = false; e.neu.textContent = 'New link';
-      if (error || !data) { this.note('Could not make a new link — ' + (error ? error.message : 'try again.')); return; }
-      this.room.link_key = data; e.link.value = this.link(); this.note('New link made. The old one no longer opens the room. Send the new one.');
+      try {
+        const { data, error } = await sb.rpc('ea_room_rotate_link', { p_room: this.room.id });
+        if (error || !data) { this.note('Could not make a new link — ' + (error ? error.message : 'try again.')); return; }
+        this.room.link_key = data; e.link.value = this.link(); this.note('New link made. The old one no longer opens the room. Send the new one.');
+      } finally {
+        e.neu.disabled = false; e.neu.textContent = 'New link';
+      }
     });
     const saveField = (input, savedEl, col, parse) => {
       input.addEventListener('change', async () => {
@@ -174,11 +177,14 @@ const host = {
     if (e.hostsSave) e.hostsSave.addEventListener('click', async () => {
       const lines = e.hosts.value.split(/\n/).map((s) => s.trim()).filter(Boolean);
       e.hostsSave.disabled = true;
-      const { data, error } = await sb.rpc('ea_room_set_hosts', { p_room: this.room.id, p_emails: lines });
-      e.hostsSave.disabled = false;
       const s = document.getElementById('rmHostsSaved');
-      if (error) { s.textContent = 'not saved'; this.note('Could not save hosts — ' + error.message); return; }
-      this.room.host_emails = data || []; e.hosts.value = this.room.host_emails.join('\n'); s.textContent = 'Saved'; setTimeout(() => { s.textContent = ''; }, 1800);
+      try {
+        const { data, error } = await sb.rpc('ea_room_set_hosts', { p_room: this.room.id, p_emails: lines });
+        if (error) { s.textContent = 'not saved'; this.note('Could not save hosts — ' + error.message); return; }
+        this.room.host_emails = data || []; e.hosts.value = this.room.host_emails.join('\n'); s.textContent = 'Saved'; setTimeout(() => { s.textContent = ''; }, 1800);
+      } finally {
+        e.hostsSave.disabled = false;
+      }
     });
     e.start.addEventListener('click', () => this.start());
     e.end.addEventListener('click', () => { if (r2) { r2.leave(); } else { this.endSession(); } });
@@ -192,7 +198,11 @@ const host = {
     if (live && !this.tick) this.tick = setInterval(() => this.onTick(), POLL_MS);
   },
   async onTick() {
-    try { state = await getState(); } catch (e) { return; }
+    let s; try { s = await getState(); } catch (e) { return; }
+    if (!s) return;
+    state = s;
+    this.room.is_live = !!state.is_live;
+    this.syncCtl();
     this.els.status.textContent = statusLine(state);
     await this.loadReplays();
     if (!this.room.is_live && !this.busy) { clearInterval(this.tick); this.tick = null; }
@@ -209,15 +219,23 @@ const host = {
   async start() {
     const e = this.els;
     e.start.disabled = true; e.start.textContent = 'Opening the room…';
+    let opened = false;
     try {
       hosting = true; if (poll) { clearInterval(poll); poll = null; }
       await mountRoom('host', { onOpened: async () => {
-        await this.flip(true); pendingRecord = true; this.syncCtl();
+        await this.flip(true); opened = true; pendingRecord = true; this.syncCtl();
         this.note('Your room is open. Check your camera below and press Enter Class — the recording starts when you’re in. When you’re done, press Leave and the session ends for everyone.');
       } });
     } catch (x) {
       hosting = false; e.start.disabled = false; e.start.textContent = START;
-      this.note('Could not open the room — ' + (x.code ? htErrorText(x.code, x.status, words) : (x.message || x)));
+      const msg = x.code ? htErrorText(x.code, x.status, words) : (x.message || x);
+      if (opened) {
+        try { await this.flip(false); } catch (y) {}
+        this.syncCtl();
+        this.note('The room opened but this device could not enter it — ' + msg + '. The session was closed; press Start class to try again.');
+      } else {
+        this.note('Could not open the room — ' + msg);
+      }
     }
   },
   /* re-entry: a reload or a second device while the class runs — same meeting, no new recording
@@ -242,8 +260,9 @@ const host = {
   busy: false,
   async loadReplays() {
     const e = this.els;
-    const { data } = await sb.from('ea_room_replays').select('id,status,watch_url,duration_s,published,error,created_at')
+    const { data, error } = await sb.from('ea_room_replays').select('id,status,watch_url,duration_s,published,created_at')
       .eq('room_id', this.room.id).order('created_at', { ascending: false }).limit(8);
+    if (error) this.note('Could not load replays — ' + error.message);
     const rows = data || [];
     this.busy = rows.some((r) => ['invoked', 'recording', 'uploading', 'uploaded'].includes(r.status));
     if (this.busy && !this.tick) this.tick = setInterval(() => this.onTick(), POLL_MS);
@@ -272,7 +291,8 @@ const host = {
   },
   async loadWho() {
     const e = this.els;
-    const { data: mem } = await sb.from('ea_room_members').select('user_id,last_joined_at').eq('room_id', this.room.id).order('last_joined_at', { ascending: false }).limit(200);
+    const { data: mem, error } = await sb.from('ea_room_members').select('user_id,last_joined_at').eq('room_id', this.room.id).order('last_joined_at', { ascending: false }).limit(200);
+    if (error) this.note('Could not load who joined — ' + error.message);
     const since = this.room.live_since ? new Date(this.room.live_since).getTime() : 0;
     const cur = (mem || []).filter((m) => new Date(m.last_joined_at).getTime() >= since);
     const names = {};
