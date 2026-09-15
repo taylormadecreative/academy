@@ -57,7 +57,7 @@ function fakeAdmin(tables: Record<string, Row[]>) {
 /* Nelson's room is on meeting "meet-r" now; "meet-old" was a previous Start class whose recording is
    still uploading; OPIL session 7 lives on "meet-7". */
 const world = () => ({
-  ea_rooms: [{ id: "room-1", title: "Taylormade Academy Live", meeting_id: "meet-r", live_since: "2026-09-15T01:00:00.000Z" }],
+  ea_rooms: [{ id: "room-1", slug: "academy", title: "Taylormade Academy Live", meeting_id: "meet-r", live_since: "2026-09-15T01:00:00.000Z" }],
   ea_room_replays: [
     { id: "rr-1", room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "uploading", created_at: "2026-09-12T18:05:00.000Z" },
     { id: "rr-0", room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-older", status: "error", created_at: "2026-09-12T17:00:00.000Z" },
@@ -70,7 +70,7 @@ const tablesAsked = (calls: Call[], op: Call["op"]) => calls.filter((c) => c.op 
 Deno.test("targetByMeeting: the room's current meeting → room, startedAt = live_since, and OPIL is never asked", async () => {
   const { admin, calls } = fakeAdmin(world());
   const t = await replayDeps(admin, { dedupe: false }).targetByMeeting("meet-r");
-  assertEquals(t, { kind: "room", room: { id: "room-1", title: "Taylormade Academy Live", startedAt: "2026-09-15T01:00:00.000Z" } });
+  assertEquals(t, { kind: "room", room: { id: "room-1", slug: "academy", title: "Taylormade Academy Live", startedAt: "2026-09-15T01:00:00.000Z" } });
   assertEquals(tablesAsked(calls, "select"), ["ea_rooms"]);
 });
 
@@ -85,7 +85,7 @@ Deno.test("targetByMeeting: an OPIL session pointed at the room's meeting still 
 Deno.test("targetByMeeting: a meeting the room has moved on from → room via its latest ea_room_replays row; startedAt = that row's created_at; title from ea_rooms", async () => {
   const { admin, calls } = fakeAdmin(world());
   const t = await replayDeps(admin, { dedupe: false }).targetByMeeting("meet-old");
-  assertEquals(t, { kind: "room", room: { id: "room-1", title: "Taylormade Academy Live", startedAt: "2026-09-12T18:05:00.000Z" } });
+  assertEquals(t, { kind: "room", room: { id: "room-1", slug: "academy", title: "Taylormade Academy Live", startedAt: "2026-09-12T18:05:00.000Z" } });
   assertEquals(tablesAsked(calls, "select"), ["ea_rooms", "ea_room_replays", "ea_rooms"]);
 });
 
@@ -94,6 +94,14 @@ Deno.test("targetByMeeting: an OPIL session's meeting → opil with { no, title,
   const t = await replayDeps(admin, { dedupe: false }).targetByMeeting("meet-7");
   assertEquals(t, { kind: "opil", session: { no: 7, title: "Agents 101", kind: "thread" } });
   assertEquals(tablesAsked(calls, "select"), ["ea_rooms", "ea_room_replays", "ea_opil_sessions"]);
+});
+
+Deno.test("targetByMeeting: a non-Academy room's slug comes through on the target", async () => {
+  const w = world();
+  w.ea_rooms.push({ id: "room-ht", slug: "ht", title: "HT Live", meeting_id: "meet-ht", live_since: "2026-09-17T15:00:00.000Z" });
+  const { admin } = fakeAdmin(w);
+  const t = await replayDeps(admin, { dedupe: false }).targetByMeeting("meet-ht");
+  assertEquals(t, { kind: "room", room: { id: "room-ht", slug: "ht", title: "HT Live", startedAt: "2026-09-17T15:00:00.000Z" } });
 });
 
 Deno.test("targetByMeeting: nobody's meeting → null", async () => {
@@ -110,7 +118,7 @@ Deno.test("targetByMeeting: with the room tables not there yet (0036 unapplied) 
 Deno.test("upsertReplay: a room row lands in ea_room_replays, an OPIL row in ea_opil_replays, both with updated_at", async () => {
   const { admin, calls, tables } = fakeAdmin(world());
   const d = replayDeps(admin, { dedupe: false });
-  await d.upsertReplay({ room_id: "room-1", meeting_id: "meet-r", recording_id: "rec-new", status: "recording" }, { kind: "room", room: { id: "room-1", title: null, startedAt: null } });
+  await d.upsertReplay({ room_id: "room-1", meeting_id: "meet-r", recording_id: "rec-new", status: "recording" }, { kind: "room", room: { id: "room-1", slug: "academy", title: null, startedAt: null } });
   await d.upsertReplay({ session_no: 7, meeting_id: "meet-7", recording_id: "rec-7", status: "uploading" }, { kind: "opil", session: { no: 7, title: null, kind: null } });
   assertEquals(tablesAsked(calls, "upsert"), ["ea_room_replays", "ea_opil_replays"]);
   const roomRow = tables.ea_room_replays.find((r) => r.recording_id === "rec-new")!;
@@ -123,7 +131,7 @@ Deno.test("upsertReplay: a database error becomes a throw (the handler's catch �
   const { admin } = fakeAdmin({});
   const d = replayDeps(admin, { dedupe: false });
   let threw = "";
-  try { await d.upsertReplay({ room_id: "room-1", meeting_id: "m", recording_id: "r", status: "recording" }, { kind: "room", room: { id: "room-1", title: null, startedAt: null } }); }
+  try { await d.upsertReplay({ room_id: "room-1", meeting_id: "m", recording_id: "r", status: "recording" }, { kind: "room", room: { id: "room-1", slug: "academy", title: null, startedAt: null } }); }
   catch (e) { threw = String((e as Error).message); }
   assert(threw.includes("ea_room_replays"));
 });
@@ -131,7 +139,7 @@ Deno.test("upsertReplay: a database error becomes a throw (the handler's catch �
 Deno.test("currentStatus reads the table of the target's kind", async () => {
   const { admin } = fakeAdmin(world());
   const d = replayDeps(admin, { dedupe: false });
-  const room = { kind: "room", room: { id: "room-1", title: null, startedAt: null } } as const;
+  const room = { kind: "room", room: { id: "room-1", slug: "academy", title: null, startedAt: null } } as const;
   const opil = { kind: "opil", session: { no: 7, title: null, kind: null } } as const;
   assertEquals(await d.currentStatus("rec-old", room), "uploading");
   assertEquals(await d.currentStatus("rec-7", opil), "recording");

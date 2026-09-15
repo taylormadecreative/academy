@@ -4,13 +4,15 @@
 //   retry_replay   : re-run a failed replay's stored UPLOADED event
 //   register_webhook / list_webhooks (admin) : one-time wiring of ea-rtk-webhook
 // Two branches share the start/stop rules: { session_no } is an OPIL class (ea_opil_replays,
-// host = coordinator or that session's facilitator); { room: true } is Nelson's Academy room
-// (ea_room_replays, host = the Academy admin, retry by replay_id).
+// host = coordinator or that session's facilitator); { room } is a room by slug — true (or
+// "academy") for Nelson's Academy room, or another institution's slug (e.g. "ht") — filed in
+// ea_room_replays, host = the Academy admin OR an email listed on that room's row (host_emails),
+// retried by replay_id.
 // No network, no env, no supabase here: index.ts injects `deps`, handler_test.ts stubs them.
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
 export type Caller = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; functionsBase: string };
-export type RecordBody = { room?: boolean; replay_id?: string; session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
+export type RecordBody = { room?: boolean | string; replay_id?: string; session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
 export type ActiveReplay = { recording_id: string; status: string };
 export type CfResult = { ok: boolean; status: number; data: unknown };
@@ -30,8 +32,8 @@ export type RecordDeps = ReplayStore & {
      does — dedupe bypassed on purpose. */
   uploadedEvent: (recordingId: string) => Promise<Record<string, unknown> | null>;
   reprocess: (payload: Record<string, unknown>) => Promise<{ status: string }>;
-  /* the Academy room — one row, read with the service role */
-  getRoom: () => Promise<{ id: string; meeting_id: string | null } | null>;
+  /* a room by slug — one row, read with the service role */
+  getRoom: (slug: string) => Promise<{ id: string; meeting_id: string | null; host_emails: string[] } | null>;
   /* every meeting that is or was the room's: ea_rooms.meeting_id ∪ ea_room_replays.meeting_id */
   roomMeetingIds: () => Promise<Set<string>>;
   room: ReplayStore & { replayById: (id: string) => Promise<{ id: string; room_id: string | null; meeting_id: string; recording_id: string; status: string } | null> };
@@ -39,6 +41,7 @@ export type RecordDeps = ReplayStore & {
 export type Reply = { status: number; body: unknown };
 
 const RTK_PREFIX = "rtk:";
+const SLUG_RX = /^[a-z][a-z0-9-]{1,31}$/;
 const ACTIONS = ["start", "stop", "retry_replay", "register_webhook", "list_webhooks"] as const;
 const MAX_SECONDS = 4 * 3600;   /* a tab left open cannot record for a day */
 const CF_STATUS: Record<string, string> = { INVOKED: "invoked", RECORDING: "recording", UPLOADING: "uploading", UPLOADED: "uploaded", ERRORED: "error" };
@@ -68,7 +71,9 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     return { status: 200, body: { webhooks: list.map((x) => ({ id: x.id, url: x.url, events: x.events, enabled: x.enabled })) } };
   }
 
-  if (body.room === true) return handleRoom(action, body, ctx, deps);
+  const slug = body.room === true ? "academy" : (typeof body.room === "string" && SLUG_RX.test(body.room) ? body.room : null);
+  if (slug) return handleRoom(slug, action, body, ctx, deps);
+  if (body.room != null) return { status: 400, body: { error: "bad_room" } };
 
   // ── OPIL branch: exactly the rules the cohort has today ──
   const no = Number(body.session_no);
@@ -106,9 +111,22 @@ async function inactivate(meetingId: string, cf: RecordDeps["cf"], what: "room" 
   if (!off.ok) console.warn(`[ea-rtk-record] ${what} meeting not inactivated`, meetingId, off.status);
 }
 
-/* ── Room branch: Nelson's Academy room. Only the Academy admin is its host. ── */
-async function handleRoom(action: "start" | "stop" | "retry_replay", body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
-  if (!ctx.academyAdmin) return { status: 403, body: { error: "not_host" } };
+/* ── Room branch: a room by slug. Its host is the Academy admin OR an email on the row's
+   host_emails (Dr. Gray on "ht", say). The row is fetched for the host check only when needed —
+   the Academy admin never needs it to prove they are the host, so retry_replay (which otherwise
+   never touches `room`) stays reachable even when the row itself has not landed yet. ── */
+async function handleRoom(slug: string, action: "start" | "stop" | "retry_replay", body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
+  const email = (ctx.user.email || "").trim().toLowerCase();
+  let room: Awaited<ReturnType<RecordDeps["getRoom"]>> = null;
+  let fetched = false;
+  const getRoomOnce = async () => { if (!fetched) { room = await deps.getRoom(slug); fetched = true; } return room; };
+
+  let isHost = ctx.academyAdmin;
+  if (!isHost) {
+    const r = await getRoomOnce();
+    isHost = !!r && email !== "" && (r.host_emails || []).some((e) => e.toLowerCase() === email);
+  }
+  if (!isHost) return { status: 403, body: { error: "not_host" } };
 
   if (action === "retry_replay") {
     /* Every Start class is a NEW meeting, so "latest replay of the current meeting" is the wrong
@@ -124,14 +142,14 @@ async function handleRoom(action: "start" | "stop" | "retry_replay", body: Recor
     return { status: 200, body: { recording_id: row.recording_id, status: out.status } };
   }
 
-  const room = await deps.getRoom();
-  if (!room) return { status: 404, body: { error: "not_found" } };
-  if (!room.meeting_id) return { status: 409, body: { error: "no_room" } };   /* Start class has not run yet */
-  const out = await startOrStop(action, room.meeting_id, { room_id: room.id }, deps.room, deps.cf);
+  const r = await getRoomOnce();
+  if (!r) return { status: 404, body: { error: "not_found" } };
+  if (!r.meeting_id) return { status: 409, body: { error: "no_room" } };   /* Start class has not run yet */
+  const out = await startOrStop(action, r.meeting_id, { room_id: r.id }, deps.room, deps.cf);
   /* stop = the session is over (Leave, or End session from /live/): close the Cloudflare meeting too, so a
      guest's kept token cannot re-enter the empty meeting and bill minutes until the next Start class (which
      always mints a fresh meeting — nothing reuses this one). Best effort, never silent, never the answer. */
-  if (action === "stop" && out.status === 200) await inactivate(room.meeting_id, deps.cf, "room");
+  if (action === "stop" && out.status === 200) await inactivate(r.meeting_id, deps.cf, "room");
   return out;
 }
 

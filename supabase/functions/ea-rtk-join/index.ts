@@ -9,9 +9,12 @@
 //                           session's stored "rtk:" id (ea_opil_sessions.stream_url) or one a host
 //                           creates here; a meeting_id in the body is ignored, and a session
 //                           pointed at the Academy room's meeting is refused.
-//   { room: true, key? }    the Academy room. Nelson (ea_is_admin) -> tma-class-host; a member or
-//                           someone holding the current link -> tma-class-guest; the two presets
-//                           are created on Cloudflare by ensurePresets the first time he joins.
+//   { room, key? }          a room by slug: true (or "academy") for the Academy room, or another
+//                           institution's slug (e.g. "ht"). The Academy admin, or an email listed
+//                           on that room's row, -> the row's host_preset; an Academy membership
+//                           (Academy room only) or someone holding the current link -> the row's
+//                           guest_preset; both presets are created on Cloudflare by ensurePresets
+//                           the first time a host joins.
 //
 // Auth model: verify_jwt is OFF. The caller sends its own logged-in access token; we resolve the
 // user with the SERVICE ROLE client, then ask the database AS THAT USER which role they hold
@@ -22,7 +25,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { clientIp, resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
 import { ensurePresets } from "../_shared/rtk_presets.ts";
-import { handleJoin, type JoinBody } from "./handler.ts";
+import { handleJoin, type JoinBody, type RoomRow } from "./handler.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
@@ -32,7 +35,7 @@ const CORS: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const ANON_KEY = "sb_publishable_fyYqa9QkEeA5LD_0hYLTTA_F8Gxw1oz";
-const ROOM_COLS = "id, title, link_key, is_live, live_since, meeting_id, max_participants";
+const ROOM_COLS = "id,slug,title,host_name,host_emails,host_preset,guest_preset,link_key,is_live,live_since,meeting_id,max_participants";
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -67,9 +70,9 @@ Deno.serve(async (req: Request) => {
     },
     inCohort: async () => (await who.asUser.rpc("ea_opil_in_cohort")).data === true,
     isMember: async () => (await who.asUser.rpc("ea_is_member")).data === true,
-    getRoom: async () => {
-      const { data } = await admin.from("ea_rooms").select(ROOM_COLS).order("created_at", { ascending: true }).limit(1).maybeSingle();
-      return data ?? null;
+    getRoom: async (slug) => {
+      const { data } = await admin.from("ea_rooms").select(ROOM_COLS).eq("slug", slug).maybeSingle();
+      return (data as RoomRow) ?? null;
     },
     setRoomMeeting: async (roomId, meetingId) => {   /* a fresh meeting IS a fresh session: is_live + live_since move with it (server clock — the hands policy compares last_joined_at against live_since), so a row left live by a dead tab (> 4 h, spec §6.1 step 5) admits people again the moment Nelson re-enters. The page writes NOTHING on Start; only the way out (is_live=false, ended_at) is written from a page. */
       const at = new Date().toISOString(), { error } = await admin.from("ea_rooms").update({ meeting_id: meetingId, is_live: true, live_since: at, updated_at: at }).eq("id", roomId);
@@ -103,8 +106,8 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.from("ea_profiles").select("display_name").eq("user_id", userId).maybeSingle();
       return typeof data?.display_name === "string" ? data.display_name : null;
     },
-    /* Nelson's first join creates tma-class-host / tma-class-guest on Cloudflare (cached; never throws) */
-    ensurePresets: () => ensurePresets(cf),
+    /* the host's first join creates this room's two presets on Cloudflare (cached per name; never throws) */
+    ensurePresets: (h, g) => ensurePresets(cf, [h, g]),
     now: () => new Date(),
   }).catch((e) => { console.error("[ea-rtk-join]", String(e && e.message || e)); return { status: 500, body: { error: "server" } }; });
 

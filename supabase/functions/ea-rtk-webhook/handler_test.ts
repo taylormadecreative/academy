@@ -33,8 +33,8 @@ const REC = (status: string, extra: Record<string, unknown> = {}) => ({
    "meet-r" is the room's CURRENT meeting; "meet-old" is one the room has moved on from and is
    known only through its ea_room_replays row (startedAt = that row's created_at). */
 const OPIL_7: Target = { kind: "opil", session: { no: 7, title: "Agents 101", kind: "thread" } };
-const ROOM_NOW: Target = { kind: "room", room: { id: "room-1", title: "Taylormade Academy Live", startedAt: "2026-09-15T03:30:00.000Z" } };   /* 22:30 on 9/14 in Chicago */
-const ROOM_OLD: Target = { kind: "room", room: { id: "room-1", title: "Taylormade Academy Live", startedAt: "2026-09-12T18:05:00.000Z" } };
+const ROOM_NOW: Target = { kind: "room", room: { id: "room-1", slug: "academy", title: "Taylormade Academy Live", startedAt: "2026-09-15T03:30:00.000Z" } };   /* 22:30 on 9/14 in Chicago */
+const ROOM_OLD: Target = { kind: "room", room: { id: "room-1", slug: "academy", title: "Taylormade Academy Live", startedAt: "2026-09-12T18:05:00.000Z" } };
 const TARGETS: Record<string, Target> = { "meet-7": OPIL_7, "meet-r": ROOM_NOW, "meet-old": ROOM_OLD };
 
 function deps(over: Partial<WebhookDeps> = {}) {
@@ -185,7 +185,7 @@ Deno.test("a room meeting files a row with room_id and no session_no; the Stream
 
 Deno.test("a room without a title is named 'Academy · session · <date>'; no startedAt → today's Chicago date", async () => {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date());
-  const d = deps({ targetByMeeting: async () => ({ kind: "room", room: { id: "room-1", title: null, startedAt: null } }) });
+  const d = deps({ targetByMeeting: async () => ({ kind: "room", room: { id: "room-1", slug: "academy", title: null, startedAt: null } }) });
   await handleEvent(REC("UPLOADED", { meetingId: "meet-r" }), d);
   assertEquals(d.copies[0].name, "Academy · session · " + today);
 });
@@ -217,6 +217,14 @@ Deno.test("currentStatus is asked with the target, so the forward-only rule read
   await handleEvent(REC("UPLOADED", { meetingId: "meet-r" }), d);
   await handleEvent(REC("UPLOADED", { id: "rec-2", recordingId: "rec-2" }), d);
   assertEquals(asked, ["room", "opil"]);
+});
+
+Deno.test("a non-Academy room's Stream name is prefixed by its slug, uppercased", async () => {
+  const d = deps({ targetByMeeting: async () => ({ kind: "room", room: { id: "room-ht", slug: "ht", title: "HT Live", startedAt: "2026-09-17T15:00:00.000Z" } }) });
+  const r = await handleEvent(REC("UPLOADED", { meetingId: "meet-ht" }), d);
+  assertEquals(r.status, 200);
+  assertEquals(d.routed, ["room"]);
+  assertEquals(d.copies[0].name, "HT · HT Live · 2026-09-17");
 });
 
 Deno.test("a meeting that is neither the room's nor an OPIL session's → ignored unknown_meeting, zero writes", async () => {

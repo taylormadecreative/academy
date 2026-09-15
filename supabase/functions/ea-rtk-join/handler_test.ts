@@ -51,7 +51,7 @@ const participantPosts = (d: { calls: { method: string; path: string }[] }) => d
 const err = (r: { body: unknown }) => (r.body as { error: string }).error;
 
 Deno.test("the constants later tasks rely on", () => {
-  assertEquals([...PRESETS], ["opil-host", "opil-student", "opil-judge", "tma-class-host", "tma-class-guest"]);
+  assertEquals([...PRESETS], ["opil-host", "opil-student", "opil-judge", "tma-class-host", "tma-class-guest", "ht-class-host", "ht-class-guest"]);
   assertEquals(OPEN_WINDOW_MS, 14400000);
 });
 
@@ -187,7 +187,7 @@ const PERSON = { user: { id: "u-guest", email: "sam@example.com" }, role: { admi
 const KEY = "AbCdEfGhIjKlMnOpQrStUv";          /* 22 chars of [A-Za-z0-9_-], what ea_room_new_key() mints */
 const WRONG = "ZzZzZzZzZzZzZzZzZzZzZz";
 const NOW = new Date("2026-09-14T20:00:00Z");   /* 15:00 in Chicago */
-const LIVE_ROOM = { id: "room-1", title: "Taylormade Academy Live", link_key: KEY, is_live: true, live_since: "2026-09-14T19:30:00Z", meeting_id: "meet-live", max_participants: 50 };
+const LIVE_ROOM: RoomRow = { id: "room-1", slug: "academy", title: "Taylormade Academy Live", host_name: "Nelson Taylor", host_emails: [], host_preset: "tma-class-host", guest_preset: "tma-class-guest", link_key: KEY, is_live: true, live_since: "2026-09-14T19:30:00Z", meeting_id: "meet-live", max_participants: 50 };
 const OFF_ROOM = { ...LIVE_ROOM, is_live: false, live_since: "2026-09-13T19:00:00Z", meeting_id: "meet-old" };
 const STALE_ROOM = { ...LIVE_ROOM, live_since: "2026-09-14T15:00:00Z" };   /* 5 h ago: the tab died, the row still says live */
 
@@ -275,7 +275,7 @@ Deno.test("room: Nelson off air → a fresh meeting; the row goes live only AFTE
   d.cf = async (m, path, body) => { seq.push(m + " " + path); return cf(m, path, body); };
   d.setRoomMeeting = async (a, b) => { seq.push("setRoomMeeting"); return set(a, b); };
   d.upsertMember = async (a, b) => { seq.push("upsertMember"); return up(a, b); };
-  d.ensurePresets = async () => { seq.push("ensurePresets"); return pre(); };
+  d.ensurePresets = async (h, g) => { seq.push("ensurePresets"); return pre(h, g); };
   const r = await handleJoin({ room: true }, NELSON, d);
   assertEquals(r.status, 200);
   assertEquals(r.body, { token: "tok-1", meeting_id: "meet-new", preset: "tma-class-host", host: true, name: "Nelson Taylor" });
@@ -422,4 +422,49 @@ Deno.test("room: no room row → 503 rtk_not_configured; a long title is cut at 
   const title = String((d.calls[0].body as { title: string }).title);
   assertEquals(title.length, 80);
   assertEquals(title, "Academy · " + "T".repeat(57) + " · 2026-09-14");   /* the title is cut, never the date */
+});
+
+/* ───────────── another institution's room, by slug (Task 8) — HT ───────────── */
+
+const htRow = (over: Partial<RoomRow> = {}): RoomRow => ({
+  id: "r-ht", slug: "ht", title: "HT Live", host_name: "Dr. Gray", host_emails: ["dgray@htu.edu"],
+  host_preset: "ht-class-host", guest_preset: "ht-class-guest", link_key: "AbC123_-xyzXYZ0987ab-_",
+  is_live: true, live_since: NOW.toISOString(), meeting_id: "m-ht", max_participants: 50, ...over,
+});
+const HT_HOST = { user: { id: "u-gray", email: "DGray@HTU.edu" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: false, ip: "8.8.8.8" };
+
+Deno.test("room:'ht' — a listed email is the host and gets ht-class-host", async () => {
+  const calls: string[] = [];
+  const d = roomDeps({ ensurePresets: async (h, g) => { calls.push("presets:" + h + "," + g); } }, htRow({ is_live: false, meeting_id: null }));
+  const r = await handleJoin({ room: "ht" }, HT_HOST, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { preset: string }).preset, "ht-class-host");
+  assertEquals((r.body as { host: boolean }).host, true);
+  assertEquals(calls, ["presets:ht-class-host,ht-class-guest"]);
+});
+
+Deno.test("room:'ht' — an Academy member without the key is refused (membership opens the Academy room only)", async () => {
+  const d = roomDeps({ isMember: async () => true }, htRow());
+  const r = await handleJoin({ room: "ht" }, PERSON, d);
+  assertEquals(r.status, 403); assertEquals(r.body, { error: "not_allowed" });
+});
+
+Deno.test("room:'ht' — the key admits a guest with ht-class-guest and no meeting id", async () => {
+  const d = roomDeps({}, htRow());
+  const r = await handleJoin({ room: "ht", key: "AbC123_-xyzXYZ0987ab-_" }, PERSON, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { preset: string }).preset, "ht-class-guest");
+  assertEquals((r.body as { meeting_id?: string }).meeting_id, undefined);
+});
+
+Deno.test("room:true still means the Academy room", async () => {
+  const seen: string[] = [];
+  const d = deps({ getRoom: async (s) => { seen.push(s as string); return null; } });
+  await handleJoin({ room: true }, COORD, d);
+  assertEquals(seen, ["academy"]);
+});
+
+Deno.test("room:'Bad Slug!' is a 400", async () => {
+  const r = await handleJoin({ room: "Bad Slug!" }, COORD, deps());
+  assertEquals(r.status, 400);
 });

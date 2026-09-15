@@ -21,14 +21,14 @@ export function replayDeps(admin: SupabaseClient, opts: { dedupe: boolean }): We
        replaced ea_rooms.meeting_id — its own replay row still says which room it belongs to. A table
        that is not there yet (0036 unapplied) answers { data: null } and simply falls through. */
     targetByMeeting: async (meetingId) => {
-      const live = await admin.from("ea_rooms").select("id, title, live_since").eq("meeting_id", meetingId).limit(1).maybeSingle();
-      if (live.data) return { kind: "room", room: { id: String(live.data.id), title: live.data.title ?? null, startedAt: live.data.live_since ?? null } };
+      const live = await admin.from("ea_rooms").select("id, slug, title, live_since").eq("meeting_id", meetingId).limit(1).maybeSingle();
+      if (live.data) return { kind: "room", room: { id: String(live.data.id), slug: String(live.data.slug || "academy"), title: live.data.title ?? null, startedAt: live.data.live_since ?? null } };
       const prior = await admin.from("ea_room_replays").select("room_id, created_at").eq("meeting_id", meetingId)
         .order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (prior.data) {
         if (!prior.data.room_id) return null;   // an Academy replay whose room is gone is still not OPIL's
-        const r = await admin.from("ea_rooms").select("title").eq("id", prior.data.room_id).maybeSingle();
-        return { kind: "room", room: { id: String(prior.data.room_id), title: r.data?.title ?? null, startedAt: prior.data.created_at ?? null } };
+        const r = await admin.from("ea_rooms").select("slug, title").eq("id", prior.data.room_id).maybeSingle();
+        return { kind: "room", room: { id: String(prior.data.room_id), slug: String(r.data?.slug || "academy"), title: r.data?.title ?? null, startedAt: prior.data.created_at ?? null } };
       }
       const { data } = await admin.from("ea_opil_sessions").select("no, title, kind").eq("stream_url", "rtk:" + meetingId).limit(1).maybeSingle();
       return data ? { kind: "opil", session: { no: data.no, title: data.title ?? null, kind: data.kind ?? null } } : null;

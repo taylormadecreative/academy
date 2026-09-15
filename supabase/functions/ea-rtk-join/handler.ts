@@ -1,8 +1,8 @@
 // ea-rtk-join — the pure decisions behind "hand this signed-in person a token for the meeting".
 // No network, no env, no supabase here: index.ts injects `deps`, handler_test.ts stubs them.
 //
-// OPIL branch (body.room !== true) — the one-file function of 9/11–9/14, ported line for line,
-// with two hardenings the critique of the Academy room asked for:
+// OPIL branch (body.room is absent/false-ish) — the one-file function of 9/11–9/14, ported line
+// for line, with two hardenings the critique of the Academy room asked for:
 //   · a client-supplied meeting_id is IGNORED. The meeting is the session's stored "rtk:" id or
 //     one a host creates here; a student on a session with no stored id gets 409 not_open.
 //   · a session whose meeting is the Academy room's (ea_rooms.meeting_id, or any
@@ -12,14 +12,22 @@
 //   cohort member (ea_opil_in_cohort)                        -> opil-student
 //   anyone else                                              -> 403 not_allowed
 //
-// Room branch (body.room === true): the Academy room — handleRoomJoin at the end of this file.
-// Nothing on the OPIL path runs for a room body.
+// Room branch (body.room === true, or a slug string): one room per slug — the Academy room
+// (`body.room === true` is shorthand for slug "academy") or another institution's room (HT: "ht").
+// joinRoom, at the end of this file, resolves the row by slug and decides the rest: host = the
+// Academy admin OR an email listed on that room's row (row.host_emails); an Academy membership
+// only opens the Academy room — every other room is hosts + whoever holds the current link key.
+// Presets and the meeting title come from the row, not a hardcoded pair. Nothing on the OPIL path
+// runs for a room body.
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
-export type JoinBody = { room?: boolean; key?: string | null; session_no?: number; meeting_id?: string };
+export type JoinBody = { room?: boolean | string; key?: string | null; session_no?: number; meeting_id?: string };
 export type Caller = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; ip: string };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
-export type RoomRow = { id: string; title: string; link_key: string; is_live: boolean; live_since: string | null; meeting_id: string | null; max_participants: number };
+export type RoomRow = {
+  id: string; slug: string; title: string; host_name: string; host_emails: string[]; host_preset: string; guest_preset: string;
+  link_key: string; is_live: boolean; live_since: string | null; meeting_id: string | null; max_participants: number;
+};
 export type CfResult = { ok: boolean; status: number; data: unknown };
 export type JoinDeps = {
   cf: (method: "GET" | "POST" | "PUT" | "PATCH", path: string, body?: unknown) => Promise<CfResult>;
@@ -27,22 +35,25 @@ export type JoinDeps = {
   getSession: (no: number) => Promise<SessionRow | null>;      /* OPIL row, service role */
   inCohort: () => Promise<boolean>;                             /* rpc ea_opil_in_cohort AS CALLER */
   isMember: () => Promise<boolean>;                             /* rpc ea_is_member AS CALLER */
-  getRoom: () => Promise<RoomRow | null>;                       /* order by created_at limit 1, service role */
+  getRoom: (slug: string) => Promise<RoomRow | null>;           /* by slug, service role */
   setRoomMeeting: (roomId: string, meetingId: string) => Promise<void>;   /* service role update */
   roomMeetingIds: () => Promise<Set<string>>;                   /* ea_rooms.meeting_id ∪ ea_room_replays.meeting_id (non-null) */
   upsertMember: (roomId: string, userId: string) => Promise<void>;
   displayName: (userId: string) => Promise<string | null>;      /* ea_profiles.display_name */
-  ensurePresets: () => Promise<void>;
+  ensurePresets: (hostPreset: string, guestPreset: string) => Promise<void>;
   now: () => Date;
 };
 export type Reply = { status: number; body: unknown };
-export const PRESETS = ["opil-host", "opil-student", "opil-judge", "tma-class-host", "tma-class-guest"] as const;
+export const PRESETS = ["opil-host", "opil-student", "opil-judge", "tma-class-host", "tma-class-guest", "ht-class-host", "ht-class-guest"] as const;
 export const OPEN_WINDOW_MS = 4 * 3600 * 1000;   /* a room left live by a dead tab admits guests for this long */
 
 const RTK_PREFIX = "rtk:";
+const SLUG_RX = /^[a-z][a-z0-9-]{1,31}$/;
 
 export async function handleJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Reply> {
-  if (body.room === true) return handleRoomJoin(body, ctx, deps);
+  const slug = body.room === true ? "academy" : (typeof body.room === "string" && SLUG_RX.test(body.room) ? body.room : null);
+  if (slug) return joinRoom(slug, body, ctx, deps);
+  if (body.room != null) return { status: 400, body: { error: "bad_room" } };
   return joinOpil(body, ctx, deps);
 }
 
@@ -89,9 +100,11 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
   return { status: 200, body: { token, meeting_id: meetingId, preset, host: isHost, name } };
 }
 
-/* ───────────── the Academy room (body.room === true) ─────────────
-   One room, one link. Nelson (ea_is_admin) is the host; a person gets in with the current link key
-   or an Academy membership, only while Nelson is live (and for at most 4 h after he started, the
+/* ───────────── a room (body.room === true, or a slug string) ─────────────
+   One room per slug, one link each. The Academy admin is the host of every room; a room can also
+   name its own hosts by email (row.host_emails — Dr. Gray on "ht", say). A person gets in with the
+   current link key, or (the Academy room only) an Academy membership — never a member for another
+   institution's room, only while the room is live (and for at most 4 h after it started, the
    recording cap — a tab that died leaves is_live true). Every Start class is a fresh Cloudflare
    meeting and the previous one is set INACTIVE, so a token from last time opens nothing. People are
    never told the meeting id; a client-supplied meeting_id is never read. */
@@ -100,35 +113,36 @@ const KEY_RX = /^[A-Za-z0-9_-]{22}$/;
 /* YYYY-MM-DD in America/Chicago (en-CA prints ISO order) — the meeting title people see in the dashboard */
 const CHICAGO_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" });
 
-async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Reply> {
+async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Reply> {
   const uid = ctx.user.id;
   /* 1 — rate limit, fail-open (null = the limiter is down → allowed), before any Cloudflare call */
   if ((await deps.rateCheck("rtk-join:u:" + uid, 30, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   if ((await deps.rateCheck("rtk-join:ip:" + ctx.ip, 90, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   /* 2 — the room */
-  const room = await deps.getRoom();
+  const room = await deps.getRoom(slug);
   if (!room) return { status: 503, body: { error: "rtk_not_configured" } };
-  /* 3 — who is this: Nelson, a member, or someone holding the current link */
-  const isHost = ctx.academyAdmin;
+  /* 3 — who is this: the Academy admin, a listed host, a member (Academy room only), or someone holding the current link */
+  const email = (ctx.user.email || "").trim().toLowerCase();
+  const isHost = ctx.academyAdmin || (email !== "" && (room.host_emails || []).some((e) => e.toLowerCase() === email));
   const key = typeof body.key === "string" ? body.key : "";
   const keyGiven = key.trim() !== "";
   /* a malformed key (wrong length/charset — e.g. a truncated paste) is still a dead link, not "no key" */
   const keyOk = keyGiven && KEY_RX.test(key) && key === room.link_key;
   if (!isHost) {
-    const allowed = (await deps.isMember()) || keyOk;
+    const allowed = (slug === "academy" && (await deps.isMember())) || keyOk;
     if (!allowed) return keyGiven ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
   }
   /* 4 — is the room open: live, and started less than 4 h ago */
   const open = room.is_live && !!room.live_since && (deps.now().getTime() - Date.parse(room.live_since)) < OPEN_WINDOW_MS;
   if (!isHost && !open) return { status: 409, body: { error: "not_open" } };
-  /* 5 — the meeting: Nelson starting (or re-starting a stale room) gets a fresh one; a live Nelson and people reuse it.
-     The row is NOT flipped live here: that waits until Nelson's own participant POST succeeds (step 9), so a
+  /* 5 — the meeting: a host starting (or re-starting a stale room) gets a fresh one; a live room and people reuse it.
+     The row is NOT flipped live here: that waits until the host's own participant POST succeeds (step 9), so a
      Cloudflare failure on the second call leaves the room off air instead of open with nobody hosting it. */
   let meetingId: string | null = room.meeting_id;
   let fresh = false;
   if (isHost && (!open || !meetingId)) {
     /* the title people see in the dashboard: room.title is cut first so the date always survives the 80-char cap */
-    const prefix = "Academy · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
+    const prefix = (slug === "academy" ? "Academy" : slug.toUpperCase()) + " · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
     const title = prefix + String(room.title || "").slice(0, 80 - prefix.length - suffix.length) + suffix;
     const made = await deps.cf("POST", "/meetings", { title, persist_chat: false });
     if (!made.ok) return { status: 502, body: { error: "cloudflare_" + made.status } };
@@ -138,9 +152,9 @@ async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Prom
     fresh = true;
   }
   if (!meetingId) return { status: 409, body: { error: "not_open" } };
-  /* 6 — Nelson makes sure the two presets exist on Cloudflare (cached; never throws) */
-  if (isHost) await deps.ensurePresets();
-  /* 7 — the cap, people only; Cloudflare counts Nelson too ("Max people (you included)"); 404 = no session yet.
+  /* 6 — the host makes sure this room's two presets exist on Cloudflare (cached; never throws) */
+  if (isHost) await deps.ensurePresets(room.host_preset, room.guest_preset);
+  /* 7 — the cap, people only; Cloudflare counts the host too ("Max people (you included)"); 404 = no session yet.
      Any other failure fails OPEN (a Cloudflare blip must not lock people out) and says so in the logs. */
   if (!isHost) {
     const r = await deps.cf("GET", `/meetings/${meetingId}/active-session`);
@@ -150,7 +164,7 @@ async function handleRoomJoin(body: JoinBody, ctx: Caller, deps: JoinDeps): Prom
   }
   /* 8 — one participant per person; custom_participant_id is the Supabase uid, never an email */
   const name = String((await deps.displayName(uid)) || (ctx.user.email || "Member").split("@")[0]).slice(0, 60);
-  const preset = isHost ? "tma-class-host" : "tma-class-guest";
+  const preset = isHost ? room.host_preset : room.guest_preset;
   const added = await deps.cf("POST", `/meetings/${meetingId}/participants`, { custom_participant_id: uid, preset_name: preset, name });
   if (!added.ok) return { status: 502, body: { error: "cloudflare_" + added.status } };
   const token = ((added.data || {}) as Record<string, unknown>).token;

@@ -1,8 +1,9 @@
-// ea-rtk-record — start/stop the recording of an OPIL class or of Nelson's Academy room, and
-// (admin) wire the webhook. The page calls `start` right after the host is in and `stop` when
-// the host leaves; nobody presses Record. See handler.ts for the rules and handler_test.ts for
-// the proof. Body { session_no, action } = OPIL (ea_opil_replays); { room: true, action,
-// replay_id? } = the Academy room (ea_room_replays).
+// ea-rtk-record — start/stop the recording of an OPIL class or of a room, and (admin) wire the
+// webhook. The page calls `start` right after the host is in and `stop` when the host leaves;
+// nobody presses Record. See handler.ts for the rules and handler_test.ts for the proof.
+// Body { session_no, action } = OPIL (ea_opil_replays); { room, action, replay_id? } = a room by
+// slug — true (or "academy") for Nelson's room, another institution's slug (e.g. "ht") for its
+// own — filed in ea_room_replays, host = the Academy admin or an email on that room's row.
 //
 // Secrets: CF_ACCOUNT_ID, CF_RTK_APP_ID, CF_RTK_API_TOKEN (Realtime Admin), SUPABASE_URL,
 // SUPABASE_SERVICE_ROLE_KEY. Deploy: --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr.
@@ -72,9 +73,9 @@ Deno.serve(async (req: Request) => {
       const b = r.body as { status?: string };
       return { status: b.status || "unknown" };
     },
-    /* ── the Academy room (ea_rooms / ea_room_replays, migration 0036) ── */
-    getRoom: async () => {
-      const { data } = await admin.from("ea_rooms").select("id, meeting_id").order("created_at", { ascending: true }).limit(1).maybeSingle();
+    /* ── a room by slug (ea_rooms / ea_room_replays, migration 0036+0037) ── */
+    getRoom: async (slug) => {
+      const { data } = await admin.from("ea_rooms").select("id, meeting_id, host_emails").eq("slug", slug).maybeSingle();
       return data ?? null;
     },
     roomMeetingIds: async () => {

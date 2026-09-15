@@ -7,7 +7,7 @@ const ADMIN = { ...HOST, role: { admin: true, judge: false, facilitator_sessions
 const STUDENT = { ...HOST, role: { admin: false, judge: false, facilitator_sessions: [] } };
 /* Nelson: the Academy admin (ea_is_admin). No OPIL role at all — the room branch keys on academyAdmin alone. */
 const NELSON = { user: { id: "u-nelson", email: "nelson@x" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: true, functionsBase: "https://p.supabase.co/functions/v1" };
-const ROOM = { id: "room-1", meeting_id: "meet-room" };
+const ROOM = { id: "room-1", meeting_id: "meet-room", host_emails: [] as string[] };
 const REPLAY_ID = "6b1f4a2e-9c3d-4e5f-8a7b-1c2d3e4f5a6b";
 
 type Over = Partial<Omit<RecordDeps, "room">> & { room?: Partial<RecordDeps["room"]> };
@@ -176,7 +176,7 @@ Deno.test("room: an OPIL coordinator who is not the Academy admin gets 403 not_h
 });
 
 Deno.test("room: no meeting yet → 409 no_room; no room row → 404 not_found; nothing is posted to Cloudflare", async () => {
-  const noMeeting = deps({ getRoom: async () => ({ id: "room-1", meeting_id: null }) });
+  const noMeeting = deps({ getRoom: async () => ({ id: "room-1", meeting_id: null, host_emails: [] }) });
   const r = await handleRecord({ room: true, action: "start" }, NELSON, noMeeting);
   assertEquals(r.status, 409); assertEquals((r.body as { error: string }).error, "no_room");
   const noRow = deps();
@@ -222,7 +222,7 @@ Deno.test("room: stop with nothing recording still closes the meeting; a failed 
 Deno.test("room: retry_replay by replay_id re-runs that replay's stored UPLOADED event, even after a newer Start class moved the room's meeting on", async () => {
   const seen: unknown[] = [];
   const d = deps({
-    getRoom: async () => ({ id: "room-1", meeting_id: "meet-newer" }),
+    getRoom: async () => ({ id: "room-1", meeting_id: "meet-newer", host_emails: [] }),
     uploadedEvent: async (id) => (id === "rec-old" ? { event: "recording.statusUpdate", recording: { id: "rec-old" } } : null),
     reprocess: async (p) => { seen.push(p); return { status: "ready" }; },
     room: {
@@ -249,6 +249,33 @@ Deno.test("room: retry_replay → 400 bad_replay without an id, 404 no_replay fo
   const noUp = await handleRecord({ room: true, action: "retry_replay", replay_id: REPLAY_ID }, NELSON,
     deps({ room: { replayById: async () => ({ id: REPLAY_ID, room_id: "room-1", meeting_id: "meet-old", recording_id: "rec-old", status: "error" }) } }));
   assertEquals(noUp.status, 409); assertEquals((noUp.body as { error: string }).error, "no_upload");
+});
+
+/* ── another institution's room, by slug (Task 8) — HT ── */
+
+const HT_ROOM = { id: "room-ht", meeting_id: "meet-ht", host_emails: ["dgray@htu.edu"] };
+const GRAY = { user: { id: "u-gray", email: "DGray@HTU.edu" }, role: { admin: false, judge: false, facilitator_sessions: [] }, academyAdmin: false, functionsBase: "https://p.supabase.co/functions/v1" };
+
+Deno.test("room:'ht' — a listed email is the host and can start; an unlisted one is not_host", async () => {
+  const d = deps({ getRoom: async () => HT_ROOM });
+  const r = await handleRecord({ room: "ht", action: "start" }, GRAY, d);
+  assertEquals(r.status, 200);
+  assertEquals(d.calls, [{ method: "POST", path: "/recordings", body: { meeting_id: "meet-ht", max_seconds: 14400 } }]);
+  const d2 = deps({ getRoom: async () => HT_ROOM });
+  const r2 = await handleRecord({ room: "ht", action: "start" }, STUDENT, d2);
+  assertEquals(r2.status, 403); assertEquals((r2.body as { error: string }).error, "not_host");
+  assertEquals(d2.calls.length, 0);
+});
+
+Deno.test("room:'ht' — the Academy admin alone is not a host of 'ht' without a listed email", async () => {
+  const d = deps({ getRoom: async () => HT_ROOM });
+  const r = await handleRecord({ room: "ht", action: "start" }, ADMIN, d);
+  assertEquals(r.status, 403); assertEquals((r.body as { error: string }).error, "not_host");
+});
+
+Deno.test("room:'Bad Slug!' is a 400", async () => {
+  const r = await handleRecord({ room: "Bad Slug!", action: "start" }, ADMIN, deps());
+  assertEquals(r.status, 400);
 });
 
 Deno.test("OPIL: a session whose meeting is the Academy room's is refused with 403 not_allowed before any Cloudflare call", async () => {

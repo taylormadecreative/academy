@@ -9,7 +9,7 @@
    session last — so an OPIL session pointed at the room's meeting can never pull an Academy
    recording into OPIL's table. startedAt = when that room session began (the Stream name's date). */
 export type Target =
-  | { kind: "room"; room: { id: string; title: string | null; startedAt: string | null } }
+  | { kind: "room"; room: { id: string; slug: string; title: string | null; startedAt: string | null } }
   | { kind: "opil"; session: { no: number; title: string | null; kind: string | null } };
 export type ReplayRow = {
   session_no?: number | null; room_id?: string | null; meeting_id: string; recording_id: string; status: string;
@@ -44,15 +44,17 @@ export async function verifySignature(publicKeyPem: string, signatureB64: string
 const sessLabel = (s: { no: number; kind: string | null }) =>
   s.kind === "curriculum" ? "S" + (s.no % 100) : s.kind === "hpc" ? "H" + (s.no % 100) : String(s.no).padStart(2, "0");
 
-/* The name the file gets in Cloudflare Stream. OPIL: unchanged. Room: 'Academy · <title> · YYYY-MM-DD',
+/* The name the file gets in Cloudflare Stream. OPIL: unchanged. Room: '<Prefix> · <title> · YYYY-MM-DD',
    the date being the day that session started in Chicago (an 8 pm class that uploads after midnight
-   UTC still says the evening's date); no startedAt → today. */
+   UTC still says the evening's date); no startedAt → today. Prefix is "Academy" for the Academy
+   room (slug "academy") and the slug itself, uppercased, for any other room (e.g. "HT"). */
 const CHICAGO_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" });
 const streamName = (t: Target): string => {
   if (t.kind === "opil") return `OPIL ${sessLabel(t.session)} · ${t.session.title || "session"}`;
   const started = t.room.startedAt ? new Date(t.room.startedAt) : new Date();
   const day = CHICAGO_DAY.format(Number.isNaN(started.getTime()) ? new Date() : started);
-  return `Academy · ${t.room.title || "session"} · ${day}`;
+  const prefix = t.room.slug === "academy" ? "Academy" : t.room.slug.toUpperCase();
+  return `${prefix} · ${t.room.title || "session"} · ${day}`;
 };
 
 export async function handleEvent(payload: Record<string, unknown>, deps: WebhookDeps): Promise<Reply> {
