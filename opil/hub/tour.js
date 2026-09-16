@@ -36,7 +36,7 @@ function steps(page, role, ctx) {
       { at: ['#svyNote'], title: 'The baseline survey', body: 'Six one-to-five questions about where you are starting from. The same six come back after the showcase, and the difference is the proof of what you learned.' },
     ]),
     { at: ['#annList'], up: '.hcard', title: 'Announcements', body: role === 'facilitator' || role === 'judge' ? 'The program team\u2019s notices to the whole cohort land here first. This card is written for students; your account sees it empty.' : 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
-    { at: ['#sessList'], up: '.hcard', title: 'The AI Thread', body: 'Fourteen Monday sessions across the year. After each one, its recording and playbook (the step-by-step guide from that night) appear on its row here, so you never lose a session.' },
+    { at: ['#sessList'], up: '.hcard', title: 'Kickoff & Orientation', body: 'The first night. Its recording and the files shared in class appear on this row afterwards, so you never lose it.' },
     { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series (high-performance computing: supercomputer time for your own data). Materials and recordings land on each row, the same as the AI Thread.' },
     { at: ['#mileList'], up: '.hcard', title: 'The year', body: 'The big dates: the December pitch, the February hackathon, the March showcase. "Add to calendar" puts all of it on your phone.' },
     staff

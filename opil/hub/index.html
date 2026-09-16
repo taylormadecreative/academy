@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=5d8beccdf8">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=5d8beccdf8">
+<link rel="stylesheet" href="/css/build-mode.css?v=6278530b35">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=6278530b35">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -36,7 +36,7 @@
 <div class="bd" id="annList"><div class="empty">Loading&hellip;</div></div>
 </div>
 <div class="hcard" style="margin-bottom:24px">
-<div class="hd2"><h2>The AI Thread &middot; every session, all year</h2><span class="mono" style="font-size:11px;color:var(--muted)">RECORDINGS + PLAYBOOKS LAND HERE</span></div>
+<div class="hd2"><h2>Kickoff &amp; Orientation</h2><span class="mono" style="font-size:11px;color:var(--muted)">RECORDING + FILES LAND HERE</span></div>
 <div class="bd" id="sessList"><div class="empty">Loading&hellip;</div></div>
 </div>
 <div class="hcard" id="progCard" hidden>
@@ -57,10 +57,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=5d8beccdf8"></script>
+<script src="/js/config.js?v=6278530b35"></script>
 <script type="module">
-import { boot, esc, when, nav } from '/opil/hub/hub.js?v=5d8beccdf8';
-import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=5d8beccdf8';
+import { boot, esc, when, nav } from '/opil/hub/hub.js?v=6278530b35';
+import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=6278530b35';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
 nav(ctx, 'home');
@@ -134,7 +134,8 @@ document.getElementById('annList').innerHTML = (anns && anns.length)
 
 /* session list + milestones */
 const matsBy = {}; (mats || []).forEach(m => { (matsBy[m.session_no || 0] = matsBy[m.session_no || 0] || []).push(m); });
-const thread = (sess || []).filter(s => s.kind === 'thread');
+/* the Monday AI Thread (02–14) was dropped 9/16 (Nelson): the cohort's classes are the Wednesday sessions; the kickoff (01) stays */
+const thread = (sess || []).filter(s => s.kind === 'thread' && s.no === 1);
 const miles = (sess || []).filter(s => s.kind === 'milestone');
 const prog = (sess || []).filter(s => s.kind === 'curriculum' || s.kind === 'hpc').sort((a, b) => (a.session_date || '9999') < (b.session_date || '9999') ? -1 : (a.session_date || '9999') > (b.session_date || '9999') ? 1 : a.no - b.no);
 /* same label rule as the coordinator view: S1-S8 for curriculum (201+), H1-H4 for HPC (301+) */
@@ -163,7 +164,7 @@ if (teamId) {
     sb.from('ea_opil_teams').select('*').eq('id', teamId).single(),
     sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId),
   ]);
-  const { names } = await import('/opil/hub/hub.js?v=5d8beccdf8');
+  const { names } = await import('/opil/hub/hub.js?v=6278530b35');
   const nm = await names(sb, (members || []).map(m => m.user_id));
   tc.innerHTML = `<b style="font-family:var(--display);font-size:19px;color:var(--ink)">${esc(team.name)}</b>
     <div style="font-size:13px;color:var(--muted);margin:4px 0 12px">${esc(team.school || '')}</div>
