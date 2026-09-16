@@ -1,6 +1,8 @@
 // ea-rtk-record — the pure decisions behind "the class records itself".
 //   start  (host)  : begin a RealtimeKit recording of the meeting; idempotent
 //   stop   (host)  : stop the active recording (the webhook reports what happens next)
+//   end    (host)  : the explicit End pressed OUT of the room — stop, then everyone out of the meeting
+//                    (kick-all on the active session); a room's meeting closes too, an OPIL session's never does
 //   retry_replay   : re-run a failed replay's stored UPLOADED event
 //   register_webhook / list_webhooks (admin) : one-time wiring of ea-rtk-webhook
 // Two branches share the start/stop rules: { session_no } is an OPIL class (ea_opil_replays,
@@ -12,7 +14,7 @@
 
 export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
 export type Caller = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; functionsBase: string };
-export type RecordBody = { room?: boolean | string; replay_id?: string; session_no?: number; action?: "start" | "stop" | "retry_replay" | "register_webhook" | "list_webhooks" };
+export type RecordBody = { room?: boolean | string; replay_id?: string; session_no?: number; action?: "start" | "stop" | "end" | "retry_replay" | "register_webhook" | "list_webhooks" };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
 export type ActiveReplay = { recording_id: string; status: string };
 export type CfResult = { ok: boolean; status: number; data: unknown };
@@ -42,7 +44,7 @@ export type Reply = { status: number; body: unknown };
 
 const RTK_PREFIX = "rtk:";
 const SLUG_RX = /^[a-z][a-z0-9-]{1,31}$/;
-const ACTIONS = ["start", "stop", "retry_replay", "register_webhook", "list_webhooks"] as const;
+const ACTIONS = ["start", "stop", "end", "retry_replay", "register_webhook", "list_webhooks"] as const;
 const MAX_SECONDS = 4 * 3600;   /* a tab left open cannot record for a day */
 const CF_STATUS: Record<string, string> = { INVOKED: "invoked", RECORDING: "recording", UPLOADING: "uploading", UPLOADED: "uploaded", ERRORED: "error" };
 const WEBHOOK_EVENTS = ["recording.statusUpdate", "meeting.ended"];
@@ -98,10 +100,20 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
     const out = await deps.reprocess(payload);
     return { status: 200, body: { recording_id: last.recording_id, status: out.status } };
   }
-  /* OPIL stop never closes the meeting: a session KEEPS its meeting across classes (ea-rtk-join reuses
+  /* OPIL stop and end never close the meeting: a session KEEPS its meeting across classes (ea-rtk-join reuses
      the stored id, unlike the Academy room which mints a fresh one per Start), and an INACTIVE meeting
-     refuses every later join with ERR0004 — verified the hard way on 9/15. Leave = end for everyone is
-     done by the page that started the class (kickAll before it leaves). */
+     refuses every later join with ERR0004 — verified the hard way on 9/15. Ending a class for everyone is
+     the explicit End: in the room the module removes everyone itself (kickAll) before it leaves; out of the
+     room (a host who left or dropped, then pressed the card's End) it is `end` here — stop, then kick-all on
+     the active session — so the students are not left talking in a room whose row is off air. */
+  if (action === "end") {
+    /* everyone out even when the stop failed: the End is the person's intent, and an empty meeting ends its
+       own recording within a minute anyway (the webhook reports it); the 502 still says the stop did not land */
+    const out = await startOrStop("stop", meetingId, { session_no: no }, deps, deps.cf);
+    const kicked = await kickAll(meetingId, deps.cf, "class");
+    if (out.status !== 200) return out;
+    return { status: 200, body: { ...(out.body as Record<string, unknown>), kicked } };
+  }
   return startOrStop(action, meetingId, { session_no: no }, deps, deps.cf);
 }
 
@@ -110,12 +122,23 @@ async function inactivate(meetingId: string, cf: RecordDeps["cf"], what: "room" 
   const off = await cf("PATCH", `/meetings/${meetingId}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
   if (!off.ok) console.warn(`[ea-rtk-record] ${what} meeting not inactivated`, meetingId, off.status);
 }
+/* Everyone out of a meeting's active session (POST …/active-session/kick-all): every kit client hears roomLeft
+   { kicked } at once. 404 = no active session, nobody was in — a calm 0. Any other failure is logged, never the
+   answer (the row still closes, and the pages' 20 s poll on it takes the rest out). Returns how many were
+   removed, or null when Cloudflare would not say. */
+async function kickAll(meetingId: string, cf: RecordDeps["cf"], what: "room" | "class"): Promise<number | null> {
+  const r = await cf("POST", `/meetings/${meetingId}/active-session/kick-all`).catch((e) => ({ ok: false, status: 0, data: String(e) }));
+  if (r.status === 404) return 0;
+  if (!r.ok) { console.warn(`[ea-rtk-record] ${what} kick-all failed`, meetingId, r.status); return null; }
+  const n = Number(((r.data || {}) as Record<string, unknown>).kicked_participants_count);
+  return Number.isFinite(n) ? n : null;
+}
 
 /* ── Room branch: a room by slug. Its host is the Academy admin OR an email on the row's
    host_emails (Dr. Gray on "ht", say). The row is fetched for the host check only when needed —
    the Academy admin never needs it to prove they are the host, so retry_replay (which otherwise
    never touches `room`) stays reachable even when the row itself has not landed yet. ── */
-async function handleRoom(slug: string, action: "start" | "stop" | "retry_replay", body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
+async function handleRoom(slug: string, action: "start" | "stop" | "end" | "retry_replay", body: RecordBody, ctx: Caller, deps: RecordDeps): Promise<Reply> {
   const email = (ctx.user.email || "").trim().toLowerCase();
   let room: Awaited<ReturnType<RecordDeps["getRoom"]>> = null;
   let fetched = false;
@@ -151,11 +174,21 @@ async function handleRoom(slug: string, action: "start" | "stop" | "retry_replay
   const r = await getRoomOnce();
   if (!r) return { status: 404, body: { error: "not_found" } };
   if (!r.meeting_id) return { status: 409, body: { error: "no_room" } };   /* Start class has not run yet */
-  const out = await startOrStop(action, r.meeting_id, { room_id: r.id }, deps.room, deps.cf);
-  /* stop = the session is over (Leave, or End session from /live/): close the Cloudflare meeting too, so a
-     guest's kept token cannot re-enter the empty meeting and bill minutes until the next Start class (which
-     always mints a fresh meeting — nothing reuses this one). Best effort, never silent, never the answer. */
+  const out = await startOrStop(action === "end" ? "stop" : action, r.meeting_id, { room_id: r.id }, deps.room, deps.cf);
+  /* stop = the session is over (the explicit End, in the room or from the card): close the Cloudflare meeting
+     too, so a guest's kept token cannot re-enter the empty meeting and bill minutes until the next Start class
+     (which always mints a fresh meeting — nothing reuses this one). Every kit client hears 'ended' from that.
+     `end` (the card's End pressed out of the room) removes everyone first, then closes it the same way.
+     Best effort, never silent, never the answer. */
   if (action === "stop" && out.status === 200) await inactivate(r.meeting_id, deps.cf, "room");
+  if (action === "end") {
+    /* everyone out and the meeting closed even when the stop failed: the End is the person's intent, and a closed
+       meeting ends its own recording (the webhook reports it); the 502 still says the stop did not land */
+    const kicked = await kickAll(r.meeting_id, deps.cf, "room");
+    await inactivate(r.meeting_id, deps.cf, "room");
+    if (out.status !== 200) return out;
+    return { status: 200, body: { ...(out.body as Record<string, unknown>), kicked } };
+  }
   return out;
 }
 

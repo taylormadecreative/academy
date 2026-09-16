@@ -331,7 +331,35 @@ async function withWarn(fn: () => Promise<void>): Promise<string[]> {
   return lines;
 }
 
-Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like off air; a failed INACTIVE is ignored but LOGGED", async () => {
+/* nobody ends a class by accident (9/15): a class that has run past the 4 h admission window is still that class.
+   Every host re-entry path (Rejoin after Leave, Enter the running session, a reload, the module's own second rejoin
+   after a drop) used to mint a NEW meeting here and INACTIVATE the one the guests were in — everyone thrown out,
+   the host alone in a fresh room, the row still live. A host on a LIVE row always gets the SAME meeting. */
+Deno.test("room: Nelson on a live row whose live_since is 5 h old gets the SAME meeting — no POST /meetings, no INACTIVE, no row write; a guest is still not admitted", async () => {
+  const d = roomDeps({}, STALE_ROOM);
+  const r = await handleJoin({ room: true }, NELSON, d);
+  assertEquals(r.status, 200);
+  assertEquals((r.body as { meeting_id: string }).meeting_id, "meet-live");
+  assertEquals(paths(d), ["POST /meetings/meet-live/participants"]);
+  assertEquals(d.meetingSet, []);
+  assertEquals(d.calls.some((c) => c.method === "PATCH"), false);
+  /* the same for a listed host of another room, a day later */
+  const late = roomDeps({ now: () => new Date(NOW.getTime() + 26 * 3600 * 1000) }, htRow({ live_since: NOW.toISOString() }));
+  const hr = await handleJoin({ room: "ht" }, HT_HOST, late);
+  assertEquals(hr.status, 200);
+  assertEquals((hr.body as { meeting_id: string }).meeting_id, "m-ht");
+  assertEquals(paths(late), ["POST /meetings/m-ht/participants"]);
+  /* the admission window is unchanged: a guest on that row is told not_open */
+  const g = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, STALE_ROOM));
+  assertEquals(g.status, 409); assertEquals(g.body, { error: "not_open" });
+  /* a live row with NO meeting (never happens after step 9, but a hand-edited row) still gets a fresh one */
+  const none = roomDeps({}, { ...STALE_ROOM, meeting_id: null });
+  assertEquals((await handleJoin({ room: true }, NELSON, none)).status, 200);
+  assertEquals(paths(none), ["POST /meetings", "POST /meetings/meet-new/participants"]);
+  assertEquals(none.meetingSet, [["room-1", "meet-new"]]);
+});
+
+Deno.test("room: Nelson off air → a fresh meeting; a failed INACTIVE of the previous one is ignored but LOGGED", async () => {
   const d = roomDeps({
     cf: async (method, path, body) => {
       d.calls.push({ method, path, body });
@@ -339,13 +367,13 @@ Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like of
       if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
       return { ok: true, status: 200, data: { token: "tok-1" } };
     },
-  }, STALE_ROOM);
+  }, OFF_ROOM);
   let r: Awaited<ReturnType<typeof handleJoin>> | null = null;
   const warned = await withWarn(async () => { r = await handleJoin({ room: true }, NELSON, d); });
   assertEquals(r!.status, 200);
-  assertEquals(paths(d), ["POST /meetings", "POST /meetings/meet-new/participants", "PATCH /meetings/meet-live"]);
+  assertEquals(paths(d), ["POST /meetings", "POST /meetings/meet-new/participants", "PATCH /meetings/meet-old"]);
   assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
-  assertEquals(warned, ["[ea-rtk-join] previous meeting not inactivated meet-live 500"]);
+  assertEquals(warned, ["[ea-rtk-join] previous meeting not inactivated meet-old 500"]);
   /* a PATCH that throws (network) is the same: caught, logged with status 0, the join still succeeds */
   const t = roomDeps({
     cf: async (method, path, body) => {
@@ -354,9 +382,9 @@ Deno.test("room: Nelson on a stale live row (5 h) starts a fresh meeting like of
       if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
       return { ok: true, status: 200, data: { token: "tok-1" } };
     },
-  }, STALE_ROOM);
+  }, OFF_ROOM);
   const warned2 = await withWarn(async () => { assertEquals((await handleJoin({ room: true }, NELSON, t)).status, 200); });
-  assertEquals(warned2, ["[ea-rtk-join] previous meeting not inactivated meet-live 0"]);
+  assertEquals(warned2, ["[ea-rtk-join] previous meeting not inactivated meet-old 0"]);
   /* and a clean INACTIVE logs nothing */
   const clean = await withWarn(async () => { assertEquals((await handleJoin({ room: true }, NELSON, roomDeps({}, OFF_ROOM))).status, 200); });
   assertEquals(clean, []);

@@ -172,18 +172,20 @@ Deno.test("an unknown preset name throws, before any network call", async () => 
   assertEquals(cf.calls.length, 0);
 });
 
-/* ── transcription (9/15): HT guests are captioned, so a live ht-class-guest that still says false is re-sent ── */
+/* ── transcription (9/15): every role is captioned — HT guests, and (later that day) the Academy guest, the last one
+   off — so a live guest preset that still says false is re-sent ── */
 const HT_NAMES = ["ht-class-host", "ht-class-guest"];
 const HT_HOST_ON_CF = { id: "p-hthost", name: "ht-class-host", permissions: PRESET_BODIES["ht-class-host"].permissions };
 const HT_GUEST_OK_ON_CF = { id: "p-htguest", name: "ht-class-guest", permissions: PRESET_BODIES["ht-class-guest"].permissions };
 /* the shape Cloudflare holds from before 9/15: files already off, transcription still off */
 const HT_GUEST_NO_TRANSCRIPT = { id: "p-htguest", name: "ht-class-guest", permissions: { ...(PRESET_BODIES["ht-class-guest"].permissions as Record<string, unknown>), transcription_enabled: false } };
-/* an Academy guest copy that matches the body on every tool flag (transcription false IS the body's value) */
-const TMA_GUEST_NO_TRANSCRIPT = { id: "p-guest", name: "tma-class-guest", permissions: withFlag(PRESET_BODIES["tma-class-guest"], "kick_participant", false).permissions };
+/* the Academy guest as Cloudflare held it until 9/15 evening: every tool on, transcription still off */
+const TMA_GUEST_NO_TRANSCRIPT = { id: "p-guest", name: "tma-class-guest", permissions: withFlag(PRESET_BODIES["tma-class-guest"], "transcription_enabled", false).permissions };
 
-Deno.test("the HT guest body says transcription on; the Academy guest body still says off", () => {
-  assertEquals((PRESET_BODIES["ht-class-guest"].permissions as Record<string, unknown>).transcription_enabled, true);
-  assertEquals((PRESET_BODIES["tma-class-guest"].permissions as Record<string, unknown>).transcription_enabled, false);
+Deno.test("every preset body — the Academy guest included — says transcription on", () => {
+  for (const name of ["tma-class-host", "tma-class-guest", "ht-class-host", "ht-class-guest"] as const) {
+    assertEquals((PRESET_BODIES[name].permissions as Record<string, unknown>).transcription_enabled, true, name);
+  }
 });
 
 Deno.test("ht-class-guest live with transcription off (files already off) → one PATCH with the body; the host untouched", async () => {
@@ -203,11 +205,14 @@ Deno.test("ht-class-guest live and matching → nothing but the list", async () 
   assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets"]);
 });
 
-Deno.test("tma-class-guest live with transcription off → no PATCH (the Academy guest body says off too)", async () => {
-  const { ensurePresets } = await import("./rtk_presets.ts?t=tma-no-transcribe");
+Deno.test("tma-class-guest live with transcription off → one PATCH with the body (an Academy member's words are captioned too); the host untouched", async () => {
+  const { ensurePresets } = await import("./rtk_presets.ts?t=tma-transcribe");
   const cf = fakeCf((m) => (m === "GET" ? { ok: true, status: 200, data: [HOST_ON_CF, TMA_GUEST_NO_TRANSCRIPT] } : { ok: true, status: 200, data: {} }));
   await ensurePresets(cf, TMA_NAMES);
-  assertEquals(cf.calls.map((c) => c.method + " " + c.path), ["GET /presets"]);
+  assertEquals(cf.calls, [
+    { method: "GET", path: "/presets", body: undefined },
+    { method: "PATCH", path: "/presets/p-guest", body: PRESET_BODIES["tma-class-guest"] },
+  ]);
 });
 
 Deno.test("a transcription PATCH that fails is not cached as ok — the next join lists and tries again", async () => {

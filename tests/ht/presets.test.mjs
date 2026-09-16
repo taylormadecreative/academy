@@ -58,6 +58,7 @@ test('every preset ALLOWS mic, camera, screen share, polls create + vote, chat t
     assert.equal(m.show_participant_list, true, n);
     assert.equal(m.kick_participant, n.endsWith('-host'), n + ': removing someone is not a tool');
     assert.equal(m.can_change_participant_permissions, n.endsWith('-host'), n);
+    assert.equal(m.transcription_enabled, true, n + ': being captioned is a tool too (the Academy guest was the last one off, 9/15)');
   }
 });
 

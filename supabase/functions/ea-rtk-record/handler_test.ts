@@ -105,6 +105,58 @@ Deno.test("stop with an active recording sends the stop action and leaves the cl
   assertEquals(d.calls, [{ method: "PUT", path: "/recordings/rec-9", body: { action: "stop" } }]);
 });
 
+/* the explicit End pressed OUT of the room (9/15): a host who left or dropped, then pressed the card's End, used to
+   stop the recording and flip the row while the students stayed in the live meeting with no signal. `end` stops,
+   then removes everyone from the active session — and, for an OPIL class, never closes the meeting (reused). */
+Deno.test("end (OPIL): stop the active recording, then kick-all on the active session; the meeting stays open; the count comes back", async () => {
+  const d = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }), cf: async (method, path, body) => { d.calls.push({ method, path, body }); return path.endsWith("/kick-all") ? { ok: true, status: 200, data: { action: "kick-all", kicked_participants_count: 12 } } : { ok: true, status: 200, data: {} }; } });
+  const r = await handleRecord({ session_no: 7, action: "end" }, HOST, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { stopped: true, recording_id: "rec-9", kicked: 12 });
+  assertEquals(d.calls, [
+    { method: "PUT", path: "/recordings/rec-9", body: { action: "stop" } },
+    { method: "POST", path: "/meetings/meet-7/active-session/kick-all", body: undefined },
+  ]);
+  assertEquals(d.calls.some((c) => c.method === "PATCH"), false);
+});
+
+Deno.test("end (OPIL): nothing recording still removes everyone; 404 from kick-all (nobody in) is 0; a failed kick-all is logged, never the answer; a student cannot end", async () => {
+  const orig = console.warn, warned: string[] = [];
+  console.warn = (...a: unknown[]) => { warned.push(a.map(String).join(" ")); };
+  try {
+    const none = deps({ cf: async (method, path, body) => { none.calls.push({ method, path, body }); return { ok: false, status: 404, data: {} }; } });
+    const r = await handleRecord({ session_no: 7, action: "end" }, HOST, none);
+    assertEquals(r.status, 200); assertEquals(r.body, { stopped: false, kicked: 0 });
+    assertEquals(none.calls.map((c) => c.method + " " + c.path), ["POST /meetings/meet-7/active-session/kick-all"]);
+    assertEquals(warned, []);
+    const bad = deps({ cf: async (method, path, body) => { bad.calls.push({ method, path, body }); return { ok: false, status: 500, data: {} }; } });
+    const r2 = await handleRecord({ session_no: 7, action: "end" }, HOST, bad);
+    assertEquals(r2.status, 200); assertEquals(r2.body, { stopped: false, kicked: null });
+    assertEquals(warned, ["[ea-rtk-record] class kick-all failed meet-7 500"]);
+    /* a stop that fails still removes everyone (the End is the person's intent) and answers 502 for the stop */
+    const failStop = deps({ latestActive: async () => ({ recording_id: "rec-9", status: "recording" }), cf: async (method, path, body) => { failStop.calls.push({ method, path, body }); return method === "PUT" ? { ok: false, status: 502, data: {} } : { ok: true, status: 200, data: { kicked_participants_count: 3 } }; } });
+    const r3 = await handleRecord({ session_no: 7, action: "end" }, HOST, failStop);
+    assertEquals(r3.status, 502);
+    assertEquals(failStop.calls.map((c) => c.method + " " + c.path), ["PUT /recordings/rec-9", "POST /meetings/meet-7/active-session/kick-all"]);
+    const s = await handleRecord({ session_no: 7, action: "end" }, STUDENT, deps());
+    assertEquals(s.status, 403);
+  } finally { console.warn = orig; }
+});
+
+Deno.test("end (room): stop, then kick-all, then the meeting is closed (PATCH INACTIVE) — the same for 'ht'", async () => {
+  const d = deps({ getRoom: async () => ROOM, cf: async (method, path, body) => { d.calls.push({ method, path, body }); return path.endsWith("/kick-all") ? { ok: true, status: 200, data: { kicked_participants_count: 4 } } : { ok: true, status: 200, data: {} }; }, room: { latestActive: async (m) => (m === "meet-room" ? { recording_id: "rec-r9", status: "recording" } : null) } });
+  const r = await handleRecord({ room: true, action: "end" }, NELSON, d);
+  assertEquals(r.status, 200); assertEquals(r.body, { stopped: true, recording_id: "rec-r9", kicked: 4 });
+  assertEquals(d.calls, [
+    { method: "PUT", path: "/recordings/rec-r9", body: { action: "stop" } },
+    { method: "POST", path: "/meetings/meet-room/active-session/kick-all", body: undefined },
+    { method: "PATCH", path: "/meetings/meet-room", body: { status: "INACTIVE" } },
+  ]);
+  const ht = deps({ getRoom: async () => ({ id: "r-ht", meeting_id: "m-ht", host_emails: ["dgray@htu.edu"] }) });
+  const hr = await handleRecord({ room: "ht", action: "end" }, { ...HOST, user: { id: "u-gray", email: "DGray@HTU.edu" }, role: { admin: false, judge: false, facilitator_sessions: [] } }, ht);
+  assertEquals(hr.status, 200); assertEquals(hr.body, { stopped: false, kicked: null });   /* the default fake answers {} — no count */
+  assertEquals(ht.calls.map((c) => c.method + " " + c.path), ["POST /meetings/m-ht/active-session/kick-all", "PATCH /meetings/m-ht"]);
+});
+
 Deno.test("stop with nothing recording is a calm 200", async () => {
   const d = deps();
   const r = await handleRecord({ session_no: 7, action: "stop" }, HOST, d);

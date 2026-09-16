@@ -19,6 +19,7 @@
 // PRESET_BODIES are the committed JSON files, verbatim (rtk_presets_test.ts proves they match):
 //   scripts/rtk-presets/tma-class-host.json   — a copy of opil-host.json, name changed
 //   scripts/rtk-presets/tma-class-guest.json  — a copy of opil-student.json, name changed
+//                                               (transcribed too, since 9/15 — the last role that was not)
 //   scripts/rtk-presets/ht-class-host.json    — HT brand colors (maroon/gold), same shape
 //   scripts/rtk-presets/ht-class-guest.json   — HT brand colors, transcription_enabled true
 //                                               (captions show the guest)
@@ -151,7 +152,7 @@ export const PRESET_BODIES: Record<"tma-class-host" | "tma-class-guest" | "ht-cl
       hidden_participant: false,
       waiting_room_type: "SKIP",
       recorder_type: "NONE",
-      transcription_enabled: false,
+      transcription_enabled: true,
     },
     ui: UI,
   },
@@ -285,8 +286,9 @@ export function toolFlagMismatch(body: Record<string, unknown>, found: Record<st
 }
 
 /* a live preset is re-sent when it disagrees with our body on any tool flag (9/15: screen share, polls,
-   chat files, pin, small groups opened to every role; transcription on for HT guests, students, judges;
-   tma-class-guest keeps transcription off, so an Academy guest copy that matches is left alone) */
+   chat files, pin, small groups opened to every role; transcription on for every role — the Academy guest
+   was the last one off, so a member's Captions and Transcript carried only the host's words, and a
+   dashboard fix would have been reverted by this very compare on the next host join) */
 export function needsPatch(name: PresetName, found: Record<string, unknown>): boolean {
   return toolFlagMismatch(PRESET_BODIES[name], found) !== null;
 }

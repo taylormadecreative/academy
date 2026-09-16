@@ -8,7 +8,7 @@
 //   · a session whose meeting is the Academy room's (ea_rooms.meeting_id, or any
 //     ea_room_replays.meeting_id) is refused with 403 not_allowed before a participant is minted.
 //   coordinator (role.admin) or facilitator of this session  -> opil-host
-//   judge (role.judge)                                       -> opil-judge   (watch + chat, no media)
+//   judge (role.judge)                                       -> opil-judge   (every tool too, since 9/15)
 //   cohort member (ea_opil_in_cohort)                        -> opil-student
 //   anyone else                                              -> 403 not_allowed
 //
@@ -111,9 +111,11 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
    name its own hosts by email (row.host_emails — Dr. Gray on "ht", say). A person gets in with the
    current link key, or (the Academy room only) an Academy membership — never a member for another
    institution's room, only while the room is live (and for at most 4 h after it started, the
-   recording cap — a tab that died leaves is_live true). Every Start class is a fresh Cloudflare
-   meeting and the previous one is set INACTIVE, so a token from last time opens nothing. People are
-   never told the meeting id; a client-supplied meeting_id is never read. */
+   recording cap — a tab that died leaves is_live true). A Start class on a room that is OFF AIR is a
+   fresh Cloudflare meeting and the previous one is set INACTIVE, so a token from last time opens
+   nothing; a host joining a row that is LIVE always gets the meeting the room already has, however
+   long it has run (9/15: past 4 h every host re-entry minted a new meeting and threw the guests out
+   of the old one). People are never told the meeting id; a client-supplied meeting_id is never read. */
 
 const KEY_RX = /^[A-Za-z0-9_-]{22}$/;
 /* YYYY-MM-DD in America/Chicago (en-CA prints ISO order) — the meeting title people see in the dashboard */
@@ -141,15 +143,20 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
     const allowed = room.open_door === true || (slug === "academy" && (await deps.isMember())) || keyOk;
     if (!allowed) return keyGiven ? { status: 404, body: { error: "bad_link" } } : { status: 403, body: { error: "not_allowed" } };
   }
-  /* 4 — is the room open: live, and started less than 4 h ago */
+  /* 4 — is the room open to PEOPLE: live, and started less than 4 h ago (the recording cap; a tab that died
+     leaves is_live true, and that must not admit guests for a day) */
   const open = room.is_live && !!room.live_since && (deps.now().getTime() - Date.parse(room.live_since)) < OPEN_WINDOW_MS;
   if (!isHost && !open) return { status: 409, body: { error: "not_open" } };
-  /* 5 — the meeting: a host starting (or re-starting a stale room) gets a fresh one; a live room and people reuse it.
+  /* 5 — the meeting. A host on a row that is OFF AIR (or live with no meeting yet) opens a fresh one. A host on a
+     row that is LIVE always reuses its meeting — whatever the clock says: Rejoin after Leave, "Enter the running
+     session", a reload, the module's own rejoin after a drop must never mint a second meeting while one runs, and
+     never INACTIVATE the one the guests are still in (that is what happened past 4 h before 9/15). The two
+     meanings of "open" are split on purpose: the window gates admission, not the host's meeting.
      The row is NOT flipped live here: that waits until the host's own participant POST succeeds (step 9), so a
      Cloudflare failure on the second call leaves the room off air instead of open with nobody hosting it. */
   let meetingId: string | null = room.meeting_id;
   let fresh = false;
-  if (isHost && (!open || !meetingId)) {
+  if (isHost && (!room.is_live || !meetingId)) {
     /* the title people see in the dashboard: room.title is cut first so the date always survives the 80-char cap */
     const prefix = (slug === "academy" ? "Academy" : slug.toUpperCase()) + " · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
     const title = prefix + String(room.title || "").slice(0, 80 - prefix.length - suffix.length) + suffix;

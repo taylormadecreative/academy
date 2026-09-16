@@ -79,7 +79,7 @@
     "hidden_participant": false,
     "waiting_room_type": "SKIP",
     "recorder_type": "NONE",
-    "transcription_enabled": false
+    "transcription_enabled": true
   },
   "ui": {
     "design_tokens": {
