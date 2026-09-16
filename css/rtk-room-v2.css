@@ -365,3 +365,9 @@
 /* the site stylesheet caps every <p> at 62ch — inside the room a paragraph is as wide as its box */
 #rtkMount.r2host p{max-width:none}
 .r2-split label[hidden]{display:none}   /* the Rooms count hides while Split is "by team" */
+/* inside a small group the bar holds two buttons (Ask for help + Back): they share the middle and never overlap the chips */
+.r2-room-msg[hidden]{display:none}
+.r2-primary{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;min-width:0}
+.r2-primary .r2-cta{min-width:0;flex:1 1 200px;max-width:420px}
+.r2-primary .r2-btn.r2-back{white-space:nowrap;flex:0 0 auto}
+@media(max-width:720px){.r2-primary{display:grid;grid-template-columns:1fr;gap:8px}.r2-primary .r2-cta{max-width:none}.r2-primary .r2-btn.r2-back{white-space:normal}}

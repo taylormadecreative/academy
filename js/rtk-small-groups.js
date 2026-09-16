@@ -12,13 +12,15 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
   const here = () => { try { return m().meta.meetingId; } catch (e) { return null; } };
   const inRoom = () => !!(rootId && here() && here() !== rootId);
   const myName = () => { try { return m().self.name || null; } catch (e) { return null; } };
+  const knownNonHost = (id) => { try { const p = m().participants.joined.toArray().find(x => x.customParticipantId === id); return !!p && !/host/.test(String(p.presetName || '')); } catch (e) { return false; } };
 
   /* ---- the channel: the clock and the notes ---- */
   const send = async (payload) => { try { if (chan) await chan.send({ type: 'broadcast', event: 'sg', payload }); } catch (e) {} };
   const handle = (payload) => {
     if (!payload || typeof payload !== 'object') return;
-    /* only a host's word counts: a note or a clock from anyone else on the channel is dropped */
-    if (payload.from !== uid && !hostIds().has(payload.from)) return;
+    /* only a host's word counts. From inside a small group the host is not in your joined list, so the rule
+       is: drop a payload whose sender we can SEE and know is not a host; anyone unseen is taken at their word */
+    if (payload.from !== uid && knownNonHost(payload.from)) return;
     if (payload.type === 'timer') {
       timer = { endsAt: payload.endsAt ? Date.parse(payload.endsAt) : null, minutes: Number(payload.minutes) || 0 };
       startTick(); if (onTick) onTick(); paintBoard();
@@ -235,7 +237,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
   }
   function boardPane() {
     board = el(setupHTML()); wire(board);
-    refresh();
+    setTimeout(refresh, 0);   /* after the sheet has appended it — refresh() returns early on a detached board */
     clearInterval(boardTick); boardTick = setInterval(() => { if (!board || !board.isConnected) return clearInterval(boardTick); refresh(); }, 5000);
     return board;
   }
