@@ -641,6 +641,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
         <button type="button" class="r2-btn r2-share" aria-pressed="false">Share my screen</button>
+        ${isRoom ? '' : '<button type="button" class="r2-btn r2-files-btn">Files</button>'}
         <button type="button" class="r2-btn r2-fx-btn">Effects</button>
         <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false">Captions</button>
         <button type="button" class="r2-btn r2-tools">Tools</button>
@@ -729,6 +730,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   };
   node.querySelectorAll('.r2-tab').forEach(t => t.addEventListener('click', () => showPane(t.dataset.tab)));
   q('.r2-open').addEventListener('click', () => showPane(host ? 'queue' : 'chat'));
+  { const fb = q('.r2-files-btn'); if (fb) fb.addEventListener('click', () => showPane('files')); }   /* Files, one tap from the bar (Nelson 9/16: whoever has the spotlight needs it fast) */
   q('.r2-close').addEventListener('click', () => { node.classList.remove('panel-open'); nudge(); });
   const peopleCount = () => { try { const n = m.participants.joined.toArray().length + 1; q('.r2-tab[data-tab="people"] em').textContent = n; } catch (e) {} };
 
