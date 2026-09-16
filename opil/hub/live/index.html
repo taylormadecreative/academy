@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=a029d5082f">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=a029d5082f">
-<link rel="stylesheet" href="/css/rtk-room.css?v=a029d5082f">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=a029d5082f">
+<link rel="stylesheet" href="/css/build-mode.css?v=97b7f6eb5e">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=97b7f6eb5e">
+<link rel="stylesheet" href="/css/rtk-room.css?v=97b7f6eb5e">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=97b7f6eb5e">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -48,6 +48,19 @@
 /* the ended card's way back in, once a class runs again */
 #backOn{margin-top:14px;display:grid;gap:8px;justify-items:center}
 #backOn[hidden]{display:none}
+/* the no-code door for approved students: one card, one field, one button; everything else waits behind it */
+.gated .hub-wrap > :not(#pass){display:none}
+.pass{max-width:560px;margin:48px auto;padding:32px 28px}
+.pass h1{font:700 clamp(28px,4vw,38px)/1.1 'Space Grotesk',Inter,sans-serif;margin:10px 0 8px;letter-spacing:-.02em}
+.pass .lead{font-size:17px;color:var(--muted);margin:0 0 20px}
+.pass form{display:grid;grid-template-columns:1fr auto;gap:10px}
+.pass input{min-height:52px;font-size:17px;padding:0 16px;border:1.5px solid var(--hair);border-radius:12px}
+.pass input:focus{outline:none;border-color:var(--navy,#0a1733)}
+.pass button{min-height:52px;padding:0 22px;border:0;border-radius:12px;background:#fdc921;color:#04123a;font:700 16px Inter,sans-serif;cursor:pointer}
+.pass button[disabled]{opacity:.6;cursor:wait}
+.pass .err{margin:14px 0 0;padding:12px 14px;border-radius:10px;background:#fff3f3;color:#8a1f1f;font-size:15px}
+.pass .small{font-size:14px;color:var(--muted);margin:18px 0 0}
+@media (max-width:520px){.pass form{grid-template-columns:1fr}.pass{margin:16px auto;padding:24px 18px}}
 </style>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -79,10 +92,53 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=a029d5082f"></script>
+<script src="/js/config.js?v=97b7f6eb5e"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=a029d5082f';
-import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2, recChipHidden, endCopy, backOn } from '/opil/hub/live-rooms.js?v=a029d5082f';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=97b7f6eb5e';
+import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2, recChipHidden, endCopy, backOn, passCopy } from '/opil/hub/live-rooms.js?v=97b7f6eb5e';
+/* No code for approved students (Nelson, 9/16 — the first class ever: "make it to where the students do
+   not need codes to get into the classroom … they've already been approved"). A signed-out visitor on a
+   room link types the email they applied with; ea-opil-pass checks the approved list and hands back a
+   one-time token the browser redeems on the spot. Staff (not on the list) take the code sign-in link.
+   Only this page has the door — the rest of the hub still bounces to /login/. */
+{
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+  const sb0 = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
+  if (!(await sb0.auth.getSession()).data.session) {
+    await new Promise((resolve) => {
+      const main = document.querySelector('main.hub-wrap');
+      const card = document.createElement('section');
+      card.className = 'hcard pass'; card.id = 'pass';
+      card.innerHTML = `<p class="mono" style="font-size:11px;letter-spacing:.14em;color:var(--emerald)">OPIL LAB HUB · LIVE SESSION</p>
+        <h1>Welcome to the Lab.</h1>
+        <p class="lead">Type the email you applied with and you’re in. No code, no password.</p>
+        <form id="passForm" novalidate><input id="passEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="you@school.edu" required><button type="submit" id="passGo">Enter →</button></form>
+        <p class="err" id="passErr" role="alert" hidden></p>
+        <p class="small">Facilitators and the program team: <a id="passStaff" href="#">sign in with a code</a>.</p>`;
+      document.body.classList.add('gated');
+      main.prepend(card);
+      card.querySelector('#passStaff').href = '/login/?next=' + encodeURIComponent(location.pathname + location.search);
+      const form = card.querySelector('#passForm'), input = card.querySelector('#passEmail'), go = card.querySelector('#passGo'), err = card.querySelector('#passErr');
+      const say = (code) => { err.textContent = passCopy(code); err.hidden = false; };
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); err.hidden = true;
+        const email = input.value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say('bad_email'); input.focus(); return; }
+        go.disabled = true; go.textContent = 'One moment…';
+        try {
+          const res = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-opil-pass', { method: 'POST', headers: { 'content-type': 'application/json', 'apikey': window.BM_CONFIG.SUPABASE_KEY || '' }, body: JSON.stringify({ email }) });
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok || !j.token_hash) { say(j.error || 'server'); return; }
+          const { error } = await sb0.auth.verifyOtp({ token_hash: j.token_hash, type: 'magiclink' });
+          if (error) { say('verify'); return; }
+          card.remove(); document.body.classList.remove('gated'); resolve();
+        } catch (e) { say('server'); }
+        finally { go.disabled = false; go.textContent = 'Enter →'; }
+      });
+      input.focus();
+    });
+  }
+}
 /* Room v2 (the concept boards: join screen, state in words, question queue).
    ROOM_V2 = true makes it the default for everyone; ?v2=1 opens it for one visit while the flag is
    off (testing), ?classic=1 opens the kit's own shell for one visit while the flag is on. */
@@ -200,7 +256,7 @@ function afterRoom(st, reason) {
 /* v2 takes the session object and a mode; onOpened fires for a host the moment the meeting exists,
    before they press Enter — that is when the session flips live */
 async function enterRoomV2({ session, mode, meetingId, onOpened }) {
-  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=a029d5082f');
+  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=97b7f6eb5e');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   const facilitator = await facilitatorName(session.no);
   document.getElementById('ttl').textContent = sessLabel(session) + ' · ' + session.title;
@@ -216,7 +272,7 @@ async function enterRoomV2({ session, mode, meetingId, onOpened }) {
 }
 async function enterRoom(no, meetingId, title) {
   if (v2) { const sess = (allSess || []).find(s => s.no === no) || roomSess; return enterRoomV2({ session: sess, mode: 'student', meetingId }); }
-  const { mountRoom } = await import('/js/rtk-room.js?v=a029d5082f');
+  const { mountRoom } = await import('/js/rtk-room.js?v=97b7f6eb5e');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   mounting = true; if (onMountSettled) onMountSettled();
   try {

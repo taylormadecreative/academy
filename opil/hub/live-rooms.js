@@ -209,3 +209,16 @@ export function backOn(prev, isLiveNow) {
   const seenOff = !!(prev && prev.seenOff) || isLiveNow === false;
   return { seenOff, again: isLiveNow === true && seenOff };
 }
+
+/* No code for approved students (Nelson, 9/16, the first class ever): a signed-out visitor on a room
+   link types the email they applied with and is in. What the card says back for each answer from
+   ea-opil-pass; every line tells the person what to do next, and the way out is always the code sign-in. */
+export function passCopy(code) {
+  switch (code) {
+    case 'not_on_list': return 'That email isn’t on the cohort list. Try the email you applied with, or ask Jamal (jware@aucenter.edu).';
+    case 'slow_down': return 'Too many tries from this network. Wait a minute and try again.';
+    case 'bad_email': return 'That doesn’t look like an email address.';
+    case 'verify': return 'Your email checked out but the sign-in didn’t stick. Try once more, or sign in with a code.';
+    default: return 'Something went wrong on our side. Try again, or sign in with a code.';
+  }
+}
