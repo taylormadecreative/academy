@@ -16,7 +16,7 @@ def _asset_ver():
                 "css/agent.css", "js/agent.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
-                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css"):
+                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())

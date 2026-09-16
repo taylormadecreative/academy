@@ -28,6 +28,7 @@
    mounts, on this module's own ?v= (the pattern opil/hub/hub.js uses for tour.js), so they ride
    its cache stamp and never need a service-worker bump of their own. */
 let copy = null;
+let sgMod = null;   /* js/rtk-small-groups.js, imported with the page's ?v= (see mountRoomV2) */
 
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
@@ -148,6 +149,8 @@ const ownPhoto = () => { try { return localStorage.getItem(OWN_BG_KEY); } catch 
    width on a phone; when absent the strip uses logo. No logo → not one extra byte of DOM. */
 export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
+  /* the Small Groups board (its own module; a failure to load only loses that tool, never the room) */
+  if (!sgMod) { try { sgMod = await import('/js/rtk-small-groups.js' + new URL(import.meta.url).search); } catch (e) { sgMod = null; } }
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
   const target = o.target || { kind: 'opil', session: o.session };
   /* (o.endsSession, the old "Leave ends it from the page that started the class", is read by nobody now:
@@ -575,6 +578,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const ec = copy.endCopy(words);   /* the Leave / End words, from the room's own noun */
   const node = el(`<div class="r2">
     <div class="r2-now">${brandMark(mark, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
+    <div class="r2-note" role="status" hidden></div>
     <div class="r2-main">
       <div class="r2-stage">
         <rtk-ui-provider>
@@ -647,7 +651,8 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   };
   const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [await myIdIn(m.meta.meetingId)]); };
   const setNow = () => {
-    const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room' } : null;
+    const lf = inBreakout() && sg ? sg.left() : null;   /* the clock, when the host set one */
+    const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room', left: lf ? lf.text : null, over: !!(lf && lf.over) } : null;
     q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
     q('.r2-rec').hidden = !recording || !host;
     if (recording && !host && !breakout) q('.r2-nowtxt').textContent += ' · This ' + words.thing + ' is being recorded';
@@ -689,13 +694,17 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
 
   /* the question queue */
   let hands = [];
+  let sg = null, sgStarted = false;   /* the Small Groups board + the student's side of it (created once loadHands exists) */
   const uid = user.id;
   const primary = q('.r2-primary');
   const nameOf = (id) => { try { const p = m.participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
   const renderPrimary = () => {
     if (inBreakout()) {
-      primary.innerHTML = `<button type="button" class="r2-cta r2-back"><b>Back to the main room</b><span>Leaves this small group</span></button>`;
-      primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await goToRoot(); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
+      if (sg) sg.primary(primary);   /* Ask for help (students) + Back to the main room */
+      else {
+        primary.innerHTML = `<button type="button" class="r2-cta r2-back"><b>Back to the main room</b><span>Leaves this small group</span></button>`;
+        primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await goToRoot(); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
+      }
       const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
       return;
     }
@@ -776,7 +785,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const ccTick = setInterval(() => { caps = copy.takeCaption(caps, null, Date.now()); if (ccOn) paintCC(); }, 2000);   /* finals fade on their own; cleared in destroy() */
   if (ccOn) ccOnAt = Date.now();
   syncCC();
-  const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); };
+  const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); if (sg) sg.onHands(); };
   async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
   async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
   async function markDone(h) { if (!h) return; await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', h.id); if (pinnedId === h.user_id) { unpin(); } await loadHands(); }
@@ -797,12 +806,25 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   function unpin() { try { m.participants.joined.toArray().forEach(x => { if (x.isPinned) x.unpin(); }); } catch (e) {} pinnedId = null; }
   let handsChan = null;
   const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} setInterval(loadHands, 15000); };
+  /* Small groups: the board in Tools, the clock in the strip, Ask for help + notes inside a room */
+  if (sgMod) {
+    try {
+      sg = sgMod.createSmallGroups({
+        sb, copy, el, esc, key: isRoom ? 'room-' + handsAt.val : String(handsAt.val), isRoom, words, host, uid, rootId,
+        getMeeting: () => m, myIdIn, toast, confirmInline, facilitator: facilitator || null,
+        hands: { rows: () => hands, load: loadHands, table: handsAt.table, col: handsAt.col, val: handsAt.val },
+        onTick: () => { try { setNow(); } catch (e) {} },
+        closeSheet: () => { sheet.hidden = true; sheetBody.innerHTML = ''; },
+      });
+      sg.bindNote(q('.r2-note'));
+    } catch (e) { sg = null; }
+  }
 
   /* the sheet: the same Tools for everyone — host and guest (Nelson, 9/15: "every single person should
      have access to ALL THE TOOLS on every platform"). The preset decides what the kit lets a tap do;
      rtk_presets.ts opens screen share, polls, chat files, pin and small groups to every role. */
   const sheet = q('.r2-sheet'), sheetBody = q('.r2-sheet-body');
-  const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); sheet.hidden = false; };
+  const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); q('.r2-sheet-card').classList.toggle('wide', !!(inner.classList && inner.classList.contains('r2-board'))); sheet.hidden = false; };
   q('.r2-sheet-close').addEventListener('click', () => { sheet.hidden = true; sheetBody.innerHTML = ''; });
   const effectsPane = () => {
     const p = el(`<div class="r2-fxpane"><button type="button" class="r2-btn" data-fx="none">No effect</button><button type="button" class="r2-btn" data-fx="blur">Blur my background</button>${BACKDROPS.map(b => `<button type="button" class="r2-btn" data-fx="${b.url}">${b.name} backdrop</button>`).join('')}${ownPhoto() ? '<button type="button" class="r2-btn" data-fx="own">My photo</button>' : ''}<button type="button" class="r2-btn" data-fx="pick">Use my own photo…</button><p class="r2-fine">Effects can take a few seconds the first time. Your own photo stays on this device only.</p></div>`);
@@ -846,67 +868,13 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const t = b.dataset.tool;
       if (t === 'share') { sheet.hidden = true; await toggleShare(); }
       else if (t === 'fx') openSheet('Effects', effectsPane());
-      else if (t === 'breakout') openSheet('Small groups', groupsPane());
+      else if (t === 'breakout') openSheet('Small groups', sg ? sg.board() : el('<div class="r2-empty">Small groups aren’t available right now — reload the page and try again.</div>'));
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }
       else if (t === 'transcript') { saveTranscript(); sheet.hidden = true; }
       /* the ONLY way a class ends: two taps, then everyone is removed and the page closes the row */
       else if (t === 'end') { if (confirmInline(b, ec.endAsk, ec.endAgain)) { b.disabled = true; const ended = await onEnd(); if (!ended) { b.disabled = false; sheet.hidden = true; sheetBody.innerHTML = ''; } } }
     }));
-    return p;
-  };
-  /* Small groups, in plain words: split evenly, visit a room, bring everyone back. The kit's own
-     manager assigned people but its Start did nothing inside this layout (9/15), so this drives
-     connectedMeetings directly. The host stays in the main room unless they visit. */
-  const groupsPane = () => {
-    const p = el(`<div class="r2-tools r2-groups">
-      <p class="r2-fine" style="text-align:left;margin:0">${esc(copy.capFirst(words.many))} are split evenly and moved on their own. You stay in the main room; visit any room from the list. Bring everyone back closes the rooms.</p>
-      <div class="r2-split"><label>Rooms <select class="r2-n">${[2,3,4,5,6].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label><button type="button" class="r2-btn" data-g="split"><b>Split ${esc(words.many)} into rooms</b></button></div>
-      <div class="r2-rooms"><div class="r2-empty">No small groups open.</div></div>
-      <button type="button" class="r2-btn danger" data-g="back"><b>Bring everyone back</b><span>Closes every small group; everyone lands in the main room</span></button>
-    </div>`);
-    const cm = () => m.connectedMeetings;
-    const rootOf = () => rootId;
-    const roomsBox = p.querySelector('.r2-rooms');
-    const refresh = async () => {
-      let list; try { list = await cm().getConnectedMeetings(); } catch (e) { roomsBox.innerHTML = `<div class="r2-empty">Could not read the rooms — ${esc(e.message || e)}</div>`; return; }
-      const rooms = (list && list.meetings) || [];
-      roomsBox.innerHTML = rooms.length ? rooms.map(r => `<div class="r2-hand"><span class="r2-n">${esc(String(r.title || '').replace(/\D/g, '') || '•')}</span><div class="r2-who"><b>${esc(r.title || 'Room')}</b><span>${(r.participants || []).length} ${(r.participants || []).length === 1 ? 'person' : 'people'}${(r.participants || []).length ? ' · ' + esc((r.participants || []).map(x => x.displayName).join(', ')) : ''}</span></div><button type="button" class="r2-mini r2-bring" data-visit="${esc(r.id)}">${m.meta.meetingId === r.id ? 'You are here' : 'Visit'}</button></div>`).join('')
-        : '<div class="r2-empty">No small groups open.</div>';
-      p.querySelector('[data-g="back"]').hidden = !rooms.length;
-      p.querySelector('.r2-split').hidden = !!rooms.length;
-      roomsBox.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => { if (b.dataset.visit === m.meta.meetingId) return; b.disabled = true; try { await cm().moveParticipants(m.meta.meetingId, b.dataset.visit, [await myIdIn(m.meta.meetingId)]); sheet.hidden = true; } catch (e) { toast('Could not move you — ' + (e.message || e)); b.disabled = false; } }));
-    };
-    /* two taps, like Bring everyone back: every role can open small groups now (a tool), and one stray tap
-       must not scatter a whole class mid-lecture. confirmInline rewrites the button's HTML, so the label is
-       set whole below rather than through the <b> it replaced. */
-    p.querySelector('[data-g="split"]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; if (!confirmInline(b, 'Split ' + words.many + ' into rooms?')) return;
-      b.disabled = true; b.innerHTML = '<b>Splitting…</b>';
-      try {
-        const n = Number(p.querySelector('.r2-n').value) || 2;
-        const list = await cm().getConnectedMeetings();
-        if (list.meetings && list.meetings.length) { toast('Small groups are already open.'); await refresh(); return; }
-        const made = await cm().createMeetings(Array.from({ length: n }, (_, i) => ({ title: 'Room ' + (i + 1) })));
-        /* everyone but the hosts (you included), dealt round-robin; one move call per room.
-           Match by customParticipantId: the list's ids are not the ids the joined map uses. */
-        const hostIds = new Set(m.participants.joined.toArray().filter(x => /host/.test(String(x.presetName || ''))).map(x => x.customParticipantId)); hostIds.add(m.self.customParticipantId);
-        const people = ((list.parentMeeting && list.parentMeeting.participants) || []).filter(x => !hostIds.has(x.customParticipantId));
-        const buckets = made.map(() => []); people.forEach((x, i) => buckets[i % made.length].push(x.id));
-        for (let i = 0; i < made.length; i++) if (buckets[i].length) await cm().moveParticipants(rootOf(), made[i].id, buckets[i]);
-        toast(people.length ? people.length + ' ' + (people.length === 1 ? words.one : words.many) + ' moved into ' + made.length + ' rooms.' : 'Rooms are open — nobody to move yet.');
-      } catch (e) { toast('Could not split — ' + (e.message || e)); }
-      b.disabled = false; b.innerHTML = '<b>Split ' + esc(words.many) + ' into rooms</b>';
-      await refresh();
-    });
-    p.querySelector('[data-g="back"]').addEventListener('click', async (ev) => {
-      const b = ev.currentTarget; if (!confirmInline(b, 'Bring everyone back?')) return;
-      b.disabled = true;
-      try { const list = await cm().getConnectedMeetings(); const ids = (list.meetings || []).map(r => r.id); if (m.meta.meetingId !== rootOf()) await goToRoot(); if (ids.length) await cm().deleteMeetings(ids); toast('Small groups closed — everyone is coming back.'); }
-      catch (e) { toast('Could not close the rooms — ' + (e.message || e)); }
-      b.disabled = false; await refresh();
-    });
-    refresh(); const tick = setInterval(() => { if (!p.isConnected) return clearInterval(tick); refresh(); }, 8000);
     return p;
   };
   /* (the guest's "Need help?" menu is gone: its three items live in the same Tools sheet everyone gets) */
@@ -946,9 +914,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     try { mm.participants.joined.on('participantJoined', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); } catch (e) {}
     if (!handsChan) watchHands();
     loadHands();
+    if (sg && !sgStarted) { sgStarted = true; sg.start(); }
+    if (sg && !inBreakout()) { const n = q('.r2-note'); if (n) { n.hidden = true; n.innerHTML = ''; } }   /* a room's note does not follow you back */
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); try { if (sg) sg.stop(); } catch (e) {} }
   return { node, bind, destroy, setRecording, toast, reconnecting };
 }

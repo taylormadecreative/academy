@@ -69,14 +69,16 @@ export const ROOM_WORDS = Object.freeze({
 
 /* the "what's happening now" strip */
 export function nowCopy({ facilitator, title, recording, breakout }, words = OPIL_WORDS) {
-  if (breakout) return 'Small groups · ' + breakout.name + (breakout.left ? ' · ' + breakout.left + ' left' : '');
+  if (breakout) return 'Small groups · ' + breakout.name + (breakout.over ? ' · Time’s up — heading back to the main room' : breakout.left ? ' · ' + breakout.left + ' left' : '');
   const who = facilitator ? facilitator + ' ' + words.teaching + ': ' + title : capFirst(words.thing) + ' in progress: ' + title;
   return recording ? who + ' · This ' + words.thing + ' is being recorded' : who;
 }
 
-/* the question queue: open hands in the order raised; a staged hand is "on deck" first */
+/* the question queue: open hands in the order raised; a staged hand is "on deck" first.
+   A 'help' hand (a small group asking the facilitator to pop in, 0040) is not a question — it never
+   enters this line; helpRows() is where it shows. */
 export function queueOrder(rows) {
-  return (rows || []).filter(r => !r.done_at).slice().sort((a, b) => {
+  return (rows || []).filter(r => !r.done_at && r.kind !== 'help').slice().sort((a, b) => {
     const sa = a.staged_at ? 0 : 1, sb = b.staged_at ? 0 : 1;
     return sa - sb || String(a.created_at).localeCompare(String(b.created_at));
   });
@@ -260,4 +262,62 @@ export function passCopy(code) {
     case 'verify': return 'Your email checked out but the sign-in didn’t stick. Try once more, or sign in with a code.';
     default: return 'Something went wrong on our side. Try again, or sign in with a code.';
   }
+}
+
+/* ---- Small groups (the board, spec 2026-09-16-opil-small-groups-board-design.md) ---- */
+/* open 'help' hands: a small group asking the facilitator to pop in; note = that room's meeting id */
+export function helpRows(rows) { return (rows || []).filter(r => !r.done_at && r.kind === 'help'); }
+
+/* deal people round-robin into n rooms ("Room 1"…); n is clamped to 1–8; rooms may be empty */
+export function roomsEvenly(people, n) {
+  const k = Math.max(1, Math.min(8, Number(n) || 2));
+  const rooms = Array.from({ length: k }, (_, i) => ({ title: 'Room ' + (i + 1), ids: [] }));
+  (people || []).forEach((p, i) => rooms[i % k].ids.push(p.id));
+  return rooms;
+}
+
+/* one room per team, titled with the team's name (A–Z); people with no team share an "Open room" at
+   the end. Only rooms with someone in them. teamOf(person) → team name or null. */
+export function roomsByTeam(people, teamOf) {
+  const byTeam = new Map(); const loose = [];
+  (people || []).forEach(p => { const t = teamOf ? teamOf(p) : null; if (t) { if (!byTeam.has(t)) byTeam.set(t, []); byTeam.get(t).push(p.id); } else loose.push(p.id); });
+  const rooms = [...byTeam.keys()].sort((a, b) => a.localeCompare(b)).map(t => ({ title: t, ids: byTeam.get(t) }));
+  if (loose.length) rooms.push({ title: 'Open room', ids: loose });
+  return rooms;
+}
+
+/* the clock: mm:ss left, how far along, when it ends (viewer's clock). null when no timer is set. */
+export function timerCopy({ endsAt, minutes, now, zone } = {}) {
+  if (!endsAt) return null;
+  const at = now == null ? Date.now() : now;
+  const total = Math.max(1, (Number(minutes) || 0) * 60000);
+  const remaining = Math.max(0, endsAt - at);
+  const s = Math.ceil(remaining / 1000);
+  const clock = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  const over = remaining === 0;
+  const opts = { hour: 'numeric', minute: '2-digit' }; if (zone) opts.timeZone = zone;
+  return {
+    clock, over,
+    pct: Math.min(1, Math.max(0, 1 - remaining / total)),
+    session: (Number(minutes) || 0) + ' minute session',
+    ends: 'Ends at ' + new Date(endsAt).toLocaleTimeString('en-US', opts),
+    left: over ? 'Time’s up' : clock,
+  };
+}
+
+/* a room's dot and word: Needs help beats Working beats Empty */
+export function roomStatus({ count, help }) {
+  if (help) return { word: 'Needs help', tone: 'help' };
+  return count ? { word: 'Working', tone: 'ok' } : { word: 'Empty', tone: 'empty' };
+}
+
+/* a note from the host is for me when it names my room or every room */
+export function noteIsForMe(payload, myRoomId) {
+  return !!(payload && payload.type === 'note' && typeof payload.text === 'string' && payload.text.trim() && (payload.room === 'all' || (myRoomId && payload.room === myRoomId)));
+}
+
+/* the student's help button in a small group: before and after asking */
+export function helpCopy(asked, facilitator) {
+  const who = facilitator || 'Your facilitator';
+  return asked ? { b: 'Help is on the way', s: who + ' will pop in · tap to cancel' } : { b: 'Ask for help', s: who + ' will pop in' };
 }

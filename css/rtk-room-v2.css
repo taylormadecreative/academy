@@ -162,6 +162,59 @@
 .r2-split label{font-size:14px;color:#c9d4ee;display:flex;align-items:center;gap:8px}
 .r2-split select{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;background:#162650;color:#fff;border:1px solid rgba(255,255,255,.16)}
 .r2-groups .r2-rooms .r2-hand{margin-bottom:8px}
+/* ---- Small Groups board (concept 4): cards of rooms + a rail with the clock, who needs help, all rooms, one gold way back ---- */
+.r2-sheet-card.wide{width:min(1180px,100%);max-height:94%}
+.r2-board{display:grid;gap:16px}
+.r2-board-setup{gap:12px}
+.r2-board-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.r2-board-head b{display:block;font:700 22px 'Space Grotesk',Inter,sans-serif;letter-spacing:-.01em}
+.r2-board-head span{display:block;color:#9fb0d4;font-size:14px;margin-top:2px}
+.r2-note-all,.r2-room-msg{display:flex;gap:8px;align-items:center}
+.r2-note-all input,.r2-room-msg input{flex:1;min-width:0;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:#0a1733;color:#fff;font:inherit;font-size:14px}
+.r2-note-all{min-width:min(360px,100%)}
+.r2-board-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.r2-room-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.r2-room-card{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#0a1733;padding:14px 14px 12px;display:grid;gap:6px;align-content:start}
+.r2-room-card.tone-help{border-color:rgba(255,92,92,.75);box-shadow:0 0 0 1px rgba(255,92,92,.25) inset}
+.r2-room-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.r2-room-top b{font:700 16px 'Space Grotesk',Inter,sans-serif}
+.r2-room-status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#3ddc97;white-space:nowrap}
+.r2-room-status i,.r2-room-row i,.r2-dot-help{width:8px;height:8px;border-radius:50%;background:#3ddc97;display:inline-block;flex:0 0 auto}
+.tone-help .r2-room-status{color:#ff8a7a}.tone-help .r2-room-status i,.r2-room-row.tone-help i,.r2-dot-help{background:#ff5c5c}
+.tone-empty .r2-room-status{color:#9fb0d4}.tone-empty .r2-room-status i,.r2-room-row.tone-empty i{background:#6f80a8}
+.r2-room-count{font-size:13px;color:#c9d4ee}
+.r2-room-names{margin:0;font-size:13px;color:#9fb0d4;line-height:1.45;min-height:2.9em}
+.r2-room-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.r2-room-actions .r2-mini{min-height:40px;flex:1}
+.r2-room-msg{margin-top:6px}
+.r2-board-side{display:grid;gap:12px}
+.r2-board-side section{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#0a1733;padding:14px}
+.r2-board-side section > b{display:block;font:700 15px 'Space Grotesk',Inter,sans-serif;margin-bottom:8px}
+.r2-timer .r2-clock{font:700 46px/1 'Space Grotesk',Inter,sans-serif;letter-spacing:-.02em;margin:2px 0 10px;font-variant-numeric:tabular-nums}
+.r2-timer.over .r2-clock{color:#fdc921;font-size:34px}
+.r2-clock-none{color:#9fb0d4;font-size:24px}
+.r2-track{height:8px;border-radius:999px;background:#162650;overflow:hidden;margin-bottom:8px}
+.r2-track i{display:block;height:100%;background:linear-gradient(90deg,#fdc921,#3ddc97);border-radius:999px;transition:width 1s linear}
+.r2-timer.over .r2-track i{background:#fdc921}
+.r2-timer span{font-size:12.5px;color:#9fb0d4}
+.r2-help-list .r2-hand{grid-template-columns:auto 1fr auto;margin-bottom:8px}
+.r2-help-list .r2-hand:last-child{margin-bottom:0}
+.r2-help-list .r2-empty{padding:4px 0 0}
+.r2-room-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+.r2-room-row:last-child{border-bottom:0}
+.r2-room-row span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r2-room-row em{font-style:normal;color:#9fb0d4;font-size:13px}
+.r2-bring-back{width:100%;background:#fdc921;color:#04123a;border-color:#fdc921}
+.r2-tools .r2-btn.r2-bring-back b,.r2-board .r2-btn.r2-bring-back b{color:#04123a}
+.r2-board .r2-btn.r2-bring-back{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:60px;padding:10px 16px;border-radius:14px;text-align:left}
+.r2-board .r2-btn.r2-bring-back span{font-size:12px;opacity:.8}
+/* a note from the host, under the strip, until it is dismissed */
+.r2-note{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fdc921;color:#04123a;font-size:14px;border-bottom:1px solid rgba(0,0,0,.1)}
+.r2-note[hidden]{display:none}
+.r2-note span{flex:1;min-width:0}
+.r2-note-x{min-width:36px;min-height:36px;border:0;border-radius:999px;background:rgba(4,18,58,.12);color:#04123a;font:700 18px/1 Inter,sans-serif;cursor:pointer}
+.r2-primary .r2-btn.r2-back{min-height:56px;border-radius:999px}
+.r2-cta.r2-help.on{background:#e8f8f0;color:#067a56}
 .r2-kit{display:block;position:relative;height:min(60vh,520px);width:100%;overflow:auto}
 /* a notice sits under the now-strip, never on the bar or the captions, and never blocks a tap; on the join screen it stays above Enter */
 .r2-toast{position:absolute;top:56px;left:12px;right:12px;width:fit-content;max-width:90%;margin:0 auto;pointer-events:none;background:#fdf0e7;color:#b4451f;font:600 13.5px Inter,sans-serif;padding:10px 16px;border-radius:999px;z-index:30}
@@ -208,4 +261,9 @@
   .r2-cc{left:8px;right:8px;bottom:8px}
   .r2-cc-line{font-size:14px;padding:6px 10px}
   .r2-sheet-card{max-height:92%}
+  .r2-board-main{grid-template-columns:1fr}
+  .r2-board-side{order:-1}   /* the clock and who needs help first on a phone; the cards scroll under */
+  .r2-room-cards{grid-template-columns:1fr}
+  .r2-note-all{width:100%}
+  .r2-primary{display:grid;grid-template-columns:1fr;gap:8px}
 }
