@@ -77,6 +77,13 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     await hands.load();
   }
   async function cancelHelp() { await sb.from(hands.table).delete().eq(hands.col, hands.val).eq('user_id', uid).eq('kind', 'help').is('done_at', null); await hands.load(); }
+  /* every open help hand — when the rooms close or a new split begins, no request may outlive its room */
+  async function clearAllHelp() {
+    const ids = copy.helpRows(hands.rows()).map(h => h.id);
+    if (!ids.length) return;
+    await sb.from(hands.table).update({ done_at: new Date().toISOString() }).in('id', ids);
+    await hands.load();
+  }
   async function clearHelp(roomId) {
     const ids = copy.helpRows(hands.rows()).filter(h => h.note === roomId).map(h => h.id);
     if (!ids.length) return;
@@ -92,7 +99,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
       + `<button type="button" class="${host ? 'r2-cta' : 'r2-btn'} r2-back"><b>Back to the main room</b>${host ? '<span>Leaves this small group</span>' : ''}</button>`;
     const h = container.querySelector('.r2-help');
     if (h) h.addEventListener('click', async () => { h.disabled = true; try { asked ? await cancelHelp() : await askHelp(); } catch (e) {} h.disabled = false; });
-    container.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; if (!host && !confirmInline(b, 'Leave your group?')) return; b.disabled = true; try { await goRoot(); } catch (e) { console.warn('[sg] back', e); toast('Could not move you back. Tap it again — or press Leave and reopen your link.'); b.disabled = false; } });
+    container.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; if (!host && !confirmInline(b, 'Leave your group?')) return; b.disabled = true; try { await goRoot(); if (!host && myHelp()) await cancelHelp(); } catch (e) { console.warn('[sg] back', e); toast('Could not move you back. Tap it again — or press Leave and reopen your link.'); b.disabled = false; } });
   }
   const goRoot = async () => { await cm().moveParticipants(here(), rootId, [await myIdIn(here())]); };
   const visit = async (roomId) => { if (roomId === here()) return; await cm().moveParticipants(here(), roomId, [await myIdIn(here())]); };
@@ -207,6 +214,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
           let plan = null;
           if (byTeam) { const teams = await roster(); if (teams) plan = copy.roomsByTeam(people, p => teams.get(p.uid) || null); else toast('Could not read the teams — splitting evenly instead.'); }
           if (!plan || !plan.length) plan = copy.roomsEvenly(people, byTeam ? Math.min(6, Math.max(2, Math.ceil(people.length / 4))) : n);
+          if (host) await clearAllHelp().catch(() => {});   /* a request from a previous round never starts the new one */
           const made = await cm().createMeetings(plan.map(r => ({ title: r.title })));
           for (let i = 0; i < made.length; i++) if (plan[i] && plan[i].ids.length) await cm().moveParticipants(rootId, made[i].id, plan[i].ids);
           setTimer(minutes);
@@ -230,7 +238,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     if (back) back.addEventListener('click', async (ev) => {
       const b = ev.currentTarget; if (!confirmInline(b, 'Bring everyone back?')) return;
       b.disabled = true;
-      try { const rooms = await readRooms(); if (inRoom()) await goRoot(); if (rooms.length) await cm().deleteMeetings(rooms.map(r => r.id)); setTimer(0); lastRooms = null; toast('Small groups closed — everyone is coming back.'); }
+      try { const rooms = await readRooms(); if (inRoom()) await goRoot(); if (rooms.length) await cm().deleteMeetings(rooms.map(r => r.id)); setTimer(0); lastRooms = null; if (host) await clearAllHelp().catch(() => {}); toast('Small groups closed — everyone is coming back.'); }
       catch (e) { console.warn('[sg] close', e); toast('Could not close the rooms. Tap Bring everyone back again.'); }
       b.disabled = false; await refresh();
     });
