@@ -8,7 +8,8 @@
 --   3. the bucket takes up to 50 MB (decks); the table joins realtime so the Files tab updates live
 drop policy if exists mat_cohort_insert on public.ea_opil_materials;
 create policy mat_cohort_insert on public.ea_opil_materials for insert to authenticated
-  with check (uploaded_by = auth.uid() and kind = 'resource'
+  with check (uploaded_by = auth.uid() and kind = 'resource' and link_url is null
+              and file_path like 'materials/' || auth.uid()::text || '/%'
               and (public.ea_opil_in_cohort() or public.ea_opil_is_program_team(auth.uid())));
 drop policy if exists mat_own_delete on public.ea_opil_materials;
 create policy mat_own_delete on public.ea_opil_materials for delete to authenticated
@@ -29,6 +30,8 @@ create policy "opil files own delete" on storage.objects for delete to authentic
   using (bucket_id = 'opil-files' and owner_id = auth.uid()::text);
 
 update storage.buckets set file_size_limit = 52428800 where id = 'opil-files';
+/* a DELETE must carry its columns for realtime listeners to hear which session it belonged to */
+alter table public.ea_opil_materials replica identity full;
 
 do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'ea_opil_materials') then

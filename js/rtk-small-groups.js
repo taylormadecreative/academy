@@ -13,6 +13,11 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
   const inRoom = () => !!(rootId && here() && here() !== rootId);
   const myName = () => { try { return m().self.name || null; } catch (e) { return null; } };
   const knownNonHost = (id) => { try { const p = m().participants.joined.toArray().find(x => x.customParticipantId === id); return !!p && !/host/.test(String(p.presetName || '')); } catch (e) { return false; } };
+  /* the hosts this page has SEEN (main room, every bind): inside a small group the host is not in the joined list, so
+     a payload is honoured when its sender is a remembered host — never merely because the sender is unseen */
+  const seenHosts = new Set();
+  const rememberHosts = () => { try { if (host) seenHosts.add(uid); m().participants.joined.toArray().forEach(x => { if (/host/.test(String(x.presetName || ''))) seenHosts.add(x.customParticipantId); }); } catch (e) {} };
+  const fromHost = (id) => id === uid ? host : (seenHosts.has(id) || (!seenHosts.size && !knownNonHost(id)));
 
   /* ---- the channel: the clock and the notes ---- */
   const send = async (payload) => { try { if (chan) await chan.send({ type: 'broadcast', event: 'sg', payload }); } catch (e) {} };
@@ -20,15 +25,17 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     if (!payload || typeof payload !== 'object') return;
     /* only a host's word counts. From inside a small group the host is not in your joined list, so the rule
        is: drop a payload whose sender we can SEE and know is not a host; anyone unseen is taken at their word */
-    if (payload.from !== uid && knownNonHost(payload.from)) return;
+    if (!fromHost(payload.from)) return;
     if (payload.type === 'timer') {
       timer = { endsAt: payload.endsAt ? Date.parse(payload.endsAt) : null, minutes: Number(payload.minutes) || 0 };
       startTick(); if (onTick) onTick(); paintBoard();
+      if (!timer.endsAt && payload.from !== uid) setTimeout(checkStranded, 20000);   /* the rooms closed: make sure I actually got out */
     } else if (payload.from !== uid && copy.noteIsForMe(payload, here()) && inRoom()) {
       showNote(payload);
     }
   };
   function start() {
+    rememberHosts();
     try {
       chan = sb.channel('sg-' + key, { config: { broadcast: { self: true } } });
       chan.on('broadcast', { event: 'sg' }, (msg) => handle(msg && msg.payload));
@@ -47,7 +54,9 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     startTick(); if (onTick) onTick();
     const payload = () => ({ type: 'timer', from: uid, endsAt: timer.endsAt ? new Date(timer.endsAt).toISOString() : null, minutes: timer.minutes });
     send(payload());
-    clearInterval(heartbeat); if (timer.endsAt) heartbeat = setInterval(() => send(payload()), 15000);
+    clearInterval(heartbeat);
+    if (timer.endsAt) heartbeat = setInterval(() => send(payload()), 15000);
+    else { let n = 0; heartbeat = setInterval(() => { send(payload()); if (++n >= 6) clearInterval(heartbeat); }, 15000); }   /* the clear repeats for 90 s so nobody keeps a dead clock */
   };
   /* more time on a running clock (or a fresh clock if there was none): the same broadcast, so every room moves together */
   const addTime = (mins) => {
@@ -111,6 +120,17 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     container.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; if (!host && !confirmInline(b, 'Leave your group?')) return; b.disabled = true; try { await goRoot(); if (!host && myHelp()) await cancelHelp(); } catch (e) { console.warn('[sg] back', e); toast('Could not move you back. Tap it again — or press Leave and reopen your link.'); b.disabled = false; } });
   }
   const goRoot = async () => { await cm().moveParticipants(here(), rootId, [await myIdIn(here())]); };
+  /* a move that was still in flight when the host closed the rooms can leave a student sitting in a room
+     that no longer exists (seen once on 9/16). 20 s after "Bring everyone back": still in a room the list
+     does not know → walk back; cannot → say so and reload (the class is live, the link brings them in). */
+  async function checkStranded() {
+    if (!inRoom()) return;
+    let alive = true;
+    try { const list = await cm().getConnectedMeetings(); alive = ((list && list.meetings) || []).some(r => r.id === here()); } catch (e) { alive = false; }
+    if (alive) return;
+    try { await goRoot(); }
+    catch (e) { console.warn('[sg] stranded', e); toast('Your small group closed — bringing you back to the class…', 6000); setTimeout(() => { try { location.reload(); } catch (x) {} }, 3000); }
+  }
   const visit = async (roomId) => { if (roomId === here()) return; await cm().moveParticipants(here(), roomId, [await myIdIn(here())]); };
 
   /* ---- the board ---- */
@@ -120,6 +140,9 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     try { const { data } = await sb.rpc('ea_opil_roster_teams'); if (!Array.isArray(data) || !data.length) return null; const map = new Map(); data.forEach(r => map.set(r.user_id, r.team_name)); return map; } catch (e) { return null; }
   };
   const many = copy.capFirst(words.many);
+  /* one reader for every minutes field: a whole number 1–180, or null (never a surprise 1-minute clock from an empty box) */
+  const readMinutes = (input) => { const v = Number(input && input.value); return Number.isFinite(v) && v >= 1 ? Math.min(180, Math.round(v)) : null; };
+  const minWord = (n) => n + (n === 1 ? ' minute' : ' minutes');
   const setupHTML = () => `<div class="r2-groups r2-board r2-board-setup">
       <p class="r2-fine" style="text-align:left;margin:0">${many} are moved into rooms automatically. You stay in the main room and can join any room from this board. <b>Bring everyone back</b> closes the rooms.</p>
       <div class="r2-split">
@@ -153,14 +176,14 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     return `<div class="r2-groups r2-board">
       <div class="r2-board-head">
         <div><b>Small groups in progress</b><span>${many} are in their rooms. Join any room, or bring everyone back.</span></div>
-        <form class="r2-note-all"><input maxlength="200" placeholder="Message all rooms…" aria-label="Message all rooms" autocomplete="off"><button type="submit" class="r2-mini r2-bring">Send to all</button></form>
+        ${host ? `<form class="r2-note-all"><input maxlength="200" placeholder="Message all rooms…" aria-label="Message all rooms" autocomplete="off"><button type="submit" class="r2-mini r2-bring">Send to all</button></form>` : ''}
       </div>
       <div class="r2-board-main">
         <div class="r2-room-cards">${rooms.map(r => cardHTML(r, helpFor(r.id))).join('')}</div>
         <aside class="r2-board-side">
           <section class="r2-timer${t && t.over ? ' over' : ''}"><b>Time left in small groups</b>
             ${t ? `<div class="r2-clock">${t.over ? 'Time’s up' : t.clock}</div><div class="r2-track"><i style="width:${Math.round(t.pct * 100)}%"></i></div><span>${esc(t.session)} · ${esc(t.ends)}</span>` : `<div class="r2-clock r2-clock-none">No clock</div><span>Give the rooms a clock below.</span>`}
-            <div class="r2-clock-ctl"><button type="button" class="r2-mini" data-add="5">+5 min</button><button type="button" class="r2-mini" data-add="10">+10 min</button><form class="r2-set-time"><input type="number" inputmode="numeric" min="1" max="180" placeholder="Minutes" aria-label="Set the clock to this many minutes"><button type="submit" class="r2-mini">Set</button></form></div>
+            ${host ? `<div class="r2-clock-ctl"><button type="button" class="r2-mini" data-add="5">+5 min</button><button type="button" class="r2-mini" data-add="10">+10 min</button><form class="r2-set-time"><input type="number" inputmode="numeric" min="1" max="180" required placeholder="Min" aria-label="Set the clock to this many minutes"><button type="submit" class="r2-mini">Set</button></form></div>` : ''}
           </section>
           <section class="r2-help-list"><b>Rooms needing help (${need.length})</b>
             ${need.length ? need.map(r => `<div class="r2-hand"><span class="r2-dot-help"></span><div class="r2-who"><b>${esc(r.title || 'Room')}</b><span>${(r.participants || []).length} ${esc(words.many)}</span></div><button type="button" class="r2-mini r2-bring" data-visit="${esc(r.id)}">Join</button></div>`).join('') : '<div class="r2-empty">No one needs help right now.</div>'}
@@ -168,17 +191,25 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
           <section class="r2-all-rooms"><b>All rooms (${rooms.length})</b>
             ${rooms.map(r => `<div class="r2-room-row tone-${copy.roomStatus({ count: (r.participants || []).length, help: helpFor(r.id) }).tone}"><i></i><span>${esc(r.title || 'Room')}</span><em>${(r.participants || []).length}</em></div>`).join('')}
           </section>
-          <button type="button" class="r2-btn danger r2-bring-back" data-g="back"><b>Bring everyone back</b><span>Ends small groups for all rooms</span></button>
+          ${host ? `<button type="button" class="r2-btn danger r2-bring-back" data-g="back"><b>Bring everyone back</b><span>Ends small groups for all rooms</span></button>` : ''}
         </aside>
       </div>
     </div>`;
   };
 
-  let lastRooms = null;
+  let lastRooms = null, painted = false;
   const readRooms = async () => { const list = await cm().getConnectedMeetings(); return (list && list.meetings) || []; };
   /* re-paint the open board in place (the clock every second, the help list as hands change) without
      losing a half-typed note */
   /* the clock alone, in place: a repaint every second would un-arm a two-tap button and throw focus (UX review 9/16) */
+  /* the help list and each card's status, in place (used when a full repaint would disturb a tap or a half-typed note) */
+  function patchHelp() {
+    if (!board || !board.isConnected || !lastRooms || board.classList.contains('r2-board-setup')) return;
+    const helps = copy.helpRows(hands.rows()); const helpFor = (id) => helps.some(h => h.note === id);
+    const need = lastRooms.filter(r => helpFor(r.id));
+    const list = board.querySelector('.r2-help-list'); if (list) { const b = list.querySelector('b'); if (b) b.textContent = 'Rooms needing help (' + need.length + ')'; const dyn = need.length ? need.map(r => `<div class="r2-hand"><span class="r2-dot-help"></span><div class="r2-who"><b>${esc(r.title || 'Room')}</b><span>${(r.participants || []).length} ${esc(words.many)}</span></div><button type="button" class="r2-mini r2-bring" data-visit="${esc(r.id)}">Join</button></div>`).join('') : '<div class="r2-empty">No one needs help right now.</div>'; const cur = list.innerHTML.replace(/^[\s\S]*?<\/b>/, ''); if (cur !== dyn) { list.innerHTML = (b ? b.outerHTML : '') + dyn; list.querySelectorAll('[data-visit]').forEach(x => x.addEventListener('click', async () => { const id = x.dataset.visit; if (id === here()) return; x.disabled = true; try { await visit(id); await clearHelp(id); if (closeSheet) closeSheet(); } catch (e) { console.warn('[sg] visit', e); toast('Could not move you into that room. Try again.'); x.disabled = false; } })); } }
+    lastRooms.forEach(r => { const card = board.querySelector(`.r2-room-card[data-room="${CSS.escape(r.id)}"]`); if (!card) return; const st = copy.roomStatus({ count: (r.participants || []).length, help: helpFor(r.id) }); card.className = 'r2-room-card tone-' + st.tone; const w = card.querySelector('.r2-room-status'); if (w) w.innerHTML = '<i></i>' + st.word; });
+  }
   function patchClock() {
     const sec = board && board.isConnected ? board.querySelector('.r2-timer') : null; if (!sec) return;
     const t = copy.timerCopy({ endsAt: timer.endsAt, minutes: timer.minutes }); if (!t) return;
@@ -189,17 +220,18 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
   }
   function paintBoard() {
     if (!board || !board.isConnected || !lastRooms || board.classList.contains('r2-board-setup')) return;
-    if (board.querySelector('[data-armed="1"], .r2-room-msg:not([hidden]), input:focus')) { patchClock(); return; }   /* mid-action: leave the buttons alone */
+    if (board.querySelector('[data-armed="1"], .r2-room-msg input:focus, .r2-note-all input:focus')) { patchClock(); patchHelp(); return false; }   /* mid-action: leave the buttons alone, but the help list stays live */
     const typing = board.querySelector('input:focus'); const keep = typing ? { form: typing.closest('form'), value: typing.value, room: typing.closest('form') && typing.closest('form').dataset.room } : null;
     const fresh = el(boardHTML(lastRooms));
-    board.replaceChildren(...fresh.childNodes); wire(board);
+    board.replaceChildren(...fresh.childNodes); wire(board); painted = true;
     if (keep) { const f = keep.room ? board.querySelector(`.r2-room-msg[data-room="${CSS.escape(keep.room)}"]`) : board.querySelector('.r2-note-all'); if (f) { f.hidden = false; const i = f.querySelector('input'); i.value = keep.value; i.focus(); } }
   }
   async function refresh() {
     if (!board || !board.isConnected) return;
     let rooms; try { rooms = await readRooms(); } catch (e) { console.warn('[sg] rooms', e); board.innerHTML = '<div class="r2-empty">Could not load the rooms. Close this and open Tools › Small groups again.</div>'; return; }
     const wasSetup = board.classList.contains('r2-board-setup');
-    if (!rooms.length) { if (!wasSetup || !board.querySelector('[data-g="split"]')) { const s = el(setupHTML()); board.className = s.className; board.replaceChildren(...s.childNodes); wire(board); } return; }
+    if (!rooms.length) { if (timer.endsAt && !host) { timer = { endsAt: null, minutes: 0 }; clearInterval(tick); if (onTick) onTick(); }   /* no rooms → no clock, whatever was missed */
+      if (!wasSetup || !board.querySelector('[data-g="split"]')) { const s = el(setupHTML()); board.className = s.className; board.replaceChildren(...s.childNodes); wire(board); } return; }
     lastRooms = rooms;
     if (wasSetup) board.className = 'r2-groups r2-board';
     paintBoard();
@@ -217,7 +249,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
         try {
           const byTeam = !isRoom && mode && mode.value === 'team';
           const n = Number((root.querySelector('.r2-n') || {}).value) || 2;
-          const minutes = Number((root.querySelector('.r2-min') || {}).value) || 15;
+          const minutes = readMinutes(root.querySelector('.r2-min')) || 15;
           const list = await cm().getConnectedMeetings();
           if (list.meetings && list.meetings.length) { toast('Small groups are already open.'); await refresh(); return; }
           const hosts = hostIds();
@@ -236,9 +268,9 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
       });
     }
     root.querySelectorAll('[data-min]').forEach(b => b.addEventListener('click', () => { const i = root.querySelector('.r2-min'); if (i) i.value = b.dataset.min; }));
-    root.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { addTime(Number(b.dataset.add) || 5); toast('Added ' + b.dataset.add + ' minutes — every room sees it.'); }));
+    root.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { addTime(Number(b.dataset.add) || 5); toast('Added ' + minWord(Number(b.dataset.add) || 5) + ' — every room sees it.'); }));
     const setForm = root.querySelector('.r2-set-time');
-    if (setForm) setForm.addEventListener('submit', (e) => { e.preventDefault(); const n = Math.max(1, Math.min(180, Number(setForm.querySelector('input').value) || 0)); if (!n) return; setTimer(n); toast('Clock set to ' + n + ' minutes — every room sees it.'); setForm.querySelector('input').value = ''; });
+    if (setForm) setForm.addEventListener('submit', (e) => { e.preventDefault(); const input = setForm.querySelector('input'); const n = readMinutes(input); if (!n) { toast('Type how many minutes first.'); input.focus(); return; } setTimer(n); toast('Clock set to ' + minWord(n) + ' — every room sees it.'); input.value = ''; input.blur(); });
     root.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => {
       const id = b.dataset.visit; if (id === here()) return; b.disabled = true;
       try { await visit(id); await clearHelp(id); if (closeSheet) closeSheet(); }
@@ -269,14 +301,14 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
      room and the way to it), so "Help is on the way" is a promise the room keeps */
   const seenHelp = new Set(); let helpPrimed = false;
   async function onHands() {
-    paintBoard();
+    painted = false; paintBoard();
     const open = copy.helpRows(hands.rows());
     const fresh = open.filter(h => !seenHelp.has(h.id)); open.forEach(h => seenHelp.add(h.id));
     if (!helpPrimed) { helpPrimed = true; return; }   /* the first load is history, not news */
-    if (!host || !fresh.length || (board && board.isConnected)) return;
+    if (!host || !fresh.length || (board && board.isConnected && painted)) return;
     let title = null;
     try { const rooms = lastRooms || await readRooms(); const r = rooms.find(x => x.id === fresh[0].note); title = r ? r.title : null; } catch (e) {}
     toast((title || 'A room') + ' needs help — open Tools › Small groups and tap Join.', 9000);
   }
-  return { start, stop, left, primary, bindNote, board: boardPane, onHands, inRoom };
+  return { start, stop, left, primary, bindNote, board: boardPane, onHands, inRoom, onBind: rememberHosts };
 }

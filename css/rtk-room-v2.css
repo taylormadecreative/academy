@@ -401,3 +401,10 @@
 .r2-set-time input,.r2-split input.r2-min{width:76px;min-height:44px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:#162650;color:#fff;font:inherit;font-size:15px}
 .r2-quick{display:inline-flex;gap:4px}.r2-quick .r2-mini{min-height:40px;padding:0 10px}
 @media(max-width:720px){.r2-show{inset:8px}.r2-show-line{white-space:normal}}
+/* review pass on Files + the clock: the list scrolls, the overlay sits under captions and the Reconnecting strip, targets ≥ 48px */
+.r2-pane[data-pane="files"] .r2-files{flex:1;min-height:0;overflow:auto;padding:10px}
+.r2-show{z-index:4}
+.r2-show.collapsed{inset:12px 12px auto 12px}
+.r2-file-actions .r2-mini,.r2-show-actions .r2-mini,.r2-clock-ctl .r2-mini,.r2-quick .r2-mini,.r2-set-time .r2-mini{min-height:48px}
+.r2-set-time input,.r2-split input.r2-min{width:92px;min-height:48px}
+.r2-show-card .r2-mini{margin-top:12px}

@@ -7,7 +7,7 @@ test('fileKind reads the extension first, then the mime type, and never guesses 
   assert.equal(fileKind('Team KIMT deck.pptx'), 'slides');
   assert.equal(fileKind('notes.PDF'), 'pdf');
   assert.equal(fileKind('budget.xlsx'), 'sheet');
-  assert.equal(fileKind('photo.HEIC'), 'image');
+  assert.equal(fileKind('photo.HEIC'), 'file');   /* a HEIC draws as a broken picture off Apple — download-only */
   assert.equal(fileKind('noext', 'application/pdf'), 'pdf');
   assert.equal(fileKind('noext', 'image/png'), 'image');
   assert.equal(fileKind('weird.bin', 'application/octet-stream'), 'file');
@@ -37,9 +37,11 @@ test('storagePath stays inside materials/<uploader>/ and cleans the name', () =>
 
 test('fileRefusal: too big, empty, or missing — otherwise null', () => {
   assert.equal(fileRefusal(null), 'Pick a file first.');
-  assert.match(fileRefusal({ size: FILE_MAX_BYTES + 1 }), /limit is 50 MB/);
-  assert.equal(fileRefusal({ size: 0 }), 'That file is empty.');
-  assert.equal(fileRefusal({ size: 1000 }), null);
+  assert.match(fileRefusal({ size: FILE_MAX_BYTES + 1, name: 'big.pdf' }), /limit is 50 MB/);
+  assert.equal(fileRefusal({ size: 0, name: 'x.pdf' }), 'That file is empty.');
+  assert.equal(fileRefusal({ size: 1000, name: 'deck.pdf' }), null);
+  assert.match(fileRefusal({ size: 1000, name: 'tool.exe' }), /can’t be shared here/);
+  assert.match(fileRefusal({ size: 1000, name: 'noext' }), /can’t be shared here/);
 });
 
 test('showingCopy says who is showing what, and that a deck is a download', () => {

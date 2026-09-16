@@ -8,10 +8,13 @@
    stage; slides and docs cannot be drawn by a browser, so they are shared as a download instead.
    Pure decisions (kind, size, path, refusals, the showing line) live in opil/hub/live-rooms.js. */
 const BUCKET = 'opil-files';
-const ACCEPT = '.pdf,.ppt,.pptx,.key,.doc,.docx,.pages,.txt,.md,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp,.heic,.mp4,.mov,.zip';
+const ACCEPT = '.pdf,.ppt,.pptx,.key,.doc,.docx,.pages,.txt,.md,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.zip';   /* no .heic: Safari hands over a JPEG instead; a HEIC that slips in is download-only */
+/* a browser that can draw a PDF inline: a desktop with a built-in viewer. Phones get a card with Open + Download. */
+const inlinePdfOk = () => { try { return navigator.pdfViewerEnabled !== false && !matchMedia('(max-width:720px), (pointer:coarse)').matches; } catch (e) { return false; } };
+const canShareScreen = () => { try { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) { return false; } };
 
 export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMeeting, toast, paneEl, stageEl, countEl }) {
-  let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null;
+  let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null, lastBeat = 0, watchdog = null;
   const nameCache = new Map();
   const m = () => getMeeting();
   const inRoomName = (id) => { try { if (m().self.customParticipantId === id) return m().self.name; const p = m().participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
@@ -21,7 +24,10 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     const left = need.filter(id => !nameCache.has(id));
     if (left.length) { try { const { data } = await sb.from('ea_profiles').select('user_id, display_name').in('user_id', left); (data || []).forEach(r => { if (r.display_name) nameCache.set(r.user_id, r.display_name); }); } catch (e) {} }
   }
-  const who = (id) => nameCache.get(id) || (id === uid ? 'You' : 'A classmate');
+  const who = (id) => nameCache.get(id) || (id === uid ? 'You' : host ? 'a student' : 'a classmate');
+  /* a sender is honoured only when this page can see them in the room (the Files tab lives in the main room, so the presenter is always visible) */
+  const inRoom = (id) => { try { if (id === uid) return true; return m().participants.joined.toArray().some(x => x.customParticipantId === id); } catch (e) { return false; } };
+  const isHostId = (id) => { try { if (id === uid) return host; const p = m().participants.joined.toArray().find(x => x.customParticipantId === id); return !!p && /host/.test(String(p.presetName || '')); } catch (e) { return false; } };
 
   /* ---- the list ---- */
   async function load() {
@@ -47,15 +53,17 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
   }
   function paint() {
     if (!paneEl) return;
+    if (paneEl.querySelector('[data-armed="1"]')) { if (countEl) countEl.textContent = rows.length || ''; return; }   /* a Remove mid-tap is never wiped by a poll */
+    const keepTop = paneEl.scrollTop;
     const busy = paneEl.querySelector('.r2-file-busy');
     paneEl.innerHTML = `<div class="r2-files-head">
         <button type="button" class="r2-btn r2-file-add"><b>Add a file</b><span>PDF, slides, docs, pictures · up to 50 MB · everyone in the class can download it</span></button>
         <input type="file" class="r2-file-input" accept="${ACCEPT}" hidden>
       </div>
       ${busy ? busy.outerHTML : ''}
-      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : '<div class="r2-empty">No files yet. Add a PDF or a deck and everyone in the class can download it — it stays on the hub after class.</div>'}</div>`;
+      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : '<div class="r2-empty">No files yet. Add a PDF or your slides and everyone in the class can download it — it stays on the hub after class.</div>'}</div>`;
     if (countEl) countEl.textContent = rows.length || '';
-    wire();
+    wire(); paneEl.scrollTop = keepTop;
   }
   function wire() {
     const add = paneEl.querySelector('.r2-file-add'), input = paneEl.querySelector('.r2-file-input');
@@ -98,14 +106,24 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
   }
   async function download(r) {
     if (!r) return;
-    /* open the tab first (a phone blocks a window opened after an await), then point it at the file */
+    /* the link is an attachment (Content-Disposition), so a hidden frame takes it without leaving the class —
+       no blank tab on a phone, the camera keeps running */
+    try {
+      const url = await signed(r, true);
+      const f = document.createElement('iframe'); f.hidden = true; f.src = url; document.body.appendChild(f); setTimeout(() => f.remove(), 60000);
+      toast('Downloading ' + r.title + '…', 4000);
+    } catch (e) { console.warn('[files] download', e); toast('Could not get that file right now. Try again in a moment.'); }
+  }
+  /* the inline view in its own tab: opened BEFORE the await (a phone blocks a window opened after one); a blocked
+     pop-up is said out loud, never a navigation of the class tab itself */
+  async function openInTab(r) {
     let w = null; try { w = window.open('', '_blank'); } catch (e) {}
-    try { const url = await signed(r, true); if (w) w.location.href = url; else location.href = url; }
-    catch (e) { console.warn('[files] download', e); if (w) w.close(); toast('Could not get that file right now. Try again in a moment.'); }
+    if (!w) { toast('Your browser blocked the new tab — allow pop-ups for this site, or tap Download.', 7000); return; }
+    try { w.location.href = await signed(r, false); } catch (e) { console.warn('[files] open', e); try { w.close(); } catch (x) {} toast('Could not open that file right now — try Download.'); }
   }
   async function remove(r, btn) {
     if (!r) return;
-    if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.textContent = 'Remove? Tap again'; setTimeout(() => { if (btn.isConnected) { btn.dataset.armed = ''; btn.textContent = 'Remove'; } }, 4000); return; }
+    if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.textContent = 'Remove? Tap again'; setTimeout(() => { if (btn.isConnected) { btn.dataset.armed = ''; btn.textContent = 'Remove'; paint(); } }, 4000); return; }
     try {
       const del = await sb.from('ea_opil_materials').delete().eq('id', r.id); if (del.error) throw del.error;
       if (r.file_path && r.uploaded_by === uid) { try { await sb.storage.from(BUCKET).remove([r.file_path]); } catch (e) {} }
@@ -117,26 +135,32 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
   /* ---- show to the class: a broadcast; every viewer draws the file from their own signed link ---- */
   const send = async (payload) => { try { if (chan) await chan.send({ type: 'broadcast', event: 'res', payload }); } catch (e) {} };
   function start() {
+    startWatchdog();
     try {
       chan = sb.channel('res-' + sessionNo, { config: { broadcast: { self: true } } });
       chan.on('broadcast', { event: 'res' }, (msg) => handle(msg && msg.payload));
       chan.subscribe();
     } catch (e) { chan = null; }
-    try { matsChan = sb.channel('mats-' + sessionNo).on('postgres_changes', { event: '*', schema: 'public', table: 'ea_opil_materials', filter: 'session_no=eq.' + sessionNo }, () => load()).subscribe(); } catch (e) {}
+    try { matsChan = sb.channel('mats-' + sessionNo).on('postgres_changes', { event: '*', schema: 'public', table: 'ea_opil_materials', filter: 'session_no=eq.' + sessionNo }, () => load()).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'ea_opil_materials' }, () => load()).subscribe(); } catch (e) {}   /* a DELETE carries no session_no, so it is heard unfiltered */
     poll = setInterval(load, 20000);
     load();
   }
-  function stop() { clearInterval(poll); clearInterval(heartbeat); clearInterval(urlTimer); try { if (chan) sb.removeChannel(chan); if (matsChan) sb.removeChannel(matsChan); } catch (e) {} chan = matsChan = null; }
+  function stop() { if (showing && showing.from === uid) { try { send({ type: 'unshow', from: uid, host: !!host }); } catch (e) {} } clearInterval(poll); clearInterval(heartbeat); clearInterval(urlTimer); clearInterval(watchdog); try { if (chan) sb.removeChannel(chan); if (matsChan) sb.removeChannel(matsChan); } catch (e) {} chan = matsChan = null; }
   function handle(p) {
-    if (!p || typeof p !== 'object') return;
+    if (!p || typeof p !== 'object' || !inRoom(p.from)) return;   /* a sender this page cannot see in the room is ignored */
     if (p.type === 'show' && p.id && p.path) {
+      lastBeat = Date.now();
       if (showing && showing.id === p.id && p.from === showing.from) return;   /* the heartbeat */
-      showing = { id: p.id, title: String(p.title || 'a file'), path: String(p.path), kind: p.kind, from: p.from, from_name: p.from_name || null };
+      if (showing && showing.from !== p.from && !isHostId(p.from) && showing.from !== uid) { /* a second presenter cannot bump the first unless they are a host */ return; }
+      const title = String(p.title || 'a file').slice(0, 200);
+      showing = { id: String(p.id), title, path: String(p.path), kind: copy.fileKind(title), from: p.from, from_name: p.from_name ? String(p.from_name).slice(0, 80) : null };
       hidden = false; paintShow();
     } else if (p.type === 'unshow') {
-      if (showing && (p.from === showing.from || p.host)) { showing = null; paintShow(); }
+      if (showing && (p.from === showing.from || isHostId(p.from))) { showing = null; paintShow(); }
     }
   }
+  /* the presenter dropped, reloaded, or left: their heartbeat stops, and 40 s later everyone's stage clears */
+  function startWatchdog() { clearInterval(watchdog); watchdog = setInterval(() => { if (showing && showing.from !== uid && lastBeat && Date.now() - lastBeat > 40000) { showing = null; paintShow(); } }, 5000); }
   async function show(r) {
     if (!r || !r.file_path) return;
     const kind = copy.fileKind(r.title);
@@ -144,13 +168,13 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     showing = { id: r.id, title: r.title, path: r.file_path, kind, from: uid, from_name: payload().from_name }; hidden = false; paintShow();
     await send(payload());
     clearInterval(heartbeat); heartbeat = setInterval(() => { if (showing && showing.from === uid) send(payload()); else clearInterval(heartbeat); }, 15000);
-    toast(copy.canShowInline(kind) ? 'Showing ' + r.title + ' to everyone. Stop showing is at the top of the stage.' : r.title + ' is shared — everyone sees a Download. To walk through it, use Share my screen.', 8000);
+    toast(copy.canShowInline(kind) ? 'Showing ' + r.title + ' to everyone. Stop showing is at the top of the stage.' : r.title + ' is shared — everyone sees a Download.' + (canShareScreen() ? ' To walk through it live, use Share my screen.' : ' To walk through it live, open it on a laptop and use Share my screen.'), 8000);
   }
   async function unshow() {
     const mineOrHost = showing && (showing.from === uid || host);
     if (!mineOrHost) return;
-    await send({ type: 'unshow', from: uid, host: !!host });
     showing = null; clearInterval(heartbeat); paintShow();
+    await send({ type: 'unshow', from: uid, host: !!host });
   }
   async function paintShow() {
     if (!stageEl) return;
@@ -160,22 +184,24 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     const line = copy.showingCopy({ who: s.from_name, title: s.title, kind: s.kind, mine });
     stageEl.hidden = false; stageEl.classList.toggle('collapsed', hidden);
     stageEl.innerHTML = `<div class="r2-show-bar"><span class="r2-show-line">${esc(line)}</span>
-        <span class="r2-show-actions"><button type="button" class="r2-mini r2-bring" data-act="dl">Download</button>${copy.canShowInline(s.kind) ? '<button type="button" class="r2-mini" data-act="full">Open full screen</button>' : ''}${canStop ? '<button type="button" class="r2-mini" data-act="stop">Stop showing</button>' : `<button type="button" class="r2-mini" data-act="hide">${hidden ? 'Show' : 'Hide'}</button>`}</span></div>
+        <span class="r2-show-actions"><button type="button" class="r2-mini r2-bring" data-act="dl">Download</button>${copy.canShowInline(s.kind) ? '<button type="button" class="r2-mini" data-act="full">Open in a new tab</button>' : ''}<button type="button" class="r2-mini" data-act="hide">${hidden ? 'Bring it back' : 'Hide for me'}</button>${canStop ? '<button type="button" class="r2-mini" data-act="stop">Stop showing</button>' : ''}</span></div>
       <div class="r2-show-body"></div>`;
     const row = rows.find(r => r.id === s.id) || { id: s.id, title: s.title, file_path: s.path };
     stageEl.querySelector('[data-act="dl"]').addEventListener('click', () => download(row));
-    const full = stageEl.querySelector('[data-act="full"]'); if (full) full.addEventListener('click', async () => { let w = null; try { w = window.open('', '_blank'); } catch (e) {} try { const u = await signed(row, false); if (w) w.location.href = u; else location.href = u; } catch (e) { if (w) w.close(); } });
+    const full = stageEl.querySelector('[data-act="full"]'); if (full) full.addEventListener('click', () => openInTab(row));
     const stop = stageEl.querySelector('[data-act="stop"]'); if (stop) stop.addEventListener('click', unshow);
     const hide = stageEl.querySelector('[data-act="hide"]'); if (hide) hide.addEventListener('click', () => { hidden = !hidden; paintShow(); });
     const body = stageEl.querySelector('.r2-show-body');
     if (hidden) { body.hidden = true; return; }
-    if (!copy.canShowInline(s.kind)) { body.innerHTML = `<div class="r2-show-card"><b>${esc(s.title)}</b><span>${esc(copy.KIND_WORD[s.kind] || 'This file')} can’t be drawn inside the browser — download it to open. ${esc(mine ? 'To walk through it live, use Share my screen.' : '')}</span></div>`; return; }
+    if (!copy.canShowInline(s.kind)) { body.innerHTML = `<div class="r2-show-card"><b>${esc(s.title)}</b><span>This file doesn’t open on the stage — download it to open it.${mine ? (canShareScreen() ? ' To walk through it live, use Share my screen.' : ' To walk through it live, open it on a laptop and use Share my screen.') : ''}</span></div>`; return; }
+    if (s.kind === 'pdf' && !inlinePdfOk()) { body.innerHTML = `<div class="r2-show-card"><b>${esc(s.title)}</b><span>Open it to read along — it opens in your phone’s PDF viewer.</span><button type="button" class="r2-mini r2-bring" data-act="open">Open</button></div>`; body.querySelector('[data-act="open"]').addEventListener('click', () => openInTab(row)); return; }
     body.innerHTML = '<div class="r2-show-card"><span>Loading…</span></div>';
     try {
       const url = await signed(row, false);
-      if (!showing || showing.id !== s.id) return;
+      if (!showing || showing.id !== s.id || !body.isConnected) return;
       body.innerHTML = s.kind === 'image' ? `<img src="${esc(url)}" alt="${esc(s.title)}">` : `<iframe src="${esc(url)}#toolbar=0&navpanes=0&view=FitH" title="${esc(s.title)}"></iframe>`;
-      urlTimer = setInterval(() => { if (showing && showing.id === s.id) paintShow(); }, 12 * 60000);   /* the link lasts 15 min; redraw before it dies */
+      const img = body.querySelector('img'); if (img) img.addEventListener('error', () => { body.innerHTML = `<div class="r2-show-card"><b>${esc(s.title)}</b><span>This picture doesn’t open here — download it to see it.</span></div>`; });
+      clearInterval(urlTimer); urlTimer = setInterval(() => { if (showing && showing.id === s.id) paintShow(); }, 12 * 60000);   /* the link lasts 15 min; redraw before it dies */
     } catch (e) { console.warn('[files] show', e); body.innerHTML = '<div class="r2-show-card"><span>Could not open the file here — use Download.</span></div>'; }
   }
 

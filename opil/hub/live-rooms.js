@@ -306,7 +306,7 @@ export function timerCopy({ endsAt, minutes, now, zone } = {}) {
     clock, over,
     pct: Math.min(1, Math.max(0, 1 - remaining / total)),
     session: (Number(minutes) || 0) + ' minutes on the clock',
-    ends: 'Ends at ' + new Date(endsAt).toLocaleTimeString('en-US', opts),
+    ends: 'Ends at ' + new Date(endsAt).toLocaleTimeString('en-US', { ...opts, timeZoneName: 'short' }),
     left: over ? 'Time’s up' : clock,
   };
 }
@@ -323,7 +323,7 @@ export function noteIsForMe(payload, myRoomId) {
 }
 
 /* ---- Files for the class (the Files tab: upload, show to the class, download) ---- */
-const KIND_BY_EXT = { pdf: 'pdf', ppt: 'slides', pptx: 'slides', key: 'slides', odp: 'slides', doc: 'doc', docx: 'doc', pages: 'doc', rtf: 'doc', txt: 'doc', md: 'doc', xls: 'sheet', xlsx: 'sheet', csv: 'sheet', numbers: 'sheet', png: 'image', jpg: 'image', jpeg: 'image', gif: 'image', webp: 'image', heic: 'image', mp4: 'video', mov: 'video', zip: 'file' };
+const KIND_BY_EXT = { pdf: 'pdf', ppt: 'slides', pptx: 'slides', key: 'slides', odp: 'slides', doc: 'doc', docx: 'doc', pages: 'doc', rtf: 'doc', txt: 'doc', md: 'doc', xls: 'sheet', xlsx: 'sheet', csv: 'sheet', numbers: 'sheet', png: 'image', jpg: 'image', jpeg: 'image', gif: 'image', webp: 'image', heic: 'file', mp4: 'video', mov: 'video', zip: 'file' };
 export function fileKind(name, mime) {
   const ext = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
   if (ext && KIND_BY_EXT[ext[1]]) return KIND_BY_EXT[ext[1]];
@@ -350,8 +350,11 @@ export function storagePath(uid, name, stamp) {
   return 'materials/' + uid + '/' + stamp + '-' + clean;
 }
 /* why a file is refused, in words; null when it is fine */
+export const FILE_EXTS = Object.keys(KIND_BY_EXT).filter(e => e !== 'heic');
 export function fileRefusal(file) {
   if (!file) return 'Pick a file first.';
+  const ext = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+  if (!ext || !FILE_EXTS.includes(ext[1])) return 'That kind of file can’t be shared here. Try a PDF, slides, a doc, a sheet, a picture, a video, or a zip.';
   if (file.size > FILE_MAX_BYTES) return 'That file is ' + fmtSize(file.size) + ' — the limit is 50 MB. Try a PDF export or a smaller version.';
   if (file.size === 0) return 'That file is empty.';
   return null;

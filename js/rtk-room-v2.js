@@ -971,6 +971,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     if (!handsChan) watchHands();
     loadHands();
     if (sg && !sgStarted) { sgStarted = true; sg.start(); }
+    if (sg && sg.onBind) { try { sg.onBind(); } catch (e) {} }   /* remember who the hosts are while they are visible (the main room) */
     if (res && !resStarted) { resStarted = true; try { res.start(); } catch (e) {} }
     if (sg && !inBreakout()) { const n = q('.r2-note'); if (n) { n.hidden = true; n.innerHTML = ''; } }   /* a room's note does not follow you back */
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */

@@ -34,7 +34,7 @@ test('timerCopy: mm:ss left, progress, when it ends; zero is Time’s up; no tim
   const t = timerCopy({ endsAt, minutes: 15, now: start + 5 * 60000 + 28000, zone: 'America/New_York' });
   assert.equal(t.clock, '09:32'); assert.equal(t.left, '09:32'); assert.equal(t.over, false);
   assert.ok(Math.abs(t.pct - 0.364) < 0.01);
-  assert.equal(t.session, '15 minutes on the clock'); assert.equal(t.ends, 'Ends at 7:15 PM');
+  assert.equal(t.session, '15 minutes on the clock'); assert.equal(t.ends, 'Ends at 7:15 PM EDT');
   const done = timerCopy({ endsAt, minutes: 15, now: endsAt + 5000 });
   assert.equal(done.clock, '00:00'); assert.equal(done.over, true); assert.equal(done.left, 'Time’s up'); assert.equal(done.pct, 1);
   assert.equal(timerCopy({ endsAt: null, minutes: 15 }), null);
