@@ -2,6 +2,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import { realModuleScenarios } from './room-v2-real.mjs';   /* the REAL room module against a fake kit client (R1–R3) */
+import { opilScenarios } from './opil-live.mjs';             /* the OPIL live page against the stubbed module (O1–O2) */
 const H = new URL('./', import.meta.url);
 const SB = fs.readFileSync(new URL('stub-supabase.js', H), 'utf8'), R2 = fs.readFileSync(new URL('stub-room-v2.js', H), 'utf8');
 const KEY = 'AbC123_-xyzXYZ0987ab-_';
@@ -286,6 +287,9 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
 /* R1–R3 the real js/rtk-room-v2.js: a drop that cannot be mended tells the dead client to leave; Leave during a
    rejoin in flight wins; Split students into rooms is two taps (room-v2-real.mjs) */
 await realModuleScenarios(b, ok);
+/* O1–O2 the OPIL live page: Entering… disabled until the host is in, Rejoin restarts the recording, End out of the
+   room ends server-side; a student's row poll leaves a class ended from outside (opil-live.mjs) */
+await opilScenarios(b, ok);
 await b.close();
 console.log(out.join('\n')); console.log(out.filter(l => l.startsWith('OK')).length + ' OK · ' + out.filter(l => l.startsWith('FAIL')).length + ' FAIL');
 process.exit(out.some(l => l.startsWith('FAIL')) ? 1 : 0);

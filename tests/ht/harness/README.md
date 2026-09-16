@@ -20,3 +20,11 @@ against a fake kit client answered in-browser (the three CDN files, the effects 
 page's own origin): a drop that cannot be mended tells the dead client to leave, so it never walks the person
 back in behind the card; Leave pressed while a rejoin is in flight wins (the client that lands afterwards leaves
 at once, and the page never hears 'joined' after 'left'); Split students into rooms is two taps.
+
+`opil-live.mjs` (O1–O2, also run by ht-room.mjs) drives the OPIL live page (`/opil/hub/live/?s=7`) with the same
+stubbed module and `stub-supabase-opil.js` (eq / neq / in filters honoured; updates noted in localStorage across
+the page's own reload): the host's Start reads Entering… DISABLED until the host is in (never a second mount from
+the camera-check screen), Leave keeps the class running, Rejoin asks the recording to start again, the card's End
+pressed out of the room sends `end` (everyone out, server-side) before the row closes; a student whose class is
+ended from outside the room is taken out by the row poll (`window.__opilRoomPollMs` shortens it) and sees "Class
+ended." The stub module now resolves a host/student mount only on `state('joined')`, as the real one does.
