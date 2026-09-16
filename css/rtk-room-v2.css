@@ -361,3 +361,7 @@
   .r2-timer{order:-3}.r2-help-list{order:-2}.r2-room-cards{order:0}.r2-all-rooms{order:1}
   .r2-board .r2-bring-back{order:2;position:sticky;bottom:0}
 }
+
+/* the site stylesheet caps every <p> at 62ch — inside the room a paragraph is as wide as its box */
+#rtkMount.r2host p{max-width:none}
+.r2-split label[hidden]{display:none}   /* the Rooms count hides while Split is "by team" */
