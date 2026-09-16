@@ -49,6 +49,15 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     send(payload());
     clearInterval(heartbeat); if (timer.endsAt) heartbeat = setInterval(() => send(payload()), 15000);
   };
+  /* more time on a running clock (or a fresh clock if there was none): the same broadcast, so every room moves together */
+  const addTime = (mins) => {
+    const base = timer.endsAt && timer.endsAt > Date.now() ? timer.endsAt : Date.now();
+    timer = { endsAt: base + mins * 60000, minutes: (timer.minutes || 0) + mins };
+    startTick(); if (onTick) onTick(); patchClock();
+    const payload = () => ({ type: 'timer', from: uid, endsAt: new Date(timer.endsAt).toISOString(), minutes: timer.minutes });
+    send(payload());
+    clearInterval(heartbeat); heartbeat = setInterval(() => send(payload()), 15000);
+  };
   /* what the strip says after the room's name: "09:32" (it appends "left") or over */
   const left = () => { const t = copy.timerCopy({ endsAt: timer.endsAt, minutes: timer.minutes }); return t ? { text: t.left, over: t.over } : null; };
 
@@ -116,7 +125,8 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
       <div class="r2-split">
         ${isRoom ? '' : `<label>Split <select class="r2-mode"><option value="team">by team</option><option value="even">evenly</option></select></label>`}
         <label class="r2-n-wrap"${isRoom ? '' : ' hidden'}>Rooms <select class="r2-n">${[2, 3, 4, 5, 6].map(n => `<option value="${n}"${n === 3 ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-        <label>Minutes <select class="r2-min">${[5, 10, 15, 20, 30].map(n => `<option value="${n}"${n === 15 ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>Minutes <input class="r2-min" type="number" inputmode="numeric" min="1" max="180" value="15" aria-label="Minutes"></label>
+        <span class="r2-quick">${[5, 10, 15, 20, 30].map(n => `<button type="button" class="r2-mini" data-min="${n}">${n}</button>`).join('')}</span>
         <button type="button" class="r2-btn" data-g="split"><b>Split ${esc(words.many)} into rooms</b></button>
       </div>
       <p class="r2-fine" style="text-align:left">${isRoom ? '' : 'Split by team puts each team in its own room, named after the team; anyone without a team shares an Open room. '}Everyone in a room sees the clock; when it hits zero nobody is moved until you press Bring everyone back.</p>
@@ -149,7 +159,8 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
         <div class="r2-room-cards">${rooms.map(r => cardHTML(r, helpFor(r.id))).join('')}</div>
         <aside class="r2-board-side">
           <section class="r2-timer${t && t.over ? ' over' : ''}"><b>Time left in small groups</b>
-            ${t ? `<div class="r2-clock">${t.over ? 'Time’s up' : t.clock}</div><div class="r2-track"><i style="width:${Math.round(t.pct * 100)}%"></i></div><span>${esc(t.session)} · ${esc(t.ends)}</span>` : `<div class="r2-clock r2-clock-none">No clock</div><span>Set minutes when you split next time.</span>`}
+            ${t ? `<div class="r2-clock">${t.over ? 'Time’s up' : t.clock}</div><div class="r2-track"><i style="width:${Math.round(t.pct * 100)}%"></i></div><span>${esc(t.session)} · ${esc(t.ends)}</span>` : `<div class="r2-clock r2-clock-none">No clock</div><span>Give the rooms a clock below.</span>`}
+            <div class="r2-clock-ctl"><button type="button" class="r2-mini" data-add="5">+5 min</button><button type="button" class="r2-mini" data-add="10">+10 min</button><form class="r2-set-time"><input type="number" inputmode="numeric" min="1" max="180" placeholder="Minutes" aria-label="Set the clock to this many minutes"><button type="submit" class="r2-mini">Set</button></form></div>
           </section>
           <section class="r2-help-list"><b>Rooms needing help (${need.length})</b>
             ${need.length ? need.map(r => `<div class="r2-hand"><span class="r2-dot-help"></span><div class="r2-who"><b>${esc(r.title || 'Room')}</b><span>${(r.participants || []).length} ${esc(words.many)}</span></div><button type="button" class="r2-mini r2-bring" data-visit="${esc(r.id)}">Join</button></div>`).join('') : '<div class="r2-empty">No one needs help right now.</div>'}
@@ -224,6 +235,10 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
         await refresh();
       });
     }
+    root.querySelectorAll('[data-min]').forEach(b => b.addEventListener('click', () => { const i = root.querySelector('.r2-min'); if (i) i.value = b.dataset.min; }));
+    root.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { addTime(Number(b.dataset.add) || 5); toast('Added ' + b.dataset.add + ' minutes — every room sees it.'); }));
+    const setForm = root.querySelector('.r2-set-time');
+    if (setForm) setForm.addEventListener('submit', (e) => { e.preventDefault(); const n = Math.max(1, Math.min(180, Number(setForm.querySelector('input').value) || 0)); if (!n) return; setTimer(n); toast('Clock set to ' + n + ' minutes — every room sees it.'); setForm.querySelector('input').value = ''; });
     root.querySelectorAll('[data-visit]').forEach(b => b.addEventListener('click', async () => {
       const id = b.dataset.visit; if (id === here()) return; b.disabled = true;
       try { await visit(id); await clearHelp(id); if (closeSheet) closeSheet(); }

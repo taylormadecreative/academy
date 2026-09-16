@@ -29,6 +29,7 @@
    its cache stamp and never need a service-worker bump of their own. */
 let copy = null;
 let sgMod = null;   /* js/rtk-small-groups.js, imported with the page's ?v= (see mountRoomV2) */
+let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
 
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
@@ -151,6 +152,7 @@ export async function mountRoomV2(o) {
   copy = await import('/opil/hub/live-rooms.js' + new URL(import.meta.url).search);
   /* the Small Groups board (its own module; a failure to load only loses that tool, never the room) */
   if (!sgMod) { try { sgMod = await import('/js/rtk-small-groups.js' + new URL(import.meta.url).search); } catch (e) { sgMod = null; } }
+  if (!resMod) { try { resMod = await import('/js/rtk-resources.js' + new URL(import.meta.url).search); } catch (e) { resMod = null; } }
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
   const target = o.target || { kind: 'opil', session: o.session };
   /* (o.endsSession, the old "Leave ends it from the page that started the class", is read by nobody now:
@@ -610,6 +612,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         </rtk-ui-provider>
         <div class="r2-cc" role="region" aria-label="Captions" hidden></div>
         <div class="r2-reconnect" role="status" hidden></div>
+        <div class="r2-show" role="region" aria-label="Shown to the class" hidden></div>
       </div>
       <aside class="r2-panel">
         <div class="r2-tabs">
@@ -618,12 +621,14 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
           <button type="button" class="r2-tab" data-tab="polls">Polls <em></em></button>
           ${SHOW_TRANSCRIPT ? '<button type="button" class="r2-tab" data-tab="transcript">Transcript <em></em></button>' : ''}
+          ${isRoom ? '' : '<button type="button" class="r2-tab" data-tab="files">Files <em></em></button>'}
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
         <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
         ${SHOW_TRANSCRIPT ? '<div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>' : ''}
+        ${isRoom ? '' : '<div class="r2-pane" data-pane="files" hidden><div class="r2-files"></div></div>'}
         <button type="button" class="r2-close" aria-label="Close">Close</button>
       </aside>
     </div>
@@ -671,6 +676,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   };
   const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [await myIdIn(m.meta.meetingId)]); };
   let sg = null, sgStarted = false;   /* the Small Groups board + the student's side of it (created once loadHands exists; declared here because setNow reads it) */
+  let res = null, resStarted = false;  /* Files for the class (OPIL sessions) */
   const setNow = () => {
     const lf = inBreakout() && sg ? sg.left() : null;   /* the clock, when the host set one */
     const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room', left: lf ? lf.text : null, over: !!(lf && lf.over) } : null;
@@ -859,6 +865,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       sg.bindNote(q('.r2-note'));
     } catch (e) { sg = null; }
   }
+  /* Files for the class: the Files tab and the stage overlay (OPIL sessions; the Academy/HT rooms have no materials table) */
+  if (resMod && !isRoom && q('.r2-files')) {
+    try {
+      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em') });
+    } catch (e) { res = null; }
+  }
 
   /* the sheet: the same Tools for everyone — host and guest (Nelson, 9/15: "every single person should
      have access to ALL THE TOOLS on every platform"). The preset decides what the kit lets a tap do;
@@ -959,10 +971,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     if (!handsChan) watchHands();
     loadHands();
     if (sg && !sgStarted) { sgStarted = true; sg.start(); }
+    if (res && !resStarted) { resStarted = true; try { res.start(); } catch (e) {} }
     if (sg && !inBreakout()) { const n = q('.r2-note'); if (n) { n.hidden = true; n.innerHTML = ''; } }   /* a room's note does not follow you back */
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} try { if (res) res.stop(); } catch (e) {} }
   return { node, bind, destroy, setRecording, toast, reconnecting };
 }

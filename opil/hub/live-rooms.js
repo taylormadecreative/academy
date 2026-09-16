@@ -322,6 +322,46 @@ export function noteIsForMe(payload, myRoomId) {
   return !!(payload && payload.type === 'note' && typeof payload.text === 'string' && payload.text.trim() && (payload.room === 'all' || (myRoomId && payload.room === myRoomId)));
 }
 
+/* ---- Files for the class (the Files tab: upload, show to the class, download) ---- */
+const KIND_BY_EXT = { pdf: 'pdf', ppt: 'slides', pptx: 'slides', key: 'slides', odp: 'slides', doc: 'doc', docx: 'doc', pages: 'doc', rtf: 'doc', txt: 'doc', md: 'doc', xls: 'sheet', xlsx: 'sheet', csv: 'sheet', numbers: 'sheet', png: 'image', jpg: 'image', jpeg: 'image', gif: 'image', webp: 'image', heic: 'image', mp4: 'video', mov: 'video', zip: 'file' };
+export function fileKind(name, mime) {
+  const ext = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+  if (ext && KIND_BY_EXT[ext[1]]) return KIND_BY_EXT[ext[1]];
+  const m = String(mime || '').toLowerCase();
+  if (m === 'application/pdf') return 'pdf';
+  if (m.startsWith('image/')) return 'image';
+  if (m.startsWith('video/')) return 'video';
+  return 'file';
+}
+export const KIND_WORD = { pdf: 'PDF', slides: 'Slides', doc: 'Doc', sheet: 'Sheet', image: 'Image', video: 'Video', file: 'File' };
+/* what can open on everyone's stage inside the browser: a PDF or a picture. Slides and docs cannot —
+   the presenter is told to download or share their screen, never shown a blank frame. */
+export const canShowInline = (kind) => kind === 'pdf' || kind === 'image';
+export function fmtSize(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return Math.round(n / 1024) + ' KB';
+  return (n / (1024 * 1024)).toFixed(n < 10 * 1024 * 1024 ? 1 : 0) + ' MB';
+}
+export const FILE_MAX_BYTES = 50 * 1024 * 1024;
+/* the storage path: materials/<uploader>/<stamp>-<clean name> — inside the folder the cohort may read */
+export function storagePath(uid, name, stamp) {
+  const clean = String(name || 'file').normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'file';
+  return 'materials/' + uid + '/' + stamp + '-' + clean;
+}
+/* why a file is refused, in words; null when it is fine */
+export function fileRefusal(file) {
+  if (!file) return 'Pick a file first.';
+  if (file.size > FILE_MAX_BYTES) return 'That file is ' + fmtSize(file.size) + ' — the limit is 50 MB. Try a PDF export or a smaller version.';
+  if (file.size === 0) return 'That file is empty.';
+  return null;
+}
+/* the showcase line at the top of the stage */
+export function showingCopy({ who, title, kind, mine }) {
+  const name = mine ? 'You’re' : (who || 'Someone') + ' is';
+  return canShowInline(kind) ? name + ' showing ' + title : name + ' sharing ' + title + ' — download it to open';
+}
+
 /* the student's help button in a small group: before and after asking */
 export function helpCopy(asked, facilitator) {
   const who = facilitator || 'Your facilitator';
