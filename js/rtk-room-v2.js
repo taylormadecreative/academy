@@ -160,7 +160,15 @@ export async function mountRoomV2(o) {
   const mark = (target.mark && target.mark.src) ? target.mark : logo;   /* the strip's small mark; the logo when none */
   const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
   const title = isRoom ? target.title : session.title;
-  const startsAt = isRoom ? null : (session.session_date ? new Date(session.session_date + 'T19:00:00').toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : null);
+  /* the day and time in the viewer's own clock (0039 stores Atlanta wall time; null time = not announced —
+     the old page said "7:00 PM" for every session, which was wrong for the 6:30 kickoff) */
+  const when = isRoom ? null : copy.classWhen({ date: session.session_date, start: session.start_time, end: session.end_time });
+  const startsAt = when ? when.startsAt : null;
+  /* the join screen's brand row: the Academy mark + name and the partner's logo on a paper-white tile
+     (OPIL). A room target may bring its own `brand`; the HT room keeps its `logo` mark as before. */
+  const brand = target.brand || (isRoom ? null : OPIL_BRAND);
+  /* "You're joining as <name>" — the name the room will show, from the Lab Hub profile */
+  const who = await myName(sb, user);
   const hands = isRoom
     ? { table: 'ea_room_hands', col: 'room_id', val: target.id, chan: 'hands-room-' + target.id }
     : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
@@ -173,9 +181,12 @@ export async function mountRoomV2(o) {
   /* ---------- waiting: no video library yet, just the promise of what happens next ---------- */
   if (mode === 'waiting') {
     mountEl.innerHTML = '';
-    mountEl.appendChild(joinScreen({ label, title, startsAt, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom, logo }));
-    return { meetingId: null, leave: () => { mountEl.innerHTML = ''; }, setRecording() {} };
+    const screen = joinScreen({ label, title, startsAt, when, who, brand, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom, logo });
+    mountEl.appendChild(screen);
+    wirePrecheck(screen);
+    return { meetingId: null, leave: () => { stopPrecheck(); mountEl.innerHTML = ''; }, setRecording() {} };
   }
+  stopPrecheck();   /* a camera check from the waiting screen must let go before the room takes the camera */
 
   /* ---------- the meeting object: for a host this is what OPENS the room ---------- */
   const join = await joinTarget(cfg, token, joinBody, words);
@@ -237,7 +248,7 @@ export async function mountRoomV2(o) {
 
   /* ---------- getting in ---------- */
   const joinedCount = () => { try { return meeting.participants.joined.toArray().length; } catch (e) { return 0; } };
-  const screen = joinScreen({ label, title, startsAt, live: true, host, facilitator, joined: joinedCount(), preview: true, words, isRoom, logo });
+  const screen = joinScreen({ label, title, startsAt, when, who: join.name || who, brand, live: true, host, facilitator, joined: joinedCount(), preview: true, words, isRoom, logo });
   mountEl.innerHTML = ''; mountEl.appendChild(screen);
   const preview = screen.querySelector('video');
   const attachPreview = () => {
@@ -444,25 +455,93 @@ export async function mountRoomV2(o) {
 }
 
 /* ---------- the join screen ---------- */
-function joinScreen({ label, title, startsAt, live, host, facilitator, joined, preview, words, isRoom, logo }) {
+/* The OPIL join screen's brand row: the Academy mark + name, and the AUC Data Science Initiative on a
+   paper-white tile (its logo is black type on transparent — unreadable on navy; Nelson's rule for the
+   partner logos: paper-white only). */
+const OPIL_BRAND = { mark: '/opil/email/logo-mark-white.png', name: 'Taylormade Academy', partner: { src: '/opil/email/aucdsi-small.png', alt: 'The AUC Data Science Initiative' } };
+/* the name the room will show for this person — the Lab Hub profile, else what they signed up with */
+async function myName(sb, user) {
+  try { const { data } = await sb.from('ea_profiles').select('display_name').eq('user_id', user.id).maybeSingle(); if (data && data.display_name) return data.display_name; } catch (e) {}
+  const md = (user && user.user_metadata) || {};
+  return md.full_name || md.name || (user && user.email ? user.email.split('@')[0] : '') || 'You';
+}
+/* a camera check before the class exists (the waiting screen): plain getUserMedia, opt-in, released the
+   moment the real room mounts (stopPrecheck) so the kit can take the camera */
+let precheckStream = null;
+function stopPrecheck() { try { if (precheckStream) precheckStream.getTracks().forEach(t => t.stop()); } catch (e) {} precheckStream = null; }
+function wirePrecheck(screen) {
+  const btn = screen.querySelector('.r2-chip[data-t="precheck"]'), box = screen.querySelector('.r2-preview'), video = screen.querySelector('video');
+  if (!btn || !box || !video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  const say = (b, s) => { btn.querySelector('b').textContent = b; btn.querySelector('span').textContent = s; };
+  btn.addEventListener('click', async () => {
+    if (precheckStream) { stopPrecheck(); video.srcObject = null; box.classList.remove('has-video'); btn.classList.remove('on'); say('Check my camera', 'Turn it on to see how you look'); return; }
+    btn.disabled = true; say('Starting your camera…', 'Allow the camera if your browser asks');
+    try { precheckStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); video.srcObject = precheckStream; video.play().catch(() => {}); box.classList.add('has-video'); btn.classList.add('on'); say('Camera looks good!', 'Tap to turn it off again'); }
+    catch (e) { say('Camera didn’t start', 'Allow the camera for taylormadeacademy.com, then tap again'); }
+    btn.disabled = false;
+  });
+}
+const ICON = {
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5a5 5 0 0 1 6 5"/></svg>',
+  cup: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9zM16 10h2a2.5 2.5 0 0 1 0 5h-2M8 3v3M12 3v3"/></svg>',
+};
+/* The getting-in screen, after the concept board (2026-09-14, concept 3 "Getting into class"; Nelson 9/16:
+   "getting in should look like this except with my real logo and the auc logo"). Brand row, a centered
+   "You're in the right place." with the session and facilitator, a card that says the day, the class time
+   and who you are joining as, the one gold button, the camera preview beside it — and, before the class
+   exists, a bar that says what will happen next. Words over icons; every state readable as a sentence. */
+function joinScreen({ label, title, startsAt, when, who, brand, live, host, facilitator, joined, preview, words, isRoom, logo }) {
   const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
-  const cta = !live && !host ? '' : `<button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
-      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p>`;
-  return el(`<section class="r2-join">
-    <div class="r2-join-left">${brandMark(logo)}
-      <div class="r2-kicker">You’re in the right place.</div>
-      <h2 class="r2-title">${esc(label)}</h2>
-      <p class="r2-line">${esc(line)}</p>
-      ${preview ? `<div class="r2-preview"><video muted playsinline autoplay></video>
+  const cta = !live && !host ? '' : `<div class="r2-go"><button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
+      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p></div>`;
+  const brandRow = brand
+    ? `<div class="r2-jbrand"><img class="r2-mark" src="${esc(brand.mark)}" alt=""><span class="r2-name">${esc(brand.name)}</span></div>${brand.partner ? `<div class="r2-jpartner"><img src="${esc(brand.partner.src)}" alt="${esc(brand.partner.alt)}"></div>` : ''}`
+    : (logo ? `<div class="r2-jbrand">${brandMark(logo)}</div>` : '');
+  const w = when || {};
+  const dayLabel = w.today ? 'Today' : 'Date';
+  const timeLine = w.time ? esc(w.time) : (isRoom ? 'When ' + esc(words.host) + ' opens the room' : 'When ' + esc(facilitator || words.host) + ' opens the room');
+  const info = `<div class="r2-info">
+      <div class="r2-cells2">
+        <div class="r2-cell">${ICON.cal}<div><b>${dayLabel}</b><span>${w.day ? esc(w.day) : esc(title)}</span></div></div>
+        <div class="r2-cell">${ICON.clock}<div><b>${esc(copy.capFirst(words.thing))} time</b><span>${timeLine}</span></div></div>
+      </div>
+      <div class="r2-cell r2-cell-who">${ICON.people}<div><b>You’re joining as</b><span>${esc(who || 'You')}</span></div></div>
+    </div>`;
+  const previewBox = preview
+    ? `<div class="r2-preview"><video muted playsinline autoplay></video>
         <div class="r2-ph"><b>Your camera is off</b><span>Tap the camera chip to check how you look.</span></div>
         <div class="r2-chips">
           <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
           <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
           <button type="button" class="r2-chip r2-fx" data-t="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
-        </div></div>` : `<div class="r2-wait"><b>${esc(title)}</b><span>${startsAt ? 'Starts at ' + esc(startsAt) : isRoom ? 'Starts when ' + esc(words.host) + ' opens the room' : 'Starts when ' + esc(words.host) + ' opens it'}</span>
-        <ol><li>When it starts, press Enter.</li><li>${esc(copy.capFirst(words.host))} will know you’re here.</li><li>You’ll see everyone once it starts.</li></ol></div>`}
+        </div></div>`
+    : `<div class="r2-preview r2-precheck"><video muted playsinline autoplay></video>
+        <div class="r2-ph"><b>Want to see how you look?</b><span>Optional. Nothing is shared until you enter.</span></div>
+        <div class="r2-chips"><button type="button" class="r2-chip" data-t="precheck"><b>Check my camera</b><span>Turn it on to see how you look</span></button></div></div>`;
+  const waitBar = !live && !host
+    ? `<div class="r2-wait">
+        <div class="r2-wait-a">${ICON.clock}<div><b>${esc(copy.capFirst(words.thing))} hasn’t started yet. You’re all set!</b><span>${startsAt ? 'The ' + esc(words.thing) + ' will start at ' + esc(startsAt) + '.' : 'It starts when ' + esc(facilitator || words.host) + ' opens the room.'}</span></div></div>
+        <div class="r2-wait-b"><b>Here’s what will happen next:</b><ol><li>This page notices on its own — no need to refresh.</li><li>Press Enter when the button appears.</li><li>You’ll see everyone, and ${esc(facilitator || copy.capFirst(words.host))} will know you’re here.</li></ol></div>
+        <div class="r2-wait-c">${ICON.cup}<b>While you wait…</b><span>Grab some water, get comfortable, and you’re good to go.</span></div>
+      </div>`
+    : '';
+  return el(`<section class="r2-join${live ? ' live' : ' waiting'}">
+    <header class="r2-jhead">
+      ${brandRow}
+      <div class="r2-jtitle"><div class="r2-kicker">You’re in the right place.</div><h2 class="r2-title">${esc(label)}</h2>${facilitator && !host ? `<p class="r2-with">with ${esc(facilitator)}</p>` : ''}</div>
+    </header>
+    <div class="r2-jgrid">
+      <div class="r2-join-left">
+        ${live || isRoom ? `<p class="r2-line">${esc(line)}</p>` : ''}
+        ${info}
+        ${cta}
+        <p class="r2-fine">No downloads. Works in your browser.</p>
+      </div>
+      <div class="r2-join-right">${previewBox}</div>
     </div>
-    <div class="r2-join-right">${cta}<p class="r2-fine">No downloads. Works in your browser.</p></div>
+    ${waitBar}
   </section>`);
 }
 

@@ -210,6 +210,45 @@ export function backOn(prev, isLiveNow) {
   return { seenOff, again: isLiveNow === true && seenOff };
 }
 
+/* When the class is, in the viewer's own clock. Sessions store a date and (since 0039) a start and
+   end time as Atlanta wall time — the program is an AUC program and Jamal's invites say ET. A
+   student in Dallas reads "5:30 – 6:30 PM CT", one in Atlanta "6:30 – 7:30 PM ET"; the zone is
+   always named so nobody guesses. No time on the row → time null (the screen says "starts when
+   <facilitator> opens the room" instead of a made-up hour). Pure: zone and now are injectable. */
+const PROGRAM_ZONE = 'America/New_York';
+const ZONE_WORD = { EDT: 'ET', EST: 'ET', CDT: 'CT', CST: 'CT', MDT: 'MT', MST: 'MT', PDT: 'PT', PST: 'PT' };
+function zoneOffsetMin(zone, at) {
+  const p = new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }).formatToParts(at);
+  const g = (t) => Number(p.find(x => x.type === t).value);
+  return (Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second')) - at.getTime()) / 60000;
+}
+/* the instant at which a wall-clock date + time happens in the program zone */
+export function programInstant(date, hm) {
+  const [y, mo, d] = String(date).split('-').map(Number), [h, mi] = String(hm).split(':').map(Number);
+  const guess = Date.UTC(y, mo - 1, d, h, mi || 0);
+  let inst = guess - zoneOffsetMin(PROGRAM_ZONE, new Date(guess)) * 60000;
+  inst = guess - zoneOffsetMin(PROGRAM_ZONE, new Date(inst)) * 60000;   /* once more for a DST edge */
+  return new Date(inst);
+}
+export function classWhen({ date, start, end, zone, now } = {}) {
+  if (!date) return { day: null, time: null, startsAt: null, today: false };
+  const tz = zone || (Intl.DateTimeFormat().resolvedOptions().timeZone || PROGRAM_ZONE);
+  const dayAt = programInstant(date, '12:00');
+  const day = dayAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: PROGRAM_ZONE });
+  const todayThere = (now || new Date()).toLocaleDateString('en-CA', { timeZone: PROGRAM_ZONE });
+  const today = todayThere === String(date).slice(0, 10);
+  if (!start) return { day, time: null, startsAt: null, today };
+  const t = (inst) => inst.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz });
+  const zoneName = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' }).formatToParts(dayAt).find(x => x.type === 'timeZoneName');
+  const z = zoneName ? (ZONE_WORD[zoneName.value] || zoneName.value) : '';
+  const s = programInstant(date, start), e = end ? programInstant(date, end) : null;
+  const st = t(s), et = e ? t(e) : null;
+  /* "6:30 – 7:30 PM" when both share AM/PM; "11:30 AM – 12:30 PM" when they do not */
+  const sameHalf = et && st.slice(-2) === et.slice(-2);
+  const time = et ? (sameHalf ? st.slice(0, -3) : st) + ' – ' + et + (z ? ' ' + z : '') : st + (z ? ' ' + z : '');
+  return { day, time, startsAt: st + (z ? ' ' + z : ''), today };
+}
+
 /* No code for approved students (Nelson, 9/16, the first class ever): a signed-out visitor on a room
    link types the email they applied with and is in. What the card says back for each answer from
    ea-opil-pass; every line tells the person what to do next, and the way out is always the code sign-in. */
