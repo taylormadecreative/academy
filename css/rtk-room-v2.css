@@ -55,6 +55,9 @@
 .r2-stage{min-height:0;position:relative;padding:12px;overflow:hidden}
 .r2-stage rtk-ui-provider{height:100%}
 .r2-grid{height:100%}
+/* 30 people = pages of tiles (the preset shows 9 at a time; the kit's own arrows, hidden until there is a second page) */
+.r2-pages{position:absolute;right:16px;bottom:16px;z-index:6}
+.r2-pages[data-hidden]{display:none}
 /* captions over the video: the last two lines, a partial a shade dimmer, never in the way of a tap */
 .r2-cc{position:absolute;left:16px;right:16px;bottom:16px;z-index:5;display:grid;gap:4px;justify-items:center;pointer-events:none}
 .r2-cc[hidden]{display:none}

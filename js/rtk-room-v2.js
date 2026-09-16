@@ -492,6 +492,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-stage">
         <rtk-ui-provider>
           <rtk-grid class="r2-grid"></rtk-grid>
+          <rtk-grid-pagination class="r2-pages"></rtk-grid-pagination>
           <rtk-participants-audio></rtk-participants-audio>
           <rtk-notifications></rtk-notifications>
           <rtk-dialog-manager></rtk-dialog-manager>
@@ -852,7 +853,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   let bound = false;
   function bind(mm) {
     m = mm; if (onSwitch) onSwitch(mm);
-    node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants, rtk-polls').forEach(c => { c.meeting = mm; });
+    node.querySelectorAll('rtk-ui-provider, rtk-grid, rtk-grid-pagination, rtk-participants-audio, rtk-notifications, rtk-dialog-manager, rtk-chat, rtk-participants, rtk-polls').forEach(c => { c.meeting = mm; });
     watchPolls(mm);
     bindSelf(); peopleCount(); setNow(); renderPrimary(); nudge();
     try { mm.participants.joined.on('participantJoined', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); mm.participants.joined.on('participantLeft', () => { peopleCount(); setNow(); renderQueue(); renderPrimary(); }); } catch (e) {}
