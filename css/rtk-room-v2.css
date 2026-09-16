@@ -408,3 +408,11 @@
 .r2-file-actions .r2-mini,.r2-show-actions .r2-mini,.r2-clock-ctl .r2-mini,.r2-quick .r2-mini,.r2-set-time .r2-mini{min-height:48px}
 .r2-set-time input,.r2-split input.r2-min{width:92px;min-height:48px}
 .r2-show-card .r2-mini{margin-top:12px}
+/* the bar with eight things in it (9/16): chips size to their words, the middle button takes what is left
+   (never under 200px, never over 320px), the right group wraps to a second row before anything overlaps */
+.r2-bar{grid-template-columns:auto minmax(200px,1fr) auto}
+.r2-bar .r2-chips{flex:0 0 auto}
+.r2-bar .r2-chip{flex:0 0 auto;min-width:0;max-width:200px}
+.r2-primary .r2-cta{min-width:0;width:100%;max-width:320px}
+.r2-right{flex-wrap:wrap;justify-content:flex-end;row-gap:8px}
+@media(max-width:720px){.r2-bar{grid-template-columns:1fr}.r2-bar .r2-chip{max-width:none}.r2-primary .r2-cta{max-width:none}}
