@@ -640,11 +640,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-primary"></div>
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
-        <button type="button" class="r2-btn r2-share" aria-pressed="false">Share my screen</button>
         ${isRoom ? '' : '<button type="button" class="r2-btn r2-files-btn">Files</button>'}
-        <button type="button" class="r2-btn r2-fx-btn">Effects</button>
-        <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false">Captions</button>
         <button type="button" class="r2-btn r2-tools">Tools</button>
+        <!-- Share my screen, Effects and Captions live in Tools (Nelson 9/16: "simplify it"); these two stay in the DOM, hidden, because the rest of the room reads their pressed state -->
+        <button type="button" class="r2-btn r2-share" aria-pressed="false" hidden>Share my screen</button>
+        <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false" hidden>Captions</button>
         <button type="button" class="r2-leave">Leave</button>
       </div>
     </div>
@@ -916,6 +916,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     const p = el(`<div class="r2-tools">
       <button type="button" class="r2-btn" data-tool="share"><b>Share my screen</b><span>${esc(copy.capFirst(words.many))} see your screen instead of the grid</span></button>
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
+      <button type="button" class="r2-btn" data-tool="captions"><b>${ccOn ? 'Turn captions off' : 'Turn captions on'}</b><span>Words appear over the video as people speak</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
       <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>${host ? 'Split ' + esc(words.many) + ' into rooms, join one, bring everyone back' : 'See the rooms and join one'}</span></button>
@@ -926,6 +927,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const t = b.dataset.tool;
       if (t === 'share') { sheet.hidden = true; await toggleShare(); }
       else if (t === 'fx') openSheet('Effects', effectsPane());
+      else if (t === 'captions') { sheet.hidden = true; sheetBody.innerHTML = ''; if (ccBtn) ccBtn.click(); }
       else if (t === 'breakout') openSheet('Small groups', sg ? sg.board() : el('<div class="r2-empty">Small groups aren’t available right now — reload the page and try again.</div>'));
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
       else if (t === 'settings') { const c = document.createElement('rtk-settings'); c.meeting = m; c.className = 'r2-kit'; openSheet('Camera & mic', c); }

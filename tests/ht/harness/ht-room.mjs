@@ -135,7 +135,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
     ok('joined: the strip opens with the monogram, 24px tall and ≥41px wide', !!m && m.src === '/ht/img/ht-monogram-gold.png' && m.nat > 0 && m.first && Math.abs(m.h - 24) < 1 && m.w >= 41, JSON.stringify(m)); }
   /* ---- nobody ends a class by accident (Nelson, 9/15) ---- */
   /* the bar for everyone: Share my screen, Effects, Captions, Tools, Leave — no "Need help?" */
-  ok('host bar: Share my screen + Effects + Captions + Tools + Leave', await p.evaluate(() => ['.r2-share', '.r2-fx-btn', '.r2-cc-btn', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help')));
+  ok('host bar: Chat & people + Tools + Leave (Share, Effects, Captions live in Tools)', await p.evaluate(() => ['.r2-open', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help')));
   /* Leave: the host is out, the session keeps running — no record stop, no row flip, the still-running card with Rejoin + End */
   await p.evaluate(() => window.__room.leave());
   await p.waitForFunction(() => !document.getElementById('rmStill').hidden);
@@ -218,7 +218,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   await p.waitForSelector('.r2-join');
   await p.evaluate(() => window.__room.state('joined'));
   await p.waitForSelector('.r2-bar');
-  ok('guest bar: Share my screen + Effects + Captions + Tools + Leave, no "Need help?"', await p.evaluate(() => ['.r2-share', '.r2-fx-btn', '.r2-cc-btn', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help') && !/Need help/.test(document.querySelector('.r2-bar').textContent)));
+  ok('guest bar: Chat & people + Tools + Leave, no "Need help?"', await p.evaluate(() => ['.r2-open', '.r2-tools', '.r2-leave'].every(s => !!document.querySelector('.r2-bar ' + s)) && !document.querySelector('.r2-help') && !/Need help/.test(document.querySelector('.r2-bar').textContent)));
   await p.evaluate(() => window.__room.state('left'));
   await p.waitForSelector('.ht-room-card');
   ok('guest leave: the left card with Rejoin', /You left the room/.test(await text(p, '.ht-room-card h3')) && /Rejoin/.test(await text(p, '.ht-room-card a.btn')));

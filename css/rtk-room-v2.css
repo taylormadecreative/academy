@@ -280,7 +280,7 @@
   .r2-bar .r2-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .r2-bar .r2-chip{min-width:0}
   .r2-cta{width:100%;min-width:0}
-  .r2-right{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}   /* Chat & people · Share · Effects / Captions · Tools · Leave — two rows of three, the same bar for everyone */
+  .r2-right{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}   /* Chat & people · Files / Tools · Leave — two rows of two (Share, Effects, Captions live in Tools) */
   .r2-right .r2-btn,.r2-right .r2-leave{padding:0 8px;white-space:normal;line-height:1.15;font-size:13px}
   .r2-right .r2-leave[data-armed="1"]{grid-column:1/-1}   /* the armed Leave shows its whole sentence ("…the class keeps running — you can come back.") */
   .r2-cc{left:8px;right:8px;bottom:8px}
