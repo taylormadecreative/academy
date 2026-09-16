@@ -30,6 +30,21 @@
 let copy = null;
 let sgMod = null;   /* js/rtk-small-groups.js, imported with the page's ?v= (see mountRoomV2) */
 let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
+/* ---------- class plugins (spec 2026-09-16-class-features-design.md) ----------
+   Every feature that is not the video itself is a plugin: one module at /js/rtk-<name>.js exporting
+   create(ctx) → { start, stop, onBind? }. The room hands each the same ctx (tabs, bar, stage, channels,
+   the class's key) and never lets one break the class: a plugin that throws is dropped with a console
+   line. The list is by room kind so the same feature lights up an Academy room later. */
+const PLUGINS = { opil: ['presence'], room: ['presence'], team: ['presence'] };
+const pluginMods = {};
+async function loadPlugin(name) {
+  if (pluginMods[name] !== undefined) return pluginMods[name];
+  try { pluginMods[name] = await import('/js/rtk-' + name + '.js' + new URL(import.meta.url).search); }
+  catch (e) { console.warn('[room] plugin did not load:', name, e); pluginMods[name] = null; }
+  return pluginMods[name];
+}
+/* the class's key: what every table and channel is filed under */
+const roomKeyFor = (target) => target.kind === 'room' ? 'room:' + target.id : target.kind === 'team' ? 'team:' + target.id : 'opil:' + target.session.no;
 
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
@@ -153,6 +168,8 @@ export async function mountRoomV2(o) {
   /* the Small Groups board (its own module; a failure to load only loses that tool, never the room) */
   if (!sgMod) { try { sgMod = await import('/js/rtk-small-groups.js' + new URL(import.meta.url).search); } catch (e) { sgMod = null; } }
   if (!resMod) { try { resMod = await import('/js/rtk-resources.js' + new URL(import.meta.url).search); } catch (e) { resMod = null; } }
+  const pluginNames = PLUGINS[o.target && o.target.kind ? o.target.kind : 'opil'] || [];
+  await Promise.all(pluginNames.map(loadPlugin));
   const { mountEl, cfg, token, sb, user, mode, onState, onOpened } = o;
   const target = o.target || { kind: 'opil', session: o.session };
   /* (o.endsSession, the old "Leave ends it from the page that started the class", is read by nobody now:
@@ -189,7 +206,9 @@ export async function mountRoomV2(o) {
     const screen = joinScreen({ label, title, startsAt, when, who, brand, live: false, host: false, facilitator, joined: 0, preview: false, words, isRoom, logo });
     mountEl.appendChild(screen);
     wirePrecheck(screen);
-    return { meetingId: null, leave: () => { stopPrecheck(); mountEl.innerHTML = ''; }, setRecording() {} };
+    /* attendance that takes itself: a waiting student is counted as waiting (spec §1) */
+    let waitBeat = null; try { const pm = pluginMods.presence; if (pm && pm.startBeating) waitBeat = pm.startBeating(sb, roomKeyFor(target), 'waiting', pm.deviceWord(navigator.userAgent)); } catch (e) {}
+    return { meetingId: null, leave: () => { stopPrecheck(); try { if (waitBeat) waitBeat.stop(); } catch (e) {} mountEl.innerHTML = ''; }, setRecording() {} };
   }
   stopPrecheck();   /* a camera check from the waiting screen must let go before the room takes the camera */
 
@@ -310,6 +329,18 @@ export async function mountRoomV2(o) {
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
   if (onState) onState('joined', meeting);
+  /* the plugins: one ctx, every feature */
+  const plugins = [];
+  {
+    const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, roomKey: roomKeyFor(target), words, facilitator: facilitator || null, session: isRoom ? null : session, target: isRoom ? target : null, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
+    for (const name of pluginNames) {
+      const mod = pluginMods[name]; if (!mod || typeof mod.create !== 'function') continue;
+      try { const p = mod.create(ctx); if (p) { plugins.push(p); try { p.start && p.start(); } catch (e) { console.warn('[room] plugin start:', name, e); } } }
+      catch (e) { console.warn('[room] plugin create:', name, e); }
+    }
+    room.hooks.plugins = plugins;
+  }
+  room.hooks.emit('joined', meeting);
 
   /* breakout rooms hand the page a NEW meeting: rebind everything to it */
   let switching = false;
@@ -329,6 +360,7 @@ export async function mountRoomV2(o) {
   const gone = (why, reason) => () => {
     if (switching || goneOnce) return;
     goneOnce = true;
+    try { room.hooks.emit(why === 'ended' ? 'ended' : 'left', current, reason); } catch (e) {}
     room.destroy(); document.body.classList.remove('in-room', 'in-room-v2'); mountEl.innerHTML = '';
     if (onState) onState(why, current, reason);
   };
@@ -625,7 +657,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
-        <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
+        <div class="r2-pane" data-pane="people" hidden>${host ? '<div class="r2-stagelist"></div>' : ''}<rtk-participants></rtk-participants></div>
         <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
         ${SHOW_TRANSCRIPT ? '<div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>' : ''}
         ${isRoom ? '' : '<div class="r2-pane" data-pane="files" hidden><div class="r2-files"></div></div>'}
@@ -732,7 +764,24 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   q('.r2-open').addEventListener('click', () => showPane(host ? 'queue' : 'chat'));
   { const fb = q('.r2-files-btn'); if (fb) fb.addEventListener('click', () => showPane('files')); }   /* Files, one tap from the bar (Nelson 9/16: whoever has the spotlight needs it fast) */
   q('.r2-close').addEventListener('click', () => { node.classList.remove('panel-open'); nudge(); });
-  const peopleCount = () => { try { const n = m.participants.joined.toArray().length + 1; q('.r2-tab[data-tab="people"] em').textContent = n; } catch (e) {} };
+  const peopleCount = () => { try { const n = m.participants.joined.toArray().length + 1; q('.r2-tab[data-tab="people"] em').textContent = n; } catch (e) {} renderStageList(); };
+  /* the host's spotlight list (Nelson 9/16: "a button jamal can press to bring anyone to the spotlight without them
+     asking a question"): every name in the room with Put on stage / Take off stage — a pin, no question needed */
+  function renderStageList() {
+    const box = q('.r2-stagelist'); if (!box) return;
+    let people = []; try { people = m.participants.joined.toArray(); } catch (e) {}
+    box.innerHTML = people.length
+      ? '<div class="r2-queue-head">On stage</div>' + people.map(p => `<div class="r2-hand${p.isPinned ? ' staged' : ''}"><div class="r2-who"><b>${esc(p.name || 'Someone')}</b><span>${p.isPinned ? 'On stage now' : (p.videoEnabled ? 'Camera on' : 'Camera off')}</span></div><button type="button" class="r2-mini${p.isPinned ? '' : ' r2-bring'}" data-pin="${esc(p.id)}">${p.isPinned ? 'Take off stage' : 'Put on stage'}</button></div>`).join('')
+      : '<div class="r2-queue-head">On stage</div><div class="r2-empty">When people are in the room, each one gets a Put on stage button here.</div>';
+    box.querySelectorAll('[data-pin]').forEach(b => b.addEventListener('click', async () => {
+      const p = people.find(x => x.id === b.dataset.pin); if (!p) return; b.disabled = true;
+      try {
+        if (p.isPinned) { await p.unpin(); pinnedId = null; }
+        else { people.forEach(x => { if (x.isPinned && x.id !== p.id) { try { x.unpin(); } catch (e) {} } }); try { if (m.self.isPinned) m.self.unpin(); } catch (e) {} await p.pin(); pinnedId = p.customParticipantId; }
+      } catch (e) { console.warn('[stage]', e); toast('Could not change the stage. Try again.'); }
+      setTimeout(renderStageList, 400);
+    }));
+  }
 
   /* the question queue */
   let hands = [];
@@ -945,8 +994,10 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const leaveBtn = q('.r2-leave');
   leaveBtn.addEventListener('click', async () => { if (confirmInline(leaveBtn, host ? ec.leaveHost : ec.leave)) { leaveBtn.disabled = true; await onLeave(); } });
   function confirmInline(btn, label, again) {
-    if (btn.dataset.armed === '1') { btn.dataset.armed = ''; return true; }
-    const old = btn.innerHTML; btn.dataset.armed = '1'; btn.innerHTML = esc(label) + ' <em>' + esc(again || 'Tap again') + '</em>';
+    /* a double-click is one intention, not two: the second tap counts only after 500 ms (9/16: the class was ended by
+       accident at 6:28 — End is two taps and a double-click is two taps) */
+    if (btn.dataset.armed === '1') { if (Date.now() - Number(btn.dataset.armedAt || 0) < 500) return false; btn.dataset.armed = ''; return true; }
+    const old = btn.innerHTML; btn.dataset.armed = '1'; btn.dataset.armedAt = String(Date.now()); btn.innerHTML = esc(label) + ' <em>' + esc(again || 'Tap again') + '</em>';
     setTimeout(() => { if (btn.dataset.armed === '1') { btn.dataset.armed = ''; btn.innerHTML = old; } }, 4000);
     return false;
   }
@@ -980,7 +1031,44 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     if (sg && !inBreakout()) { const n = q('.r2-note'); if (n) { n.hidden = true; n.innerHTML = ''; } }   /* a room's note does not follow you back */
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
+    try { hooks.emit('bind', mm); (hooks.plugins || []).forEach(p => { try { p.onBind && p.onBind(mm); } catch (e) {} }); } catch (e) {}
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} try { if (res) res.stop(); } catch (e) {} }
-  return { node, bind, destroy, setRecording, toast, reconnecting };
+  /* ---------- the plugin host: what a class plugin may touch (spec 2026-09-16-class-features-design.md) ---------- */
+  const hooks = { listeners: {}, plugins: [],
+    on(ev, cb) { (hooks.listeners[ev] = hooks.listeners[ev] || []).push(cb); },
+    emit(ev, ...args) { (hooks.listeners[ev] || []).forEach(cb => { try { cb(...args); } catch (e) { console.warn('[room] hook', ev, e); } }); } };
+  /* the hosts this page has SEEN (in the main room): a channel payload is trusted as a host's only from one of them */
+  const seenHosts = new Set();
+  hooks.on('bind', (mm) => { try { if (host) seenHosts.add(user.id); mm.participants.joined.toArray().forEach(x => { if (/host/.test(String(x.presetName || ''))) seenHosts.add(x.customParticipantId); }); } catch (e) {} });
+  function pluginCtx(base) {
+    const ctx = Object.assign({}, base, {
+      inSmallGroup: () => inBreakout(),
+      toast, openSheet, closeSheet, confirmInline,
+      on: hooks.on,
+      panel: { addTab(name, label) {
+        const tabs = q('.r2-tabs'), panes = q('.r2-panel');
+        const tab = el(`<button type="button" class="r2-tab" data-tab="${esc(name)}">${esc(label)} <em></em></button>`);
+        tabs.appendChild(tab); tab.addEventListener('click', () => showPane(name));
+        const pane = el(`<div class="r2-pane" data-pane="${esc(name)}" hidden></div>`);
+        const anchor = q('.r2-panel .r2-close') ? q('.r2-panel .r2-close').closest('.r2-panel > *') : null;
+        if (anchor && anchor.parentElement === panes) panes.insertBefore(pane, anchor); else panes.appendChild(pane);
+        return { pane, count: tab.querySelector('em'), show: () => showPane(name) };
+      } },
+      bar: { addButton(html) { const b = el(html); const right = q('.r2-right'); right.insertBefore(b, right.querySelector('.r2-tools') || null); return b; }, get primary() { return q('.r2-primary'); } },
+      stage: { overlay(cls) { const d = el(`<div class="r2-overlay ${esc(cls)}" hidden></div>`); q('.r2-stage').appendChild(d); return d; } },
+      channel(name) {
+        const key = name + '-' + base.roomKey; let ch = null;
+        const subs = [];
+        try { ch = sb.channel(key, { config: { broadcast: { self: true } } }); ch.on('broadcast', { event: 'p' }, (msg) => { const p = msg && msg.payload; if (!p) return; const fromHost = p.from === user.id ? host : seenHosts.has(p.from); subs.forEach(cb => { try { cb(p, { fromHost, mine: p.from === user.id }); } catch (e) {} }); }); ch.subscribe(); } catch (e) { ch = null; }
+        return { on(cb) { subs.push(cb); }, async send(payload) { try { if (ch) await ch.send({ type: 'broadcast', event: 'p', payload: Object.assign({}, payload, { from: user.id }) }); } catch (e) {} }, stop() { try { if (ch) sb.removeChannel(ch); } catch (e) {} ch = null; } };
+      },
+      events: {
+        async log(kind, label, data) { try { const { error } = await sb.from('ea_class_events').insert({ room_key: base.roomKey, kind, label: label || null, data: data || null }); if (error) console.warn('[room] event', error.message); } catch (e) {} },
+        async list() { try { const { data } = await sb.from('ea_class_events').select('*').eq('room_key', base.roomKey).order('at'); return data || []; } catch (e) { return []; } },
+      },
+    });
+    return ctx;
+  }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} try { if (res) res.stop(); } catch (e) {} (hooks.plugins || []).forEach(p => { try { p.stop && p.stop(); } catch (e) {} }); hooks.plugins = []; }
+  return { node, bind, destroy, setRecording, toast, reconnecting, hooks, pluginCtx };
 }

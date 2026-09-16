@@ -417,3 +417,5 @@
 .r2-right{flex-wrap:wrap;justify-content:flex-end;row-gap:8px}
 @media(max-width:720px){.r2-bar{grid-template-columns:1fr}.r2-bar .r2-chip{max-width:none}.r2-primary .r2-cta{max-width:none}}
 .r2-right .r2-btn[hidden]{display:none}   /* Share and Captions keep their state in the DOM but never show in the bar (they live in Tools) */
+/* the host's On stage list above the kit's People list */
+.r2-stagelist{padding:10px 10px 0}.r2-stagelist .r2-hand{grid-template-columns:1fr auto}

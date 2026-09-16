@@ -32,7 +32,6 @@ function steps(page, role, ctx) {
     ...(staff ? [] : [
       { at: ['#noTeamNote'], title: 'Where your application stands', body: 'This note tracks your application. The moment the program team approves it, your team space opens here on its own; nothing else to do.' },
       { at: ['#liveNote'], title: 'A session is live', body: 'When a facilitator is on air, this banner appears. Tap it to open the live room.' },
-      { at: ['#checkinNote'], title: 'Check yourself in', body: 'On a session day, type the code the facilitator reads out. That marks you present without anyone calling your name.' },
       { at: ['#svyNote'], title: 'The baseline survey', body: 'Six one-to-five questions about where you are starting from. The same six come back after the showcase, and the difference is the proof of what you learned.' },
     ]),
     { at: ['#annList'], up: '.hcard', title: 'Announcements', body: role === 'facilitator' || role === 'judge' ? 'The program team\u2019s notices to the whole cohort land here first. This card is written for students; your account sees it empty.' : 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },

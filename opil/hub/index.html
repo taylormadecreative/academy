@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=53a58e607c">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=53a58e607c">
+<link rel="stylesheet" href="/css/build-mode.css?v=b42f3cd0d4">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=b42f3cd0d4">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -57,10 +57,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=53a58e607c"></script>
+<script src="/js/config.js?v=b42f3cd0d4"></script>
 <script type="module">
-import { boot, esc, when, nav } from '/opil/hub/hub.js?v=53a58e607c';
-import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=53a58e607c';
+import { boot, esc, when, nav } from '/opil/hub/hub.js?v=b42f3cd0d4';
+import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=b42f3cd0d4';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
 nav(ctx, 'home');
@@ -87,6 +87,7 @@ const [{ data: sess }, { data: mats }] = await Promise.all([
 /* live banner: one room → the same one-line banner as before, pointed at that room;
    several → a list, the student picks (rooms are independent since 0032) */
 try {
+  if (Array.isArray(sess)) { for (let i = sess.length - 1; i >= 0; i--) if (sess[i].kind === 'thread' && sess[i].no >= 2) sess.splice(i, 1); }   /* a hidden test room never shows on a student's page, live or not */
   const live = (sess || []).filter(s => s.is_live).sort((a, b) => a.no - b.no);
   if (live.length === 1) {
     document.getElementById('liveTitle').textContent = live[0].title + ' is live right now.';
@@ -110,7 +111,8 @@ try {
     todaySess = todays.find(s => !doneSet.has(s.no));
     if (todaySess) {
       document.getElementById('ciTitle').textContent = todaySess.title + ' is today:';
-      document.getElementById('checkinNote').style.display = '';
+      /* the check-in code is retired (9/16): the class room takes attendance by itself — the box stays hidden */
+      document.getElementById('checkinNote').style.display = 'none';
       document.getElementById('ciForm').addEventListener('submit', async (ev) => {
         ev.preventDefault();
         const { data: ok } = await sb.rpc('ea_opil_checkin', { p_no: todaySess.no, p_code: document.getElementById('ciCode').value });
@@ -164,7 +166,7 @@ if (teamId) {
     sb.from('ea_opil_teams').select('*').eq('id', teamId).single(),
     sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId),
   ]);
-  const { names } = await import('/opil/hub/hub.js?v=53a58e607c');
+  const { names } = await import('/opil/hub/hub.js?v=b42f3cd0d4');
   const nm = await names(sb, (members || []).map(m => m.user_id));
   tc.innerHTML = `<b style="font-family:var(--display);font-size:19px;color:var(--ink)">${esc(team.name)}</b>
     <div style="font-size:13px;color:var(--muted);margin:4px 0 12px">${esc(team.school || '')}</div>

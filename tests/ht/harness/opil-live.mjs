@@ -73,6 +73,7 @@ export async function opilScenarios(b, ok) {
     await p.waitForFunction(() => !document.getElementById('bcStill').hidden);
     await p.click('#bcGo');
     ok('opil end: the first tap arms it', (await text(p, '#bcGo')) === 'End the class for everyone? Tap again to end it.' && rec.length === 2);
+    await p.waitForTimeout(600);   /* a second tap counts only after 500 ms — a double-click never ends a class */
     await p.click('#bcGo');
     await p.waitForFunction(() => (JSON.parse(localStorage.getItem('__updates') || '[]')).some(([t, f, patch]) => t === 'ea_opil_sessions' && patch.is_live === false), null, { timeout: 8000 }).catch(() => {});
     ok('opil end out of the room: the server is told to END (everyone out + recording stopped), never a bare stop', rec.length === 3 && rec[2].action === 'end' && rec[2].session_no === 7);

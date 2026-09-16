@@ -121,6 +121,7 @@ export async function realModuleScenarios(b, ok) {
     ok('real leave-during-rejoin: the first attempt is in flight (its join is hanging)', await p.evaluate(() => typeof window.__kit.meetings[1].releaseJoin === 'function'));
     await p.click('.r2-bar .r2-leave');
     ok('real leave-during-rejoin: Leave is two taps for a host, worded as leave-only', /Leave the room\? The session keeps running/.test(await p.textContent('.r2-bar .r2-leave')));
+    await p.waitForTimeout(600);   /* a second tap counts only after 500 ms — a double-click is not a decision */
     await p.click('.r2-bar .r2-leave');
     await p.waitForFunction(() => window.__states.includes('left:left'));
     ok('real leave-during-rejoin: the page hears left:left', JSON.stringify(await states(p)) === JSON.stringify(['joined', 'reconnecting:dropped', 'left:left']), JSON.stringify(await states(p)));
@@ -139,6 +140,7 @@ export async function realModuleScenarios(b, ok) {
     await p.waitForSelector('.r2-groups [data-g="split"]');
     await p.evaluate(() => { window.__kit.meetings[0].connectedMeetings.createMeetings = async () => { window.__split = (window.__split || 0) + 1; return []; }; });
     await p.click('.r2-groups [data-g="split"]');
+    await p.waitForTimeout(600);
     ok('real split: the first tap arms it, nothing is created', /Split people into rooms\?/.test(await p.textContent('.r2-groups [data-g="split"]')) && (await p.evaluate(() => window.__split || 0)) === 0);
     await p.click('.r2-groups [data-g="split"]');
     await p.waitForFunction(() => (window.__split || 0) >= 1, null, { timeout: 5000 }).catch(() => {});
