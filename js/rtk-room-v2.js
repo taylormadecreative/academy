@@ -260,7 +260,7 @@ export async function mountRoomV2(o) {
       if (t && preview && meeting.self.videoEnabled) { preview.srcObject = new MediaStream([t]); preview.play().catch(() => {}); box && box.classList.add('has-video'); }
       else {
         if (preview) preview.srcObject = null; box && box.classList.remove('has-video');
-        if (ph) ph.innerHTML = meeting.self.videoEnabled ? '<b>Starting your camera…</b><span>If nothing shows in a few seconds, check the browser’s camera permission.</span>' : '<b>Your camera is off</b><span>Tap the camera chip to check how you look.</span>';
+        if (ph) ph.innerHTML = meeting.self.videoEnabled ? '<b>Starting your camera…</b><span>If nothing shows in a few seconds, check the browser’s camera permission.</span>' : '<b>Your camera is off</b><span>Tap “Camera is off” below to turn it on and see how you look.</span>';
       }
     } catch (e) {}
   };
@@ -291,13 +291,19 @@ export async function mountRoomV2(o) {
   chips.sync();
 
   /* everyone presses Enter themselves — the tap is what lets a phone play sound (iOS blocks audio until then) */
-  const enterBtn = screen.querySelector('.r2-enter');
-  await new Promise((resolve) => { enterBtn.addEventListener('click', resolve, { once: true }); });
-  enterBtn.disabled = true; enterBtn.textContent = host ? 'Starting…' : 'Entering…';
-  await (meeting.join ? meeting.join() : meeting.joinRoom());
+  const enterBtn = screen.querySelector('.r2-enter'); const enterLabel = enterBtn.textContent;
+  for (;;) {
+    await new Promise((resolve) => { enterBtn.addEventListener('click', resolve, { once: true }); });
+    enterBtn.disabled = true; enterBtn.textContent = host ? 'Starting…' : 'Entering…';
+    try { await (meeting.join ? meeting.join() : meeting.joinRoom()); break; }
+    catch (e) {   /* never a button stuck on "Entering…": say so, and let them try again */
+      console.warn('[join]', e); enterBtn.disabled = false; enterBtn.textContent = enterLabel;
+      const t = el('<div class="r2-toast" role="status">Couldn’t get you in. Tap Enter again — if it keeps failing, reload the page.</div>'); screen.appendChild(t); setTimeout(() => t.remove(), 8000);
+    }
+  }
 
   /* ---------- in class ---------- */
-  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects: () => effects, onLeave: leaveNow, onEnd: endNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
+  const room = classRoom({ meeting, ui, host, isRoom, title, hands, words, facilitator, mark, brand, when, sb, user, saveTranscript, transcript, getEffects: () => effects, getEffectsError: () => effectsError, onLeave: leaveNow, onEnd: endNow, onSwitch: (m) => { current = m; }, rootId: meeting.meta && meeting.meta.meetingId });
   mountEl.innerHTML = ''; mountEl.appendChild(room.node);
   room.bind(meeting);
   if (!host) room.toast('You’re muted — tap Mic to talk.');
@@ -461,12 +467,15 @@ export async function mountRoomV2(o) {
 /* The OPIL join screen's brand row: the Academy mark + name, and the AUC Data Science Initiative on a
    paper-white tile (its logo is black type on transparent — unreadable on navy; Nelson's rule for the
    partner logos: paper-white only). */
-const OPIL_BRAND = { mark: '/opil/email/logo-mark-white.png', name: 'Taylormade Academy', partner: { src: '/opil/email/aucdsi-small.png', alt: 'The AUC Data Science Initiative' } };
+const OPIL_BRAND = { mark: '/opil/email/logo-mark-white.png', name: 'Taylormade Academy', partner: { src: '/opil/aucdsi-black.png', alt: 'The AUC Data Science Initiative' } };   /* the RGBA original (240×153), crisp at 2×; the email's small copy has a baked white box */
 /* the name the room will show for this person — the Lab Hub profile, else what they signed up with */
 async function myName(sb, user) {
   try { const { data } = await sb.from('ea_profiles').select('display_name').eq('user_id', user.id).maybeSingle(); if (data && data.display_name) return data.display_name; } catch (e) {}
   const md = (user && user.user_metadata) || {};
-  return md.full_name || md.name || (user && user.email ? user.email.split('@')[0] : '') || 'You';
+  if (md.full_name || md.name) return md.full_name || md.name;
+  /* a student who never filled a profile (10 of 31 on kickoff day): the name they applied with, never "kiara1.pee" */
+  try { if (user && user.email) { const { data } = await sb.from('ea_opil_registrations').select('full_name').ilike('email', user.email).limit(1).maybeSingle(); if (data && data.full_name) return data.full_name; } } catch (e) {}
+  return (user && user.email ? user.email.split('@')[0] : '') || 'You';
 }
 /* a camera check before the class exists (the waiting screen): plain getUserMedia, opt-in, released the
    moment the real room mounts (stopPrecheck) so the kit can take the camera */
@@ -497,8 +506,8 @@ const ICON = {
    exists, a bar that says what will happen next. Words over icons; every state readable as a sentence. */
 function joinScreen({ label, title, startsAt, when, who, brand, live, host, facilitator, joined, preview, words, isRoom, logo }) {
   const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
-  const cta = !live && !host ? '' : `<div class="r2-go"><button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(words.thing) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
-      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.'}</p></div>`;
+  const cta = !live && !host ? '' : `<div class="r2-go"><button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(copy.capFirst(words.thing)) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
+      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime. ' + esc(copy.capFirst(words.thing)) + ' is recorded so you can rewatch it.'}</p></div>`;
   const brandRow = brand
     ? `<div class="r2-jbrand"><img class="r2-mark" src="${esc(brand.mark)}" alt=""><span class="r2-name">${esc(brand.name)}</span></div>${brand.partner ? `<div class="r2-jpartner"><img src="${esc(brand.partner.src)}" alt="${esc(brand.partner.alt)}"></div>` : ''}`
     : (logo ? `<div class="r2-jbrand">${brandMark(logo)}</div>` : '');
@@ -514,7 +523,7 @@ function joinScreen({ label, title, startsAt, when, who, brand, live, host, faci
     </div>`;
   const previewBox = preview
     ? `<div class="r2-preview"><video muted playsinline autoplay></video>
-        <div class="r2-ph"><b>Your camera is off</b><span>Tap the camera chip to check how you look.</span></div>
+        <div class="r2-ph"><b>Your camera is off</b><span>Tap “Camera is off” below to turn it on and see how you look.</span></div>
         <div class="r2-chips">
           <button type="button" class="r2-chip" data-t="mic"><b></b><span></span></button>
           <button type="button" class="r2-chip" data-t="cam"><b></b><span></span></button>
@@ -526,7 +535,7 @@ function joinScreen({ label, title, startsAt, when, who, brand, live, host, faci
   const waitBar = !live && !host
     ? `<div class="r2-wait">
         <div class="r2-wait-a">${ICON.clock}<div><b>${esc(copy.capFirst(words.thing))} hasn’t started yet. You’re all set!</b><span>${startsAt ? 'The ' + esc(words.thing) + ' will start at ' + esc(startsAt) + '.' : 'It starts when ' + esc(facilitator || words.host) + ' opens the room.'}</span></div></div>
-        <div class="r2-wait-b"><b>Here’s what will happen next:</b><ol><li>This page notices on its own — no need to refresh.</li><li>Press Enter when the button appears.</li><li>You’ll see everyone, and ${esc(facilitator || copy.capFirst(words.host))} will know you’re here.</li></ol></div>
+        <div class="r2-wait-b"><b>Here’s what will happen next:</b><ol><li>Stay on this page — it opens by itself when ${esc(words.thing)} starts. No need to refresh.</li><li>Tap the gold Enter ${esc(copy.capFirst(words.thing))} button when it appears.</li><li>You’ll see everyone, and ${esc(facilitator || copy.capFirst(words.host))} will know you’re here.</li></ol></div>
         <div class="r2-wait-c">${ICON.cup}<b>While you wait…</b><span>Grab some water, get comfortable, and you’re good to go.</span></div>
       </div>`
     : '';
@@ -574,10 +583,21 @@ function wireChips(root, getMeeting, onVideo, onError) {
 }
 
 /* ---------- in class ---------- */
-function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, mark, sb, user, saveTranscript, transcript, getEffects, onLeave, onEnd, onSwitch, rootId }) {
+function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, facilitator, mark, brand, when, sb, user, saveTranscript, transcript, getEffects, getEffectsError, onLeave, onEnd, onSwitch, rootId }) {
   const ec = copy.endCopy(words);   /* the Leave / End words, from the room's own noun */
+  /* the top of the room, after the boards (Nelson 9/16): the brand · the class with who/when · "Class is live /
+     You're in the class" — then the gold "What's happening now:" pill with the sentence, and the recording note */
+  const headBrand = brand
+    ? `<div class="r2-jbrand r2-head-brand"><img class="r2-mark" src="${esc(brand.mark)}" alt=""><span class="r2-name">${esc(brand.name)}</span></div>`
+    : (mark ? `<div class="r2-head-brand">${brandMark(mark, 'r2-brand r2-brand-strip')}</div>` : '');
+  const w = when || {};
   const node = el(`<div class="r2">
-    <div class="r2-now">${brandMark(mark, 'r2-brand r2-brand-strip')}<span class="r2-dot"></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span></div>
+    <div class="r2-head">
+      ${headBrand}
+      <div class="r2-head-title"><b>${esc(title)}</b><span class="r2-head-sub"></span></div>
+      <div class="r2-head-live"><b><i></i><span class="r2-head-state"></span></b><span class="r2-head-you"></span></div>
+    </div>
+    <div class="r2-now"><span class="r2-now-pill">What’s happening now:</span><span class="r2-dot" hidden></span><span class="r2-nowtxt"></span><span class="r2-rec" hidden>Recording <b class="r2-rectime"></b> · saves automatically for ${esc(words.replayFor)}</span><span class="r2-rec-note" hidden>This ${esc(words.thing)} is being recorded.</span></div>
     <div class="r2-note" role="status" hidden></div>
     <div class="r2-main">
       <div class="r2-stage">
@@ -622,9 +642,9 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         <button type="button" class="r2-leave">Leave</button>
       </div>
     </div>
-    <div class="r2-sheet" hidden>
+    <div class="r2-sheet" role="dialog" aria-modal="true" aria-labelledby="r2SheetTitle" hidden>
       <div class="r2-sheet-card">
-        <div class="r2-sheet-head"><b>Tools</b><button type="button" class="r2-sheet-close">Close</button></div>
+        <div class="r2-sheet-head"><b id="r2SheetTitle">Tools</b><button type="button" class="r2-sheet-close">Close</button></div>
         <div class="r2-sheet-body"></div>
       </div>
     </div>
@@ -650,12 +670,26 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     return me.id;
   };
   const goToRoot = async () => { const cm = m.connectedMeetings; await cm.moveParticipants(m.meta.meetingId, rootId, [await myIdIn(m.meta.meetingId)]); };
+  let sg = null, sgStarted = false;   /* the Small Groups board + the student's side of it (created once loadHands exists; declared here because setNow reads it) */
   const setNow = () => {
     const lf = inBreakout() && sg ? sg.left() : null;   /* the clock, when the host set one */
     const breakout = inBreakout() ? { name: (m.meta && m.meta.meetingTitle) || 'your room', left: lf ? lf.text : null, over: !!(lf && lf.over) } : null;
-    q('.r2-nowtxt').textContent = copy.nowCopy({ facilitator: facilitator || hostName(), title, recording: false, breakout }, words);
+    const who = facilitator || hostName();
+    const line = copy.nowCopy({ facilitator: who, title, recording: false, breakout }, words);
+    const nt = q('.r2-nowtxt'), cut = breakout ? -1 : line.indexOf(': ');
+    if (cut > 0) nt.innerHTML = esc(line.slice(0, cut + 1)) + ' <b>' + esc(line.slice(cut + 2)) + '</b>'; else nt.textContent = line;   /* "Casey Dike is teaching: <b>the title</b>" */
     q('.r2-rec').hidden = !recording || !host;
-    if (recording && !host && !breakout) q('.r2-nowtxt').textContent += ' · This ' + words.thing + ' is being recorded';
+    q('.r2-rec-note').hidden = !(recording && !host && !breakout);
+    /* the header: who · when, and the live word for where you are */
+    const sub = q('.r2-head-sub'); if (sub) sub.textContent = [who, w.day, w.time].filter(Boolean).join(' · ');
+    const st = q('.r2-head-state'), you = q('.r2-head-you');
+    /* the clock is news in the main room too: a host (or a student not moved) sees "Small groups running · 07:12 left" */
+    const running = !breakout && sg ? sg.left() : null;
+    if (st) st.textContent = breakout ? 'Small groups' + (lf ? (lf.over ? ' · Time’s up' : ' · ' + lf.text + ' left') : '') : running ? 'Small groups running · ' + (running.over ? 'Time’s up' : running.text + ' left') : copy.capFirst(words.thing) + ' is live';
+    node.classList.toggle('groups-running', !!running);
+    /* the host's big button turns into the way to the board while rooms are open; the clock in it updates in place */
+    if (host && !breakout) { const btn = q('.r2-primary .r2-sg-open'); if (!!btn !== !!running) renderPrimary(); else if (btn) btn.querySelector('b').textContent = 'Small groups · ' + (running.over ? 'Time’s up' : running.text + ' left'); }
+    if (you) you.textContent = breakout ? 'You’re in ' + breakout.name : (host ? 'You’re teaching' : 'You’re in the ' + words.thing);
     node.classList.toggle('in-breakout', !!breakout);
   };
   let recStart = null, recTick = null;
@@ -694,7 +728,6 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
 
   /* the question queue */
   let hands = [];
-  let sg = null, sgStarted = false;   /* the Small Groups board + the student's side of it (created once loadHands exists) */
   const uid = user.id;
   const primary = q('.r2-primary');
   const nameOf = (id) => { try { const p = m.participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
@@ -703,12 +736,19 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       if (sg) sg.primary(primary);   /* Ask for help (students) + Back to the main room */
       else {
         primary.innerHTML = `<button type="button" class="r2-cta r2-back"><b>Back to the main room</b><span>Leaves this small group</span></button>`;
-        primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await goToRoot(); } catch (e) { toast('Could not move you back — ' + (e.message || e)); b.disabled = false; } });
+        primary.querySelector('.r2-back').addEventListener('click', async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await goToRoot(); } catch (e) { console.warn('[back]', e); toast('Could not move you back. Tap it again — or press Leave and reopen your link.'); b.disabled = false; } });
       }
       const em = q('.r2-tab[data-tab="queue"] em'); if (em) em.textContent = copy.queueOrder(hands).length;
       return;
     }
     if (host) {
+      const running = sg ? sg.left() : null;
+      if (running) {   /* rooms are open: the one big button is the board */
+        primary.innerHTML = `<button type="button" class="r2-cta r2-sg-open"><b>Small groups · ${esc(running.over ? 'Time’s up' : running.text + ' left')}</b><span>Open the board — join a room, message, bring everyone back</span></button>`;
+        primary.querySelector('.r2-sg-open').addEventListener('click', () => openSheet('Small groups', sg.board()));
+        const em0 = q('.r2-tab[data-tab="queue"] em'); if (em0) em0.textContent = copy.queueOrder(hands).length;
+        return;
+      }
       const next = copy.nextInLine(hands);
       const nm = next ? (nameOf(next.user_id) || 'the next person') : null;
       primary.innerHTML = next
@@ -786,7 +826,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   if (ccOn) ccOnAt = Date.now();
   syncCC();
   const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); if (sg) sg.onHands(); };
-  async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') toast('Could not raise your hand — ' + error.message); await loadHands(); }
+  async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') { console.warn('[hands]', error.message); toast('Could not add you to the line. Try again.'); }; await loadHands(); }
   async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
   async function markDone(h) { if (!h) return; await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', h.id); if (pinnedId === h.user_id) { unpin(); } await loadHands(); }
   async function bringOnStage(h) {
@@ -801,11 +841,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const prev = hands.find(x => x.staged_at && x.id !== h.id); if (prev) await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', prev.id);
       await sb.from(handsAt.table).update({ staged_at: new Date().toISOString() }).eq('id', h.id);
       await loadHands();
-    } catch (e) { toast('Could not bring them on stage — ' + (e.message || e)); }
+    } catch (e) { console.warn('[stage]', e); toast('Could not bring them on stage. Ask them to unmute.'); }
   }
   function unpin() { try { m.participants.joined.toArray().forEach(x => { if (x.isPinned) x.unpin(); }); } catch (e) {} pinnedId = null; }
-  let handsChan = null;
-  const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} setInterval(loadHands, 15000); };
+  let handsChan = null, handsTimer = null;
+  const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} handsTimer = setInterval(loadHands, 15000); };
   /* Small groups: the board in Tools, the clock in the strip, Ask for help + notes inside a room */
   if (sgMod) {
     try {
@@ -814,7 +854,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         getMeeting: () => m, myIdIn, toast, confirmInline, facilitator: facilitator || null,
         hands: { rows: () => hands, load: loadHands, table: handsAt.table, col: handsAt.col, val: handsAt.val },
         onTick: () => { try { setNow(); } catch (e) {} },
-        closeSheet: () => { sheet.hidden = true; sheetBody.innerHTML = ''; },
+        closeSheet: () => closeSheet(),
       });
       sg.bindNote(q('.r2-note'));
     } catch (e) { sg = null; }
@@ -824,12 +864,16 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
      have access to ALL THE TOOLS on every platform"). The preset decides what the kit lets a tap do;
      rtk_presets.ts opens screen share, polls, chat files, pin and small groups to every role. */
   const sheet = q('.r2-sheet'), sheetBody = q('.r2-sheet-body');
-  const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); q('.r2-sheet-card').classList.toggle('wide', !!(inner.classList && inner.classList.contains('r2-board'))); sheet.hidden = false; };
-  q('.r2-sheet-close').addEventListener('click', () => { sheet.hidden = true; sheetBody.innerHTML = ''; });
+  const openSheet = (titleTxt, inner) => { q('.r2-sheet-head b').textContent = titleTxt; sheetBody.innerHTML = ''; sheetBody.appendChild(inner); q('.r2-sheet-card').classList.toggle('wide', !!(inner.classList && inner.classList.contains('r2-board'))); sheetBack = document.activeElement; sheet.hidden = false; try { q('.r2-sheet-close').focus(); } catch (e) {} };
+  const closeSheet = () => { sheet.hidden = true; sheetBody.innerHTML = ''; try { if (sheetBack && sheetBack.isConnected) sheetBack.focus(); } catch (e) {} sheetBack = null; };
+  let sheetBack = null;
+  q('.r2-sheet-close').addEventListener('click', closeSheet);
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
+  node.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
   const effectsPane = () => {
     const p = el(`<div class="r2-fxpane"><button type="button" class="r2-btn" data-fx="none">No effect</button><button type="button" class="r2-btn" data-fx="blur">Blur my background</button>${BACKDROPS.map(b => `<button type="button" class="r2-btn" data-fx="${b.url}">${b.name} backdrop</button>`).join('')}${ownPhoto() ? '<button type="button" class="r2-btn" data-fx="own">My photo</button>' : ''}<button type="button" class="r2-btn" data-fx="pick">Use my own photo…</button><p class="r2-fine">Effects can take a few seconds the first time. Your own photo stays on this device only.</p></div>`);
     p.querySelectorAll('[data-fx]').forEach(b => b.addEventListener('click', async () => {
-      const fx = getEffects(); if (!fx) { toast(effectsError ? 'Effects can’t run on this device: ' + effectsError.slice(0, 80) : 'Effects are still loading — try again in a moment.'); return; }
+      const fx = getEffects(); if (!fx) { toast(getEffectsError && getEffectsError() ? 'Effects can’t run in this browser. Your camera still works without them.' : 'Effects are still loading — try again in a moment.'); return; }
       const kind = b.dataset.fx;
       try {
         if (kind === 'none') await fx.removeBackground();
@@ -849,7 +893,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     let can = true; try { can = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) {}
     if (!can) { toast('This browser can’t share a screen — a laptop can.', 6000); return; }
     try { m.self.screenShareEnabled ? await m.self.disableScreenShare() : await m.self.enableScreenShare(); }
-    catch (e) { toast('Screen share: ' + (e.message || e), 6000); }
+    catch (e) { { console.warn('[share]', e); toast('Could not start screen share. Allow it if your browser asks, then try again.', 6000); }; }
     syncShare();
   }
   if (shareBtn) shareBtn.addEventListener('click', toggleShare);
@@ -860,7 +904,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <button type="button" class="r2-btn" data-tool="fx"><b>Effects</b><span>Blur or a backdrop</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
-      <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>Split ${esc(words.many)} into rooms, visit one, bring everyone back</span></button>
+      <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>${host ? 'Split ' + esc(words.many) + ' into rooms, join one, bring everyone back' : 'See the rooms and join one'}</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
       <button type="button" class="r2-btn danger" data-tool="end"><b>${esc(ec.endButton)}</b><span>${esc(ec.endHint)}</span></button>
     </div>`);
@@ -895,7 +939,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const reconnectEl = q('.r2-reconnect');
   function reconnecting(text) { if (!reconnectEl) return; if (text) { reconnectEl.textContent = text; reconnectEl.hidden = false; } else { reconnectEl.hidden = true; reconnectEl.textContent = ''; } }
 
-  function toast(msg, ms) { const t = el(`<div class="r2-toast">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), ms || 4000); }
+  function toast(msg, ms) { const t = el(`<div class="r2-toast" role="status">${esc(msg)}</div>`); node.appendChild(t); setTimeout(() => t.remove(), ms || 4000); }
 
   /* bind the kit's parts (and re-bind after a breakout switch) */
   /* polls: the tab counts them; a new one opens the tab for a student so nobody misses the vote */
@@ -919,6 +963,6 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     /* the concept boards keep chat and people beside the video on a desktop; a phone starts on the video */
     if (!bound) { bound = true; try { if (window.matchMedia('(min-width: 1100px)').matches) showPane(host ? 'queue' : 'chat'); } catch (e) {} }
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); try { if (sg) sg.stop(); } catch (e) {} }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} }
   return { node, bind, destroy, setRecording, toast, reconnecting };
 }

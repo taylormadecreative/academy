@@ -68,7 +68,26 @@
 .r2-wait-c svg{width:32px;height:32px;color:#9fb0d4;margin-bottom:4px}
 
 /* ---- in class ---- */
-.r2{display:grid;grid-template-rows:auto 1fr auto;position:relative;min-width:0;max-width:100%;overflow:hidden}
+.r2{display:flex;flex-direction:column;position:relative;min-width:0;max-width:100%;overflow:hidden}   /* a column, so a hidden note or a second header row never steals the stage's track */
+.r2-main{flex:1 1 0;min-height:0}
+/* the header row: brand · the class (who · when) · live word */
+.r2-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;padding:10px 16px;background:#04123a;border-bottom:1px solid rgba(255,255,255,.1)}
+.r2-head-brand{display:flex;align-items:center;gap:10px;padding-right:16px;border-right:1px solid rgba(255,255,255,.16);min-height:44px}
+.r2-head-brand .r2-mark{height:36px;width:auto}
+.r2-head-brand .r2-name{font:700 16px/1.05 'Space Grotesk',Inter,sans-serif;color:#fff;max-width:118px;letter-spacing:-.01em}
+.r2-head-brand .r2-brand-strip{height:28px;margin:0}
+.r2-head-title{min-width:0}
+.r2-head-title b{display:block;font:700 17px/1.2 'Space Grotesk',Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r2-head-sub{display:block;font-size:13.5px;color:#9fb0d4;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r2-head-live{text-align:right;white-space:nowrap}
+.r2-head-live b{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:#3ddc97;font:700 18px 'Space Grotesk',Inter,sans-serif}
+.r2-head-live i{width:10px;height:10px;border-radius:50%;background:#3ddc97;animation:r2pulse 1.6s ease-in-out infinite}
+.r2.in-breakout .r2-head-live b{color:#fdc921}.r2.in-breakout .r2-head-live i{background:#fdc921}
+.r2-head-you{display:block;font-size:13px;color:#c9d4ee;margin-top:2px}
+.r2-now-pill{flex:0 0 auto;background:#fdc921;color:#04123a;font:700 14px Inter,sans-serif;padding:8px 14px;border-radius:999px}
+.r2-nowtxt b{font-weight:700;color:#fff}
+.r2-rec-note{margin-left:auto;font-size:13px;color:#c9d4ee;white-space:nowrap}
+.r2-now .r2-rec{margin-left:auto}
 /* every grid track is minmax(0,…): the kit's grid measures itself wide and, without min-width:0, pushed the whole room past a phone's screen (Amelia's iPhone, 9/15) */
 .r2>*,.r2-main>*,.r2-bar>*{min-width:0}
 .r2-now{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.1);background:#0a1733}
@@ -240,6 +259,12 @@
   .r2-wait{grid-template-columns:1fr;gap:16px}
   .r2-wait-a{border-right:0;padding-right:0}
   .r2-nowtxt{white-space:normal;line-height:1.3}   /* the status line wraps: a guest is told the session is being recorded — that must never ellipsize */
+  .r2-head{grid-template-columns:auto minmax(0,1fr) auto;gap:10px;padding:8px 12px}
+  .r2-head-brand{padding-right:10px;min-height:36px}.r2-head-brand .r2-mark{height:30px}.r2-head-brand .r2-name{display:none}
+  .r2-head-title b{font-size:15px;white-space:normal}.r2-head-sub{white-space:normal;font-size:12.5px}
+  .r2-head-live b{font-size:13.5px}.r2-head-you{display:none}
+  .r2-now{flex-wrap:wrap;gap:8px;padding:8px 12px}.r2-now-pill{font-size:12px;padding:6px 10px}
+  .r2-rec-note{margin-left:0;white-space:normal;flex-basis:100%}
   .r2-preview{max-height:40vh;aspect-ratio:4/3}
   .r2-preview .r2-chips{left:8px;right:8px;bottom:8px;gap:6px}
   .r2-chip{min-width:0;padding:6px 10px;min-height:48px}
@@ -266,4 +291,73 @@
   .r2-room-cards{grid-template-columns:1fr}
   .r2-note-all{width:100%}
   .r2-primary{display:grid;grid-template-columns:1fr;gap:8px}
+}
+
+/* ---- 9/16 art-direction pass (review after the getting-in screen + the Small Groups board) ----
+   one gold per screen, the partner tile in the corner, white line icons, calm cards, a louder clock */
+.r2-jbrand{grid-column:1;grid-row:1}
+.r2-jpartner{grid-column:3;grid-row:1;justify-self:end;background:#fff;padding:6px 12px}
+.r2-jpartner img{height:44px}
+.r2-jtitle{grid-column:1 / -1;grid-row:2}
+.r2-cell svg{color:#fff;opacity:.9}
+.r2-title{color:#c9d4ee}
+.r2-preview .r2-chip{flex:0 1 auto;min-width:0}
+.r2-preview .r2-chip.r2-fx{margin-left:auto}
+.r2-join.waiting .r2-jgrid{align-items:start}
+.r2-join.waiting .r2-preview:not(.has-video){aspect-ratio:auto;min-height:240px}
+.r2-wait{align-items:start}.r2-wait-a{align-items:flex-start}.r2-wait b{font:700 19px/1.25 'Space Grotesk',Inter,sans-serif}.r2-wait ol li{align-items:flex-start}
+.r2-wait ol li::before{margin-top:1px}
+.r2-btn[data-armed="1"]{background:#04123a;color:#fff;border-color:#fdc921}
+.r2-btn em,.r2-cta em{font-style:normal;font-weight:400;opacity:.8;margin-left:6px}
+.r2-cta.on,.r2-cta.r2-help.on,.r2-ask-me.on{background:rgba(61,220,151,.14);color:#3ddc97;border:1px solid rgba(61,220,151,.55)}
+.r2-toast{background:#fcfdff;color:#04123a;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.r2-rec::before{background:#ff5c5c}
+/* the board: gold only on Join for a room that needs help, on the rail's Join (outline), on Split, and on Bring everyone back */
+.r2-sheet-card.wide{background:#04123a}
+.r2-sheet-card.wide .r2-sheet-head b{display:none}.r2-sheet-card.wide .r2-sheet-close{margin-left:auto}
+.r2-board-head b{font-size:28px}
+.r2-room-card .r2-mini.r2-bring,.r2-note-all .r2-mini.r2-bring,.r2-room-msg .r2-mini.r2-bring{background:none;color:#fff;border-color:rgba(255,255,255,.16)}
+.r2-room-card.tone-help .r2-mini.r2-bring{background:#fdc921;color:#04123a;border-color:#fdc921}
+.r2-help-list .r2-mini.r2-bring{background:none;color:#fdc921;border-color:#fdc921}
+.r2-room-card.tone-help{box-shadow:none;border-color:rgba(255,92,92,.6)}
+.r2-board-setup .r2-btn[data-g="split"]{background:#fdc921;color:#04123a;border-color:#fdc921}
+.r2-board-setup .r2-btn[data-g="split"] b{color:#04123a}
+.r2-track i{background:#3ddc97}
+.r2-timer .r2-clock{font-size:56px;letter-spacing:-.03em}
+.r2-timer.over .r2-clock{font-size:36px}
+.r2-note{background:#162650;color:#fff;border-left:4px solid #fdc921}
+.r2-note-x{background:rgba(255,255,255,.12);color:#fff}
+@media(max-width:720px){
+  .r2-jhead{grid-template-columns:1fr auto}
+  .r2-jbrand{grid-column:1;grid-row:1}.r2-jpartner{grid-column:2;grid-row:1}.r2-jpartner img{height:34px}
+  .r2-jtitle{grid-column:1 / -1;grid-row:2}
+  .r2-preview .r2-chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .r2-preview .r2-chip.r2-fx{grid-column:1 / -1;min-height:44px;margin-left:0}
+  .r2-preview .r2-chip span{display:none}
+  .r2-preview .r2-ph{padding-bottom:120px}
+  .r2-join.waiting .r2-preview:not(.has-video){min-height:150px}
+  .r2-enter{border-radius:999px}.r2-go{padding:8px 8px 12px}
+  .r2-timer .r2-clock{font-size:48px}
+}
+/* ---- 9/16 UX pass: visible focus, targets ≥ 48px, readable type, the waiting screen on a phone ---- */
+#rtkMount.r2host :focus-visible{outline:2px solid #fdc921;outline-offset:2px}
+.r2-board .r2-fine{color:#9fb0d4;font-size:14px}
+.r2-room-actions .r2-mini,.r2-help-list .r2-mini,.r2-note-all .r2-mini,.r2-room-msg .r2-mini,.r2-note-all input,.r2-room-msg input,.r2-split select{min-height:48px}
+.r2-sheet-close{min-height:48px;padding:0 18px}
+.r2-note-x{min-width:44px;min-height:44px}
+.r2-mini:disabled{opacity:.55;cursor:default}
+.r2-cta span,.r2-board .r2-btn.r2-bring-back span{font-size:13px}
+.r2-room-status{font-size:13px}
+.r2-head-state{font-variant-numeric:tabular-nums}
+#rtkMount.r2host:has(> .r2-join){height:auto;min-height:calc(100dvh - 150px);overflow:visible}   /* one scroll: the page — the what-happens-next bar is never below an inner fold */
+.r2-join.waiting .r2-preview{max-height:36vh}
+@media(max-width:720px){
+  .r2-join.waiting .r2-precheck:not(.has-video){aspect-ratio:auto;max-height:none;min-height:0;display:grid;gap:8px;padding:12px}
+  .r2-join.waiting .r2-precheck:not(.has-video) video{display:none}
+  .r2-join.waiting .r2-precheck:not(.has-video) .r2-ph{position:static;padding:4px 4px 0;align-items:flex-start;text-align:left}
+  .r2-join.waiting .r2-precheck:not(.has-video) .r2-chips{position:static;display:flex}
+  .r2-join.waiting .r2-precheck:not(.has-video) .r2-chip span{display:block}
+  .r2-board-side{display:contents}
+  .r2-timer{order:-3}.r2-help-list{order:-2}.r2-room-cards{order:0}.r2-all-rooms{order:1}
+  .r2-board .r2-bring-back{order:2;position:sticky;bottom:0}
 }

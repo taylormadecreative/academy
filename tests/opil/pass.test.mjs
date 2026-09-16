@@ -6,7 +6,7 @@ import { passCopy } from '../../opil/hub/live-rooms.js';
 test('every answer from ea-opil-pass has a sentence that says what to do next', () => {
   assert.match(passCopy('not_on_list'), /email you applied with/);
   assert.match(passCopy('not_on_list'), /jware@aucenter\.edu/);
-  assert.match(passCopy('slow_down'), /Wait a minute/);
+  assert.match(passCopy('slow_down'), /Wait ten minutes/);
   assert.match(passCopy('bad_email'), /look like an email/);
   assert.match(passCopy('verify'), /sign in with a code/);
 });

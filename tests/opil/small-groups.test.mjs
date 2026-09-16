@@ -34,7 +34,7 @@ test('timerCopy: mm:ss left, progress, when it ends; zero is Time’s up; no tim
   const t = timerCopy({ endsAt, minutes: 15, now: start + 5 * 60000 + 28000, zone: 'America/New_York' });
   assert.equal(t.clock, '09:32'); assert.equal(t.left, '09:32'); assert.equal(t.over, false);
   assert.ok(Math.abs(t.pct - 0.364) < 0.01);
-  assert.equal(t.session, '15 minute session'); assert.equal(t.ends, 'Ends at 7:15 PM');
+  assert.equal(t.session, '15 minutes on the clock'); assert.equal(t.ends, 'Ends at 7:15 PM');
   const done = timerCopy({ endsAt, minutes: 15, now: endsAt + 5000 });
   assert.equal(done.clock, '00:00'); assert.equal(done.over, true); assert.equal(done.left, 'Time’s up'); assert.equal(done.pct, 1);
   assert.equal(timerCopy({ endsAt: null, minutes: 15 }), null);
@@ -42,7 +42,8 @@ test('timerCopy: mm:ss left, progress, when it ends; zero is Time’s up; no tim
 
 test('the strip in a small group reads the room, the time left, and Time’s up', () => {
   assert.equal(nowCopy({ breakout: { name: 'Data Divas', left: '09:32' } }), 'Small groups · Data Divas · 09:32 left');
-  assert.equal(nowCopy({ breakout: { name: 'Data Divas', over: true } }), 'Small groups · Data Divas · Time’s up — heading back to the main room');
+  assert.equal(nowCopy({ breakout: { name: 'Data Divas', over: true, facilitator: 'Casey Dike' } }), 'Small groups · Data Divas · Time’s up — wrap up. Casey Dike will bring everyone back.');
+  assert.equal(nowCopy({ breakout: { name: 'Room 2', over: true } }), 'Small groups · Room 2 · Time’s up — wrap up. Your facilitator will bring everyone back.');
   assert.equal(nowCopy({ breakout: { name: 'Room 2' } }), 'Small groups · Room 2');
 });
 

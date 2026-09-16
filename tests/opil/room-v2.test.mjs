@@ -45,8 +45,11 @@ test('nextInLine: the first open hand, staged ones first', () => {
 });
 
 test('joinCopy: the sentence under the title for each situation', () => {
-  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Casey Dike', joined: 26 }), 'Casey Dike is in the room · 26 students joined');
-  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 1 }), 'The class is running · 1 student joined');
+  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Casey Dike', joined: 26 }), 'Casey Dike and 25 others are in the room.');
+  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Casey Dike', joined: 2 }), 'Casey Dike and 1 other are in the room.');
+  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Casey Dike', joined: 1 }), 'Casey Dike is in the room — come on in.');
+  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 1 }), '1 in the room so far.');
+  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 0 }), 'The room is open — come on in.');
   assert.equal(joinCopy({ live: false, host: false, facilitator: 'Casey Dike', startsAt: '7:00 PM' }), 'Class hasn’t started yet. You’re all set — it starts at 7:00 PM — press Enter when it does.');
   assert.equal(joinCopy({ live: false, host: false, facilitator: 'Casey Dike', startsAt: null }), 'Class hasn’t started yet. You’re all set — press Enter when Casey Dike starts it.');
   assert.equal(joinCopy({ live: false, host: true, facilitator: 'Casey Dike' }), 'This room is yours. Start the class when you’re ready — students who have the link are waiting here.');

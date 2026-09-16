@@ -69,7 +69,7 @@ export const ROOM_WORDS = Object.freeze({
 
 /* the "what's happening now" strip */
 export function nowCopy({ facilitator, title, recording, breakout }, words = OPIL_WORDS) {
-  if (breakout) return 'Small groups · ' + breakout.name + (breakout.over ? ' · Time’s up — heading back to the main room' : breakout.left ? ' · ' + breakout.left + ' left' : '');
+  if (breakout) return 'Small groups · ' + breakout.name + (breakout.over ? ' · Time’s up — wrap up. ' + (breakout.facilitator || 'Your facilitator') + ' will bring everyone back.' : breakout.left ? ' · ' + breakout.left + ' left' : '');
   const who = facilitator ? facilitator + ' ' + words.teaching + ': ' + title : capFirst(words.thing) + ' in progress: ' + title;
   return recording ? who + ' · This ' + words.thing + ' is being recorded' : who;
 }
@@ -94,7 +94,13 @@ export function nextInLine(rows) { return queueOrder(rows)[0] || null; }
 export function joinCopy({ live, host, facilitator, joined, startsAt }, words = OPIL_WORDS) {
   const n = Number(joined || 0), people = n === 1 ? '1 ' + words.one + ' joined' : n + ' ' + words.many + ' joined';
   if (host) return live ? 'Your ' + words.thing + ' is running · ' + people : 'This room is yours. Start the ' + words.thing + ' when you’re ready — ' + words.many + ' who have the link are waiting here.';
-  if (live) return (facilitator ? facilitator + ' is in the room' : 'The ' + words.thing + ' is running') + ' · ' + people;
+  /* the count is everyone already in the room, the facilitator included — say it as "others", and make an
+     empty room an invitation, not a doubt (the first student tonight should not read "0 students joined") */
+  if (live) {
+    const others = Math.max(0, n - (facilitator ? 1 : 0));
+    if (facilitator) return others ? facilitator + ' and ' + others + (others === 1 ? ' other are' : ' others are') + ' in the room.' : facilitator + ' is in the room — come on in.';
+    return n ? n + ' in the room so far.' : 'The room is open — come on in.';
+  }
   if (words.waiting) return words.waiting;
   return startsAt
     ? capFirst(words.thing) + ' hasn’t started yet. You’re all set — it starts at ' + startsAt + ' — press Enter when it does.'
@@ -256,9 +262,9 @@ export function classWhen({ date, start, end, zone, now } = {}) {
    ea-opil-pass; every line tells the person what to do next, and the way out is always the code sign-in. */
 export function passCopy(code) {
   switch (code) {
-    case 'not_on_list': return 'That email isn’t on the cohort list. Try the email you applied with, or ask Jamal (jware@aucenter.edu).';
-    case 'slow_down': return 'Too many tries from this network. Wait a minute and try again.';
-    case 'bad_email': return 'That doesn’t look like an email address.';
+    case 'not_on_list': return 'That email isn’t on the approved student list. Try the email you applied with, or email Jamal Ware at jware@aucenter.edu.';
+    case 'slow_down': return 'Too many tries from this network. Wait ten minutes, or sign in with a code — campus Wi-Fi counts as one network, so cellular data works too.';
+    case 'bad_email': return 'That doesn’t look like an email address. Check for a typo and try again.';
     case 'verify': return 'Your email checked out but the sign-in didn’t stick. Try once more, or sign in with a code.';
     default: return 'Something went wrong on our side. Try again, or sign in with a code.';
   }
@@ -299,7 +305,7 @@ export function timerCopy({ endsAt, minutes, now, zone } = {}) {
   return {
     clock, over,
     pct: Math.min(1, Math.max(0, 1 - remaining / total)),
-    session: (Number(minutes) || 0) + ' minute session',
+    session: (Number(minutes) || 0) + ' minutes on the clock',
     ends: 'Ends at ' + new Date(endsAt).toLocaleTimeString('en-US', opts),
     left: over ? 'Time’s up' : clock,
   };

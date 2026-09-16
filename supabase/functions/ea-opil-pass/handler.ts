@@ -26,9 +26,9 @@ export function cleanEmail(raw: unknown): string | null {
 export async function handlePass(body: PassBody, ctx: { ip: string }, deps: PassDeps): Promise<PassReply> {
   const email = cleanEmail(body?.email);
   if (!email) return { status: 400, body: { error: "bad_email" } };
-  /* 30 tries per network per 10 minutes (a campus shares one address: 10 FAMU students on one wifi
-     is 10 tries), 6 per email per 10 minutes */
-  if ((await deps.rateCheck(`opil_pass_ip:${ctx.ip}`, 30, 600)) === false) return { status: 429, body: { error: "slow_down" } };
+  /* 300 tries per network per 10 minutes — a campus shares one address, and 31 students with typos at
+     6:25 must never hit a wall (the per-email limit is the real brake against walking the list) */
+  if ((await deps.rateCheck(`opil_pass_ip:${ctx.ip}`, 300, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   if ((await deps.rateCheck(`opil_pass_email:${email}`, 6, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   const reg = await deps.findApproved(email);
   if (!reg) return { status: 403, body: { error: "not_on_list" } };

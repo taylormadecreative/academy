@@ -41,8 +41,16 @@ Deno.serve(async (req: Request) => {
       return data === true ? true : data === false ? false : null;
     },
     findApproved: async (email) => {
-      const { data } = await admin.from("ea_opil_registrations").select("full_name").ilike("email", email).eq("approved", true).limit(1).maybeSingle();
-      return data ? { full_name: (data as { full_name: string | null }).full_name } : null;
+      /* exact match on the lower-cased address (the register page stores lower-case) — never ilike: `%` and `_`
+         are legal in an address and would turn the lookup into a wildcard walk of the roster. The school
+         address or the personal one, as the hub itself accepts. */
+      type Row = { email: string | null; personal_email: string | null; full_name: string | null };
+      for (const col of ["email", "personal_email"] as const) {
+        const { data } = await admin.from("ea_opil_registrations").select("email, personal_email, full_name").eq(col, email).eq("approved", true).limit(1).maybeSingle();
+        const row = data as Row | null;
+        if (row && String(row[col] || "").trim().toLowerCase() === email) return { full_name: row.full_name };
+      }
+      return null;
     },
     mintToken: async (email, fullName) => {
       /* every approved student already has an account (31/31 on 9/16); a late registrant may not — make it, silently */

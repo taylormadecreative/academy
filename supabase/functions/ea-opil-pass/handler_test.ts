@@ -41,10 +41,10 @@ Deno.test("not an email at all → bad_email before any lookup or rate check", a
   assertEquals(d.minted, []);
 });
 
-Deno.test("rate limits: 30 per network and 6 per email per 10 minutes; a refused check answers slow_down, an unknown check lets it through", async () => {
+Deno.test("rate limits: 300 per network and 6 per email per 10 minutes; a refused check answers slow_down, an unknown check lets it through", async () => {
   const d = deps();
   await handlePass({ email: "kiara1.pee@famu.edu" }, IP, d);
-  assertEquals(d.rates, [["opil_pass_ip:1.2.3.4", 30, 600], ["opil_pass_email:kiara1.pee@famu.edu", 6, 600]]);
+  assertEquals(d.rates, [["opil_pass_ip:1.2.3.4", 300, 600], ["opil_pass_email:kiara1.pee@famu.edu", 6, 600]]);
   const refused = await handlePass({ email: "kiara1.pee@famu.edu" }, IP, deps({ rateCheck: async () => false }));
   assertEquals(refused, { status: 429, body: { error: "slow_down" } });
   const unknown = await handlePass({ email: "kiara1.pee@famu.edu" }, IP, deps({ rateCheck: async () => null }));

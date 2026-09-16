@@ -104,7 +104,12 @@ Deno.serve(async (req: Request) => {
     },
     displayName: async (userId) => {
       const { data } = await admin.from("ea_profiles").select("display_name").eq("user_id", userId).maybeSingle();
-      return typeof data?.display_name === "string" ? data.display_name : null;
+      if (typeof data?.display_name === "string" && data.display_name.trim()) return data.display_name;
+      /* no profile yet (10 of 31 students on kickoff day): the name they applied with, never "kiara1.pee" */
+      const email = who.user.email;
+      if (!email) return null;
+      const { data: reg } = await admin.from("ea_opil_registrations").select("full_name").ilike("email", email).limit(1).maybeSingle();
+      return typeof reg?.full_name === "string" && reg.full_name.trim() ? reg.full_name : null;
     },
     /* the host's first join creates this room's two presets on Cloudflare (cached per name; never throws) */
     ensurePresets: (h, g) => ensurePresets(cf, [h, g]),
