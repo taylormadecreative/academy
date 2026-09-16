@@ -96,6 +96,14 @@ const el = (html) => { const t = document.createElement('template'); t.innerHTML
    sizes it; the CSS (.r2-brand) is what actually sets the size. */
 const brandMark = (logo, cls = 'r2-brand') => logo ? `<img class="${cls}" src="${esc(logo.src)}" alt="${esc(logo.alt)}"${Number.isFinite(logo.height) ? ` height="${Math.round(logo.height)}"` : ''}>` : '';
 const OWN_BG_KEY = 'r2-own-backdrop';   /* the last photo someone chose, so it is one tap next class */
+/* The Transcript tab is BUILT and correct, but Cloudflare sends us no transcript lines — not even
+   for opil-host, whose preset has had transcription_enabled:true since 9/11. Rather than show a
+   tab that reads "Nothing yet" for two hours of the AUC Kickoff, it is hidden (Nelson, 9/15).
+   Flip this to true to bring it back — nothing else needs to change; the lines are still captured
+   the whole time, so Tools > Save transcript keeps working the moment the server side is fixed.
+   The two open server-side candidates are in gotcha-rtk-room-audio-echo-cpu: the LIVE opil-host
+   preset's flag, and Workers AI billing (836 Neurons/min against a 10,000/day free tier). */
+const SHOW_TRANSCRIPT = false;
 
 /* "Use my own photo": pick an image, shrink it to 1280 wide, keep it as a data URL */
 function pickOwnPhoto() {
@@ -506,13 +514,13 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <button type="button" class="r2-tab" data-tab="chat">Chat</button>
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
           <button type="button" class="r2-tab" data-tab="polls">Polls <em></em></button>
-          <button type="button" class="r2-tab" data-tab="transcript">Transcript <em></em></button>
+          ${SHOW_TRANSCRIPT ? '<button type="button" class="r2-tab" data-tab="transcript">Transcript <em></em></button>' : ''}
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden><rtk-participants></rtk-participants></div>
         <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
-        <div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>
+        ${SHOW_TRANSCRIPT ? '<div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>' : ''}
         <button type="button" class="r2-close" aria-label="Close">Close</button>
       </aside>
     </div>
