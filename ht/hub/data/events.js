@@ -16,8 +16,8 @@ HT.spaces.events = {
       ada: { text: 'Every date on this page comes from the University’s own published calendar, so the list is never out of step with what the Registrar has posted. It knows what today is, which means what is next is already at the top. Tap add to your calendar and the whole term goes to your phone.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
-      { meta: 'Thursday, September 10, 2026', title: 'President’s Fall Opening Convocation', text: 'The University opens the fall together. It is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation at Huston-Tillotson', foot: 'On the calendar →' },
       { meta: 'Friday, October 23, 2026', title: '152nd Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
+      { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/fall-convocation.jpg', alt: 'Students at Huston-Tillotson', foot: 'On the calendar →' },
       { meta: 'Nov 6–7, 2026', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill for the people behind each gift. This one is a worked example of an Advancement event: the agenda, the rooms, the host line, and the check-in at the door.', href: '#weekend', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus plaza', badge: 'Sample', foot: 'Open the agenda →' } ] },
     { type: 'year', id: 'year', title: 'The 2026-2027 academic year', meta: 'Published by the University, live against today',
       calName: 'Huston-Tillotson academic calendar 2026-2027',
@@ -93,7 +93,7 @@ HT.spaces.events = {
       { d: '2027-06-16', t: 'Final day to withdraw from a class', kind: 'deadline', term: 'summer' },
       { d: '2027-06-17', end: '2027-06-18', t: 'New student registration I', kind: 'registration', term: 'summer' },
       { d: '2027-06-18', t: 'Emancipation Day holiday', note: 'University closed, no classes', kind: 'closed', term: 'summer' },
-      { d: '2027-06-20', end: '2027-08-01', t: 'Summer Bridge Program, Ram Training Camp', kind: 'ceremony', term: 'summer' },
+      { d: '2027-06-20', end: '2027-08-01', t: 'Summer Bridge Program, Ram Training Camp', kind: 'term', term: 'summer' },
       { d: '2027-06-25', t: 'Final day to withdraw from the University with a tuition adjustment', kind: 'deadline', term: 'summer' },
       { d: '2027-07-05', t: 'Independence Day holiday, observed', note: 'University closed, no classes', kind: 'closed', term: 'summer' },
       { d: '2027-07-06', t: 'Classes resume', kind: 'term', term: 'summer' },
@@ -131,12 +131,12 @@ HT.spaces.events = {
       { name: 'Campus ministry (sample)', role: 'Service of thanksgiving', org: 'Saturday, the chapel' },
       { name: 'Student ambassadors (sample)', role: 'Campus walk', org: 'Friday, 4:30 PM' } ] },
     { type: 'chat', id: 'host', title: 'Your host line', meta: 'Private · goes to the events lead', room: 'weekend-host', seed: [
-      { who: 'Events lead (sample)', text: 'Welcome. This line comes straight to me for the weekend. Parking, a dietary need, a change of plans, anything.', when: 'Sample · Thursday' },
-      { who: 'You · sample guest', text: 'Thank you. We land Friday around 2. Is check-in open that early?', when: 'Thursday', me: true },
-      { who: 'Events lead (sample)', text: 'The desk opens at 3, but tell me your time and I will meet you at the gate.', when: 'Thursday' },
-      { who: 'Events lead (sample)', text: 'Dinner is in the President’s dining room at 7. The code on the door screen checks you in.', when: 'Thursday' } ] },
+      { who: 'Events lead (sample)', text: 'Welcome. This line comes straight to me for the weekend. Parking, a dietary need, a change of plans, anything.', when: 'Sample · last week' },
+      { who: 'You · sample guest', text: 'Thank you. We land Friday around 2. Is check-in open that early?', when: 'Last week', me: true },
+      { who: 'Events lead (sample)', text: 'The desk opens at 3, but tell me your time and I will meet you at the gate.', when: 'Last week' },
+      { who: 'Events lead (sample)', text: 'Dinner is in the President’s dining room at 7. The code on the door screen checks you in.', when: 'Last week' } ] },
     { type: 'announcements', side: true, title: 'Event desk', meta: 'Sample notices', items: [
-      { who: 'Event desk', when: 'Today', text: 'The full 2026-2027 academic calendar is on this page and live against today’s date. Add a whole term to your phone in one tap.' },
+      { who: 'Event desk', when: 'This week', text: 'The full 2026-2027 academic calendar is on this page and live against today’s date. Add a whole term to your phone in one tap.' },
       { who: 'Event desk', when: 'This week', text: 'Anything the University publishes lands on the list above. The donor weekend below is a worked example of an Advancement event on the same page.' },
       { who: 'Office of the President', when: 'Sample notice', text: 'Notices posted here appear at the top of the space and in the hub on a phone home screen.' } ] },
     { type: 'calendar', side: true, title: 'Advancement’s own dates', meta: 'Sample events, not published by the University', items: [

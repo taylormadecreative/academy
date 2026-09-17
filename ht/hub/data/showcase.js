@@ -36,9 +36,9 @@ HT.spaces.showcase = {
       { when: 'Jan 19', title: 'Research call for entries', text: 'Faculty mentors nominate.', done: false }, { when: 'Feb 12', title: 'Entries close', text: 'Posters submitted in the hub.', done: false },
       { when: 'Mar 12', title: 'Submission freeze', text: 'Judges receive the packet.', done: false }, { when: 'Mar 19', title: 'Research showcase', text: 'Judging live, scores posted here.', done: false } ] },
     { type: 'announcements', side: true, title: 'Showcase desk', meta: 'Sample', items: [
-      { who: 'Academic Affairs', when: 'Today', text: 'The research showcase is March 19. Mentors can nominate from January 19.' },
-      { who: 'AI Literacy', when: 'Yesterday', text: 'Two more sample projects posted. Both students gave permission first.' },
-      { who: 'Advancement', when: 'Monday', text: 'A funded cohort\'s projects appear on that donor\'s page the day they post here.' } ] },
+      { who: 'Academic Affairs', when: 'This week', text: 'The research showcase is March 19. Mentors can nominate from January 19.' },
+      { who: 'AI Literacy', when: 'This week', text: 'Two more sample projects posted. Both students gave permission first.' },
+      { who: 'Advancement', when: 'Last week', text: 'A funded cohort\'s projects appear on that donor\'s page the day they post here.' } ] },
     { type: 'notice', side: true, tone: 'maroon', html: '<b>Permission first.</b> Nothing appears here without the student\'s written permission through the University\'s own process. First names only. Never a grade.' }
   ]
 };

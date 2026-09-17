@@ -163,9 +163,9 @@
     return card(b, inner);
   };
   R.player = function (b) {
-    var now = b.now ? '<div class="nowbar">' + (b.live ? '<span class="chip live"><i></i>Live</span>' : chipHtml('Test picture · sample', 'soft')) + h`<b>${b.now.title}</b>` + (b.now.who ? h`<span>${b.now.who}</span>` : '') + (b.now.when ? h`<span>${b.now.when}</span>` : '') + '</div>' : '';
+    var now = b.now ? '<div class="nowbar">' + (b.live ? '<span class="flag">Live</span>' : chipHtml('Test picture · sample', 'soft')) + h`<b>${b.now.title}</b>` + (b.now.who ? h`<span>${b.now.who}</span>` : '') + (b.now.when ? h`<span>${b.now.when}</span>` : '') + '</div>' : '';
     var inner = '<div class="player" data-player data-stream="' + esc(b.stream || '/ht/img/hero-flyover.mp4') + '">' +
-      '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="chip live"><i></i>Live</span>' : '') + '</div>' +
+      '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="flag">Live</span>' : '') + '</div>' +
       '<div class="poster" style="background-image:url(' + esc(b.poster || '/ht/img/hero-flyover-poster.jpg') + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '"><span aria-hidden="true">▶</span>&nbsp; Watch</button></div>' +
       '<img class="wm" src="/assets/logo-nav.webp" alt=""></div>' + now;
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
@@ -202,7 +202,7 @@
       var d = c.date ? new Date(c.date + 'T12:00:00') : null;
       var w = c.date ? whenOf(c.date, c.end) : '';
       var flag = '';
-      if (w === 'now') flag = '<span class="chip live"><i></i>Today</span>';
+      if (w === 'now') flag = '<span class="flag">Today</span>';
       else if (w === 'ahead' && !flagged) { flagged = true; flag = '<span class="chip nextup">Next</span>'; }
       return '<div class="cal' + (w ? ' is-' + w : '') + '"><div class="d">' + (d ? h`<b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span>` : h`<b>${c.day || ''}</b><span>${c.mon || ''}</span>`) + '</div><div class="b">' + h`<b>${c.title}</b>` + (c.where ? h`<span>${c.where}</span>` : '') + '</div>' + ((c.tag || flag) ? '<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + flag + (c.tag ? chipHtml(c.tag, c.tagCls || 'soft') : '') + '</span>' : '') + '</div>';
     }).join('');
@@ -217,7 +217,7 @@
       var isNext = w === 'ahead' && !nextSeen; if (isNext) nextSeen = true;
       var k = KIND[c.kind] || KIND.term;
       var span = c.end && c.end !== c.d;
-      var flag = w === 'now' ? '<span class="chip live"><i></i>' + (span ? 'On now' : 'Today') + '</span>' : (isNext ? '<span class="chip nextup">Next up</span>' : '');
+      var flag = w === 'now' ? '<span class="flag">' + (span ? 'On now' : 'Today') + '</span>' : (isNext ? '<span class="chip nextup">Next up</span>' : '');
       return '<div class="yr is-' + w + (isNext ? ' nx' : '') + '" data-term="' + esc(c.term) + '" data-when="' + w + '">' +
         '<div class="d">' + h`<b>${a.getDate()}</b><span>${MON[a.getMonth()]}</span>` + '</div>' +
         '<div class="b">' + h`<b>${c.t}</b><span>${longDate(c.d, c.end)}${c.note ? ' · ' + c.note : ''}</span>` + '</div>' +

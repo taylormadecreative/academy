@@ -10,7 +10,7 @@ HT.spaces.career = {
       text: 'Every student has a page with their projects on it. Employers search the directory by program and skill, the employer showcase brings them to campus, and the mock interview seminars replay the same afternoon. The desk reads resumes by appointment and answers the same day.',
       ctas: [{ label: 'Search the directory', href: '#directory', style: 'ht' }, { label: 'Employer showcase', href: '#employers', style: 'ht-line' }],
       image: '/ht/img/r-student-center.jpg', imageAlt: 'Rendering of the student center',
-      ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on October 26. Want the mock interview slot on the 14th?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on November 24. Want a mock interview slot on October 14?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'directory', id: 'directory', title: 'Student portfolio directory', meta: 'Sample · first names only', search: true, items: [
       { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2029', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },
       { name: 'Maribel A.', program: 'Biology', year: 'Class of 2029', skills: ['Lab methods', 'Data entry', 'Tutoring'], tag: 'Open to internships', tagCls: 'green' },
@@ -42,15 +42,15 @@ HT.spaces.career = {
       { q: 'What if I have no projects yet?', a: 'Take a track. AI Literacy ends with a portfolio page in Session 07.' } ] },
     { type: 'cta', title: 'Bring the employers to the Hill.', text: 'The employer showcase runs each semester in the live room and on campus.', primary: { label: 'The Showcase', href: '/ht/hub/showcase/', style: 'ht-gold' }, secondary: { label: 'The tracks', href: '/ht/hub/learn/', style: 'ht-line' } },
     { type: 'calendar', side: true, title: 'Mock interviews and workshops', meta: 'Sample', items: [
-      { date: '2026-09-14', title: 'Mock interviews, round one', where: 'Career Services · by appointment' }, { date: '2026-09-30', title: 'Resume clinic', where: 'The library · walk in' },
+      { date: '2026-10-14', title: 'Mock interviews, round one', where: 'Career Services · by appointment' }, { date: '2026-10-21', title: 'Resume clinic', where: 'The library · walk in' },
       { date: '2026-10-22', title: 'Building a business in Austin', where: 'Live room · 6:00 PM', tag: 'Live', tagCls: 'live' }, { date: '2026-11-05', title: 'Employer showcase, fall', where: 'The student center' },
       { date: '2027-02-04', title: 'Mock interviews, round two', where: 'Career Services · by appointment' } ] },
     { type: 'materials', side: true, title: 'Materials', meta: 'Sample', items: [
       { kind: 'DOC', title: 'The HT resume template', sub: 'One page, in the University\'s type', restricted: true }, { kind: 'DOC', title: 'Interview guide', sub: 'Twelve questions and how to answer them', restricted: true },
       { kind: 'PLAY', title: 'Your portfolio page', sub: 'AI Literacy · Session 07', href: '/ht/hub/learn/' } ] },
     { type: 'announcements', side: true, title: 'Career desk', meta: 'Sample', items: [
-      { who: 'Career Services', when: 'Today', text: 'Three internship postings from last spring\'s showcase employers are open in the hub.' },
-      { who: 'Career Services', when: 'Yesterday', text: 'Mock interview slots for the 14th are open. Book from the calendar.' },
-      { who: 'Alumni Relations', when: 'Monday', text: 'Alumni-owned businesses posted two part-time roles in the Alumni channel.' } ] }
+      { who: 'Career Services', when: 'This week', text: 'Three internship postings from last spring\'s showcase employers are open in the hub.' },
+      { who: 'Career Services', when: 'This week', text: 'Mock interview slots for the 14th are open. Book from the calendar.' },
+      { who: 'Alumni Relations', when: 'Last week', text: 'Alumni-owned businesses posted two part-time roles in the Alumni channel.' } ] }
   ]
 };

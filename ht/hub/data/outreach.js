@@ -39,9 +39,9 @@ HT.spaces.outreach = {
       { date: '2026-11-05', title: 'Financial wellness for families · evening one', where: 'The auditorium and live · 6:30 PM' }, { date: '2027-02-11', title: 'A history of the Hill', where: 'The auditorium and live · 6:30 PM' },
       { date: '2027-06-08', title: 'Summer Bridge begins', where: 'Campus · 9:00 AM' } ] },
     { type: 'announcements', side: true, title: 'Outreach desk', meta: 'Sample', items: [
-      { who: 'Community outreach', when: 'Today', text: 'AI for small business owners begins October 6. Free, and open to the neighborhood.' },
-      { who: 'Community outreach', when: 'Yesterday', text: 'Summer Bridge 2027 applications open in January through partner high schools.' },
-      { who: 'Service society', when: 'Monday', text: 'Service Saturday is October 24. Hours are logged in the hub.' } ] },
+      { who: 'Community outreach', when: 'This week', text: 'AI for small business owners begins October 6. Free, and open to the neighborhood.' },
+      { who: 'Community outreach', when: 'This week', text: 'Summer Bridge 2027 applications open in January through partner high schools.' },
+      { who: 'Service society', when: 'Last week', text: 'Service Saturday is October 24. Hours are logged in the hub.' } ] },
     { type: 'checkin', side: true, title: 'Check in at the door', meta: 'Code on the screen', session: 'AI for small business owners · evening one', sub: 'Tuesday, Oct 6 · 6:30 PM · the auditorium', code: 'EAST26', hint: 'Sample code for this preview: EAST26.' }
   ]
 };

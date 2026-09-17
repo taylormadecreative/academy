@@ -70,10 +70,10 @@ body[data-space] .site-header{position:static}
 .chip{display:inline-flex;align-items:center;gap:6px;border:0;cursor:default;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ht-mahogany);background:var(--ht-ember);border-radius:980px;padding:4px 10px}
 .chip.sample{background:#fff3c4;color:#6b4d00}
 .chip.live{background:#ffe1dd;color:#8f0000}
-.chip.live i{width:7px;height:7px;border-radius:50%;background:#e02b2b;animation:htpulse 1.4s infinite}
+/* what is happening NOW is a word, not a capsule with a dot (Nelson: never the status pill with the dot) */
+.flag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8f0000;white-space:nowrap}
 .chip.soft{background:var(--bg-soft);color:var(--muted)}
 .chip.green{background:#e6f4ec;color:#0f5c3a}
-@keyframes htpulse{0%,100%{opacity:1}50%{opacity:.35}}
 /* intro block */
 .intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(18px,3vw,36px);align-items:center;background:var(--ht-sand);border:1px solid var(--ht-hair);border-radius:22px;padding:clamp(20px,3vw,34px);overflow:hidden;position:relative}
 .intro .k{font-family:var(--font);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ht-maroon)}
@@ -301,7 +301,7 @@ a.card:hover{transform:translateY(-3px);box-shadow:0 22px 40px -24px rgba(41,28,
 .empty{padding:22px;text-align:center;color:var(--muted);font-size:14px}
 .js .rv{opacity:0;transform:translateY(12px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}.chip.live i{animation:none}}
+@media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
 /* install card */
 .install{display:flex;gap:14px;align-items:center}
 .install img{width:56px;height:56px;border-radius:14px;box-shadow:0 8px 20px -10px rgba(0,0,0,.5)}

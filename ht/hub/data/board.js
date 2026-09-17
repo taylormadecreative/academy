@@ -15,7 +15,7 @@ HT.spaces.board = {
       { kind: 'PDF', title: 'Agenda, fall board meeting', sub: 'Posted by the board secretary · one page', restricted: true },
       { kind: 'DOC', title: 'Minutes, summer meeting', sub: 'For approval at call to order', restricted: true },
       { kind: 'DECK', title: "President's report", sub: 'Dr. Melva K. Wallace · fall 2026', restricted: true },
-      { kind: 'PDF', title: 'Finance Committee packet', sub: 'Updated yesterday · read before Friday', restricted: true },
+      { kind: 'PDF', title: 'Finance Committee packet', sub: 'Updated this week · read before the October 16 meeting', restricted: true },
       { kind: 'DECK', title: 'Advancement report', sub: 'Linda Y. Jackson · the donor pages and the fall briefing', href: '/ht/hub/advancement/' },
       { kind: 'PDF', title: 'Facilities update', sub: 'Campus plan renderings and the fall walk-through', restricted: true },
       { kind: 'PDF', title: 'Audit summary', sub: 'For executive session', restricted: true },
@@ -52,8 +52,8 @@ HT.spaces.board = {
       { name: 'Chair, Facilities Committee (sample)', role: 'The campus plan', org: 'Owns the facilities update' },
       { name: 'Board secretary (sample)', role: 'Materials, minutes, check-in', org: 'Posts everything in this space' } ] },
     { type: 'announcements', side: true, title: 'From the board secretary', meta: 'Sample', items: [
-      { who: 'Board secretary', when: 'Today', text: 'The fall packet is complete. Eight items. The Finance Committee packet was updated yesterday, please re-read pages four and five.' },
-      { who: 'Board secretary', when: 'Monday', text: 'Comments on the strategic plan draft close October 9. Reply in the document or message me here.' },
+      { who: 'Board secretary', when: 'This week', text: 'The fall packet is complete. Eight items. The Finance Committee packet was updated yesterday, please re-read pages four and five.' },
+      { who: 'Board secretary', when: 'Last week', text: 'Comments on the strategic plan draft close October 9. Reply in the document or message me here.' },
       { who: 'Board secretary', when: 'Last week', text: 'Check-in is new this fall. Type the code from the screen at call to order and attendance is noted as you sit down.' } ] },
     { type: 'cta', title: 'The fall meeting is Friday, October 16.', text: 'Read the packet on your phone, add the agenda to your calendar, and check in at the door.', primary: { label: 'Open the agenda', href: '#fall-meeting', style: 'ht-gold' }, secondary: { label: 'The Advancement report', href: '/ht/hub/advancement/', style: 'ht-line' } }
   ]

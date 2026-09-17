@@ -267,6 +267,13 @@ const NEXT = (() => {
 // unrelated signup later on.
 if (NEXT) { try { localStorage.setItem("bm_next", JSON.stringify({ p: NEXT, t: Date.now() })); } catch (_) {} }
 const WELCOME_URL = NEXT ? "/welcome/?next=" + encodeURIComponent(NEXT) : "/welcome/";
+// The HT Hub sends its people here (Huston-Tillotson × Taylormade Academy): say whose door this is. Nothing else changes.
+if (NEXT.indexOf("/ht/") === 0) {
+  $("kick").textContent = "Signing in to the HT Hub";
+  $("head").textContent = "Your email, then a six-digit code.";
+  $("sub").textContent = "Huston-Tillotson × Taylormade Academy. No password to remember; the first time, you type your name once.";
+  $("signupNote").textContent = "New here? This same box makes your account. No card, no password.";
+}
 
 const offState  = $("offState");
 const emailForm = $("emailForm");

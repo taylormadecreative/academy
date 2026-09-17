@@ -8,7 +8,7 @@ HT.spaces.live = {
   stamp: 'The class room is real · the rest is sample', headCta: { label: 'Open the room', href: '#room', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'The live room', title: 'One room for everything the campus does live.',
-      text: 'A seminar, a town hall, a donor briefing, a guest lecture, a class. The host sends one link. People sign in with their email and a six-digit code, walk in muted with the camera off, and turn either on with one tap. The host shares a screen, brings a question onto the stage, and ends the session for everyone with one button. The recording lands on this page for the host to review and publish.',
+      text: 'A seminar, a town hall, a donor briefing, a guest lecture, a class. The host sends one link. People sign in with their email and a six-digit code, walk in muted with the camera off, and turn either on with one tap. The host shares a screen, brings a question onto the stage, and can end the session for everyone when it is done — leaving the room never ends it. Anyone who is signed in can walk in while a session runs. The recording lands on this page for the host to review and publish.',
       ctas: [{ label: 'Open the room', href: '#room', style: 'ht' }, { label: 'How a session runs', href: '#how', style: 'ht-line' }],
       image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais in the auditorium at Huston-Tillotson',
       ada: { text: 'When your host starts, you\'ll walk straight in. Until then this page checks every few seconds, so there\'s nothing to refresh.', when: 'Ada · HT student ambassador' } },
@@ -26,14 +26,14 @@ HT.spaces.live = {
       { title: 'Spring donor briefing', date: 'Apr 2026', len: '41:05', poster: '/ht/img/wallace-students.jpg', tag: 'Institutional Advancement · sample' },
       { title: 'Guest lecture · building a business in Austin', date: 'Mar 2026', len: '58:47', poster: '/ht/img/student-laptop.jpg', tag: 'Career Services · sample' } ] },
     { type: 'calendar', side: true, id: 'calendar', title: 'Coming up live', meta: 'Sample · every office', items: [
-      { date: '2026-09-17', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
-      { date: '2026-09-24', title: 'Faculty development · teaching with the hub', where: 'Academic Affairs · 3:00 PM CT' },
-      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Institutional Advancement · 12:00 PM CT' },
+      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Institutional Advancement · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-15', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
       { date: '2026-10-22', title: 'Guest lecture · Business program', where: 'Academic Affairs · 6:00 PM CT' },
+      { date: '2026-10-29', title: 'Faculty development · teaching with the hub', where: 'Academic Affairs · 3:00 PM CT' },
       { date: '2026-11-07', title: 'Donor Appreciation Weekend luncheon', where: 'Institutional Advancement · 12:00 PM CT' },
       { date: '2026-11-19', title: 'A live visit for families', where: 'Admissions · 6:30 PM CT' },
       { date: '2027-01-21', title: 'Spring town hall', where: 'Office of the President · 12:00 PM CT' },
-      { date: '2027-03-11', title: 'Faculty development · spring session', where: 'Academic Affairs · 3:00 PM CT' } ] },
+      { date: '2027-03-25', title: 'Faculty development · spring session', where: 'Academic Affairs · 3:00 PM CT' } ] },
     { type: 'faq', side: true, id: 'faq', title: 'What donors and faculty ask', meta: 'Four questions', items: [
       { q: 'Do I need an account to join?', a: 'Yes, and it takes a minute: your email, then a six-digit code we send you. The first time, you type your name once. Nothing to download.' },
       { q: 'Does it work on a phone?', a: 'Yes. Camera, mic, chat and the question queue all work in the phone\'s browser. Add the hub to your home screen and it opens like an app.' },
@@ -43,7 +43,7 @@ HT.spaces.live = {
       { kind: 'DOC', title: 'Host checklist · before you start', sub: 'Camera, light, the link sent, one page', restricted: true },
       { kind: 'DOC', title: 'Running the question queue', sub: 'Bring someone on stage, then hand it back', restricted: true },
       { kind: 'DECK', title: 'President\'s Fall Briefing · slides', sub: 'Share from the room on Oct 8', restricted: true } ] },
-    { type: 'cta', title: 'The next session is Thursday at noon.', text: 'The fall town hall, live from the auditorium. Open the room a few minutes early; your host will bring you in.',
+    { type: 'cta', title: 'The next session is October 8 at noon.', text: 'The President\'s Fall Briefing for donors, live from the auditorium. Open the room a few minutes early; your host will bring you in.',
       primary: { label: 'Open the room', href: '#room', style: 'ht-gold' }, secondary: { label: 'See every session', href: '#calendar', style: 'ht-line' } }
   ]
 };

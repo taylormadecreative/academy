@@ -215,7 +215,7 @@
 .ht-room-host .status{font-size:13px;color:#F7E3B8}
 .ht-room-host .status.live{color:#94CCAB;font-weight:700}
 .ht-room-host #rmRec{font-size:12.5px;font-weight:700;color:#FFCC00}
-.ht-room-host #rmRec i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FA2626;margin-right:6px;animation:r2pulse 1.6s ease-in-out infinite}
+.ht-room-host #rmRec{letter-spacing:.06em;text-transform:uppercase}
 .ht-room-host .saved{font-size:12px;color:#94CCAB;font-weight:600;text-transform:none;letter-spacing:0}
 .ht-room-host p.note{font-size:14px;color:#F7E3B8;margin:0;line-height:1.55}
 .ht-room-host h4{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#FFCC00;margin:6px 0 0}
