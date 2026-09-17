@@ -2,7 +2,7 @@
 // The words and colors that make the Academy room HT's. Pure module, no DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, ROOM_KEY_STORE, ROOM_KEY_MAX_AGE_MS } from '../../ht/hub/room-words.js';
+import { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, ROOM_KEY_STORE, ROOM_KEY_MAX_AGE_MS, nextSessionLine, calendarLinks } from '../../ht/hub/room-words.js';
 import { KEY_RX } from '../../js/room-page.js';
 import { OPIL_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
@@ -158,4 +158,30 @@ test('the round trip: URL key → remembered → the same page without ?k= recal
   const st2 = fakeStore();
   rememberKey(st2, 'not-a-key', now);
   assert.equal(null || recallKey(st2, now), null);
+});
+
+/* ---------- Next session (spec 2026-09-17 §2.4) ---------- */
+test('nextSessionLine: nothing, past, and a session ahead', () => {
+  const now = Date.parse('2026-10-01T12:00:00-05:00');
+  assert.equal(nextSessionLine({}, now), null);
+  assert.equal(nextSessionLine(null, now), null);
+  assert.equal(nextSessionLine({ next_title: 'Fall Briefing', next_at: '2026-09-01T17:00:00+00:00' }, now), null, 'a past session is not next');
+  assert.equal(nextSessionLine({ next_title: 'Fall Briefing', next_at: 'not a date' }, now), null);
+  const n = nextSessionLine({ next_title: 'Fall Briefing', next_at: '2026-10-08T17:00:00+00:00' }, now);
+  assert.equal(n.title, 'Fall Briefing');
+  assert.equal(n.iso, '2026-10-08T17:00:00.000Z');
+  assert.equal(n.when, 'Thu, Oct 8 · 12:00 PM CT');
+  assert.equal(nextSessionLine({ next_title: '  ', next_at: '2026-10-08T17:00:00+00:00', title: 'HT Live' }, now).title, 'HT Live', 'no title → the room name');
+  assert.equal(nextSessionLine({ next_at: '2026-10-08T17:00:00+00:00' }, now).title, 'HT Live', 'no title, no room name → HT Live');
+});
+test('calendarLinks: Google, Outlook and an .ics carry the title, the hour and the room link', () => {
+  const l = calendarLinks({ title: 'Fall Briefing', startIso: '2026-10-08T17:00:00.000Z', roomUrl: 'https://taylormadeacademy.com/ht/hub/live/' });
+  assert.match(l.google, /^https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE&text=Fall%20Briefing&dates=20261008T170000Z%2F20261008T180000Z&details=.*ht%2Fhub%2Flive/);
+  assert.match(l.outlook, /^https:\/\/outlook\.live\.com\/calendar\/0\/deeplink\/compose\?.*startdt=2026-10-08T17%3A00%3A00\.000Z.*enddt=2026-10-08T18%3A00%3A00\.000Z/);
+  assert.match(l.ics, /^data:text\/calendar;charset=utf-8,/);
+  const ics = decodeURIComponent(l.ics.split(',')[1]);
+  assert.match(ics, /BEGIN:VEVENT\r\nUID:[^\r]+\r\nDTSTAMP:\d{8}T\d{6}Z\r\nDTSTART:20261008T170000Z\r\nDTEND:20261008T180000Z\r\nSUMMARY:Fall Briefing\r\nDESCRIPTION:Join at https:\/\/taylormadeacademy\.com\/ht\/hub\/live\/\r\nURL:https:\/\/taylormadeacademy\.com\/ht\/hub\/live\/\r\nEND:VEVENT/);
+  assert.match(ics, /^BEGIN:VCALENDAR\r\nVERSION:2\.0\r\n/);
+  const l2 = calendarLinks({ title: 'A; B, C', startIso: '2026-10-08T17:00:00.000Z', roomUrl: 'https://x.test/', minutes: 90 });
+  assert.match(decodeURIComponent(l2.ics.split(',')[1]), /DTEND:20261008T183000Z\r\nSUMMARY:A\\; B\\, C/, 'ics text escaping and the duration');
 });

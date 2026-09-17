@@ -93,3 +93,26 @@ export function forgetKey(store) {
   if (!store) return;
   try { store.removeItem(ROOM_KEY_STORE); } catch (e) {}
 }
+
+/* ---------- Next session (spec 2026-09-17 §2.4) ---------- */
+/* what the Live space says above the room: the host's next session while it is ahead of now; null otherwise */
+export function nextSessionLine(state, nowMs) {
+  const at = state && state.next_at ? Date.parse(state.next_at) : NaN;
+  if (!Number.isFinite(at) || at <= nowMs) return null;
+  const d = new Date(at);
+  const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/Chicago' });
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
+  return { title: String(state.next_title || '').trim() || String(state.title || '').trim() || 'HT Live', when: day + ' · ' + time + ' CT', iso: d.toISOString() };
+}
+const icsStamp = (iso) => iso.replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+/* three ways onto a calendar — Google and Outlook as links, Apple (and everything else) as an .ics; nothing emails anyone */
+export function calendarLinks({ title, startIso, roomUrl, minutes = 60 }) {
+  const start = new Date(startIso), end = new Date(start.getTime() + minutes * 60000);
+  const s = start.toISOString(), e = end.toISOString();
+  const details = 'Join at ' + roomUrl;
+  const google = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(title) + '&dates=' + encodeURIComponent(icsStamp(s) + '/' + icsStamp(e)) + '&details=' + encodeURIComponent(details) + '&location=' + encodeURIComponent(roomUrl);
+  const outlook = 'https://outlook.live.com/calendar/0/deeplink/compose?subject=' + encodeURIComponent(title) + '&startdt=' + encodeURIComponent(s) + '&enddt=' + encodeURIComponent(e) + '&body=' + encodeURIComponent(details) + '&location=' + encodeURIComponent(roomUrl) + '&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent';
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Taylormade Academy//HT Hub//EN', 'BEGIN:VEVENT', 'UID:' + icsStamp(s) + '@taylormadeacademy.com', 'DTSTAMP:' + icsStamp(new Date().toISOString()), 'DTSTART:' + icsStamp(s), 'DTEND:' + icsStamp(e), 'SUMMARY:' + icsText(title), 'DESCRIPTION:' + icsText(details), 'URL:' + roomUrl, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n') + '\r\n';
+  return { google, outlook, ics: 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics) };
+}

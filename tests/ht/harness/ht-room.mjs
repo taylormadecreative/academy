@@ -6,8 +6,8 @@ import { opilScenarios } from './opil-live.mjs';             /* the OPIL live pa
 const H = new URL('./', import.meta.url);
 const SB = fs.readFileSync(new URL('stub-supabase.js', H), 'utf8'), R2 = fs.readFileSync(new URL('stub-room-v2.js', H), 'utf8');
 const KEY = 'AbC123_-xyzXYZ0987ab-_';
-const base = { id: 'r-ht', slug: 'ht', title: 'HT Live', is_live: false, host_name: 'Dr. Gray', signed_in: true, is_host: false, can_join: true, bad_link: false, recording_url: null, people: null };
-const room = { id: 'r-ht', slug: 'ht', title: 'HT Live', host_name: 'Dr. Gray', host_emails: [], link_key: KEY, is_live: false, live_since: null, max_participants: 50, recording_url: null };
+const base = { id: 'r-ht', slug: 'ht', title: 'HT Live', is_live: false, host_name: 'Dr. Gray', signed_in: true, is_host: false, can_join: true, bad_link: false, recording_url: null, people: null, warmup_q: null, next_title: null, next_at: null };
+const room = { id: 'r-ht', slug: 'ht', title: 'HT Live', host_name: 'Dr. Gray', host_emails: [], link_key: KEY, is_live: false, live_since: null, max_participants: 50, recording_url: null, warmup_q: null, next_title: null, next_at: null };
 const sess = { user: { id: 'u1', email: 'x@y.z' }, access_token: 't' };
 const out = []; const ok = (n, c, d = '') => out.push((c ? 'OK   ' : 'FAIL ') + n + (c ? '' : ' · ' + d));
 
@@ -284,8 +284,31 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   }
   ok('phone ' + name + ': no page errors', errs.length === 0, errs.join(' | '));
   await p.close(); }
-/* R1–R3 the real js/rtk-room-v2.js: a drop that cannot be mended tells the dead client to leave; Leave during a
-   rejoin in flight wins; Split students into rooms is two taps (room-v2-real.mjs) */
+/* 9a the host card carries the warm-up question and Next session (0054); a save writes that column and only it; the
+   Next session line appears above the card with three calendar links */
+{ const { p, errs } = await page({ state: { ...base, is_host: true }, session: sess, admin: true, room: { ...room }, replays: [], members: [], profiles: [] });
+  await p.waitForSelector('#rmWarm');
+  await p.fill('#rmWarm', 'What brought you to the Hill?'); await p.dispatchEvent('#rmWarm', 'change');
+  await p.fill('#rmNextTitle', 'Fall Briefing'); await p.dispatchEvent('#rmNextTitle', 'change');
+  await p.fill('#rmNextAt', '2099-10-08T12:00'); await p.dispatchEvent('#rmNextAt', 'change');
+  await p.waitForTimeout(200);
+  const ups = await p.evaluate(() => window.__calls.filter(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update').map(c => c[4]));
+  ok('9a warm-up question saved as warmup_q, alone', ups.some(u => u.warmup_q === 'What brought you to the Hill?' && Object.keys(u).length === 1), JSON.stringify(ups));
+  ok('9a next_title saved', ups.some(u => u.next_title === 'Fall Briefing'), JSON.stringify(ups));
+  ok('9a next_at saved as an ISO instant', ups.some(u => typeof u.next_at === 'string' && /^2099-10-08T\d\d:00:00\.000Z$/.test(u.next_at)), JSON.stringify(ups));
+  ok('9a the Next session line appears with three calendar links', (await p.locator('.ht-room-next a').count()) === 3 && /Fall Briefing/.test(await text(p, '.ht-room-next')), await text(p, '.ht-room-next'));
+  ok('9a the .ics link is a data: calendar with the title', /^data:text\/calendar/.test(await p.getAttribute('.ht-room-next a', 'href')) && /SUMMARY%3AFall%20Briefing/.test(await p.getAttribute('.ht-room-next a', 'href')));
+  await p.fill('#rmNextAt', ''); await p.dispatchEvent('#rmNextAt', 'change'); await p.waitForTimeout(150);
+  ok('9a clearing the date saves null and takes the line down', (await p.evaluate(() => window.__calls.filter(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update').some(c => c[4].next_at === null))) && (await p.locator('.ht-room-next').count()) === 0);
+  ok('9a no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+/* 9b a guest sees the Next session line from the state, never a past one; a waiting guest's target carries warmup_q */
+{ const { p, errs } = await page({ state: { ...base, next_title: 'Fall Briefing', next_at: '2099-10-08T17:00:00Z', warmup_q: 'Where from?' }, session: sess, room, replays: [], members: [], profiles: [] });
+  ok('9b guest: the line shows title and time', /Fall Briefing/.test(await text(p, '.ht-room-next')) && /Oct 8/.test(await text(p, '.ht-room-next')), await text(p, '.ht-room-next'));
+  ok('9b guest: no page errors', errs.length === 0, errs.join(' | ')); await p.close();
+  const { p: p2 } = await page({ state: { ...base, next_title: 'Old', next_at: '2000-01-01T17:00:00Z' }, session: sess, room, replays: [], members: [], profiles: [] });
+  ok('9b guest: a past next session is not shown', (await p2.locator('.ht-room-next').count()) === 0); await p2.close(); }
+/* R1–R4 the real js/rtk-room-v2.js: a drop that cannot be mended tells the dead client to leave; Leave during a
+   rejoin in flight wins; Split students into rooms is two taps; a room has Files (room-v2-real.mjs) */
 await realModuleScenarios(b, ok);
 /* O1–O2 the OPIL live page: Entering… disabled until the host is in, Rejoin restarts the recording, End out of the
    room ends server-side; a student's row poll leaves a class ended from outside (opil-live.mjs) */

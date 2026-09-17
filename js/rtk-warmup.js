@@ -192,11 +192,11 @@ async function profilesFor(sb, roomKey, ids) {
 export function rememberName(uid, name) { if (uid && name) profileCache.set(uid, name); }
 
 /* ---------- 1. the waiting screen ---------- */
-export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, container, now }) {
+export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, room, container, now }) {
   ensureCss();
   const me = uid || (user && user.id) || null;
   const nowFn = typeof now === 'function' ? now : () => Date.now();
-  let question = questionOf(session), mine = { answer: '', city: '' }, hasRow = false, filled = false, warm = [], pres = [], profiles = [], stopped = false, watcher = null, saving = false;
+  let question = questionOf(session || room), mine = { answer: '', city: '' }, hasRow = false, filled = false, warm = [], pres = [], profiles = [], stopped = false, watcher = null, saving = false;   /* a room (HT, the Academy) carries warmup_q on its state (0054) */
   if (!container || typeof container.appendChild !== 'function') { console.warn('[warmup] mountWaiting: no container'); return { stop() {} }; }
   const node = el(`<section class="r2-warm" aria-label="Warm-up">
       <div class="r2-warm-card">
@@ -263,6 +263,13 @@ export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, c
         const fresh = questionOf(data && data[0]);
         if (fresh !== question) { question = fresh; q('.r2-warm-q').textContent = question; }
       } catch (e) {}
+    } else if (room && room.slug) {
+      /* a room's question rides on ea_room_state — a guest cannot select ea_rooms */
+      try {
+        const { data } = await sb.rpc('ea_room_state', { p_key: room.key || null, p_slug: room.slug });
+        const fresh = questionOf(data);
+        if (fresh !== question) { question = fresh; q('.r2-warm-q').textContent = question; }
+      } catch (e) {}
     }
   });
   async function save() {
@@ -301,8 +308,9 @@ export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, c
 
 /* ---------- 2. in class: the host's Warm-up answers section ---------- */
 export function create(ctx) {
-  const { sb, el, esc, host, roomKey, session } = ctx;
-  let warm = [], profiles = [], watcher = null, box = null, stopped = false, begun = false, question = questionOf(session);
+  const { sb, el, esc, host, roomKey, session, target } = ctx;
+  const room = !session && target && target.kind === 'room' && target.id ? target : null;   /* an ea_rooms room: the question lives on the row (0054) */
+  let warm = [], profiles = [], watcher = null, box = null, stopped = false, begun = false, question = questionOf(session || room);
   /* a name the meeting knows is better than a blank profile */
   const meetingName = (id) => { try { const m = ctx.getMeeting(); if (m.self.customParticipantId === id) return m.self.name; const p = m.participants.joined.toArray().find(x => x.customParticipantId === id); return p ? p.name : null; } catch (e) { return null; } };
   const load = serial(async () => {
@@ -328,7 +336,7 @@ export function create(ctx) {
     if (box.querySelector('.r2-warm-edit')) return;   /* the host is mid-edit of the question: leave the box alone */
     const rows = answerRows(warm, profiles);
     box.innerHTML = `<div class="r2-queue-head r2-warm-head">Warm-up answers <em>${rows.length || ''}</em></div>
-      <div class="r2-warm-qline"><span class="r2-warm-kicker">Question of the day</span><b>${esc(question)}</b>${host && session ? '<button type="button" class="r2-mini r2-warm-change">Change the question</button>' : ''}</div>
+      <div class="r2-warm-qline"><span class="r2-warm-kicker">Question of the day</span><b>${esc(question)}</b>${host && (session || room) ? '<button type="button" class="r2-mini r2-warm-change">Change the question</button>' : ''}</div>
       <p class="r2-fine r2-warm-sum">${esc(answersSummary(rows))}</p>
       ${rows.length
         ? `<div class="r2-warm-list">${rows.map(r => `<div class="r2-hand r2-warm-row"><div class="r2-who"><b>${esc(r.name)}</b><span>${r.city ? 'Joining from ' + esc(r.city) : 'Didn’t say where from'}</span></div><span class="r2-warm-a">${r.answer ? esc(r.answer) : '<i>No answer — just said where from</i>'}</span>${host ? `<button type="button" class="r2-mini r2-warm-x" data-rm="${esc(r.user_id)}" aria-label="Remove ${esc(r.name)}’s answer">Remove</button>` : ''}</div>`).join('')}</div>`
@@ -345,15 +353,19 @@ export function create(ctx) {
       const v = input.value.trim().slice(0, QUESTION_MAX);
       const b = line.querySelector('[data-q="save"]'); b.disabled = true; b.textContent = 'Saving…';
       try {
-        const { data, error } = await sb.from('ea_opil_sessions').update({ warmup_q: v || null }).eq('no', session.no).select('no');
+        const { data, error } = room
+          ? await sb.from('ea_rooms').update({ warmup_q: v || null }).eq('id', room.id).select('id')
+          : await sb.from('ea_opil_sessions').update({ warmup_q: v || null }).eq('no', session.no).select('no');
         if (error) throw error;
-        if (!changedRows(data)) throw Object.assign(new Error('no rows updated — not a host of this session any more'), { notHost: true });
+        if (!changedRows(data)) throw Object.assign(new Error('no rows updated — not a host of this ' + (room ? 'room' : 'session') + ' any more'), { notHost: true });
         question = v || DEFAULT_QUESTION;
         try { ctx.toast('Question saved. The waiting screen shows it within a minute.', 5000); } catch (e) {}
         line.querySelector('.r2-warm-edit').remove(); paint();
       } catch (e) {
         console.warn('[warmup] question', e); b.disabled = false; b.textContent = 'Save';
-        try { ctx.toast(e && e.notHost ? 'The question didn’t save — you’re no longer set as a host of this class. The coordinator can set it on the sessions page.' : 'Couldn’t save the question — the coordinator can set it on the sessions page.', 7000); } catch (x) {}
+        try { ctx.toast(room
+          ? (e && e.notHost ? 'The question didn’t save — you’re no longer a host of this room.' : 'Couldn’t save the question — try again, or set it on the room card.')
+          : (e && e.notHost ? 'The question didn’t save — you’re no longer set as a host of this class. The coordinator can set it on the sessions page.' : 'Couldn’t save the question — the coordinator can set it on the sessions page.'), 7000); } catch (x) {}
       }
     };
     line.querySelector('[data-q="save"]').addEventListener('click', saveQ);

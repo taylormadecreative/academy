@@ -216,7 +216,7 @@ export async function mountRoomV2(o) {
     /* attendance that takes itself: a waiting student is counted as waiting (spec §1) */
     let waitBeat = null; try { const pm = pluginMods.presence; if (pm && pm.startBeating) waitBeat = pm.startBeating(sb, roomKeyFor(target), 'waiting', pm.deviceWord(navigator.userAgent)); } catch (e) {}
     /* the Question of the day card, the cities line and Already here (spec §8) */
-    let warmUi = null; try { const wm = pluginMods.warmup; if (wm && wm.mountWaiting) warmUi = wm.mountWaiting({ sb, copy, el, esc, user, uid: user.id, roomKey: roomKeyFor(target), session: isRoom ? null : session, container: screen.querySelector('.r2-join-left') }); } catch (e) { console.warn('[room] warm-up', e); }
+    let warmUi = null; try { const wm = pluginMods.warmup; if (wm && wm.mountWaiting) warmUi = wm.mountWaiting({ sb, copy, el, esc, user, uid: user.id, roomKey: roomKeyFor(target), session: isRoom ? null : session, room: isRoom ? target : null, container: screen.querySelector('.r2-join-left') }); } catch (e) { console.warn('[room] warm-up', e); }
     return { meetingId: null, leave: () => { stopPrecheck(); try { if (waitBeat) waitBeat.stop(); } catch (e) {} try { if (warmUi) warmUi.stop(); } catch (e) {} mountEl.innerHTML = ''; }, setRecording() {} };
   }
   stopPrecheck();   /* a camera check from the waiting screen must let go before the room takes the camera */

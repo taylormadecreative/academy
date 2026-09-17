@@ -21,7 +21,7 @@ await new Promise((res) => {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
-const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey }, { endCopy, backOn }, { createClient }] = await Promise.all([
+const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, nextSessionLine, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
   import('/opil/hub/live-rooms.js' + V),
@@ -58,6 +58,20 @@ async function getState() {
   return data;
 }
 const token = async () => (await sb.auth.getSession()).data.session?.access_token || '';
+
+/* ---------- Next session (spec 2026-09-17 §2.4) ---------- */
+/* an instant → the value a datetime-local input wants, in this device's zone */
+const localInput = (iso) => { if (!iso) return ''; const d = new Date(iso); if (!Number.isFinite(d.getTime())) return ''; const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); };
+/* the line above whichever card is showing — host or guest: the host's title and time, and three ways onto a
+   calendar (the .ics is a data: link, Google and Outlook open a prefilled event). Hidden while in the room. */
+function paintNext() {
+  let el = document.querySelector('.ht-room-next');
+  const n = nextSessionLine(state, Date.now());
+  if (!n) { if (el) el.remove(); return; }
+  const l = calendarLinks({ title: n.title, startIso: n.iso, roomUrl: location.origin + '/ht/hub/live/' });
+  if (!el) { el = document.createElement('div'); el.className = 'ht-room-next'; ctl.parentElement.insertBefore(el, ctl); }
+  el.innerHTML = '<span class="k">Next session</span><b>' + esc(n.title) + '</b><span>' + esc(n.when) + '</span><span class="add">Add to calendar: <a href="' + esc(l.ics) + '" download="' + esc((n.title.replace(/[^\w\- ]+/g, '').trim() || 'HT Live') + '.ics') + '">Apple</a> · <a href="' + esc(l.google) + '" target="_blank" rel="noopener">Google</a> · <a href="' + esc(l.outlook) + '" target="_blank" rel="noopener">Outlook</a></span>';
+}
 
 /* ---------- the cards ---------- */
 /* the HT wordmark: on the page cards (WM, .ht-room-wm) and, as target.logo, inside the room itself — the
@@ -110,7 +124,7 @@ if (state && state.bad_link && keyFromStore) {
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
 const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK });   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null });   /* warmup_q: the waiting screen's question (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -187,7 +201,7 @@ const host = {
   rec(on) { if (this.els.rec) this.els.rec.hidden = !on; },
   async load() {
     const { data, error } = await sb.from('ea_rooms')
-      .select('id,slug,title,host_name,host_emails,link_key,is_live,live_since,max_participants,recording_url')
+      .select('id,slug,title,host_name,host_emails,link_key,is_live,live_since,max_participants,recording_url,warmup_q,next_title,next_at')
       .eq('slug', SLUG).maybeSingle();
     if (error || !data) throw new Error(error ? error.message : 'no room row');
     this.room = data; return data;
@@ -199,6 +213,7 @@ const host = {
   <div class="hd2"><h3>Your room</h3><span class="mono">Hosts only</span></div>
   <div class="row"><label style="flex:1"><span>The link to send</span><input id="rmLink" readonly aria-label="Link to this room" value="${esc(this.link())}"></label><button type="button" class="pill" id="rmCopy" aria-live="polite">Copy link</button><button type="button" class="pill ghost" id="rmNew">New link</button></div>
   <div class="row two"><label>Title <span class="saved" id="rmTitleSaved"></span><input id="rmTitle" maxlength="120" value="${esc(r.title)}"></label><label>Host name <span class="saved" id="rmHostSaved"></span><input id="rmHost" maxlength="80" value="${esc(r.host_name)}"></label><label>Max people (you included) <span class="saved" id="rmMaxSaved"></span><input id="rmMax" type="number" min="2" max="500" value="${esc(r.max_participants)}"></label></div>
+  <div class="row pair"><label>Warm-up question · people answer while they wait <span class="saved" id="rmWarmSaved"></span><input id="rmWarm" maxlength="160" placeholder="Where are you joining from today?" value="${esc(r.warmup_q || '')}"></label><label>Next session · shows above the room with Add to calendar <span class="saved" id="rmNextSaved"></span><span class="row" style="gap:6px;margin:0"><input id="rmNextTitle" maxlength="120" placeholder="Title" value="${esc(r.next_title || '')}"><input id="rmNextAt" type="datetime-local" aria-label="Next session date and time" value="${esc(localInput(r.next_at))}"></span></label></div>
   ${this.admin ? `<label>Hosts — one email per line <span class="saved" id="rmHostsSaved"></span><textarea id="rmHosts" spellcheck="false">${esc((r.host_emails || []).join('\n'))}</textarea></label><div class="row"><button type="button" class="pill" id="rmHostsSave">Save hosts</button><p class="fine" style="margin:0">Anyone on this list who signs in with that email gets this card and can start a session.</p></div>` : ''}
   <div class="ht-room-still" id="rmStill" hidden><b>${esc(ec.stillRunning)}</b><span>${esc(ec.stillRunningHint)}</span></div>
   <div class="row"><button type="button" class="btn ht-gold" id="rmStart">${START}</button><button type="button" class="pill" id="rmEnd" hidden title="${esc(ec.endHint)}. Two taps.">${esc(ec.endButton)}</button><span id="rmRec" hidden><i></i>Recording</span><span class="status" id="rmStatus"></span></div>
@@ -207,9 +222,9 @@ const host = {
   <details id="rmWho"><summary>Who joined</summary><div></div></details>
 </div>` + '<div id="rmLast">' + lastSession(state) + '</div>';
     const $ = (id) => document.getElementById(id);
-    this.els = { link: $('rmLink'), copy: $('rmCopy'), neu: $('rmNew'), title: $('rmTitle'), hostName: $('rmHost'), max: $('rmMax'), hosts: $('rmHosts'), hostsSave: $('rmHostsSave'),
+    this.els = { link: $('rmLink'), copy: $('rmCopy'), neu: $('rmNew'), title: $('rmTitle'), hostName: $('rmHost'), max: $('rmMax'), hosts: $('rmHosts'), hostsSave: $('rmHostsSave'), warm: $('rmWarm'), nextTitle: $('rmNextTitle'), nextAt: $('rmNextAt'),
       start: $('rmStart'), end: $('rmEnd'), rec: $('rmRec'), status: $('rmStatus'), note: $('rmNote'), reps: $('rmReplays'), who: $('rmWho'), last: $('rmLast'), still: $('rmStill') };
-    this.wire(); this.syncCtl(); this.loadReplays(); this.loadWho();
+    this.wire(); this.syncCtl(); this.loadReplays(); this.loadWho(); paintNext();
   },
   wire() {
     const e = this.els;
@@ -246,6 +261,18 @@ const host = {
     saveField(e.title, document.getElementById('rmTitleSaved'), 'title');
     saveField(e.hostName, document.getElementById('rmHostSaved'), 'host_name');
     saveField(e.max, document.getElementById('rmMaxSaved'), 'max_participants', (s) => { const n = parseInt(s, 10); return Number.isInteger(n) && n >= 2 && n <= 500 ? n : null; });
+    /* the three that may be cleared (0054): empty saves null; a bad date saves nothing and says so */
+    const saveNullable = (input, savedEl, col, toValue) => input.addEventListener('change', async () => {
+      const v = toValue ? toValue(input.value) : (input.value.trim() || null);
+      if (v === undefined) { savedEl.textContent = 'not saved'; return; }
+      const { error } = await sb.from('ea_rooms').update({ [col]: v }).eq('id', this.room.id);
+      if (error) { savedEl.textContent = 'not saved'; return; }
+      this.room[col] = v; state[col] = v; savedEl.textContent = 'Saved'; setTimeout(() => { savedEl.textContent = ''; }, 1800);
+      paintNext();
+    });
+    saveNullable(e.warm, document.getElementById('rmWarmSaved'), 'warmup_q');
+    saveNullable(e.nextTitle, document.getElementById('rmNextSaved'), 'next_title');
+    saveNullable(e.nextAt, document.getElementById('rmNextSaved'), 'next_at', (s) => { if (!s) return null; const t = Date.parse(s); return Number.isFinite(t) ? new Date(t).toISOString() : undefined; });
     if (e.hostsSave) e.hostsSave.addEventListener('click', async () => {
       const lines = e.hosts.value.split(/\n/).map((s) => s.trim()).filter(Boolean);
       e.hostsSave.disabled = true;
@@ -454,3 +481,4 @@ switch (branch) {
   default:
     card('<h3>The room could not load.</h3><p>' + esc(stateErr && stateErr.message ? stateErr.message : 'Reload to try again.') + '</p>');
 }
+try { paintNext(); } catch (e) { console.warn('[ht room] next session', e); }   /* every card: the host's next session, when there is one */
