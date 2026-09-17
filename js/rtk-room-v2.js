@@ -35,7 +35,7 @@ let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
    create(ctx) → { start, stop, onBind? }. The room hands each the same ctx (tabs, bar, stage, channels,
    the class's key) and never lets one break the class: a plugin that throws is dropped with a console
    line. The list is by room kind so the same feature lights up an Academy room later. */
-const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster', 'help', 'scoring', 'chapters', 'board'], room: ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board'], team: ['presence', 'reactions', 'roster', 'help', 'board'] };
+const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster', 'help', 'scoring', 'chapters', 'board'], room: ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board'], team: ['presence', 'reactions', 'roster', 'help', 'board', 'teamroom', 'showcase'] };
 const pluginMods = {};
 async function loadPlugin(name) {
   if (pluginMods[name] !== undefined) return pluginMods[name];
@@ -176,27 +176,34 @@ export async function mountRoomV2(o) {
      Leave leaves, whoever you are; End is its own action) */
   /* derived once; nothing below reads target.session again */
   const isRoom = target.kind === 'room';
-  const session = isRoom ? null : target.session;
+  const isTeam = target.kind === 'team';
+  const isSession = !isRoom && !isTeam;   /* an OPIL session: the only target that carries a session row */
+  const session = isSession ? target.session : null;
   const words = target.words || (isRoom ? copy.ROOM_WORDS : copy.OPIL_WORDS);
   const logo = (target.logo && target.logo.src) ? target.logo : null;   /* { src, alt, height? } or nothing */
   const mark = (target.mark && target.mark.src) ? target.mark : logo;   /* the strip's small mark; the logo when none */
-  const label = isRoom ? target.title : copy.sessLabel(session) + ' · ' + session.title;
-  const title = isRoom ? target.title : session.title;
+  const label = isSession ? copy.sessLabel(session) + ' · ' + session.title : target.title;
+  const title = isSession ? session.title : target.title;
   /* the day and time in the viewer's own clock (0039 stores Atlanta wall time; null time = not announced —
      the old page said "7:00 PM" for every session, which was wrong for the 6:30 kickoff) */
-  const when = isRoom ? null : copy.classWhen({ date: session.session_date, start: session.start_time, end: session.end_time });
+  /* a team room has no date and no start: the page hands in target.when ('Open all year' / 'Whenever your team wants') */
+  const when = isSession ? copy.classWhen({ date: session.session_date, start: session.start_time, end: session.end_time }) : (isTeam ? (target.when || null) : null);
   const startsAt = when ? when.startsAt : null;
   /* the join screen's brand row: the Academy mark + name and the partner's logo on a paper-white tile
      (OPIL). A room target may bring its own `brand`; the HT room keeps its `logo` mark as before. */
-  const brand = target.brand || (isRoom ? null : OPIL_BRAND);
+  const brand = target.brand || (isRoom ? null : OPIL_BRAND);   /* a team room is an OPIL surface: the same Academy + AUC row */
   /* "You're joining as <name>" — the name the room will show, from the Lab Hub profile */
   const who = await myName(sb, user);
+  /* a team room has no question line (spec §3, hands off): a hands config that reads nothing and never inserts */
   const hands = isRoom
     ? { table: 'ea_room_hands', col: 'room_id', val: target.id, chan: 'hands-room-' + target.id }
+    : isTeam ? { table: 'ea_opil_hands', col: 'session_no', val: null, chan: 'hands-team-' + target.id, off: true, team: target.id }
     : { table: 'ea_opil_hands', col: 'session_no', val: session.no, chan: 'hands-' + session.no };
   /* OPIL keeps sending meeting_id; the server ignores it now and uses the session's stored one */
-  const joinBody = isRoom ? { room: target.slug || true, key: target.key || null } : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
-  const facilitator = isRoom ? (o.facilitator || words.host) : o.facilitator;
+  const joinBody = isRoom ? { room: target.slug || true, key: target.key || null }
+    : isTeam ? { team: target.id }
+    : (o.meetingId ? { session_no: session.no, meeting_id: o.meetingId } : { session_no: session.no });
+  const facilitator = isRoom ? (o.facilitator || words.host) : (isTeam ? null : o.facilitator);
   mountEl.classList.add('r2host');
   document.body.classList.add('in-room', 'in-room-v2');
 
@@ -334,7 +341,7 @@ export async function mountRoomV2(o) {
   /* the plugins: one ctx, every feature */
   const plugins = [];
   {
-    const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, roomKey: roomKeyFor(target), judge: o.isJudge, admin: o.isAdmin, words, facilitator: facilitator || null, session: isRoom ? null : session, target: isRoom ? target : null, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
+    const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, isTeam, roomKey: roomKeyFor(target), judge: o.isJudge, admin: o.isAdmin, words, facilitator: facilitator || null, session: session, target: isSession ? null : target, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
     for (const name of pluginNames) {
       const mod = pluginMods[name]; if (!mod || typeof mod.create !== 'function') continue;
       try { const p = mod.create(ctx); if (p) { plugins.push(p);
@@ -550,7 +557,7 @@ const ICON = {
 function joinScreen({ label, title, startsAt, when, who, brand, live, host, facilitator, joined, preview, words, isRoom, logo }) {
   const line = copy.joinCopy({ live, host, facilitator, joined, startsAt: live ? null : startsAt }, words);
   const cta = !live && !host ? '' : `<div class="r2-go"><button type="button" class="r2-enter">${host && !live ? 'Start ' + esc(copy.capFirst(words.thing)) + ' →' : 'Enter ' + esc(copy.capFirst(words.thing)) + ' →'}</button>
-      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime. ' + esc(copy.capFirst(words.thing)) + ' is recorded so you can rewatch it.'}</p></div>`;
+      <p class="r2-under">${host ? 'You’ll join with your mic and camera on.' : 'You’ll be muted when you join. You can unmute anytime.' + (words.recorded === false ? '' : ' ' + esc(copy.capFirst(words.thing)) + ' is recorded so you can rewatch it.')}</p></div>`;
   const brandRow = brand
     ? `<div class="r2-jbrand"><img class="r2-mark" src="${esc(brand.mark)}" alt=""><span class="r2-name">${esc(brand.name)}</span></div>${brand.partner ? `<div class="r2-jpartner"><img src="${esc(brand.partner.src)}" alt="${esc(brand.partner.alt)}"></div>` : ''}`
     : (logo ? `<div class="r2-jbrand">${brandMark(logo)}</div>` : '');
@@ -697,7 +704,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     </div>
   </div>`);
   const q = (s) => node.querySelector(s);
-  let m = meeting, recording = !host, pinnedId = null;   /* every class records; students are told so, hosts are told once it actually starts */
+  let m = meeting, recording = !host && words.recorded !== false, pinnedId = null;   /* every class records; students are told so, hosts are told once it actually starts */
 
   /* the strip. No facilitator filed for this session (the AI Thread, a stand-in)? Then whoever holds the
      host preset is teaching — the reader is told a name, never "class in progress". */
@@ -821,6 +828,10 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         ? `<button type="button" class="r2-cta r2-stage-btn"><b>Bring ${esc(nm)} on stage</b><span>${copy.queueOrder(hands).length} in line</span></button>`
         : `<button type="button" class="r2-cta" disabled><b>No one in line</b><span>Questions show up here</span></button>`;
       const b = primary.querySelector('.r2-stage-btn'); if (b) b.addEventListener('click', () => bringOnStage(next));
+    } else if (handsAt.off) {
+      /* a team room: nobody teaches, nobody queues — the big button is the Tools sheet */
+      primary.innerHTML = `<button type="button" class="r2-cta r2-tools-cta"><b>Tools</b><span>Share your screen, whiteboard, effects, captions</span></button>`;
+      primary.querySelector('.r2-tools-cta').addEventListener('click', () => { const tb = q('.r2-tools'); if (tb) tb.click(); });
     } else {
       const pos = copy.queuePosition(hands, uid);
       const ac = copy.askLineCopy(pos);
@@ -891,7 +902,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   const ccTick = setInterval(() => { caps = copy.takeCaption(caps, null, Date.now()); if (ccOn) paintCC(); }, 2000);   /* finals fade on their own; cleared in destroy() */
   if (ccOn) ccOnAt = Date.now();
   syncCC();
-  const loadHands = async () => { const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); if (sg) sg.onHands(); };
+  const loadHands = async () => { if (handsAt.off) { hands = []; renderPrimary(); renderQueue(); if (sg) sg.onHands(); return; } const { data } = await sb.from(handsAt.table).select('*').eq(handsAt.col, handsAt.val).is('done_at', null).order('created_at'); hands = data || []; renderPrimary(); renderQueue(); if (sg) sg.onHands(); };
   async function askQuestion() { const { error } = await sb.from(handsAt.table).insert({ [handsAt.col]: handsAt.val, user_id: uid, kind: 'question' }); if (error && error.code !== '23505') { console.warn('[hands]', error.message); toast('Could not add you to the line. Try again.'); }; await loadHands(); }
   async function leaveLine() { await sb.from(handsAt.table).delete().eq(handsAt.col, handsAt.val).eq('user_id', uid).is('done_at', null); await loadHands(); }
   async function markDone(h) { if (!h) return; await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', h.id); if (pinnedId === h.user_id) { unpin(); } await loadHands(); }
@@ -912,12 +923,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   }
   function unpin() { try { m.participants.joined.toArray().forEach(x => { if (x.isPinned) x.unpin(); }); } catch (e) {} pinnedId = null; }
   let handsChan = null, handsTimer = null;
-  const watchHands = () => { try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} handsTimer = setInterval(loadHands, 15000); };
+  const watchHands = () => { if (handsAt.off) return; try { handsChan = sb.channel(handsAt.chan).on('postgres_changes', { event: '*', schema: 'public', table: handsAt.table, filter: handsAt.col + '=eq.' + handsAt.val }, loadHands).subscribe(); } catch (e) {} handsTimer = setInterval(loadHands, 15000); };
   /* Small groups: the board in Tools, the clock in the strip, Ask for help + notes inside a room */
   if (sgMod) {
     try {
       sg = sgMod.createSmallGroups({
-        sb, copy, el, esc, key: isRoom ? 'room-' + handsAt.val : String(handsAt.val), isRoom, words, host, uid, rootId,
+        sb, copy, el, esc, key: isRoom ? 'room-' + handsAt.val : handsAt.off ? 'team-' + handsAt.team : String(handsAt.val), isRoom, words, host, uid, rootId,
         getMeeting: () => m, myIdIn, toast, confirmInline, facilitator: facilitator || null,
         hands: { rows: () => hands, load: loadHands, table: handsAt.table, col: handsAt.col, val: handsAt.val },
         onTick: () => { try { setNow(); } catch (e) {} },
@@ -930,7 +941,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   /* Files for the class: the Files tab and the stage overlay (OPIL sessions; the Academy/HT rooms have no materials table) */
   if (resMod && !isRoom && q('.r2-files')) {
     try {
-      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em'), onShow: (title) => { try { hooks.emit('file', title); } catch (e) {} }, getPlugins: () => hooks.plugins || [] });
+      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, roomKey: handsAt.off ? 'team:' + handsAt.team : null, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em'), onShow: (title) => { try { hooks.emit('file', title); } catch (e) {} }, getPlugins: () => hooks.plugins || [] });
     } catch (e) { res = null; }
   }
 

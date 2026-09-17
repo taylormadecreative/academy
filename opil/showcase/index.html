@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=e7ee5e5760">
+<link rel="stylesheet" href="/css/build-mode.css?v=c2cd4413db">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .sc-hero{background:var(--navy);color:#9fb0d4;padding-block:clamp(56px,7vw,100px)}
@@ -22,7 +22,7 @@
 .sc-empty{text-align:center;padding:clamp(48px,7vw,90px) 20px;color:var(--muted)}
 .sc-empty b{display:block;font-family:var(--display);font-size:clamp(20px,2.4vw,28px);color:var(--ink);margin-bottom:10px}
 </style>
-<link rel="stylesheet" href="/opil/hub/hub.css?v=e7ee5e5760">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=c2cd4413db">
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
@@ -45,7 +45,7 @@ First deliverables arrive with the fall track. Check back after the Business Ide
 </div>
 </main>
 
-<script src="/js/config.js?v=e7ee5e5760"></script>
+<script src="/js/config.js?v=c2cd4413db"></script>
 <script type="module">
 const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
 const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
@@ -59,7 +59,7 @@ const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE
     if (mount) mount.hidden = false;
     let role = {};
     try { const { data } = await sb.rpc('ea_opil_my_role'); role = data || {}; } catch (_) {}
-    const { nav } = await import('/opil/hub/hub.js?v=e7ee5e5760');
+    const { nav } = await import('/opil/hub/hub.js?v=c2cd4413db');
     let teamId = null; try { const { data } = await sb.rpc('ea_opil_my_team'); teamId = data || null; } catch (_) {}
     nav({ isAdmin: !!role.admin, isJudge: !!role.judge,
           facSessions: role.facilitator_sessions || [], teamId }, 'showcase');
@@ -67,16 +67,22 @@ const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE
 })();
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const { data } = await sb.from('ea_opil_showcase').select('*').order('created_at', { ascending: false });
+const [{ data: pages }, { data }] = await Promise.all([
+  sb.from('ea_opil_showcase_team').select('slug, name, school, tagline').order('published_at', { ascending: false }),
+  sb.from('ea_opil_showcase').select('*').order('created_at', { ascending: false }),
+]);
 const byTeam = {};
+(pages || []).forEach(p => { byTeam[p.name] = { school: p.school, slug: p.slug, tagline: p.tagline, items: [] }; });
 (data || []).forEach(d => { (byTeam[d.team] = byTeam[d.team] || { school: d.school, items: [] }).items.push(d); });
 const teams = Object.keys(byTeam);
 if (!teams.length) {
   document.getElementById('empty').style.display = '';
 } else {
   document.getElementById('grid').innerHTML = teams.map(t => `
-    <div class="sc-card"><div class="tm">${esc(t)}</div><div class="sch">${esc(byTeam[t].school || '')}</div>
-    ${byTeam[t].items.map(i => `<div class="it">${esc(i.title)}${i.link_url ? ` &middot; <a href="${esc(i.link_url)}" target="_blank" rel="noopener">view</a>` : ''}</div>`).join('')}</div>`).join('');
+    <div class="sc-card"><div class="tm">${byTeam[t].slug ? `<a href="/opil/showcase/team/?t=${esc(byTeam[t].slug)}" style="color:inherit;text-decoration:none">${esc(t)}</a>` : esc(t)}</div><div class="sch">${esc(byTeam[t].school || '')}</div>
+    ${byTeam[t].tagline ? `<div class="it">${esc(byTeam[t].tagline)}</div>` : ''}
+    ${byTeam[t].items.map(i => `<div class="it">${esc(i.title)}${i.link_url ? ` &middot; <a href="${esc(i.link_url)}" target="_blank" rel="noopener">view</a>` : ''}</div>`).join('')}
+    ${byTeam[t].slug ? `<div class="it"><a href="/opil/showcase/team/?t=${esc(byTeam[t].slug)}">See the team's page &rarr;</a></div>` : ''}</div>`).join('');
 }
 </script>
 </body></html>

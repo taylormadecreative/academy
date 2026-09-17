@@ -13,7 +13,11 @@ const ACCEPT = '.pdf,.ppt,.pptx,.key,.doc,.docx,.pages,.txt,.md,.xls,.xlsx,.csv,
 const inlinePdfOk = () => { try { return navigator.pdfViewerEnabled !== false && !matchMedia('(max-width:720px), (pointer:coarse)').matches; } catch (e) { return false; } };
 const canShareScreen = () => { try { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) { return false; } };
 
-export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMeeting, toast, paneEl, stageEl, countEl, onShow, getPlugins }) {
+export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, host, getMeeting, toast, paneEl, stageEl, countEl, onShow, getPlugins }) {
+  /* roomKey ('team:<uuid>', 0045) scopes everything to a class key; without it the session number scopes it as before */
+  const scoped = (qb) => roomKey ? qb.eq('room_key', roomKey) : qb.eq('session_no', sessionNo);
+  const scopeId = String(roomKey || sessionNo).replace(/[^\w-]/g, '-');
+  const forWhom = roomKey && roomKey.startsWith('team:') ? 'your team' : 'everyone in the class';
   let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null, lastBeat = 0, watchdog = null;
   const nameCache = new Map();
   const m = () => getMeeting();
@@ -32,7 +36,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
   /* ---- the list ---- */
   async function load() {
     try {
-      const { data } = await sb.from('ea_opil_materials').select('id, title, kind, link_url, file_path, uploaded_by, created_at').eq('session_no', sessionNo).order('created_at', { ascending: false });
+      const { data } = await scoped(sb.from('ea_opil_materials').select('id, title, kind, link_url, file_path, uploaded_by, created_at')).order('created_at', { ascending: false });
       rows = data || [];
     } catch (e) { rows = []; }
     await resolveNames(rows.map(r => r.uploaded_by));
@@ -89,9 +93,9 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     try {
       const up = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });
       if (up.error) throw up.error;
-      const ins = await sb.from('ea_opil_materials').insert({ session_no: sessionNo, title: file.name.slice(0, 200), kind: 'resource', file_path: path, uploaded_by: uid });
+      const ins = await sb.from('ea_opil_materials').insert({ session_no: roomKey ? null : sessionNo, room_key: roomKey || null, title: file.name.slice(0, 200), kind: 'resource', file_path: path, uploaded_by: uid });
       if (ins.error) { try { await sb.storage.from(BUCKET).remove([path]); } catch (e) {} throw ins.error; }
-      busyLine(null); toast(file.name + ' is up — everyone in the class can download it.', 6000);
+      busyLine(null); toast(file.name + ' is up — ' + forWhom + ' can download it.', 6000);
       await load();
     } catch (e) {
       console.warn('[files] upload', e); busyLine(null);
@@ -138,11 +142,11 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
   function start() {
     startWatchdog();
     try {
-      chan = sb.channel('res-' + sessionNo, { config: { broadcast: { self: true } } });
+      chan = sb.channel('res-' + scopeId, { config: { broadcast: { self: true } } });
       chan.on('broadcast', { event: 'res' }, (msg) => handle(msg && msg.payload));
       chan.subscribe();
     } catch (e) { chan = null; }
-    try { matsChan = sb.channel('mats-' + sessionNo).on('postgres_changes', { event: '*', schema: 'public', table: 'ea_opil_materials', filter: 'session_no=eq.' + sessionNo }, () => load()).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'ea_opil_materials' }, () => load()).subscribe(); } catch (e) {}   /* a DELETE carries no session_no, so it is heard unfiltered */
+    try { matsChan = sb.channel('mats-' + scopeId).on('postgres_changes', { event: '*', schema: 'public', table: 'ea_opil_materials', filter: roomKey ? 'room_key=eq.' + roomKey : 'session_no=eq.' + sessionNo }, () => load()).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'ea_opil_materials' }, () => load()).subscribe(); } catch (e) {}   /* a DELETE carries no session_no, so it is heard unfiltered */
     poll = setInterval(load, 20000);
     load();
   }
