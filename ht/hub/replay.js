@@ -60,17 +60,20 @@ function showPane(name) {
 const idle = (title, text, extra) => { $('idle').innerHTML = `<b>${esc(title)}</b><span>${esc(text)}</span>` + (extra || ''); };
 const emptyPanes = (text) => root.querySelectorAll('.rp-pane').forEach((p) => { p.innerHTML = `<div class="rp-empty">${esc(text)}</div>`; });
 
+/* the page: a gate that stops here returns quietly — the card it painted is the page (a throw would reject the
+   module import, and ht.js would log it as a failure to load) */
+async function page() {
 /* ---- who may see what ---- */
 if (!state || !state.id) {
   idle('The replay page could not load', stateErr && stateErr.message ? stateErr.message : 'Reload to try again.');
   emptyPanes('Nothing to show until the page loads.');
-  throw new Error('no room state');
+  return;
 }
 if (!user) {
   idle('Sign in to watch the replay', 'Use the email you joined with — a six-digit code, no password.',
     `<a class="btn ht-gold" style="margin-top:14px" href="/login/?next=${encodeURIComponent('/ht/hub/replay/')}">Sign in</a>`);
   emptyPanes('Sign in to see the chapters, the summary, the files and the transcript.');
-  throw new Error('signed out');
+  return;
 }
 const key = 'room:' + state.id, staff = !!state.is_host;
 let replay = null;
@@ -89,10 +92,9 @@ if (!replay) {
 }
 
 /* ---- the lesson rows, loading while the player sets up ----
-   A guest's replay row has no created_at (it came through the state); the newest PUBLISHED replay's start is the
-   clock the chapters and the transcript line up from, read through replays_published_read-style access — for a
-   room that is the state itself, so the second query is the host's only; a guest lines up from the events'
-   first timestamp when no start is known (chapterOffsets handles a null start: it shows the labels, no clocks). */
+   The offsets count from the replay's start. A host's replay row carries created_at; a guest's came through the
+   state with no clock, so the guest's chapters line up from the first event or transcript line of the session
+   (a few seconds after the recording began — close enough to tap into). */
 const lessonLoad = Promise.all([
   sb.from('ea_class_events').select('id, at, kind, label, data').eq('room_key', key).order('at').order('id').limit(1000),
   sb.from('ea_class_summaries').select('summary, assignments, chapters, updated_at').eq('room_key', key).maybeSingle(),
@@ -235,3 +237,5 @@ function paintTranscript() {
   draw();
 }
 paintTranscript();
+}
+await page();
