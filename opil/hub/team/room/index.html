@@ -90,6 +90,9 @@ let isStaffTeam = false;
 if (myTeam && (isAdmin || isJudge || (facSessions && facSessions.length))) {
   try { const { data } = await sb.from('ea_opil_teams').select('is_staff').eq('id', myTeam).maybeSingle(); isStaffTeam = !!(data && data.is_staff); } catch (e) { console.warn('[teamroom] my team', e); }
 }
+/* declared BEFORE the branch below: it awaits openRoom, whose callbacks set these — a `let` further down is still in
+   its dead zone then (9/17: Enter in the team room threw "Cannot access 'inRoom' before initialization") */
+let room = null, inRoom = false, closing = false;
 const b = teamRoomBranch({ teamId: myTeam, isStaffTeam, isAdmin, isJudge, facSessions, query: location.search });
 if (b.branch === 'no_team') {
   showCard('<span class="tm-k">Not yet</span><h2>You’re not on a team yet.</h2>' +
@@ -117,7 +120,6 @@ async function pickTeam() {
 }
 
 /* ---------- the room ---------- */
-let room = null, inRoom = false, closing = false;
 async function openRoom(id) {
   let team = null;
   try { const { data, error } = await sb.from('ea_opil_teams').select('id, name, school, is_staff').eq('id', id).maybeSingle(); if (error) console.warn('[teamroom] team', error.message); team = data || null; } catch (e) { console.warn('[teamroom] team', e); }
