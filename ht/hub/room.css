@@ -25,7 +25,7 @@
 .r2-chip b{font-size:14px;font-weight:700}
 .r2-chip span{font-size:12px;color:#F7E3B8}
 .r2-chip.on{border-color:rgba(148,204,171,.7)}
-.r2-chip.on b::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#94CCAB;margin-right:7px;vertical-align:1px}
+.r2-chip.on b::before{content:none}   /* no dot: the sage border and the words say it is on */
 .r2-chip.r2-fx{flex:0 0 auto}
 .r2-fxtray{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .r2-fxtray button{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#660100;color:#FFFFFF;font:600 13.5px Inter,sans-serif;cursor:pointer}
@@ -46,14 +46,14 @@
 .r2{display:grid;grid-template-rows:auto 1fr auto;position:relative;min-width:0;max-width:100%;overflow:hidden}
 .r2>*,.r2-main>*,.r2-bar>*{min-width:0}
 .r2-now{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.1);background:#3B0000}
-.r2-dot{width:8px;height:8px;border-radius:50%;background:#94CCAB;animation:r2pulse 1.6s ease-in-out infinite}
+.r2-dot{display:none}   /* no pulsing dot: 'Class is live' is the word */
 /* the strip's small mark (a monogram): 24px tall keeps it inside its minimum reproduction width and legible; never smaller on a phone */
 .r2-now .r2-brand-strip{height:24px;margin:0 6px 0 0;flex:0 0 auto}
 .r2-nowtxt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r2-rec{font-size:12.5px;font-weight:700;color:#FFCC00}
 .r2-rectime{font-variant-numeric:tabular-nums;margin:0 2px}
 .r2.in-breakout .r2-now{background:#660100}
-.r2-rec::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#FA2626;margin-right:6px;animation:r2pulse 1.6s ease-in-out infinite}
+.r2-rec::before{content:none}   /* 'Recording' in gold caps, no red dot */
 .r2-main{display:grid;grid-template-columns:1fr 0;min-height:0;transition:grid-template-columns .2s ease}
 .r2.panel-open .r2-main{grid-template-columns:1fr 340px}
 .r2-stage{min-height:0;position:relative;padding:12px;overflow:hidden}
@@ -191,9 +191,10 @@
 .ht-room-host .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .ht-room-host .row.two{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:10px}
 @media(max-width:720px){.ht-room-host .row.two{grid-template-columns:1fr}}
-.ht-room-host .row.pair{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
-.ht-room-host .row.pair .row{margin:0}
-@media(max-width:720px){.ht-room-host .row.pair{grid-template-columns:1fr}}
+.ht-room-host .row.pair{display:grid;grid-template-columns:1fr 1.5fr;gap:10px}
+.ht-room-host .row.pair .row{margin:0;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:end}
+.ht-room-host .row.pair .row label{min-width:0}
+@media(max-width:720px){.ht-room-host .row.pair,.ht-room-host .row.pair .row{grid-template-columns:1fr}}
 .ht-room-host label{display:grid;gap:5px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#F7E3B8}
 .ht-room-host input,.ht-room-host textarea{font:inherit;font-size:14.5px;color:#3B0000;background:#FFFAEB;border:1px solid #ead9c9;border-radius:10px;padding:10px 12px;min-height:44px;width:100%;box-sizing:border-box;text-transform:none;letter-spacing:0;font-weight:500}
 .ht-room-host input[readonly]{color:#660100}
@@ -215,7 +216,7 @@
 .ht-room-host .status{font-size:13px;color:#F7E3B8}
 .ht-room-host .status.live{color:#94CCAB;font-weight:700}
 .ht-room-host #rmRec{font-size:12.5px;font-weight:700;color:#FFCC00}
-.ht-room-host #rmRec{letter-spacing:.06em;text-transform:uppercase}
+.ht-room-host #rmRec{letter-spacing:.1em;text-transform:uppercase;font-size:12px}
 .ht-room-host .saved{font-size:12px;color:#94CCAB;font-weight:600;text-transform:none;letter-spacing:0}
 .ht-room-host p.note{font-size:14px;color:#F7E3B8;margin:0;line-height:1.55}
 .ht-room-host h4{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:#FFCC00;margin:6px 0 0}
@@ -235,11 +236,65 @@ body.in-room #room{border-radius:0;border:0;box-shadow:none;margin:0}
 body.in-room #room .hd{display:none}
 body.in-room #rtkMount.r2host:not(:empty){height:calc(100dvh - 16px);min-height:0;border-radius:12px}
 
-/* Next session (0054): the host's title and time above whichever card shows, three ways onto a calendar */
-.ht-room-next{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0 0 12px;padding:12px 16px;border:1px solid var(--ht-ember);border-radius:14px;background:#fff;font-size:14.5px;color:var(--ht-terra)}
-.ht-room-next .k{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ht-brick)}
-.ht-room-next b{color:var(--ht-mahogany)}
-.ht-room-next .add{margin-left:auto}
-.ht-room-next .add a{color:var(--ht-maroon);font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+/* Next session (0054): the host's title and time as the card's own strip (it sits inside .hc.dark), and three ways
+   onto a calendar on their own line; the state word wears the same register as the hub's .flag */
+.ht-room-next{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:0;padding:12px 22px;border:0;border-bottom:1px solid rgba(255,255,255,.1);border-radius:0;background:var(--ht-mahogany);font-size:14px;color:var(--ht-ember)}
+.ht-room-next .k{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ht-gold);line-height:1.2}
+.ht-room-next b{color:#fff}
+.ht-room-next .add{flex-basis:100%;margin:0;color:#C09780}
+.ht-room-next .add a{color:var(--ht-gold);font-weight:700;min-height:44px;padding:0 6px;margin:0 -6px;display:inline-flex;align-items:center;text-decoration:underline;text-underline-offset:3px}
+.ht-room-next .add a:focus-visible{outline:2px solid var(--ht-gold);outline-offset:2px}
 body.in-room .ht-room-next,body.in-room-v2 .ht-room-next{display:none}
-@media(max-width:600px){.ht-room-next .add{margin-left:0;flex-basis:100%}}
+
+
+/* ================= the class plugins inside HT's room (0054): Files, the stage overlay, the warm-up card, the
+   whiteboard — the shared sheets paint Academy navy/gold; these carry the same shapes in HT's colors.
+   Files + the overlay are ported from css/rtk-room-v2.css (the fork had no rules for them). ================= */
+.r2-files{display:grid;gap:12px}
+.r2-files-head .r2-btn.r2-file-add{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:60px;padding:10px 16px;border-radius:14px;text-align:left;width:100%;background:#FFCC00;color:#3B0000;border-color:#FFCC00}
+.r2-files-head .r2-btn.r2-file-add b{color:#3B0000}.r2-files-head .r2-btn.r2-file-add span{font-size:12.5px;opacity:.85;white-space:normal;color:#3B0000}
+.r2-file-busy{font-size:13.5px;color:#FFCC00;padding:6px 2px}
+.r2-file-list{display:grid;gap:8px}
+.r2-file{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px}
+.r2-file-kind{font:700 10.5px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#3B0000;background:#FFCC00;border-radius:6px;padding:4px 6px;min-width:34px;text-align:center}
+.r2-file-kind.k-slides{background:#FAA88A}.r2-file-kind.k-doc{background:#F7E3B8}.r2-file-kind.k-sheet{background:#94CCAB}.r2-file-kind.k-image,.r2-file-kind.k-file,.r2-file-kind.k-link,.r2-file-kind.k-video{background:#F7E3B8}
+.r2-file-who{min-width:0}.r2-file-who b{display:block;font-size:14px;overflow-wrap:anywhere}.r2-file-who span{font-size:12.5px;color:#C09780}
+.r2-file-actions{grid-column:1 / -1;display:flex;gap:6px;flex-wrap:wrap}
+.r2-file-actions .r2-mini{min-height:48px;text-decoration:none;display:inline-flex;align-items:center}
+.r2-file-x{margin-left:auto;color:#FAA88A;border-color:rgba(250,38,38,.5)}
+.r2-pane[data-pane="files"] .r2-files{flex:1;min-height:0;overflow:auto;padding:10px}
+.r2-show{position:absolute;inset:12px;z-index:4;display:flex;flex-direction:column;background:#3B0000;border:1px solid rgba(255,204,0,.5);border-radius:14px;overflow:hidden}
+.r2-show[hidden]{display:none}
+.r2-show.collapsed{inset:12px 12px auto 12px;height:auto}
+.r2-show-bar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#291C14;border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap}
+.r2-show-line{flex:1;min-width:0;font:600 14px Inter,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r2-show-actions{display:flex;gap:6px;flex-wrap:wrap}
+.r2-show-actions .r2-mini{min-height:48px}
+.r2-show-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#291C14}
+.r2-show-body iframe{width:100%;height:100%;border:0;background:#fff}
+.r2-show-body img{max-width:100%;max-height:100%;object-fit:contain}
+.r2-show-body[hidden]{display:none}
+.r2-show-card{padding:24px;text-align:center;max-width:52ch}.r2-show-card b{display:block;font-size:17px;margin-bottom:6px}.r2-show-card span{color:#F7E3B8;font-size:14px;line-height:1.5}
+.r2-show-card .r2-mini{margin-top:12px}
+@media(max-width:720px){.r2-show{inset:8px}.r2-show-line{white-space:normal}}
+/* the warm-up card on the waiting screen (css/rtk-warmup.css is appended after this sheet: carry the mount id) */
+#rtkMount .r2-warm-card,#rtkMount .r2-warm-qline{background:#3B0000;border-color:rgba(255,255,255,.12)}
+#rtkMount .r2-warm-kicker{color:#FFCC00}
+#rtkMount .r2-warm-field span,#rtkMount .r2-warm-a i{color:#C09780}
+#rtkMount .r2-warm-field input,#rtkMount .r2-warm-edit input,#rtkMount .r2-warm-chip{background:#4D0000;border-color:rgba(255,255,255,.16);color:#fff}
+#rtkMount .r2-warm-field input::placeholder,#rtkMount .r2-warm-edit input::placeholder{color:#C09780}
+#rtkMount .r2-warm-save{background:#FFCC00;color:#3B0000;border-color:#FFCC00}
+#rtkMount .r2-warm-status{color:#94CCAB}#rtkMount .r2-warm-status.bad{color:#FAA88A}#rtkMount .r2-warm-cities{color:#F7E3B8}
+/* the whiteboard */
+#rtkMount .r2-overlay.r2-wb{background:#3B0000;border-color:rgba(255,204,0,.5)}
+#rtkMount .r2-wb-bar{background:#291C14}
+#rtkMount .r2-wb .r2-mini[aria-pressed="true"]{background:#FFFAEB;color:#3B0000;border-color:#FFFAEB}
+#rtkMount .r2-wb-tools .r2-mini[aria-pressed="true"]{background:#FFCC00;border-color:#FFCC00;color:#3B0000}
+#rtkMount .r2-wb-scroll{background:#291C14}
+#rtkMount .r2-wb-input{border-color:#FFCC00;background:rgba(59,0,0,.9)}
+#rtkMount .r2-wb-swatch[aria-pressed="true"] i{box-shadow:0 0 0 2px #FFCC00}
+/* Last session: the replay page is the headline — a gold button before the picture, the raw link after it */
+.ht-room-last .ht-room-last-page{display:inline-flex;margin:0 0 12px}
+
+/* on a phone the link field takes the whole row; Copy link / New link sit under it (the field was ~110px wide beside them) */
+@media(max-width:600px){.ht-room-host .row:not(.two):not(.pair) > label{flex:1 1 100%}}

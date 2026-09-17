@@ -268,11 +268,16 @@ const NEXT = (() => {
 if (NEXT) { try { localStorage.setItem("bm_next", JSON.stringify({ p: NEXT, t: Date.now() })); } catch (_) {} }
 const WELCOME_URL = NEXT ? "/welcome/?next=" + encodeURIComponent(NEXT) : "/welcome/";
 // The HT Hub sends its people here (Huston-Tillotson × Taylormade Academy): say whose door this is. Nothing else changes.
-if (NEXT.indexOf("/ht/") === 0) {
+const HT_PATH = NEXT.indexOf("/ht/") === 0;
+if (HT_PATH) {
   $("kick").textContent = "Signing in to the HT Hub";
   $("head").textContent = "Your email, then a six-digit code.";
   $("sub").textContent = "Huston-Tillotson × Taylormade Academy. No password to remember; the first time, you type your name once.";
-  $("signupNote").textContent = "New here? This same box makes your account. No card, no password.";
+  $("signupNote").textContent = "New here? This same box makes your account. Nothing to install, no password.";
+  /* the button says what the head says (the code, not a link); the storefront aside and "Back to store" are not this door */
+  const sb = $("sendBtn"); if (sb) sb.innerHTML = 'Send my code <span class="arr">&rarr;</span>';
+  document.querySelectorAll(".authpanel").forEach((n) => { n.hidden = true; });
+  document.querySelectorAll('a.navlink[href="/store/"]').forEach((a) => { a.textContent = "Back to the HT Hub"; a.setAttribute("href", NEXT); });
 }
 
 const offState  = $("offState");
@@ -385,7 +390,7 @@ if (!CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {
         // already steers to the code, so there is nothing to do there anyway.
         if (NEXT) {
           const setTxt = (id, t) => { const e = $(id); if (e) e.textContent = t; };
-          setTxt("sentLead", "I sent a 6-digit code to");
+          setTxt("sentLead", HT_PATH ? "We sent a 6-digit code to" : "I sent a 6-digit code to");
           setTxt("sentTail", "Type it in below and you will land right back where you started.");
           setTxt("sentOrText", "Or use the link instead");
           setTxt("head", "Check your email for the code.");

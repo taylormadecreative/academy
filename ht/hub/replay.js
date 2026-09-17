@@ -58,11 +58,20 @@ const $ = (id) => document.getElementById(id);
 const pane = (n) => q(`.rp-pane[data-pane="${n}"]`);
 /* a passing message under the player — its own line, gone after a few seconds */
 const toast = (m, ms = 6000) => { const e = $('msg'); e.textContent = m; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, ms); };
-root.querySelectorAll('.rp-tab').forEach((t) => t.addEventListener('click', () => showPane(t.dataset.tab)));
+const TABS = [...root.querySelectorAll('.rp-tab')];
+TABS.forEach((t) => { t.id = 'rpTab-' + t.dataset.tab; t.setAttribute('aria-controls', 'rpPane-' + t.dataset.tab); t.addEventListener('click', () => showPane(t.dataset.tab)); });
+root.querySelectorAll('.rp-pane').forEach((p) => { p.id = 'rpPane-' + p.dataset.pane; p.setAttribute('role', 'tabpanel'); p.setAttribute('aria-labelledby', 'rpTab-' + p.dataset.pane); });
+/* arrow keys move between the tabs, as a tab list should */
+root.querySelector('.rp-tabs').addEventListener('keydown', (e) => {
+  if (!/^Arrow(Left|Right)$/.test(e.key)) return;
+  const i = TABS.findIndex((t) => t.classList.contains('on')); const n = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+  e.preventDefault(); showPane(TABS[n].dataset.tab); TABS[n].focus();
+});
 function showPane(name) {
-  root.querySelectorAll('.rp-tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === name));
+  TABS.forEach((t) => { const on = t.dataset.tab === name; t.classList.toggle('on', on); t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
   root.querySelectorAll('.rp-pane').forEach((p) => { p.hidden = p.dataset.pane !== name; });
 }
+showPane('chapters');
 const idle = (title, text, extra) => { $('idle').innerHTML = `<b>${esc(title)}</b><span>${esc(text)}</span>` + (extra || ''); };
 const emptyPanes = (text) => root.querySelectorAll('.rp-pane').forEach((p) => { p.innerHTML = `<div class="rp-empty">${esc(text)}</div>`; });
 
@@ -76,7 +85,7 @@ if (!state || !state.id) {
   return;
 }
 if (!user) {
-  idle('Sign in to watch the replay', 'Use the email you joined with — a six-digit code, no password.',
+  idle('Sign in to watch the replay', 'Use the email you joined with. We send a six-digit code, no password.',
     `<a class="btn ht-gold" style="margin-top:14px" href="/login/?next=${encodeURIComponent('/ht/hub/replay/')}">Sign in</a>`);
   emptyPanes('Sign in to see the chapters, the summary, the files and the transcript.');
   return;
@@ -180,13 +189,17 @@ paintChapters();
 
 /* summary + assigned (a host may make it; ea-class-summary answers room keys) */
 let busy = false;
+/* Publish on the room card asked for the summary moments ago (room.js): say so, and look again in a little while */
+let pendingSince = 0; try { pendingSince = Number(sessionStorage.getItem('ht-summary-pending')) || 0; } catch (e) {}
+const summaryPending = () => staff && !summaryRow && pendingSince && Date.now() - pendingSince < 3 * 60e3;
+if (summaryPending()) setTimeout(async () => { try { const { data } = await sb.from('ea_class_summaries').select('summary, assignments, chapters, updated_at').eq('room_key', key).maybeSingle(); if (data) { summaryRow = data; pendingSince = 0; paintSummary(); } } catch (e) {} }, 45e3);
 function paintSummary() {
   const p = pane('summary'), a = pane('assigned');
   const lines = summaryRow ? summaryLines(summaryRow.summary) : [];
   const todo = summaryRow ? assignmentList(summaryRow.assignments) : [];
   $('nAsg').textContent = todo.length || '';
   const madeOn = summaryRow && summaryRow.updated_at ? new Date(summaryRow.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
-  const st = roomWords(summaryStateCopy({ row: summaryRow, staff, busy }));
+  const st = summaryPending() ? 'Writing the summary — about half a minute. It shows here on its own; the button below makes it again.' : roomWords(summaryStateCopy({ row: summaryRow, staff, busy }));
   p.innerHTML = (lines.length
       ? `<ul class="rp-lines">${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul><p class="rp-fine">Written from the transcript and the chapters${madeOn ? ' on ' + esc(madeOn) : ''}. Read it as notes, not as the record.</p>`
       : `<div class="rp-empty">${esc(st)}</div>`)
@@ -216,12 +229,14 @@ function paintFiles() {
   const p = pane('files');
   $('nFiles').textContent = materials.length || '';
   if (!materials.length) { p.innerHTML = '<div class="rp-empty">No files were shown in this session. Files a host adds in the room land here.</div>'; return; }
-  p.innerHTML = materials.map((m) => `<div class="rp-file"><span class="rp-kindtag">${esc(m.kind || 'file')}</span>${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener">${esc(m.title)}</a>` : `<a href="#" data-matfile="${esc(m.file_path)}">${esc(m.title)}</a>`}</div>`).join('');
+  const kindWord = (m) => { if (m.link_url) return 'Link'; const ext = /\.([a-z0-9]{2,5})$/i.exec(String(m.title || '')); return ext ? ext[1].toUpperCase() : 'File'; };
+  p.innerHTML = materials.map((m) => `<div class="rp-file"><span class="rp-kindtag">${esc(kindWord(m))}</span>${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener">${esc(m.title)}</a>` : `<a href="#" data-matfile="${esc(m.file_path)}">${esc(m.title)}</a>`}</div>`).join('');
   p.querySelectorAll('[data-matfile]').forEach((a) => a.addEventListener('click', async (ev2) => {
     ev2.preventDefault();
+    const w = window.open('', '_blank');   /* opened inside the tap — Safari refuses a window opened after an await */
     const { data, error } = await sb.storage.from('opil-files').createSignedUrl(a.dataset.matfile, 300);
-    if (error || !data || !data.signedUrl) { console.warn('[replay] file', error && error.message); toast('That file could not be opened right now. Try again in a moment.'); return; }
-    window.open(data.signedUrl, '_blank');
+    if (error || !data || !data.signedUrl) { console.warn('[replay] file', error && error.message); try { if (w) w.close(); } catch (e) {} toast('That file could not be opened right now. Try again in a moment.'); return; }
+    if (w) w.location.href = data.signedUrl; else location.href = data.signedUrl;
   }));
 }
 paintFiles();

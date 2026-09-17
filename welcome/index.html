@@ -245,6 +245,20 @@ const NEXT = (() => {
   } catch (_) { return ''; }
 })();
 let DEST = NEXT || '/community/';
+/* the HT Hub's door (Huston-Tillotson × Taylormade Academy): one thing — the name people in the room will see. The
+   photo and the interests are the community's questions, not the room's; the numbering goes with them. */
+if (NEXT.indexOf('/ht/') === 0) {
+  try {
+    const q = (s) => document.querySelector(s), t = (s, v) => { const e = q(s); if (e) e.textContent = v; };
+    t('#obStep .ob-kick .kicker', 'Almost in');
+    t('#obStep h1.ob-title', 'One thing, then you\u2019re in.');
+    t('#obStep .ob-sub', 'Your name, the way people in the room will see it. You can change it later.');
+    t('#dnHint', 'The name people in the room will see.');
+    document.querySelectorAll('#obStep .ob-row').forEach((r) => { if (!r.querySelector('#dn')) r.hidden = true; });
+    document.querySelectorAll('#obStep .ob-num').forEach((n) => { n.hidden = true; });
+    const b = q('#obSave'); if (b) b.innerHTML = 'Into the room <span class="arr">&rarr;</span>';
+  } catch (_) {}
+}
 /* People the Lab knows land in the Lab, not the community feed: a coordinator on the
    coordinator view, a facilitator on My sessions, a judge on Judging, a seated student on
    the hub. The site admin keeps the community landing. Whole thing try/caught: the Lab can

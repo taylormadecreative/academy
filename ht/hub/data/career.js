@@ -31,7 +31,7 @@ HT.spaces.career = {
       { title: 'The first interview, rehearsed', date: 'Sep 2026', len: '36:20', poster: '/ht/img/fall-convocation.jpg', tag: 'Career Services' },
       { title: 'Your resume, read out loud', date: 'Aug 2026', len: '28:45', poster: '/ht/img/students-library.jpg', tag: 'Career Services' },
       { title: 'Negotiating the first offer', date: 'Apr 2026', len: '41:10', poster: '/ht/img/campus-hero.jpg', tag: 'Alumni panel' },
-      { title: 'Building a business in Austin', date: 'Oct 2026', len: '58:47', poster: '/ht/img/r-retail-street.jpg', tag: 'Guest lecture' } ] },
+      { title: 'Building a business in Austin', date: 'Mar 2026', len: '58:47', poster: '/ht/img/r-retail-street.jpg', tag: 'Guest lecture' } ] },
     { type: 'split', kicker: 'Why a directory', title: 'The work, searchable.',
       text: 'An employer types "Python" or "patient care" and finds a student with a project to show, not a line on a resume. Students choose what appears and can close the tag with one tap.',
       bullets: ['Search by program, skill, or class year', 'Every entry links to the student\'s Showcase work', '"Open to internships" is the student\'s own switch'],
@@ -43,14 +43,14 @@ HT.spaces.career = {
     { type: 'cta', title: 'Bring the employers to the Hill.', text: 'The employer showcase runs each semester in the live room and on campus.', primary: { label: 'The Showcase', href: '/ht/hub/showcase/', style: 'ht-gold' }, secondary: { label: 'The tracks', href: '/ht/hub/learn/', style: 'ht-line' } },
     { type: 'calendar', side: true, title: 'Mock interviews and workshops', meta: 'Sample', items: [
       { date: '2026-10-14', title: 'Mock interviews, round one', where: 'Career Services · by appointment' }, { date: '2026-10-21', title: 'Resume clinic', where: 'The library · walk in' },
-      { date: '2026-10-22', title: 'Building a business in Austin', where: 'Live room · 6:00 PM', tag: 'Live', tagCls: 'live' }, { date: '2026-11-05', title: 'Employer showcase, fall', where: 'The student center' },
+      { date: '2026-10-22', title: 'Building a business in Austin', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2026-11-05', title: 'Employer showcase, fall', where: 'The student center' },
       { date: '2027-02-04', title: 'Mock interviews, round two', where: 'Career Services · by appointment' } ] },
     { type: 'materials', side: true, title: 'Materials', meta: 'Sample', items: [
       { kind: 'DOC', title: 'The HT resume template', sub: 'One page, in the University\'s type', restricted: true }, { kind: 'DOC', title: 'Interview guide', sub: 'Twelve questions and how to answer them', restricted: true },
       { kind: 'PLAY', title: 'Your portfolio page', sub: 'AI Literacy · Session 07', href: '/ht/hub/learn/' } ] },
     { type: 'announcements', side: true, title: 'Career desk', meta: 'Sample', items: [
       { who: 'Career Services', when: 'This week', text: 'Three internship postings from last spring\'s showcase employers are open in the hub.' },
-      { who: 'Career Services', when: 'This week', text: 'Mock interview slots for the 14th are open. Book from the calendar.' },
+      { who: 'Career Services', when: 'This week', text: 'Mock interview slots for October 14 are open. Book from the calendar.' },
       { who: 'Alumni Relations', when: 'Last week', text: 'Alumni-owned businesses posted two part-time roles in the Alumni channel.' } ] }
   ]
 };

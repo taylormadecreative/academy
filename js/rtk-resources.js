@@ -17,7 +17,9 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
   /* roomKey ('team:<uuid>', 0045) scopes everything to a class key; without it the session number scopes it as before */
   const scoped = (qb) => roomKey ? qb.eq('room_key', roomKey) : qb.eq('session_no', sessionNo);
   const scopeId = String(roomKey || sessionNo).replace(/[^\w-]/g, '-');
-  const forWhom = roomKey && roomKey.startsWith('team:') ? 'your team' : roomKey && roomKey.startsWith('room:') ? 'everyone in the room' : 'everyone in the class';
+  const isRoom = !!(roomKey && roomKey.startsWith('room:'));   /* an ea_rooms room (HT, the Academy): sessions, not classes */
+  const forWhom = roomKey && roomKey.startsWith('team:') ? 'your team' : isRoom ? 'everyone in the room' : 'everyone in the class';
+  const toWhom = isRoom ? 'everyone' : 'class';   /* "Show to everyone" / "Show to class" */
   let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null, lastBeat = 0, watchdog = null;
   const nameCache = new Map();
   const m = () => getMeeting();
@@ -50,7 +52,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
       <span class="r2-file-kind k-${esc(kind)}">${kind === 'link' ? 'Link' : esc(copy.KIND_WORD[kind] || 'File')}</span>
       <div class="r2-file-who"><b>${esc(r.title)}</b><span>${mine ? 'You added this' : 'Added by ' + esc(who(r.uploaded_by))}</span></div>
       <div class="r2-file-actions">
-        ${r.file_path ? `<button type="button" class="r2-mini r2-bring" data-show="${esc(r.id)}">${showable ? 'Show to class' : 'Share to class'}</button><button type="button" class="r2-mini" data-dl="${esc(r.id)}">Download</button>${/\.(png|jpe?g|gif|webp)$/i.test(r.title) ? `<button type="button" class="r2-mini" data-board="${esc(r.id)}">Put on the whiteboard</button>` : ''}` : `<a class="r2-mini" href="${esc(r.link_url || '#')}" target="_blank" rel="noopener">Open link</a>`}
+        ${r.file_path ? `<button type="button" class="r2-mini r2-bring" data-show="${esc(r.id)}">${showable ? 'Show to ' + toWhom : (isRoom ? 'Share with everyone' : 'Share to class')}</button><button type="button" class="r2-mini" data-dl="${esc(r.id)}">Download</button>${/\.(png|jpe?g|gif|webp)$/i.test(r.title) ? `<button type="button" class="r2-mini" data-board="${esc(r.id)}">Put on the whiteboard</button>` : ''}` : `<a class="r2-mini" href="${esc(r.link_url || '#')}" target="_blank" rel="noopener">Open link</a>`}
         ${mine || host ? `<button type="button" class="r2-mini r2-file-x" data-rm="${esc(r.id)}" aria-label="Remove ${esc(r.title)}">Remove</button>` : ''}
       </div>
     </div>`;
@@ -67,7 +69,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
         <input type="file" class="r2-file-input" accept="${ACCEPT}" hidden>` : ''}
       </div>
       ${busy ? busy.outerHTML : ''}
-      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : `<div class="r2-empty">${canAdd ? 'No files yet. Add a PDF or your slides and ' + esc(forWhom) + ' can download it — it stays on the hub after class.' : 'No files yet. When your host adds one it shows here to download.'}</div>`}</div>`;
+      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : `<div class="r2-empty">${canAdd ? 'No files yet. Add a PDF or your slides and ' + esc(forWhom) + ' can download it — it stays on ' + (isRoom ? 'the replay page after the session' : 'the hub after class') + '.' : 'No files yet. When your host adds one it shows here to download.'}</div>`}</div>`;
     if (countEl) countEl.textContent = rows.length || '';
     wire(); paneEl.scrollTop = keepTop;
   }

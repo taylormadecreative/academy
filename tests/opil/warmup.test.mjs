@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_QUESTION, CITY_MAX, NAME_MAX, HERE_WINDOW_MS, HERE_PLACEHOLDER,
+  DEFAULT_QUESTION, ROOM_DEFAULT_QUESTION, CITY_MAX, NAME_MAX, HERE_WINDOW_MS, HERE_PLACEHOLDER,
   questionOf, cityWord, citiesLine, alreadyHereCopy, nameOf, hereNames, herePeople, answerRows, answersSummary, savedCopy,
   serial, create, mountWaiting,
 } from '../../js/rtk-warmup.js';
@@ -216,4 +216,15 @@ test('mountWaiting without a container says so and returns a stop()', () => {
   const r = mountWaiting({ sb: stubSb(), el: () => null, esc: (s) => s, uid: 'me', roomKey: 'opil:1', session: null, container: null });
   assert.equal(typeof r.stop, 'function');
   assert.doesNotThrow(() => r.stop());
+});
+
+test('questionOf: a room without a question gets the room default; a room with one keeps it', () => {
+  assert.equal(questionOf({ kind: 'room', warmup_q: null }), ROOM_DEFAULT_QUESTION);
+  assert.equal(questionOf({ kind: 'room', warmup_q: ' Where from? ' }), 'Where from?');
+  assert.equal(questionOf(null).includes('this class'), true, 'an OPIL session keeps its default');
+});
+test('alreadyHereCopy: the words for a room (people, not classmates)', () => {
+  assert.equal(alreadyHereCopy([HERE_PLACEHOLDER], 'person', 'people'), 'A person is already here.');
+  assert.equal(alreadyHereCopy([HERE_PLACEHOLDER, HERE_PLACEHOLDER], 'person', 'people'), '2 people are already here.');
+  assert.equal(alreadyHereCopy([HERE_PLACEHOLDER]), 'A classmate is already here.', 'OPIL unchanged');
 });

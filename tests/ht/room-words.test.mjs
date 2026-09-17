@@ -2,7 +2,7 @@
 // The words and colors that make the Academy room HT's. Pure module, no DOM.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, ROOM_KEY_STORE, ROOM_KEY_MAX_AGE_MS, nextSessionLine, calendarLinks } from '../../ht/hub/room-words.js';
+import { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, ROOM_KEY_STORE, ROOM_KEY_MAX_AGE_MS, nextSessionLine, calendarLinks, nextSessionWhen } from '../../ht/hub/room-words.js';
 import { KEY_RX } from '../../js/room-page.js';
 import { OPIL_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
@@ -177,11 +177,18 @@ test('nextSessionLine: nothing, past, and a session ahead', () => {
 test('calendarLinks: Google, Outlook and an .ics carry the title, the hour and the room link', () => {
   const l = calendarLinks({ title: 'Fall Briefing', startIso: '2026-10-08T17:00:00.000Z', roomUrl: 'https://taylormadeacademy.com/ht/hub/live/' });
   assert.match(l.google, /^https:\/\/calendar\.google\.com\/calendar\/render\?action=TEMPLATE&text=Fall%20Briefing&dates=20261008T170000Z%2F20261008T180000Z&details=.*ht%2Fhub%2Flive/);
-  assert.match(l.outlook, /^https:\/\/outlook\.live\.com\/calendar\/0\/deeplink\/compose\?.*startdt=2026-10-08T17%3A00%3A00\.000Z.*enddt=2026-10-08T18%3A00%3A00\.000Z/);
+  assert.match(l.outlook, /^https:\/\/outlook\.office\.com\/calendar\/0\/deeplink\/compose\?.*startdt=2026-10-08T17%3A00%3A00\.000Z.*enddt=2026-10-08T18%3A00%3A00\.000Z/);
   assert.match(l.ics, /^data:text\/calendar;charset=utf-8,/);
   const ics = decodeURIComponent(l.ics.split(',')[1]);
   assert.match(ics, /BEGIN:VEVENT\r\nUID:[^\r]+\r\nDTSTAMP:\d{8}T\d{6}Z\r\nDTSTART:20261008T170000Z\r\nDTEND:20261008T180000Z\r\nSUMMARY:Fall Briefing\r\nDESCRIPTION:Join at https:\/\/taylormadeacademy\.com\/ht\/hub\/live\/\r\nURL:https:\/\/taylormadeacademy\.com\/ht\/hub\/live\/\r\nEND:VEVENT/);
   assert.match(ics, /^BEGIN:VCALENDAR\r\nVERSION:2\.0\r\n/);
   const l2 = calendarLinks({ title: 'A; B, C', startIso: '2026-10-08T17:00:00.000Z', roomUrl: 'https://x.test/', minutes: 90 });
   assert.match(decodeURIComponent(l2.ics.split(',')[1]), /DTEND:20261008T183000Z\r\nSUMMARY:A\\; B\\, C/, 'ics text escaping and the duration');
+});
+
+test('nextSessionWhen: the join screen cells for a room — day, time, today', () => {
+  const now = Date.parse('2026-10-01T12:00:00-05:00');
+  assert.equal(nextSessionWhen({}, now), null);
+  assert.deepEqual(nextSessionWhen({ next_title: 'Fall Briefing', next_at: '2026-10-08T17:00:00Z' }, now), { day: 'Thu, Oct 8', time: '12:00 PM CT', startsAt: '12:00 PM CT', today: false });
+  assert.equal(nextSessionWhen({ next_at: '2026-10-01T22:00:00Z' }, now).today, true, 'later today, Central');
 });

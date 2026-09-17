@@ -298,6 +298,8 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   ok('9a next_at saved as an ISO instant', ups.some(u => typeof u.next_at === 'string' && /^2099-10-08T\d\d:00:00\.000Z$/.test(u.next_at)), JSON.stringify(ups));
   ok('9a the Next session line appears with three calendar links', (await p.locator('.ht-room-next a').count()) === 3 && /Fall Briefing/.test(await text(p, '.ht-room-next')), await text(p, '.ht-room-next'));
   ok('9a the .ics link is a data: calendar with the title', /^data:text\/calendar/.test(await p.getAttribute('.ht-room-next a', 'href')) && /SUMMARY%3AFall%20Briefing/.test(await p.getAttribute('.ht-room-next a', 'href')));
+  await p.fill('#rmNextAt', '2000-01-01T12:00'); await p.dispatchEvent('#rmNextAt', 'change'); await p.waitForTimeout(150);
+  ok('9a a time that has passed is refused in words, nothing saved', /passed/.test(await text(p, '#rmNextAtSaved')) && !(await p.evaluate(() => window.__calls.filter(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update').some(c => typeof c[4].next_at === 'string' && c[4].next_at.startsWith('2000')))));
   await p.fill('#rmNextAt', ''); await p.dispatchEvent('#rmNextAt', 'change'); await p.waitForTimeout(150);
   ok('9a clearing the date saves null and takes the line down', (await p.evaluate(() => window.__calls.filter(c => c[0] === 'from' && c[1] === 'ea_rooms' && c[2] === 'update').some(c => c[4].next_at === null))) && (await p.locator('.ht-room-next').count()) === 0);
   ok('9a no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
@@ -305,6 +307,10 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
 { const { p, errs } = await page({ state: { ...base, next_title: 'Fall Briefing', next_at: '2099-10-08T17:00:00Z', warmup_q: 'Where from?' }, session: sess, room, replays: [], members: [], profiles: [] });
   ok('9b guest: the line shows title and time', /Fall Briefing/.test(await text(p, '.ht-room-next')) && /Oct 8/.test(await text(p, '.ht-room-next')), await text(p, '.ht-room-next'));
   ok('9b guest: no page errors', errs.length === 0, errs.join(' | ')); await p.close();
+  /* while the session runs, the card's own headline leads and the line sits under it */
+  const { p: pl } = await page({ state: { ...base, is_live: true, next_title: 'Fall Briefing', next_at: '2099-10-08T17:00:00Z' }, room, session: null, replays: [], members: [], profiles: [] });
+  ok('9b live: the line comes after the card', await pl.evaluate(() => { const n = document.querySelector('.ht-room-next'), c = document.querySelector('.ht-room-ctl'); return !!n && !!c && !!(c.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING); }));
+  await pl.close();
   const { p: p2 } = await page({ state: { ...base, next_title: 'Old', next_at: '2000-01-01T17:00:00Z' }, session: sess, room, replays: [], members: [], profiles: [] });
   ok('9b guest: a past next session is not shown', (await p2.locator('.ht-room-next').count()) === 0); await p2.close(); }
 /* 10 the replay page (/ht/hub/replay/): a host sees the draft with chapters, summary, assigned, the file and the transcript

@@ -32,11 +32,11 @@ HT.spaces.showcase = {
       { em: 'Step three', h: 'It lands on the donor\'s page', p: 'When a gift funded the cohort, the same card appears on the donor\'s page, the day it is posted here.' } ] },
     { type: 'cta', title: 'The students a gift reached.', text: 'This is the page a donor opens after the thank-you. Fund a cohort and it fills in.', primary: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-gold' }, secondary: { label: 'The Advancement space', href: '/ht/hub/advancement/', style: 'ht-line' } },
     { type: 'timeline', side: true, title: 'The showcase season', meta: 'Sample dates', items: [
-      { when: 'Nov 2', title: 'AI Literacy showcase rehearsal', text: 'Session 08, in the live room.', done: false }, { when: 'Dec 4', title: 'Fall showcase', text: 'The auditorium. Donors invited.', done: false },
+      { when: 'Dec 1', title: 'AI Literacy showcase rehearsal', text: 'Session 08, in the live room.', done: false }, { when: 'Dec 4', title: 'Fall showcase', text: 'The auditorium. Donors invited.', done: false },
       { when: 'Jan 19', title: 'Research call for entries', text: 'Faculty mentors nominate.', done: false }, { when: 'Feb 12', title: 'Entries close', text: 'Posters submitted in the hub.', done: false },
-      { when: 'Mar 12', title: 'Submission freeze', text: 'Judges receive the packet.', done: false }, { when: 'Mar 19', title: 'Research showcase', text: 'Judging live, scores posted here.', done: false } ] },
+      { when: 'Apr 2', title: 'Submission freeze', text: 'Judges receive the packet.', done: false }, { when: 'Apr 9', title: 'Research showcase', text: 'Judging live, scores posted here.', done: false } ] },
     { type: 'announcements', side: true, title: 'Showcase desk', meta: 'Sample', items: [
-      { who: 'Academic Affairs', when: 'This week', text: 'The research showcase is March 19. Mentors can nominate from January 19.' },
+      { who: 'Academic Affairs', when: 'This week', text: 'The research showcase is April 9. Mentors can nominate from January 19.' },
       { who: 'AI Literacy', when: 'This week', text: 'Two more sample projects posted. Both students gave permission first.' },
       { who: 'Advancement', when: 'Last week', text: 'A funded cohort\'s projects appear on that donor\'s page the day they post here.' } ] },
     { type: 'notice', side: true, tone: 'maroon', html: '<b>Permission first.</b> Nothing appears here without the student\'s written permission through the University\'s own process. First names only. Never a grade.' }

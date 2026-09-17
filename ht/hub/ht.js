@@ -186,7 +186,7 @@
   function dnum(v) { return +String(v || '').replace(/-/g, '') || 0; }
   function today() { var d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var KIND = { exam: ['Exams', 'live'], deadline: ['Deadline', ''], closed: ['No classes', 'soft'], ceremony: ['Ceremony', 'green'], registration: ['Registration', 'soft'], advising: ['Advising', 'soft'], housing: ['Housing', 'soft'], term: ['Term', 'soft'] };
+  var KIND = { exam: ['Exams', ''], deadline: ['Deadline', ''], closed: ['No classes', 'soft'], ceremony: ['Ceremony', 'green'], registration: ['Registration', 'soft'], advising: ['Advising', 'soft'], housing: ['Housing', 'soft'], term: ['Term', 'soft'] };
   /* past | now (today falls inside it) | ahead */
   function whenOf(d, end) { var t = today(), a = dnum(d), b = dnum(end) || a; return b < t ? 'past' : (a <= t ? 'now' : 'ahead'); }
   function longDate(d, end) {

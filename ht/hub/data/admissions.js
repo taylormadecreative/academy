@@ -18,10 +18,10 @@ HT.spaces.admissions = {
       { who: 'Residence life desk (sample)', chan: 'Housing', when: 'This week', text: 'Housing forms open April 1. You pick a hall and a roommate preference in the hub. We answer here the same day.', likes: 41 },
       { who: 'Financial aid desk (sample)', chan: 'Financial aid Q&A', when: 'Last week', text: 'Award letters go out the last week of March. If yours has a line you do not understand, message your counselor and we will read it with you.', likes: 52 },
       { who: 'Ms. Robinson (parent, sample)', chan: 'Parents', when: 'Last week', text: 'Is there a session for parents who have never done this before? First one in our family.', likes: 33 },
-      { who: 'Admissions', chan: 'Parents', when: 'Last week', text: 'Yes. First-generation family night is March 18, live in the hub and in the auditorium. Bring every question.', likes: 45 },
+      { who: 'Admissions', chan: 'Parents', when: 'Last week', text: 'Yes. First-generation family night is March 23, live in the hub and in the auditorium. Bring every question.', likes: 45 },
       { who: 'Tasha L.', chan: 'Admitted 2031', when: 'Last week', text: 'Toured the campus today. The bell tower is real and the library is quiet. See you all in August.', likes: 71 } ] },
     { type: 'calendar', id: 'yield', title: 'Yield events, live in the hub', meta: 'Sample', items: [
-      { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live', tagCls: 'live' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
+      { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
       { date: '2027-03-23', title: 'First-generation family night', where: 'The auditorium and live · 6:00 PM' }, { date: '2027-03-25', title: 'Housing tour, live from the halls', where: 'Live room · 5:30 PM' },
       { date: '2027-04-08', title: 'Parent session', where: 'Live room · 6:30 PM' }, { date: '2027-05-01', title: 'Decision Day', where: 'The Admitted 2031 channel' } ] },
     { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/r-student-center.jpg',
@@ -34,13 +34,13 @@ HT.spaces.admissions = {
     { type: 'split', kicker: 'Move-in weekend', title: 'The move-in weekend, in their pocket.',
       text: 'The schedule, the hall check-in, the family sessions, and the first campus walk, on the same phone that opened the acceptance letter. Parents see the same schedule in their own space.',
       bullets: ['Hall check-in by code, no line at a table', 'Family sessions Saturday morning, live for anyone who could not travel', 'Orientation starts in the same place the following week'],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See a campus week in the hub', href: '/ht/hub/students/#orientation', style: 'ht' } },
+      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See a week in a student\'s pocket', href: '/ht/hub/students/#orientation', style: 'ht' } },
     { type: 'faq', title: 'What families ask', items: [
       { q: 'Do parents get their own space?', a: 'Yes. The Parents channel opens the day of admission, and the parent session is live in April.' },
       { q: 'Is this on my phone?', a: 'Yes. It installs from Safari with the HT icon and opens like an app.' },
       { q: 'What about a student without a laptop?', a: 'Everything here works on a phone. The library has laptops for the sessions that need one.' },
       { q: 'When does the admitted community close?', a: 'It does not. On move-in day it becomes the Class of 2031 channel, with the same people in it.' } ] },
-    { type: 'cta', title: 'The class that already knows each other.', text: 'By move-in, the Class of 2031 has been talking for five months.', primary: { label: 'See the Students space', href: '/ht/hub/students/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
+    { type: 'cta', title: 'The class that already knows each other.', text: 'By move-in, the Class of 2031 has been talking for five months.', primary: { label: 'Open the Students space', href: '/ht/hub/students/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Admissions desk', meta: 'Sample', items: [
       { who: 'Admissions', when: 'This week', text: 'Admitted Student Night is March 4 at 6, live in the hub.' },
       { who: 'Residence life', when: 'This week', text: 'Housing forms open April 1 in the hub.' },

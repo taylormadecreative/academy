@@ -10,10 +10,10 @@ HT.spaces.outreach = {
       text: 'A public education series anyone in East Austin can join. Partner programs with churches, neighborhood associations, and high schools. A summer bridge that brings tenth and eleventh graders onto campus before their first fall. The community joins the same live room the campus uses, with the same sign-in.',
       ctas: [{ label: 'The public series', href: '#series', style: 'ht' }, { label: 'Summer Bridge', href: '#bridge', style: 'ht-line' }],
       image: '/ht/img/fall-convocation.jpg', imageAlt: 'Fall convocation at Huston-Tillotson',
-      ada: { text: 'The first evening of AI for small business owners is Tuesday, October 6, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
-      { meta: 'Tuesdays in October · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
-      { meta: 'Thursdays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Feb 2027 · one evening', title: 'A history of the Hill', text: 'Roots that reach to 1875, and the 1952 union of Samuel Huston College and Tillotson College. Told by faculty, with the archives.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Apr 2027 · one evening', title: 'A health and wellness evening', text: 'Screenings, a panel of alumni in health careers, and the questions people do not ask their doctor.', img: '/ht/img/commencement.jpg', alt: 'Commencement on the Hill', badge: 'Sample', foot: 'Free · open to the neighborhood' } ] },
     { type: 'cards', title: 'Partner programs', meta: 'Sample · no real organization named here', items: [
@@ -35,13 +35,13 @@ HT.spaces.outreach = {
       { q: 'Can my church or school become a partner?', a: 'Yes. Message the outreach desk here. A partner program is a calendar, a channel, and a student host.' } ] },
     { type: 'cta', title: 'Bring the neighborhood up the Hill.', text: 'The first evening of the public series is in October, in the auditorium and live in the room.', primary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' } },
     { type: 'calendar', side: true, title: 'The outreach calendar', meta: 'Sample', items: [
-      { date: '2026-10-06', title: 'AI for small business owners · evening one', where: 'The auditorium and live · 6:30 PM', tag: 'Live', tagCls: 'live' }, { date: '2026-10-24', title: 'Service Saturday with the service society', where: 'East Austin · 9:00 AM' },
-      { date: '2026-11-05', title: 'Financial wellness for families · evening one', where: 'The auditorium and live · 6:30 PM' }, { date: '2027-02-11', title: 'A history of the Hill', where: 'The auditorium and live · 6:30 PM' },
+      { date: '2026-10-12', title: 'AI for small business owners · evening one', where: 'The auditorium and live · 6:30 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2026-10-24', title: 'Service Saturday with the service society', where: 'East Austin · 9:00 AM' },
+      { date: '2026-11-09', title: 'Financial wellness for families · evening one', where: 'The auditorium and live · 6:30 PM' }, { date: '2027-02-11', title: 'A history of the Hill', where: 'The auditorium and live · 6:30 PM' },
       { date: '2027-06-08', title: 'Summer Bridge begins', where: 'Campus · 9:00 AM' } ] },
     { type: 'announcements', side: true, title: 'Outreach desk', meta: 'Sample', items: [
-      { who: 'Community outreach', when: 'This week', text: 'AI for small business owners begins October 6. Free, and open to the neighborhood.' },
+      { who: 'Community outreach', when: 'This week', text: 'AI for small business owners begins October 12. Free, and open to the neighborhood.' },
       { who: 'Community outreach', when: 'This week', text: 'Summer Bridge 2027 applications open in January through partner high schools.' },
       { who: 'Service society', when: 'Last week', text: 'Service Saturday is October 24. Hours are logged in the hub.' } ] },
-    { type: 'checkin', side: true, title: 'Check in at the door', meta: 'Code on the screen', session: 'AI for small business owners · evening one', sub: 'Tuesday, Oct 6 · 6:30 PM · the auditorium', code: 'EAST26', hint: 'Sample code for this preview: EAST26.' }
+    { type: 'checkin', side: true, title: 'Check in at the door', meta: 'Code on the screen', session: 'AI for small business owners · evening one', sub: 'Monday, Oct 12 · 6:30 PM · the auditorium', code: 'EAST26', hint: 'Sample code for this preview: EAST26.' }
   ]
 };

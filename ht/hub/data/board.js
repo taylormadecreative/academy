@@ -39,7 +39,7 @@ HT.spaces.board = {
       { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees and trustees message the secretary directly. There is no open feed in this space, by design.' },
       { q: 'Can I download the materials?', a: 'Materials marked Restricted open in place, on your phone or laptop, and are not sent as attachments. The agenda prints from this page for anyone who wants paper at the table.' } ] },
     { type: 'calendar', side: true, title: 'The meeting cycle', meta: 'Sample dates', items: [
-      { date: '2026-10-16', title: 'Fall board meeting', where: 'The boardroom · 9:00 AM', tag: 'Next', tagCls: 'green' },
+      { date: '2026-10-16', title: 'Fall board meeting', where: 'The boardroom · 9:00 AM' },
       { date: '2027-01-22', title: 'Winter board meeting', where: 'The boardroom · 9:00 AM' },
       { date: '2027-03-12', title: 'Board retreat', where: 'Off campus · one day · trustees join', tag: 'Retreat', tagCls: 'soft' },
       { date: '2027-04-16', title: 'Spring board meeting', where: 'The boardroom · 9:00 AM' },

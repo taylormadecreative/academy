@@ -12,6 +12,8 @@
    Pure decisions (the cities line, the already-here sentence, who counts as here, the rows) are
    exported for tests. Import-safe in Node: nothing below touches document or window at import. */
 export const DEFAULT_QUESTION = 'What’s one thing you want to get out of this class?';
+/* a room (HT, the Academy) has sessions, not classes: its own default question */
+export const ROOM_DEFAULT_QUESTION = 'What do you hope to hear today?';
 export const HERE_WINDOW_MS = 120000;   /* a presence row older than this is a closed tab that never said goodbye */
 export const CITY_MAX = 10;            /* places named before "and N more" */
 export const NAME_MAX = 3;             /* names said before "and N others" */
@@ -26,7 +28,7 @@ export const HERE_PLACEHOLDER = 'A classmate';   /* someone whose name we could 
 /* the question to ask: the one the coordinator typed, or the default */
 export function questionOf(session) {
   const q = session && typeof session.warmup_q === 'string' ? session.warmup_q.trim() : '';
-  return q ? q.slice(0, QUESTION_MAX) : DEFAULT_QUESTION;
+  return q ? q.slice(0, QUESTION_MAX) : (session && session.kind === 'room' ? ROOM_DEFAULT_QUESTION : DEFAULT_QUESTION);
 }
 /* "Atlanta, GA" → "Atlanta"; whitespace collapsed; never longer than 40 chars */
 export function cityWord(s) {
@@ -51,7 +53,7 @@ export function citiesLine(rows) {
 /* the sentence over the Already-here list. names: everyone here but me (hereNames has already left me
    out, so a classmate who shares my name is still counted). People we could not name (HERE_PLACEHOLDER)
    are counted, never listed by that label: "Kiara Pee and 2 others", "3 classmates are already here." */
-export function alreadyHereCopy(names) {
+export function alreadyHereCopy(names, one = 'classmate', many = 'classmates') {
   const named = [];
   let unnamed = 0;
   (names || []).forEach(n => {
@@ -60,7 +62,7 @@ export function alreadyHereCopy(names) {
     named.push(s);
   });
   if (!named.length && !unnamed) return 'No one else yet — you’re the first one here.';
-  if (!named.length) return unnamed === 1 ? 'A classmate is already here.' : unnamed + ' classmates are already here.';
+  if (!named.length) return unnamed === 1 ? 'A ' + one + ' is already here.' : unnamed + ' ' + many + ' are already here.';
   const shown = named.slice(0, NAME_MAX), rest = named.length - shown.length + unnamed;
   if (rest > 0) return shown.join(', ') + ' and ' + rest + (rest === 1 ? ' other are' : ' others are') + ' already here.';
   if (shown.length === 1) return shown[0] + ' is already here.';
@@ -203,13 +205,13 @@ export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, r
         <div class="r2-warm-kicker">Question of the day</div>
         <h3 class="r2-warm-q"></h3>
         <label class="r2-warm-field"><span>Your answer — one line is plenty</span><input class="r2-warm-answer" type="text" maxlength="${ANSWER_MAX}" placeholder="Type your answer here" autocomplete="off"></label>
-        <label class="r2-warm-field"><span>Where are you joining from?</span><input class="r2-warm-city" type="text" maxlength="${CITY_CHARS}" placeholder="Atlanta, GA" autocomplete="address-level2"></label>
+        <label class="r2-warm-field"><span>Where are you joining from?</span><input class="r2-warm-city" type="text" maxlength="${CITY_CHARS}" placeholder="${esc((room && room.city_hint) || 'Atlanta, GA')}" autocomplete="address-level2"></label>
         <div class="r2-warm-row"><button type="button" class="r2-btn r2-warm-save">Send my answer</button><span class="r2-warm-status" role="status"></span></div>
       </div>
       <p class="r2-warm-cities" hidden></p>
       <div class="r2-warm-here">
         <div class="r2-warm-kicker">Already here</div>
-        <p class="r2-warm-here-line">Looking for your classmates…</p>
+        <p class="r2-warm-here-line">${room ? 'Looking for who else is here…' : 'Looking for your classmates…'}</p>
         <div class="r2-warm-chips"></div>
       </div>
     </section>`);
@@ -226,7 +228,7 @@ export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, r
   function paintHere() {
     /* hereNames already leaves me out by id — a classmate who shares my name still counts */
     const names = hereNames(pres, profiles, { uid: me, now: nowFn() });
-    q('.r2-warm-here-line').textContent = alreadyHereCopy(names);
+    q('.r2-warm-here-line').textContent = room ? alreadyHereCopy(names, 'person', 'people') : alreadyHereCopy(names);
     q('.r2-warm-chips').innerHTML = names.map(n => `<span class="r2-warm-chip">${esc(n)}</span>`).join('');
   }
   /* the button says what the tap does: send a first answer, or update the one on file */
@@ -283,7 +285,7 @@ export function mountWaiting({ sb, copy, el, esc, user, uid, roomKey, session, r
         const { error } = await sb.from('ea_class_warmups').delete().eq('room_key', roomKey).eq('user_id', me);
         if (error) throw error;
         mine = { answer: '', city: '' }; hasRow = false; filled = true;
-        say('Your answer is cleared. Type a new one any time before class.');
+        say('Your answer is cleared. Type a new one any time before ' + (room ? 'the session' : 'class') + '.');
       } else {
         const { error } = await sb.from('ea_class_warmups').upsert({ room_key: roomKey, user_id: me, answer: answer || null, city: city || null }, { onConflict: 'room_key,user_id' });
         if (error) throw error;
@@ -340,13 +342,13 @@ export function create(ctx) {
       <p class="r2-fine r2-warm-sum">${esc(answersSummary(rows))}</p>
       ${rows.length
         ? `<div class="r2-warm-list">${rows.map(r => `<div class="r2-hand r2-warm-row"><div class="r2-who"><b>${esc(r.name)}</b><span>${r.city ? 'Joining from ' + esc(r.city) : 'Didn’t say where from'}</span></div><span class="r2-warm-a">${r.answer ? esc(r.answer) : '<i>No answer — just said where from</i>'}</span>${host ? `<button type="button" class="r2-mini r2-warm-x" data-rm="${esc(r.user_id)}" aria-label="Remove ${esc(r.name)}’s answer">Remove</button>` : ''}</div>`).join('')}</div>`
-        : '<div class="r2-empty">No answers yet. People answer on the waiting screen before class — answers land here as they come in.</div>'}`;
+        : '<div class="r2-empty">No answers yet. People answer on the waiting screen before ' + (room ? 'the session' : 'class') + ' — answers land here as they come in.</div>'}`;
     const ch = box.querySelector('.r2-warm-change'); if (ch) ch.addEventListener('click', editQuestion);
     box.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => remove(b.dataset.rm, b)));
   }
   function editQuestion() {
     const line = box.querySelector('.r2-warm-qline'); if (!line) return;
-    line.innerHTML = `<span class="r2-warm-kicker">Question of the day</span><div class="r2-warm-edit"><input type="text" maxlength="${QUESTION_MAX}" value="${esc(question === DEFAULT_QUESTION ? '' : question)}" placeholder="${esc(DEFAULT_QUESTION)}"><button type="button" class="r2-mini r2-bring" data-q="save">Save</button><button type="button" class="r2-mini" data-q="cancel">Keep it</button></div><span class="r2-fine">Leave it blank to use the default. Students on the waiting screen see the new question within a minute.</span>`;
+    line.innerHTML = `<span class="r2-warm-kicker">Question of the day</span><div class="r2-warm-edit"><input type="text" maxlength="${QUESTION_MAX}" value="${esc(question === DEFAULT_QUESTION || question === ROOM_DEFAULT_QUESTION ? '' : question)}" placeholder="${esc(room ? ROOM_DEFAULT_QUESTION : DEFAULT_QUESTION)}"><button type="button" class="r2-mini r2-bring" data-q="save">Save</button><button type="button" class="r2-mini" data-q="cancel">Keep it</button></div><span class="r2-fine">Leave it blank to use the default. Students on the waiting screen see the new question within a minute.</span>`;
     const input = line.querySelector('input'); input.focus();
     line.querySelector('[data-q="cancel"]').addEventListener('click', () => { line.querySelector('.r2-warm-edit').remove(); paint(); });
     const saveQ = async () => {

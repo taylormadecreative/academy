@@ -20,13 +20,13 @@ HT.spaces.community = {
       { who: 'Jordan P.', chan: 'Class of 2027', when: 'Last week', text: 'Senior seminar study group, Tuesdays at 4 in the library, room 204. We are on chapter six. Bring questions. We have snacks.', likes: 19 },
       { who: 'Tre J.', chan: 'Class of 2030', when: 'This week', text: 'First-year question: is there a way from the residence hall to the science building that does not cut through the plaza? Asking for my 8 AM self.', likes: 24 },
       { who: 'Simone A.', chan: 'Class of 2030', when: 'This week', text: 'College Algebra study group, Thursdays at 7 in the library. Four of us so far. Room for more. We go slow and nobody feels behind.', likes: 31 },
-      { who: 'Prof. L.', chan: 'Faculty lounge', when: 'Last week', text: 'Reminder that midterm grades are due in the portal by the 16th. The coffee in the lounge was fresh at 8:10. Come by, it will not last.', likes: 12 },
+      { who: 'Prof. L.', chan: 'Faculty lounge', when: 'Last week', text: 'Reminder that midterm grades are due in the portal by October 13. The coffee in the lounge was fresh at 8:10. Come by, it will not last.', likes: 12 },
       { who: 'Devon C.', chan: 'Student orgs', when: 'Last week', text: 'Student Government meets Wednesday at 5 in the student center. Open floor at the end for anything on your mind. That is what it is for.', likes: 16 },
       { who: "Renee W. '09", chan: 'Alumni', when: 'Last week', text: 'Austin chapter meetup October 20, 6:30, the coffee shop across from campus. Students welcome. Come ask what the first job after HT actually looks like.', likes: 29 } ] },
     { type: 'table', id: 'leaderboard', title: 'Leaderboard, this month (sample)', meta: 'Five points a post, four a reply', cols: ['Member', 'Posts', 'Replies', 'Points'], rows: [
       ['Aaliyah M.', '14', '31', '194'], ['Jordan P.', '11', '26', '159'], ['Devon C.', '9', '22', '133'], ['Simone A.', '8', '19', '116'], ['Malik T.', '7', '15', '95'], ['Tre J.', '6', '12', '78'] ] },
     { type: 'cards', id: 'offices', title: 'Channels by office', meta: 'Each opens its own space', items: [
-      { meta: 'Student Affairs', title: 'Students', text: 'Charter Week, housing, the student center, and the desk that answers.', href: '/ht/hub/students/', foot: 'Open the space →' },
+      { meta: 'Student Affairs', title: 'Students', text: 'Spring Ready Week, housing, the student center, and the desk that answers.', href: '/ht/hub/students/', foot: 'Open the space →' },
       { meta: 'Events', title: 'Events', text: 'Every agenda on campus, add-to-calendar, and check-in at the door.', href: '/ht/hub/events/', foot: 'Open the space →' },
       { meta: 'The live room', title: 'Live', text: 'Town halls and seminars, live, with the replay the same afternoon.', href: '/ht/hub/live/', foot: 'Open the space →' },
       { meta: 'Learn', title: 'Learn', text: 'AI Literacy and the other tracks, with a certificate at the end.', href: '/ht/hub/learn/', foot: 'Open the space →' },
@@ -46,7 +46,7 @@ HT.spaces.community = {
     { type: 'announcements', side: true, title: 'From Student Affairs', meta: 'Sample', items: [
       { who: 'Student Affairs', when: 'This week', text: 'A reminder of the community guidelines: real names, kind words, no selling. Posts that break them come down, and you hear from us directly.' },
       { who: 'Student Affairs', when: 'This week', text: 'Two new channels this week: Class of 2030 and Student orgs. Ask for yours in the Campus channel.' },
-      { who: 'Charter Week', when: 'Last week', text: 'Your check-in code is on the screen at each Charter Week session. One tap marks you present.' } ] },
+      { who: 'Student Affairs', when: 'Last week', text: 'Spring Ready Week is October 20 to 22. Your check-in code will be on the screen at each session.' } ] },
     { type: 'notice', side: true, tone: 'gold', text: 'Posts are reviewed by Student Affairs. Report a post with one tap.' },
     { type: 'install', side: true },
     { type: 'cta', title: 'See you on the Hill.', text: 'Post in your channel, message a real person, and find the next thing happening on campus.', primary: { label: 'What is on this week', href: '/ht/hub/events/', style: 'ht-gold' }, secondary: { label: 'Open The Hill', href: '#the-hill', style: 'ht-line' } }

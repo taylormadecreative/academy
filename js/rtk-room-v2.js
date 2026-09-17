@@ -187,7 +187,7 @@ export async function mountRoomV2(o) {
   /* the day and time in the viewer's own clock (0039 stores Atlanta wall time; null time = not announced —
      the old page said "7:00 PM" for every session, which was wrong for the 6:30 kickoff) */
   /* a team room has no date and no start: the page hands in target.when ('Open all year' / 'Whenever your team wants') */
-  const when = isSession ? copy.classWhen({ date: session.session_date, start: session.start_time, end: session.end_time }) : (isTeam ? (target.when || null) : null);
+  const when = isSession ? copy.classWhen({ date: session.session_date, start: session.start_time, end: session.end_time }) : ((isTeam || isRoom) ? (target.when || null) : null);   /* a room: its host's Next session (0054), when set */
   const startsAt = when ? when.startsAt : null;
   /* the join screen's brand row: the Academy mark + name and the partner's logo on a paper-white tile
      (OPIL). A room target may bring its own `brand`; the HT room keeps its `logo` mark as before. */

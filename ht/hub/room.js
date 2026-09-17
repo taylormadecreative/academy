@@ -21,7 +21,7 @@ await new Promise((res) => {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
-const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, nextSessionLine, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
+const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, nextSessionLine, nextSessionWhen, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
   import('/opil/hub/live-rooms.js' + V),
@@ -69,9 +69,15 @@ function paintNext() {
   const n = nextSessionLine(state, Date.now());
   if (!n) { if (el) el.remove(); return; }
   const l = calendarLinks({ title: n.title, startIso: n.iso, roomUrl: location.origin + '/ht/hub/live/' });
-  if (!el) { el = document.createElement('div'); el.className = 'ht-room-next'; ctl.parentElement.insertBefore(el, ctl); }
-  el.innerHTML = '<span class="k">Next session</span><b>' + esc(n.title) + '</b><span>' + esc(n.when) + '</span><span class="add">Add to calendar: <a href="' + esc(l.ics) + '" download="' + esc((n.title.replace(/[^\w\- ]+/g, '').trim() || 'HT Live') + '.ics') + '">Apple</a> · <a href="' + esc(l.google) + '" target="_blank" rel="noopener">Google</a> · <a href="' + esc(l.outlook) + '" target="_blank" rel="noopener">Outlook</a></span>';
+  if (!el) { el = document.createElement('div'); el.className = 'ht-room-next'; }
+  /* while the session runs the card's own headline ("Live now · Sign in to join") comes first; otherwise the line leads */
+  if (state && state.is_live) ctl.parentElement.insertBefore(el, ctl.nextSibling); else ctl.parentElement.insertBefore(el, ctl);
+  el.innerHTML = '<span class="k">Next session</span><b>' + esc(n.title) + '</b><span>' + esc(n.when) + '</span><span class="add">Add to calendar: <a href="' + esc(l.ics) + '" download="' + esc((n.title.replace(/[^\w\- ]+/g, '').trim() || 'HT Live') + '.ics') + '" aria-label="Add to Apple Calendar (.ics file)">Apple</a> · <a href="' + esc(l.google) + '" target="_blank" rel="noopener" aria-label="Add to Google Calendar">Google</a> · <a href="' + esc(l.outlook) + '" target="_blank" rel="noopener" aria-label="Add to Outlook calendar">Outlook</a></span>';
 }
+
+/* a guest who arrived on the invitation link is brought to the card once it paints — scrollTo, never scrollIntoView
+   (which moves the keyboard's starting point; the 9/3 tab-strip lesson) */
+function settleOnCard() { requestAnimationFrame(() => { try { const y = ctl.getBoundingClientRect().top + window.scrollY - 12; if (y > 0) window.scrollTo({ top: y, behavior: 'auto' }); } catch (e) {} }); }
 
 /* ---------- the cards ---------- */
 /* the HT wordmark: on the page cards (WM, .ht-room-wm) and, as target.logo, inside the room itself — the
@@ -87,7 +93,7 @@ const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air'
 function card(inner, after) { ctl.innerHTML = '<div class="ht-room-card">' + WM + inner + '</div>' + (after || ''); mount.innerHTML = ''; mount.classList.remove('r2host'); }
 function lastSession(st) {
   const u = iframeUrl(st && st.recording_url); if (!u) return '';
-  return '<div class="ht-room-last"><b>Last session</b><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a> · <a href="/ht/hub/replay/">Chapters, summary and transcript &rarr;</a></div>';
+  return '<div class="ht-room-last"><b>Last session</b><a class="btn ht-gold ht-room-last-page" href="/ht/hub/replay/">Chapters, summary and transcript &rarr;</a><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener" class="ht-room-last-tab">Open in a new tab</a></div>';
 }
 const here = () => location.pathname + location.search;
 /* The ended card keeps listening (a poll every 20 s, the first look at 5 s because an End takes the row off
@@ -124,7 +130,7 @@ if (state && state.bad_link && keyFromStore) {
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
 const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null });   /* warmup_q: the waiting screen's question (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null, when: nextSessionWhen(state, Date.now()), city_hint: 'Austin, TX' });   /* warmup_q + when: the waiting screen's question and its Date / time cells (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -213,7 +219,8 @@ const host = {
   <div class="hd2"><h3>Your room</h3><span class="mono">Hosts only</span></div>
   <div class="row"><label style="flex:1"><span>The link to send</span><input id="rmLink" readonly aria-label="Link to this room" value="${esc(this.link())}"></label><button type="button" class="pill" id="rmCopy" aria-live="polite">Copy link</button><button type="button" class="pill ghost" id="rmNew">New link</button></div>
   <div class="row two"><label>Title <span class="saved" id="rmTitleSaved"></span><input id="rmTitle" maxlength="120" value="${esc(r.title)}"></label><label>Host name <span class="saved" id="rmHostSaved"></span><input id="rmHost" maxlength="80" value="${esc(r.host_name)}"></label><label>Max people (you included) <span class="saved" id="rmMaxSaved"></span><input id="rmMax" type="number" min="2" max="500" value="${esc(r.max_participants)}"></label></div>
-  <div class="row pair"><label>Warm-up question · people answer while they wait <span class="saved" id="rmWarmSaved"></span><input id="rmWarm" maxlength="160" placeholder="Where are you joining from today?" value="${esc(r.warmup_q || '')}"></label><label>Next session · shows above the room with Add to calendar <span class="saved" id="rmNextSaved"></span><span class="row" style="gap:6px;margin:0"><input id="rmNextTitle" maxlength="120" placeholder="Title" value="${esc(r.next_title || '')}"><input id="rmNextAt" type="datetime-local" aria-label="Next session date and time" value="${esc(localInput(r.next_at))}"></span></label></div>
+  <div class="row pair"><label>Warm-up question <span class="saved" id="rmWarmSaved"></span><input id="rmWarm" maxlength="200" placeholder="What do you hope to hear today?" value="${esc(r.warmup_q || '')}"></label><div class="row" style="gap:6px;margin:0;align-items:stretch"><label style="flex:1.2">Next session <span class="saved" id="rmNextSaved"></span><input id="rmNextTitle" maxlength="120" placeholder="Title" value="${esc(r.next_title || '')}"></label><label style="flex:1">When <span class="saved" id="rmNextAtSaved"></span><input id="rmNextAt" type="datetime-local" min="${esc(localInput(new Date().toISOString()))}" value="${esc(localInput(r.next_at))}"></label></div></div>
+  <p class="fine">People answer the warm-up while they wait. The next session shows above the room with Add to calendar, in your local time, and clears itself once the time has passed.</p>
   ${this.admin ? `<label>Hosts — one email per line <span class="saved" id="rmHostsSaved"></span><textarea id="rmHosts" spellcheck="false">${esc((r.host_emails || []).join('\n'))}</textarea></label><div class="row"><button type="button" class="pill" id="rmHostsSave">Save hosts</button><p class="fine" style="margin:0">Anyone on this list who signs in with that email gets this card and can start a session.</p></div>` : ''}
   <div class="ht-room-still" id="rmStill" hidden><b>${esc(ec.stillRunning)}</b><span>${esc(ec.stillRunningHint)}</span></div>
   <div class="row"><button type="button" class="btn ht-gold" id="rmStart">${START}</button><button type="button" class="pill" id="rmEnd" hidden title="${esc(ec.endHint)}. Two taps.">${esc(ec.endButton)}</button><span id="rmRec" hidden>Recording</span><span class="status" id="rmStatus"></span></div>
@@ -264,7 +271,7 @@ const host = {
     /* the three that may be cleared (0054): empty saves null; a bad date saves nothing and says so */
     const saveNullable = (input, savedEl, col, toValue) => input.addEventListener('change', async () => {
       const v = toValue ? toValue(input.value) : (input.value.trim() || null);
-      if (v === undefined) { savedEl.textContent = 'not saved'; return; }
+      if (v === undefined) { if (!savedEl.textContent) savedEl.textContent = 'not saved'; return; }   /* the parser may have said why already */
       const { error } = await sb.from('ea_rooms').update({ [col]: v }).eq('id', this.room.id);
       if (error) { savedEl.textContent = 'not saved'; return; }
       this.room[col] = v; state[col] = v; savedEl.textContent = 'Saved'; setTimeout(() => { savedEl.textContent = ''; }, 1800);
@@ -272,7 +279,7 @@ const host = {
     });
     saveNullable(e.warm, document.getElementById('rmWarmSaved'), 'warmup_q');
     saveNullable(e.nextTitle, document.getElementById('rmNextSaved'), 'next_title');
-    saveNullable(e.nextAt, document.getElementById('rmNextSaved'), 'next_at', (s) => { if (!s) return null; const t = Date.parse(s); return Number.isFinite(t) ? new Date(t).toISOString() : undefined; });
+    saveNullable(e.nextAt, document.getElementById('rmNextAtSaved'), 'next_at', (s) => { if (!s) return null; const t = Date.parse(s); if (!Number.isFinite(t)) return undefined; if (t <= Date.now()) { document.getElementById('rmNextAtSaved').textContent = 'that time has passed'; return undefined; } return new Date(t).toISOString(); });
     if (e.hostsSave) e.hostsSave.addEventListener('click', async () => {
       const lines = e.hosts.value.split(/\n/).map((s) => s.trim()).filter(Boolean);
       e.hostsSave.disabled = true;
@@ -417,9 +424,9 @@ const host = {
     this.rec(rows.some((r) => r.status === 'invoked' || r.status === 'recording') && !!this.room.is_live);
     e.reps.innerHTML = rows.length ? rows.map((r) => {
       const d = new Date(r.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
-      const mins = r.duration_s ? ' · ' + Math.max(1, Math.round(r.duration_s / 60)) + ' min' : '';
+      const mins = r.duration_s ? ' · ' + Math.max(1, Math.round(r.duration_s / 60)) + ' min' : (r.status === 'ready' || r.status === 'error' ? '' : ' · usually a few minutes');
       const acts = r.status === 'ready'
-        ? `<a class="pill ghost" href="${esc(r.watch_url)}" target="_blank" rel="noopener">Review</a><button type="button" class="pill" data-pub="${esc(r.id)}" data-on="${r.published ? '0' : '1'}">${r.published ? 'Unpublish' : 'Publish'}</button>`
+        ? `<a class="pill ghost" href="/ht/hub/replay/">${r.published ? 'Open the replay page' : 'Review on the replay page'}</a><button type="button" class="pill" data-pub="${esc(r.id)}" data-on="${r.published ? '0' : '1'}">${r.published ? 'Unpublish' : 'Publish'}</button>`
         : r.status === 'error' ? `<button type="button" class="pill" data-retry="${esc(r.id)}">Retry</button>` : '';
       return `<div class="ht-room-rep"><span><b>${esc(d)}</b> · ${esc(replayLabel(r))}${mins}</span><span class="acts">${acts}</span></div>`;
     }).join('') : '<p class="fine">No replays yet. Each session records itself and lands here to review.</p>';
@@ -429,7 +436,7 @@ const host = {
       const { error } = await sb.rpc('ea_room_publish_replay', { p_replay: b.getAttribute('data-pub'), p_publish: publishing });
       if (error) this.note('Could not change the replay — ' + error.message);
       /* Publish also writes the lesson summary the replay page shows (the function answers room keys); its Make summary retries */
-      else if (publishing) { try { fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ room_key: 'room:' + this.room.id }) }).catch(() => {}); } catch (x) {} }
+      else if (publishing) { try { sessionStorage.setItem('ht-summary-pending', String(Date.now())); } catch (x) {} try { fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ room_key: 'room:' + this.room.id }) }).catch(() => {}); } catch (x) {} }
       try { state = await getState(); } catch (x) {}
       e.last.innerHTML = lastSession(state);
       await this.loadReplays();
@@ -457,13 +464,18 @@ const host = {
 };
 
 /* ---------- go ---------- */
+/* the host's next session, above (or under) whichever card is about to show — BEFORE the branches: a guest's branch
+   awaits the room module until the person is in, so nothing after the switch runs for a waiting guest */
+try { paintNext(); } catch (e) { console.warn('[ht room] next session', e); }
 switch (branch) {
   case 'dead_link':
     card('<h3>This link isn’t active anymore.</h3><p>Ask your host for the new one.</p>'); break;
   case 'landing':
+    if (urlKey) settleOnCard();   /* from the text link: the card, not the hero two screens above it */
     card(`<h3>${esc(state.host_name)}’s room</h3><p class="t">${esc(state.title)}</p>` + onAirLine(state) +
          `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>Type the code and you’ll be brought straight back here.</p>`, lastSession(state)); break;
   case 'not_allowed':
+    if (urlKey) settleOnCard();
     /* signed in with no key on this device (the code was opened in another browser, or they came
        to the page by hand): the link they were sent is the way in — say so, no dead-end button */
     card('<h3>Almost in.</h3>' + onAirLine(state) +
@@ -484,4 +496,4 @@ switch (branch) {
   default:
     card('<h3>The room could not load.</h3><p>' + esc(stateErr && stateErr.message ? stateErr.message : 'Reload to try again.') + '</p>');
 }
-try { paintNext(); } catch (e) { console.warn('[ht room] next session', e); }   /* every card: the host's next session, when there is one */
+try { paintNext(); } catch (e) { console.warn('[ht room] next session', e); }   /* and again once a card has settled (the ended / left cards repaint the column) */

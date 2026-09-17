@@ -69,11 +69,10 @@ body[data-space] .site-header{position:static}
 .pill.on{background:var(--ht-maroon);color:#fff}
 .chip{display:inline-flex;align-items:center;gap:6px;border:0;cursor:default;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ht-mahogany);background:var(--ht-ember);border-radius:980px;padding:4px 10px}
 .chip.sample{background:#fff3c4;color:#6b4d00}
-.chip.live{background:#ffe1dd;color:#8f0000}
 /* what is happening NOW is a word, not a capsule with a dot (Nelson: never the status pill with the dot) */
-.flag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8f0000;white-space:nowrap}
-.chip.soft{background:var(--bg-soft);color:var(--muted)}
-.chip.green{background:#e6f4ec;color:#0f5c3a}
+.flag{display:inline-block;font-family:var(--display,inherit);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ht-maroon);white-space:nowrap;line-height:1.2;padding-bottom:3px;border-bottom:2px solid var(--ht-gold)}
+.chip.soft{background:#FFFAEB;color:#61422E;border:1px solid var(--ht-ember)}   /* HT's sand and sable, not the Academy's blue-grey */
+.chip.green{background:#C7EDBF;color:#00373E}   /* HT Fresh on Eco Green */
 /* intro block */
 .intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(18px,3vw,36px);align-items:center;background:var(--ht-sand);border:1px solid var(--ht-hair);border-radius:22px;padding:clamp(20px,3vw,34px);overflow:hidden;position:relative}
 .intro .k{font-family:var(--font);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ht-maroon)}
@@ -228,14 +227,14 @@ a.card:hover{transform:translateY(-3px);box-shadow:0 22px 40px -24px rgba(41,28,
 /* player */
 .player{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden}
 .player video{width:100%;height:100%;display:block;background:#000}
-.player .brand{position:absolute;z-index:3;inset:0 0 auto 0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:linear-gradient(rgba(59,0,0,.85),rgba(59,0,0,0));color:#fff;transition:opacity .5s var(--ease)}
+.player .brand{position:absolute;z-index:3;inset:0 0 auto 0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:none;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.65);transition:opacity .5s var(--ease)}   /* no wash over the photograph (Nelson, 9/8): the type carries its own shadow */
 .player.playing .brand{opacity:.9}
 .player:hover .brand,.player:focus-within .brand{opacity:1}
 .player .brand img{height:18px;width:auto}
 .player .brand .t{font-weight:700;font-size:14px}
 .player .wm{position:absolute;right:12px;bottom:10px;height:16px;width:auto;opacity:.75}
 .player .poster{position:absolute;z-index:2;inset:0;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.player .poster::after{content:"";position:absolute;inset:0;background:rgba(59,0,0,.35)}
+.player .poster::after{content:none}   /* the poster is the photograph, untouched */
 .player .poster button{position:relative;z-index:2;font:inherit;font-weight:800;font-size:14px;color:var(--ht-mahogany);background:var(--ht-gold);border:0;border-radius:980px;padding:14px 24px;cursor:pointer;box-shadow:0 10px 30px -10px rgba(0,0,0,.6)}
 .player .fail{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;padding:20px;text-align:center}
 .nowbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:12px 16px;background:var(--ht-mahogany);color:#f3e6dc;font-size:13.5px}
@@ -418,10 +417,36 @@ button.rep:hover{border-color:#d9bfae}
   .yr .f{grid-column:2;justify-content:flex-start}
 }
 @media print{.yrbar,.yrtools{display:none!important}.yrlist{max-height:none;overflow:visible}.yr{break-inside:avoid}.yr.is-past{opacity:1}}
-/* the replay page (ht/hub/replay.js): the lesson column wide enough for its five tabs on one row; HT hairlines */
-.ht-replay .rp-grid{grid-template-columns:minmax(0,1fr) 500px}
-.ht-replay .rp-tab{padding-inline:11px}
-.ht-replay .rp-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.ht-replay .rp-tabs::-webkit-scrollbar{display:none}
+/* the replay page (ht/hub/replay.js): css/rtk-chapters.css paints the lesson card in the Academy's navy / royal blue /
+   gold; every rule here is one class more specific and carries HT's colors. The lesson column holds its five tabs on one
+   row from 981px up; on a phone the tabs wrap and the pane is not its own scroll box (so the sticky search sits at the
+   top of the page, not 69px down inside the pane). */
+.ht-replay .rp-grid{grid-template-columns:minmax(0,1.4fr) 380px;padding-bottom:0}   /* the recording stays the wider half on a laptop; the tabs wrap there */
+@media(min-width:1240px){.ht-replay .rp-grid{grid-template-columns:minmax(0,1fr) 500px}}   /* wide enough for five tabs on one row */
 @media(max-width:980px){.ht-replay .rp-grid{grid-template-columns:1fr}}
-.ht-replay .rp-tabs{border-bottom-color:var(--ht-ember)}
-.ht-replay .rp-chip.draft{background:var(--ht-ember);color:var(--ht-mahogany)}
+.ht-replay .rp-player{background:var(--ht-mahogany);border-color:#5a1a12;box-shadow:0 10px 30px -18px rgba(41,28,20,.35)}
+.ht-replay .rp-player .rp-idle{color:var(--ht-ember)}
+.ht-replay .rp-player .rp-idle b{color:#fff}
+.ht-replay .rp-now b,.ht-replay .rp-chapter,.ht-replay .rp-lines li,.ht-replay .rp-tline,.ht-replay .rp-search button{color:var(--ht-terra)}
+.ht-replay .rp-now .rp-chip.draft{background:var(--ht-ember);color:var(--ht-mahogany)}
+.ht-replay .rp-tabs{flex-wrap:wrap;overflow:visible;border-bottom-color:var(--ht-ember)}
+.ht-replay .rp-tab{padding-inline:11px}
+.ht-replay .rp-tab.on{color:var(--ht-maroon);border-bottom-color:var(--ht-maroon)}
+@media(max-width:720px){.ht-replay .rp-pane{overflow:visible;max-height:none}.ht-replay .rp-search{top:0}}
+.ht-replay .rp-chapter,.ht-replay .rp-file{border-color:var(--ht-ember)}
+.ht-replay .rp-chapter:hover{border-color:var(--ht-lumen)}
+.ht-replay .rp-chapter.on{border-left-color:var(--ht-gold);background:var(--ht-sand)}
+.ht-replay .rp-chapter .rp-clock,.ht-replay .rp-tline .rp-clock{color:var(--ht-maroon)}
+.ht-replay .rp-lines li::before{background:var(--ht-gold)}
+.ht-replay .rp-lines.rp-todo li::before{background:var(--ht-maroon)}
+.ht-replay .rp-make{background:var(--ht-gold);color:var(--ht-mahogany)}
+.ht-replay .rp-make span{color:var(--ht-mahogany);opacity:.8}
+.ht-replay .rp-make.quiet{background:var(--ht-sand);color:var(--ht-terra);border:1px solid var(--ht-ember)}
+.ht-replay .rp-file a,.ht-replay .rp-tline b{color:var(--ht-maroon)}
+.ht-replay .rp-file .rp-kindtag{background:var(--ht-ember);color:var(--ht-mahogany)}
+.ht-replay .rp-search input{border-color:var(--ht-ember)}
+.ht-replay .rp-search input:focus{border-color:var(--ht-maroon);box-shadow:0 0 0 4px rgba(102,1,0,.12)}
+.ht-replay .rp-tline:hover,.ht-replay .rp-tline.on{background:var(--ht-sand)}
+.ht-replay .rp-tline mark,.ht-replay mark{background:var(--ht-gold);color:var(--ht-mahogany)}
+/* a Live flag on the dark player chrome (the town hall's block when it goes on air) reads in gold */
+.player .flag,.nowbar .flag,.hc.dark .flag{color:var(--ht-gold);border-bottom-color:currentColor}

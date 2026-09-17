@@ -4,13 +4,13 @@ HT.spaces.learn = {
   key: 'learn', title: 'Learn', office: 'Academic Affairs · co-curricular', icon: 'book',
   blurb: 'Co-curricular tracks with a live room, a materials shelf, and, next, a certificate from HT.',
   sub: 'Short tracks that run beside the course catalog, never inside it. Live sessions, replays, materials, and, next, a certificate issued by the University when a track closes.',
-  stamp: 'Preview · sample tracks', headCta: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-gold' },
+  stamp: 'Preview · sample tracks', headCta: { label: 'The tracks', href: '#tracks', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'Academic Affairs · co-curricular', title: 'Everything around the classroom.',
       text: 'AI Literacy, Entrepreneurship on the Hill, Financial Literacy. Short tracks with a live room, a materials shelf, attendance by code, and, next on the roadmap, a certificate issued by HT when a track closes. This is not the University\'s course system, and it never touches it. It is the learning that happens between classes, kept in one place.',
       ctas: [{ label: 'The tracks', href: '#tracks', style: 'ht' }, { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' }],
       image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students studying in the library',
-      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same afternoon. Want me to put the eight dates on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same night. Want me to put the eight dates on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'stats', items: [{ n: '3', label: 'Tracks this year (sample)' }, { n: '19', label: 'Sessions across the tracks' }, { n: 'Oct 13', label: 'AI Literacy opens (sample)' }, { n: 'Next', label: 'Certificate from HT per track' }] },
     { type: 'tracks', id: 'tracks', title: 'The tracks', meta: 'Live in the hub · replays same day', items: [
       { title: 'AI Literacy', text: 'Eight sessions. Every student leaves each one with real work done by AI, on free tools, in their own voice.', tag: 'Fall 2026', sessions: [
@@ -23,16 +23,16 @@ HT.spaces.learn = {
         { no: '04', title: 'Price it', date: 'Feb 15', status: 'Opens Jan' }, { no: '05', title: 'Tell it in ninety seconds', date: 'Feb 22', status: 'Opens Jan' }, { no: '06', title: 'Pitch night rehearsal', date: 'Mar 1', status: 'Opens Jan' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page, and on the donor\'s page when a gift funded the cohort', status: 'Next', cls: 'soft' } },
       { title: 'Financial Literacy', text: 'Five sessions on budgets, credit, and the first year after graduation, taught plainly.', tag: 'Fall 2026', sessions: [
-        { no: '01', title: 'Where the money goes', date: 'Oct 7', status: 'Opens Oct 7' }, { no: '02', title: 'Credit, explained once', date: 'Oct 14', status: 'Upcoming' }, { no: '03', title: 'Loans and the letter you will get', date: 'Oct 21', status: 'Upcoming' },
-        { no: '04', title: 'Your first paycheck', date: 'Oct 28', status: 'Upcoming' }, { no: '05', title: 'A plan you will keep', date: 'Nov 4', status: 'Upcoming' } ],
+        { no: '01', title: 'Where the money goes', date: 'Oct 14', status: 'Opens Oct 14' }, { no: '02', title: 'Credit, explained once', date: 'Oct 21', status: 'Upcoming' }, { no: '03', title: 'Loans and the letter you will get', date: 'Oct 28', status: 'Upcoming' },
+        { no: '04', title: 'Your first paycheck', date: 'Nov 4', status: 'Upcoming' }, { no: '05', title: 'A plan you will keep', date: 'Nov 11', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page, and on the donor\'s page when a gift funded the cohort', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Faculty development', meta: 'Live in the hub · replays on the shelf', items: [
       { meta: 'Oct 29 · 3:00 PM', title: 'Teaching with the hub', text: 'Attendance by code, materials in one place, and the replay that lands the same afternoon.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'Sample', foot: 'Replay after the session' },
       { meta: 'Nov 12 · 3:00 PM', title: 'AI in the syllabus, honestly', text: 'What to allow, what to require, and how to say it in the first week.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Replay after the session' },
-      { meta: 'Mar 11 · 3:00 PM', title: 'Running your own track', text: 'Any department can open a co-curricular track. This is the one-hour walkthrough.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', badge: 'Sample', foot: 'Replay after the session' } ] },
+      { meta: 'Mar 25 · 3:00 PM', title: 'Running your own track', text: 'Any department can open a co-curricular track. This is the one-hour walkthrough.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', badge: 'Sample', foot: 'Replay after the session' } ] },
     { type: 'cards', title: 'Guest lecture series', meta: 'Open to the campus · replay available', items: [
       { meta: 'Oct 22 · 6:00 PM', title: 'Building a business in Austin', text: 'An alumna founder on the first three years, the mistakes, and the city.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus retail street at dusk', badge: 'Sample', foot: 'Replay available' },
-      { meta: 'Nov 19 · 6:00 PM', title: 'A century and a half on the Hill', text: 'A faculty historian on the roots that reach to 1875 and the 1952 union that made HT.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Replay available' },
+      { meta: 'Oct 22 · 12:00 PM', title: 'A century and a half on the Hill', text: 'A faculty historian on the roots that reach to 1875 and the 1952 union that made HT.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Replay available' },
       { meta: 'Feb 18 · 6:00 PM', title: 'Health careers, the real map', text: 'A panel of alumni in nursing, therapy, and public health on the paths that worked.', img: '/ht/img/commencement.jpg', alt: 'Commencement on the Hill', badge: 'Sample', foot: 'Replay available' } ] },
     { type: 'split', id: 'cohort', kicker: 'A named cohort a donor funded', title: 'The cohort on the donor\'s page.',
       text: 'When a gift funds a block of seats, the cohort appears on the donor\'s own page: the name they chose, the sessions, and the students it reached, first names only, with permission. The certificate lands there too.',
@@ -49,7 +49,7 @@ HT.spaces.learn = {
       { kind: 'REC', title: 'Replays land here', sub: 'Each session, the same afternoon', href: '/ht/hub/live/' } ] },
     { type: 'checkin', side: true, title: 'Check in', meta: 'Code on the screen', session: 'AI Literacy · Session 01', sub: 'Tuesday, Oct 13 · 6:00 PM', code: 'LEARN03', hint: 'Type the code from the screen. Sample code for this preview: LEARN03.' },
     { type: 'announcements', side: true, title: 'Academic Affairs desk', meta: 'Sample', items: [
-      { who: 'Academic Affairs', when: 'This week', text: 'Financial Literacy opens Oct 7 in the live room. Seats are open to every student.' },
+      { who: 'Academic Affairs', when: 'This week', text: 'Financial Literacy opens October 14 in the live room. Seats are open to every student.' },
       { who: 'AI Literacy', when: 'This week', text: 'Session 01 opens Tuesday, October 13, at 6. The playbook posts here the same afternoon.' },
       { who: 'Faculty development', when: 'Last week', text: 'Teaching with the hub is October 29 at 3. Bring your syllabus.' } ] }
   ]

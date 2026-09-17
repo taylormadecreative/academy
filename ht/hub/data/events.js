@@ -17,7 +17,7 @@ HT.spaces.events = {
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
       { meta: 'Friday, October 23, 2026', title: '152nd Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
-      { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/fall-convocation.jpg', alt: 'Students at Huston-Tillotson', foot: 'On the calendar →' },
+      { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/students-library.jpg', alt: 'Students in the library at Huston-Tillotson', foot: 'On the calendar →' },
       { meta: 'Nov 6–7, 2026', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill for the people behind each gift. This one is a worked example of an Advancement event: the agenda, the rooms, the host line, and the check-in at the door.', href: '#weekend', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus plaza', badge: 'Sample', foot: 'Open the agenda →' } ] },
     { type: 'year', id: 'year', title: 'The 2026-2027 academic year', meta: 'Published by the University, live against today',
       calName: 'Huston-Tillotson academic calendar 2026-2027',
@@ -116,7 +116,7 @@ HT.spaces.events = {
           { time: '8:30 AM', end: '9:30 AM', title: 'Breakfast with faculty', where: 'The President\u2019s dining room', who: 'Faculty hosts (sample)' },
           { time: '9:45 AM', end: '10:45 AM', title: 'Meet a funded cohort', where: 'The library', who: 'Students from a funded program (sample)' },
           { time: '11:00 AM', end: '11:45 AM', title: 'Service of thanksgiving', where: 'The chapel', who: 'Campus ministry (sample)' },
-          { time: '12:00 PM', end: '1:30 PM', title: 'Luncheon and the President\u2019s thank-you', where: 'The auditorium', who: 'Dr. Melva K. Wallace', tag: 'Live in the hub', tagCls: 'live' },
+          { time: '12:00 PM', end: '1:30 PM', title: 'Luncheon and the President\u2019s thank-you', where: 'The auditorium', who: 'Dr. Melva K. Wallace', tag: 'Live in the hub', tagCls: 'soft' },
           { time: '1:45 PM', end: '2:30 PM', title: 'Photos on the steps', where: 'The auditorium steps', who: 'Campus photographer (sample)' },
           { time: '2:30 PM', end: '3:15 PM', title: 'Student showcase', where: 'The library lawn', who: 'Students from funded cohorts (sample)' },
           { time: '3:30 PM', end: '4:00 PM', title: 'Farewell and departures', where: 'Main entrance', who: 'Events lead (sample)' } ] } ] },

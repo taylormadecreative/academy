@@ -8,23 +8,23 @@ HT.pages = ['replay'];   /* shells that exist but are not tabs (the replay page 
 HT.home = {
   title: 'Home', kicker: 'Huston-Tillotson University · Austin, Texas', stamp: 'Preview · sample content',
   sub: 'Every office on the Hill, one sign-in. Events, live seminars, learning, community, and the people behind each gift.',
-  headCta: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-gold' },
+  headCta: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'Huston-Tillotson × Taylormade Academy', title: 'One campus. One hub. Every office.',
       text: 'The HT Hub is where a campus runs the things that usually live in separate subscriptions: the event app, the live room, the classroom beside the course catalog, the community, the showcase, and the way donors see what their gift built. Ada opens the door. The people of HT do the rest.',
       ctas: [{ label: 'See the spaces', href: '#spaces', style: 'ht' }, { label: 'Put it on your phone', href: '#install', style: 'ht-line' }],
       video: '/ht/img/ada-idle-loop.mp4', poster: '/ht/img/ada-idle-poster.jpg', imageAlt: 'Ada, the HT student ambassador, at the campus gate',
-      ada: { text: 'Welcome to the Hill. Three things are coming up: the President\'s Fall Briefing for donors on October 8, the first AI Literacy session on October 13, and Charter Day on October 23. Pick a space below and I\'ll walk you in.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Welcome to the Hill. Three things are coming up: the President\'s Fall Briefing for donors on October 8, the fall town hall on October 15 at noon, and the 152nd Charter Day Observance on October 23. Pick a space below and I\'ll walk you in.', when: 'Ada · HT student ambassador · sample line' } },
+    { type: 'notice', tone: 'maroon', html: '<b>What is real and what is sample.</b> Sign-in, the live room, the replay page, HT\'s published calendar and the community are real and running. Every HT name, event and figure marked Sample is sample content, prepared with Institutional Advancement for the University\'s review.' },
     { type: 'announcements', title: 'Campus announcements', meta: 'Sample', items: [
       { who: 'Office of the President', when: 'This week', text: 'The fall town hall streams live in the hub on October 15 at noon. The replay lands the same afternoon.' },
       { who: 'Institutional Advancement', when: 'This week', text: 'Donor Appreciation Weekend agenda is posted. Guests can add it to their calendar from the Events space.' },
       { who: 'Student Affairs', when: 'Last week', text: 'Check-in codes are shown on the screen at each session. One tap marks you present.' } ] },
     { type: 'spaces', id: 'spaces', title: 'The spaces', meta: 'Thirteen spaces, one sign-in' },
-    { type: 'notice', tone: 'maroon', html: '<b>What is real and what is sample.</b> Sign-in, the live player, the community, and the program pattern are the same ones running today for the Atlanta University Center. Every HT name, event, and figure on these pages is sample content prepared for a working session with Institutional Advancement.' },
     { type: 'calendar', side: true, title: 'Coming up on the Hill', meta: 'Sample', items: [
-      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Advancement · Live room', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Advancement · Live room', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-10-13', title: 'AI Literacy · Session 01', where: 'Learn · Track one' },
-      { date: '2026-10-15', title: 'Fall town hall, live', where: 'Office of the President · Live room', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-15', title: 'Fall town hall, live', where: 'Office of the President · Live room', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-10-23', title: '152nd Charter Day Observance', where: 'HT\'s published calendar · Campus' },
       { date: '2026-11-06', title: 'Donor Appreciation Weekend, day one', where: 'Advancement · Campus' } ] },
     { type: 'install', side: true },
@@ -67,7 +67,7 @@ HT.spaces.advancement = {
       { who: 'Events', when: 'This week', text: 'Weekend agenda posted. The guest list opens October 16.' },
       { who: 'Gift officers', when: 'Last week', text: 'Visit folders now print from each donor page, ready for the visit.' } ] },
     { type: 'calendar', side: true, title: 'The Advancement calendar', meta: 'Sample', items: [
-      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Live room · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Live room · 12:00 PM CT', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-11-06', title: 'Donor Appreciation Weekend, day one', where: 'Campus' },
       { date: '2026-11-07', title: 'Donor Appreciation Weekend, day two', where: 'Campus' },
       { date: '2026-12-01', title: 'Year-end letters go out from each donor page', where: 'Stewardship' },

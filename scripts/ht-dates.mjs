@@ -25,6 +25,7 @@ const bad = [], warn = [];
 const walk = (v, where) => {
   if (Array.isArray(v)) return v.forEach((x, i) => walk(x, where + '[' + i + ']'));
   if (v && typeof v === 'object') {
+    if (v.done === true) return;   /* a timeline row marked done is the past on purpose (HT's Opening Convocation, Sep 10) */
     if (typeof v.date === 'string' && /^\d{4}-\d\d-\d\d$/.test(v.date)) {
       const n = num(v.date);
       if (n < num(FLOOR)) bad.push(where + ' · ' + v.date + ' "' + (v.title || '') + '" is before ' + FLOOR);

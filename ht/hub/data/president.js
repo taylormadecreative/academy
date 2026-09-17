@@ -14,14 +14,14 @@ HT.spaces.president = {
     { type: 'player', id: 'townhall', cardTitle: 'The fall town hall', meta: 'Live from the auditorium · replay the same afternoon', title: 'Office of the President', live: false, poster: '/ht/img/cover-dais.jpg',
       now: { title: 'Fall Town Hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, October 15 · 12:00 PM CT' } },
     { type: 'replays', id: 'replays', title: 'Past addresses', meta: 'Sample recordings', items: [
-      { title: 'Fall Convocation address', date: 'Aug 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
+      { title: 'Opening Convocation address', date: 'Sep 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
       { title: 'A welcome to the Class of 2030', date: 'Aug 2026', len: '11:40', poster: '/ht/img/campus-hero.jpg', tag: 'Sample' },
       { title: 'Commencement address', date: 'May 2026', len: '24:05', poster: '/ht/img/commencement.jpg', tag: 'Sample' },
       { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', poster: '/ht/img/students-library.jpg', tag: 'Sample' } ] },
     { type: 'timeline', id: 'calendar', title: 'The President\'s year', meta: 'Sample calendar · 2026 to 2027', items: [
-      { when: 'Late August', title: 'Fall Convocation', text: 'The academic year opens. The address is on the replay shelf above.', done: true },
-      { when: 'Oct 15', title: 'Fall Town Hall', text: 'Live from the auditorium at noon. Questions from the floor first, then from the hub.' },
+      { when: 'Sep 10', title: 'President\'s Opening Convocation', text: 'The year opened together. The address is on the replay shelf above.', done: true },
       { when: 'Oct 8', title: 'President\'s Fall Briefing for donors', text: 'A briefing for the people behind each gift, in the live room. Sample event.' },
+      { when: 'Oct 15', title: 'Fall Town Hall', text: 'Live from the auditorium at noon. Questions from the floor first, then from the hub.' },
       { when: 'Nov 6–7', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill. The President\'s thank-you at the November 7 luncheon. Sample event.' },
       { when: 'Jan 2027', title: 'Spring Town Hall', text: 'The spring semester opens the same way the fall did: in the auditorium, live in the hub.' },
       { when: 'February 2027', title: 'Homecoming 2027', text: 'The Hill fills back up. Dates announced by HT.' },

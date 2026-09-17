@@ -35,7 +35,7 @@ HT.spaces.alumni = {
       { who: "Keisha L. '05", chan: 'All alumni', when: 'This week', text: 'Signed up for the alumni track: four evenings, October 8 to December 3, live in the hub, and the replay if you miss one. Who else is in?', likes: 34 },
       { who: "Priscilla O. '98", chan: 'All alumni', when: 'Last week', text: 'To whoever left the note in my old dorm mailbox at the last reunion: I found it. Thank you. I am still laughing.', likes: 91 },
       { who: "Renee W. '09", chan: 'Austin chapter', when: 'Last week', text: 'Meetup October 20, 6:30, the coffee shop across from campus. Students welcome. Come ask what the first job after HT actually looks like.', likes: 27 },
-      { who: "Andre B. '17", chan: 'Class of 2017', when: 'Last week', text: 'Ten years. Who is in for a class table at the brunch? Drop a reply and I will start the list. Planning call is December 10 in this channel.', likes: 22 },
+      { who: "Andre B. '17", chan: 'Class of 2017', when: 'Last week', text: 'Ten years. Who is in for a class table at the brunch? Drop a reply and I will start the list. Planning call is December 3 in this channel.', likes: 22 },
       { who: "Marcus T. '14", chan: 'Mentors', when: 'Last week', text: 'Took my first mentee through a mock interview this week. She got the callback. If you have been on the fence about the mentor list, this is your sign.', likes: 46 } ] },
     { type: 'tracks', id: 'learning', title: 'Lifelong learning', meta: 'Open to all alumni · sample track', items: [
       { title: 'AI for alumni professionals', text: 'Four evening sessions, live in the hub with the replay the same night. Built for the alum with a job, not the one with a computer science degree. Bring one task from your work and leave with it done faster.', tag: 'Fall 2026', tagCls: 'soft',
@@ -46,10 +46,10 @@ HT.spaces.alumni = {
           { no: '04', title: 'Your own small automation, built in the room', date: 'Dec 3 · 6:30 PM CT', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on your page after all four sessions and one finished task from your own work', status: 'Next', cls: 'soft' } } ] },
     { type: 'calendar', side: true, title: 'The alumni calendar', meta: 'Sample', items: [
-      { date: '2026-10-08', title: 'AI for alumni professionals · Session 01', where: 'Live in the hub · 6:30 PM CT', tag: 'Live', tagCls: 'live' },
-      { date: '2026-10-20', title: 'Austin chapter meetup', where: 'Near campus · 6:30 PM' },
-      { date: '2026-10-29', title: 'AI for alumni professionals · Session 02', where: 'Live in the hub · 6:30 PM CT', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-08', title: 'AI for alumni professionals · Session 01', where: 'Live in the hub · 6:30 PM CT', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-10-15', title: 'Mentor matching opens for spring', where: 'Mentors · Alumni Relations' },
+      { date: '2026-10-20', title: 'Austin chapter meetup', where: 'Near campus · 6:30 PM' },
+      { date: '2026-10-29', title: 'AI for alumni professionals · Session 02', where: 'Live in the hub · 6:30 PM CT', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-11-17', title: 'Alumni giving update goes out from each page', where: 'Alumni Relations with Advancement' },
       { date: '2026-12-03', title: 'Class of 2017 reunion planning call', where: 'Class of 2017 channel' },
       { day: 'Feb', mon: '2027', title: 'Homecoming 2027', where: 'Campus · dates announced by HT', tag: 'Save the month', tagCls: 'soft' } ] },

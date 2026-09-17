@@ -16,14 +16,14 @@ HT.spaces.president = {
     { type: 'player', id: 'townhall', cardTitle: 'The fall town hall', meta: 'Live from the auditorium · replay the same afternoon', title: 'Office of the President', live: false, poster: '/ht/img/cover-dais.jpg',
       now: { title: 'Fall Town Hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, October 15 · 12:00 PM CT' } },
     { type: 'replays', id: 'replays', title: 'Past addresses', meta: 'Sample recordings', items: [
-      { title: 'Fall Convocation address', date: 'Aug 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
+      { title: 'Opening Convocation address', date: 'Sep 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
       { title: 'A welcome to the Class of 2030', date: 'Aug 2026', len: '11:40', poster: '/ht/img/campus-hero.jpg', tag: 'Sample' },
       { title: 'Commencement address', date: 'May 2026', len: '24:05', poster: '/ht/img/commencement.jpg', tag: 'Sample' },
       { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', poster: '/ht/img/students-library.jpg', tag: 'Sample' } ] },
     { type: 'timeline', id: 'calendar', title: 'The President\'s year', meta: 'Sample calendar · 2026 to 2027', items: [
-      { when: 'Late August', title: 'Fall Convocation', text: 'The academic year opens. The address is on the replay shelf above.', done: true },
-      { when: 'Oct 15', title: 'Fall Town Hall', text: 'Live from the auditorium at noon. Questions from the floor first, then from the hub.' },
+      { when: 'Sep 10', title: 'President\'s Opening Convocation', text: 'The year opened together. The address is on the replay shelf above.', done: true },
       { when: 'Oct 8', title: 'President\'s Fall Briefing for donors', text: 'A briefing for the people behind each gift, in the live room. Sample event.' },
+      { when: 'Oct 15', title: 'Fall Town Hall', text: 'Live from the auditorium at noon. Questions from the floor first, then from the hub.' },
       { when: 'Nov 6–7', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill. The President\'s thank-you at the November 7 luncheon. Sample event.' },
       { when: 'Jan 2027', title: 'Spring Town Hall', text: 'The spring semester opens the same way the fall did: in the auditorium, live in the hub.' },
       { when: 'February 2027', title: 'Homecoming 2027', text: 'The Hill fills back up. Dates announced by HT.' },
@@ -81,7 +81,7 @@ HT.spaces.events = {
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
       { meta: 'Friday, October 23, 2026', title: '152nd Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
-      { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/fall-convocation.jpg', alt: 'Students at Huston-Tillotson', foot: 'On the calendar →' },
+      { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/students-library.jpg', alt: 'Students in the library at Huston-Tillotson', foot: 'On the calendar →' },
       { meta: 'Nov 6–7, 2026', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill for the people behind each gift. This one is a worked example of an Advancement event: the agenda, the rooms, the host line, and the check-in at the door.', href: '#weekend', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus plaza', badge: 'Sample', foot: 'Open the agenda →' } ] },
     { type: 'year', id: 'year', title: 'The 2026-2027 academic year', meta: 'Published by the University, live against today',
       calName: 'Huston-Tillotson academic calendar 2026-2027',
@@ -180,7 +180,7 @@ HT.spaces.events = {
           { time: '8:30 AM', end: '9:30 AM', title: 'Breakfast with faculty', where: 'The President\u2019s dining room', who: 'Faculty hosts (sample)' },
           { time: '9:45 AM', end: '10:45 AM', title: 'Meet a funded cohort', where: 'The library', who: 'Students from a funded program (sample)' },
           { time: '11:00 AM', end: '11:45 AM', title: 'Service of thanksgiving', where: 'The chapel', who: 'Campus ministry (sample)' },
-          { time: '12:00 PM', end: '1:30 PM', title: 'Luncheon and the President\u2019s thank-you', where: 'The auditorium', who: 'Dr. Melva K. Wallace', tag: 'Live in the hub', tagCls: 'live' },
+          { time: '12:00 PM', end: '1:30 PM', title: 'Luncheon and the President\u2019s thank-you', where: 'The auditorium', who: 'Dr. Melva K. Wallace', tag: 'Live in the hub', tagCls: 'soft' },
           { time: '1:45 PM', end: '2:30 PM', title: 'Photos on the steps', where: 'The auditorium steps', who: 'Campus photographer (sample)' },
           { time: '2:30 PM', end: '3:15 PM', title: 'Student showcase', where: 'The library lawn', who: 'Students from funded cohorts (sample)' },
           { time: '3:30 PM', end: '4:00 PM', title: 'Farewell and departures', where: 'Main entrance', who: 'Events lead (sample)' } ] } ] },
@@ -230,27 +230,27 @@ HT.spaces.live = {
   stamp: 'The class room is real · the rest is sample', headCta: { label: 'Open the room', href: '#room', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'The live room', title: 'One room for everything the campus does live.',
-      text: 'A seminar, a town hall, a donor briefing, a guest lecture, a class. The host sends one link. People sign in with their email and a six-digit code, walk in muted with the camera off, and turn either on with one tap. The host shares a screen, brings a question onto the stage, and can end the session for everyone when it is done — leaving the room never ends it. Anyone who is signed in can walk in while a session runs. The recording lands on this page for the host to review and publish.',
+      text: 'A seminar, a town hall, a donor briefing, a guest lecture, a class. The host sends one link. People sign in with their email and a six-digit code, walk in muted with the camera off, and turn either on with one tap. The host shares a screen, brings a question onto the stage, and ends the session for everyone when it is done. The recording lands on this page for the host to review and publish.',
       ctas: [{ label: 'Open the room', href: '#room', style: 'ht' }, { label: 'How a session runs', href: '#how', style: 'ht-line' }],
       image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais in the auditorium at Huston-Tillotson',
       ada: { text: 'When your host starts, you\'ll walk straight in. Until then this page checks every few seconds, so there\'s nothing to refresh.', when: 'Ada · HT student ambassador' } },
-    { type: 'room', id: 'room', cardTitle: 'The HT class room', meta: 'Real · this room is live' },
-    { type: 'stats', items: [{ n: '1 link', label: 'Is all a guest needs, plus their email' }, { n: '1 tap', label: 'Turns a camera or mic on' }, { n: 'Same day', label: 'The replay is ready to review' }, { n: '5', label: 'Offices with a session on the calendar (sample)' }] },
+    { type: 'room', id: 'room', cardTitle: 'The HT class room', meta: 'Real · HT\'s own room' },
+    { type: 'stats', items: [{ n: '1 link', label: 'Is all a guest needs, plus their email' }, { n: '1 tap', label: 'Turns a camera or mic on' }, { n: 'Same day', label: 'The replay is ready to review' }, { n: '4', label: 'Offices with a session on the calendar (sample)' }] },
     { type: 'steps', id: 'how', title: 'How a session runs', meta: 'Three steps, one afternoon', items: [
       { em: 'Step one', h: 'Send the link', p: 'The host copies the room link from this page and sends it by text or email. It works before the session starts; people who open it early wait in the room and are brought in the moment it begins.' },
-      { em: 'Step two', h: 'Start class', p: 'The host presses Start class, checks the camera, and enters. Everyone is on camera if they choose to be. Share a screen, take questions from the queue, put someone on the stage, split into small groups.' },
+      { em: 'Step two', h: 'Start class', p: 'The host presses Start class, checks the camera, and enters. Anyone signed in to the hub can walk in while it runs. Everyone is on camera if they choose to be. Share a screen, take questions from the queue, put someone on the stage, split into small groups. Leaving the room never ends the session; only End does.' },
       { em: 'Step three', h: 'The replay lands here', p: 'Every session records itself. The host reviews it, presses Publish, and it appears on this page as the last session for the people who were in the room.' } ] },
     { type: 'replays', id: 'replays', title: 'The replay shelf', meta: 'Sample recordings', items: [
-      { title: 'Fall Convocation address', date: 'Aug 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Office of the President · sample' },
+      { title: 'Opening Convocation address', date: 'Sep 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Office of the President · sample' },
       { title: 'Faculty development · session one', date: 'Aug 2026', len: '52:18', poster: '/ht/img/students-library.jpg', tag: 'Academic Affairs · sample' },
       { title: 'A live visit for families', date: 'Jul 2026', len: '44:30', poster: '/ht/img/campus-hero.jpg', tag: 'Admissions · sample' },
       { title: 'Commencement 2026', date: 'May 2026', len: '1:52:40', poster: '/ht/img/commencement.jpg', tag: 'Office of the President · sample' },
       { title: 'Spring donor briefing', date: 'Apr 2026', len: '41:05', poster: '/ht/img/wallace-students.jpg', tag: 'Institutional Advancement · sample' },
       { title: 'Guest lecture · building a business in Austin', date: 'Mar 2026', len: '58:47', poster: '/ht/img/student-laptop.jpg', tag: 'Career Services · sample' } ] },
     { type: 'calendar', side: true, id: 'calendar', title: 'Coming up live', meta: 'Sample · every office', items: [
-      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Institutional Advancement · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
-      { date: '2026-10-15', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live', tagCls: 'live' },
-      { date: '2026-10-22', title: 'Guest lecture · Business program', where: 'Academic Affairs · 6:00 PM CT' },
+      { date: '2026-10-08', title: 'President\'s Fall Briefing for donors', where: 'Institutional Advancement · 12:00 PM CT', tag: 'Live room', tagCls: 'soft' },
+      { date: '2026-10-15', title: 'Fall town hall', where: 'Office of the President · 12:00 PM CT', tag: 'Live room', tagCls: 'soft' },
+      { date: '2026-10-22', title: 'Guest lecture · Building a business in Austin', where: 'Career Services · 6:00 PM CT' },
       { date: '2026-10-29', title: 'Faculty development · teaching with the hub', where: 'Academic Affairs · 3:00 PM CT' },
       { date: '2026-11-07', title: 'Donor Appreciation Weekend luncheon', where: 'Institutional Advancement · 12:00 PM CT' },
       { date: '2026-11-19', title: 'A live visit for families', where: 'Admissions · 6:30 PM CT' },
@@ -260,12 +260,12 @@ HT.spaces.live = {
       { q: 'Do I need an account to join?', a: 'Yes, and it takes a minute: your email, then a six-digit code we send you. The first time, you type your name once. Nothing to download.' },
       { q: 'Does it work on a phone?', a: 'Yes. Camera, mic, chat and the question queue all work in the phone\'s browser. Add the hub to your home screen and it opens like an app.' },
       { q: 'Who can watch the recording?', a: 'The host reviews each recording first and decides whether to publish it. Once published, it appears on this page for the people who were in the room.' },
-      { q: 'Can a session be private to one group?', a: 'Yes. Only people with the current link can enter. The host can issue a new link at any time, which closes the door on the old one.' } ] },
+      { q: 'Who can come in?', a: 'Today the room is open to anyone signed in to the HT Hub while a session runs, so the link is an invitation, not a lock. The host sees who joined, and only the people who were in the room can watch the replay.' } ] },
     { type: 'materials', side: true, title: 'For hosts', meta: 'Sample', items: [
       { kind: 'DOC', title: 'Host checklist · before you start', sub: 'Camera, light, the link sent, one page', restricted: true },
       { kind: 'DOC', title: 'Running the question queue', sub: 'Bring someone on stage, then hand it back', restricted: true },
       { kind: 'DECK', title: 'President\'s Fall Briefing · slides', sub: 'Share from the room on Oct 8', restricted: true } ] },
-    { type: 'cta', title: 'The next session is October 8 at noon.', text: 'The President\'s Fall Briefing for donors, live from the auditorium. Open the room a few minutes early; your host will bring you in.',
+    { type: 'cta', title: 'The next session shows above the room.', text: 'Your host sets it, with Add to calendar for your phone. Open the room a few minutes early; your host will bring you in.',
       primary: { label: 'Open the room', href: '#room', style: 'ht-gold' }, secondary: { label: 'See every session', href: '#calendar', style: 'ht-line' } }
   ]
 };
@@ -277,13 +277,13 @@ HT.spaces.learn = {
   key: 'learn', title: 'Learn', office: 'Academic Affairs · co-curricular', icon: 'book',
   blurb: 'Co-curricular tracks with a live room, a materials shelf, and, next, a certificate from HT.',
   sub: 'Short tracks that run beside the course catalog, never inside it. Live sessions, replays, materials, and, next, a certificate issued by the University when a track closes.',
-  stamp: 'Preview · sample tracks', headCta: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-gold' },
+  stamp: 'Preview · sample tracks', headCta: { label: 'The tracks', href: '#tracks', style: 'ht-gold' },
   blocks: [
     { type: 'intro', kicker: 'Academic Affairs · co-curricular', title: 'Everything around the classroom.',
       text: 'AI Literacy, Entrepreneurship on the Hill, Financial Literacy. Short tracks with a live room, a materials shelf, attendance by code, and, next on the roadmap, a certificate issued by HT when a track closes. This is not the University\'s course system, and it never touches it. It is the learning that happens between classes, kept in one place.',
       ctas: [{ label: 'The tracks', href: '#tracks', style: 'ht' }, { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' }],
       image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students studying in the library',
-      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same afternoon. Want me to put the eight dates on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same night. Want me to put the eight dates on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'stats', items: [{ n: '3', label: 'Tracks this year (sample)' }, { n: '19', label: 'Sessions across the tracks' }, { n: 'Oct 13', label: 'AI Literacy opens (sample)' }, { n: 'Next', label: 'Certificate from HT per track' }] },
     { type: 'tracks', id: 'tracks', title: 'The tracks', meta: 'Live in the hub · replays same day', items: [
       { title: 'AI Literacy', text: 'Eight sessions. Every student leaves each one with real work done by AI, on free tools, in their own voice.', tag: 'Fall 2026', sessions: [
@@ -296,16 +296,16 @@ HT.spaces.learn = {
         { no: '04', title: 'Price it', date: 'Feb 15', status: 'Opens Jan' }, { no: '05', title: 'Tell it in ninety seconds', date: 'Feb 22', status: 'Opens Jan' }, { no: '06', title: 'Pitch night rehearsal', date: 'Mar 1', status: 'Opens Jan' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page, and on the donor\'s page when a gift funded the cohort', status: 'Next', cls: 'soft' } },
       { title: 'Financial Literacy', text: 'Five sessions on budgets, credit, and the first year after graduation, taught plainly.', tag: 'Fall 2026', sessions: [
-        { no: '01', title: 'Where the money goes', date: 'Oct 7', status: 'Opens Oct 7' }, { no: '02', title: 'Credit, explained once', date: 'Oct 14', status: 'Upcoming' }, { no: '03', title: 'Loans and the letter you will get', date: 'Oct 21', status: 'Upcoming' },
-        { no: '04', title: 'Your first paycheck', date: 'Oct 28', status: 'Upcoming' }, { no: '05', title: 'A plan you will keep', date: 'Nov 4', status: 'Upcoming' } ],
+        { no: '01', title: 'Where the money goes', date: 'Oct 14', status: 'Opens Oct 14' }, { no: '02', title: 'Credit, explained once', date: 'Oct 21', status: 'Upcoming' }, { no: '03', title: 'Loans and the letter you will get', date: 'Oct 28', status: 'Upcoming' },
+        { no: '04', title: 'Your first paycheck', date: 'Nov 4', status: 'Upcoming' }, { no: '05', title: 'A plan you will keep', date: 'Nov 11', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page, and on the donor\'s page when a gift funded the cohort', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Faculty development', meta: 'Live in the hub · replays on the shelf', items: [
       { meta: 'Oct 29 · 3:00 PM', title: 'Teaching with the hub', text: 'Attendance by code, materials in one place, and the replay that lands the same afternoon.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'Sample', foot: 'Replay after the session' },
       { meta: 'Nov 12 · 3:00 PM', title: 'AI in the syllabus, honestly', text: 'What to allow, what to require, and how to say it in the first week.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Replay after the session' },
-      { meta: 'Mar 11 · 3:00 PM', title: 'Running your own track', text: 'Any department can open a co-curricular track. This is the one-hour walkthrough.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', badge: 'Sample', foot: 'Replay after the session' } ] },
+      { meta: 'Mar 25 · 3:00 PM', title: 'Running your own track', text: 'Any department can open a co-curricular track. This is the one-hour walkthrough.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', badge: 'Sample', foot: 'Replay after the session' } ] },
     { type: 'cards', title: 'Guest lecture series', meta: 'Open to the campus · replay available', items: [
       { meta: 'Oct 22 · 6:00 PM', title: 'Building a business in Austin', text: 'An alumna founder on the first three years, the mistakes, and the city.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus retail street at dusk', badge: 'Sample', foot: 'Replay available' },
-      { meta: 'Nov 19 · 6:00 PM', title: 'A century and a half on the Hill', text: 'A faculty historian on the roots that reach to 1875 and the 1952 union that made HT.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Replay available' },
+      { meta: 'Oct 22 · 12:00 PM', title: 'A century and a half on the Hill', text: 'A faculty historian on the roots that reach to 1875 and the 1952 union that made HT.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Replay available' },
       { meta: 'Feb 18 · 6:00 PM', title: 'Health careers, the real map', text: 'A panel of alumni in nursing, therapy, and public health on the paths that worked.', img: '/ht/img/commencement.jpg', alt: 'Commencement on the Hill', badge: 'Sample', foot: 'Replay available' } ] },
     { type: 'split', id: 'cohort', kicker: 'A named cohort a donor funded', title: 'The cohort on the donor\'s page.',
       text: 'When a gift funds a block of seats, the cohort appears on the donor\'s own page: the name they chose, the sessions, and the students it reached, first names only, with permission. The certificate lands there too.',
@@ -322,7 +322,7 @@ HT.spaces.learn = {
       { kind: 'REC', title: 'Replays land here', sub: 'Each session, the same afternoon', href: '/ht/hub/live/' } ] },
     { type: 'checkin', side: true, title: 'Check in', meta: 'Code on the screen', session: 'AI Literacy · Session 01', sub: 'Tuesday, Oct 13 · 6:00 PM', code: 'LEARN03', hint: 'Type the code from the screen. Sample code for this preview: LEARN03.' },
     { type: 'announcements', side: true, title: 'Academic Affairs desk', meta: 'Sample', items: [
-      { who: 'Academic Affairs', when: 'This week', text: 'Financial Literacy opens Oct 7 in the live room. Seats are open to every student.' },
+      { who: 'Academic Affairs', when: 'This week', text: 'Financial Literacy opens October 14 in the live room. Seats are open to every student.' },
       { who: 'AI Literacy', when: 'This week', text: 'Session 01 opens Tuesday, October 13, at 6. The playbook posts here the same afternoon.' },
       { who: 'Faculty development', when: 'Last week', text: 'Teaching with the hub is October 29 at 3. Bring your syllabus.' } ] }
   ]
@@ -351,13 +351,13 @@ HT.spaces.community = {
       { who: 'Jordan P.', chan: 'Class of 2027', when: 'Last week', text: 'Senior seminar study group, Tuesdays at 4 in the library, room 204. We are on chapter six. Bring questions. We have snacks.', likes: 19 },
       { who: 'Tre J.', chan: 'Class of 2030', when: 'This week', text: 'First-year question: is there a way from the residence hall to the science building that does not cut through the plaza? Asking for my 8 AM self.', likes: 24 },
       { who: 'Simone A.', chan: 'Class of 2030', when: 'This week', text: 'College Algebra study group, Thursdays at 7 in the library. Four of us so far. Room for more. We go slow and nobody feels behind.', likes: 31 },
-      { who: 'Prof. L.', chan: 'Faculty lounge', when: 'Last week', text: 'Reminder that midterm grades are due in the portal by the 16th. The coffee in the lounge was fresh at 8:10. Come by, it will not last.', likes: 12 },
+      { who: 'Prof. L.', chan: 'Faculty lounge', when: 'Last week', text: 'Reminder that midterm grades are due in the portal by October 13. The coffee in the lounge was fresh at 8:10. Come by, it will not last.', likes: 12 },
       { who: 'Devon C.', chan: 'Student orgs', when: 'Last week', text: 'Student Government meets Wednesday at 5 in the student center. Open floor at the end for anything on your mind. That is what it is for.', likes: 16 },
       { who: "Renee W. '09", chan: 'Alumni', when: 'Last week', text: 'Austin chapter meetup October 20, 6:30, the coffee shop across from campus. Students welcome. Come ask what the first job after HT actually looks like.', likes: 29 } ] },
     { type: 'table', id: 'leaderboard', title: 'Leaderboard, this month (sample)', meta: 'Five points a post, four a reply', cols: ['Member', 'Posts', 'Replies', 'Points'], rows: [
       ['Aaliyah M.', '14', '31', '194'], ['Jordan P.', '11', '26', '159'], ['Devon C.', '9', '22', '133'], ['Simone A.', '8', '19', '116'], ['Malik T.', '7', '15', '95'], ['Tre J.', '6', '12', '78'] ] },
     { type: 'cards', id: 'offices', title: 'Channels by office', meta: 'Each opens its own space', items: [
-      { meta: 'Student Affairs', title: 'Students', text: 'Charter Week, housing, the student center, and the desk that answers.', href: '/ht/hub/students/', foot: 'Open the space →' },
+      { meta: 'Student Affairs', title: 'Students', text: 'Spring Ready Week, housing, the student center, and the desk that answers.', href: '/ht/hub/students/', foot: 'Open the space →' },
       { meta: 'Events', title: 'Events', text: 'Every agenda on campus, add-to-calendar, and check-in at the door.', href: '/ht/hub/events/', foot: 'Open the space →' },
       { meta: 'The live room', title: 'Live', text: 'Town halls and seminars, live, with the replay the same afternoon.', href: '/ht/hub/live/', foot: 'Open the space →' },
       { meta: 'Learn', title: 'Learn', text: 'AI Literacy and the other tracks, with a certificate at the end.', href: '/ht/hub/learn/', foot: 'Open the space →' },
@@ -377,7 +377,7 @@ HT.spaces.community = {
     { type: 'announcements', side: true, title: 'From Student Affairs', meta: 'Sample', items: [
       { who: 'Student Affairs', when: 'This week', text: 'A reminder of the community guidelines: real names, kind words, no selling. Posts that break them come down, and you hear from us directly.' },
       { who: 'Student Affairs', when: 'This week', text: 'Two new channels this week: Class of 2030 and Student orgs. Ask for yours in the Campus channel.' },
-      { who: 'Charter Week', when: 'Last week', text: 'Your check-in code is on the screen at each Charter Week session. One tap marks you present.' } ] },
+      { who: 'Student Affairs', when: 'Last week', text: 'Spring Ready Week is October 20 to 22. Your check-in code will be on the screen at each session.' } ] },
     { type: 'notice', side: true, tone: 'gold', text: 'Posts are reviewed by Student Affairs. Report a post with one tap.' },
     { type: 'install', side: true },
     { type: 'cta', title: 'See you on the Hill.', text: 'Post in your channel, message a real person, and find the next thing happening on campus.', primary: { label: 'What is on this week', href: '/ht/hub/events/', style: 'ht-gold' }, secondary: { label: 'Open The Hill', href: '#the-hill', style: 'ht-line' } }
@@ -419,11 +419,11 @@ HT.spaces.showcase = {
       { em: 'Step three', h: 'It lands on the donor\'s page', p: 'When a gift funded the cohort, the same card appears on the donor\'s page, the day it is posted here.' } ] },
     { type: 'cta', title: 'The students a gift reached.', text: 'This is the page a donor opens after the thank-you. Fund a cohort and it fills in.', primary: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-gold' }, secondary: { label: 'The Advancement space', href: '/ht/hub/advancement/', style: 'ht-line' } },
     { type: 'timeline', side: true, title: 'The showcase season', meta: 'Sample dates', items: [
-      { when: 'Nov 2', title: 'AI Literacy showcase rehearsal', text: 'Session 08, in the live room.', done: false }, { when: 'Dec 4', title: 'Fall showcase', text: 'The auditorium. Donors invited.', done: false },
+      { when: 'Dec 1', title: 'AI Literacy showcase rehearsal', text: 'Session 08, in the live room.', done: false }, { when: 'Dec 4', title: 'Fall showcase', text: 'The auditorium. Donors invited.', done: false },
       { when: 'Jan 19', title: 'Research call for entries', text: 'Faculty mentors nominate.', done: false }, { when: 'Feb 12', title: 'Entries close', text: 'Posters submitted in the hub.', done: false },
-      { when: 'Mar 12', title: 'Submission freeze', text: 'Judges receive the packet.', done: false }, { when: 'Mar 19', title: 'Research showcase', text: 'Judging live, scores posted here.', done: false } ] },
+      { when: 'Apr 2', title: 'Submission freeze', text: 'Judges receive the packet.', done: false }, { when: 'Apr 9', title: 'Research showcase', text: 'Judging live, scores posted here.', done: false } ] },
     { type: 'announcements', side: true, title: 'Showcase desk', meta: 'Sample', items: [
-      { who: 'Academic Affairs', when: 'This week', text: 'The research showcase is March 19. Mentors can nominate from January 19.' },
+      { who: 'Academic Affairs', when: 'This week', text: 'The research showcase is April 9. Mentors can nominate from January 19.' },
       { who: 'AI Literacy', when: 'This week', text: 'Two more sample projects posted. Both students gave permission first.' },
       { who: 'Advancement', when: 'Last week', text: 'A funded cohort\'s projects appear on that donor\'s page the day they post here.' } ] },
     { type: 'notice', side: true, tone: 'maroon', html: '<b>Permission first.</b> Nothing appears here without the student\'s written permission through the University\'s own process. First names only. Never a grade.' }
@@ -435,18 +435,18 @@ HT.spaces.showcase = {
 window.HT = window.HT || {}; HT.spaces = HT.spaces || {};
 HT.spaces.students = {
   key: 'students', title: 'Students', office: 'Student Affairs', icon: 'users',
-  blurb: 'Charter Week in your pocket, student orgs with their own channels, leadership programs, and seminars with attendance.',
+  blurb: 'Spring Ready Week in your pocket, student orgs with their own channels, leadership programs, and seminars with attendance.',
   sub: 'The first week, the orgs, the leadership programs, and the seminar series, with a check-in code at the door of each.',
-  stamp: 'Preview · sample content', headCta: { label: 'Charter Week', href: '#orientation', style: 'ht-gold' },
+  stamp: 'Preview · sample content', headCta: { label: 'Spring Ready Week', href: '#orientation', style: 'ht-gold' },
   blocks: [
-    { type: 'intro', kicker: 'Student Affairs', title: 'Your first week, and every week after.',
-      text: 'Charter Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
-      ctas: [{ label: 'Charter Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
+    { type: 'intro', kicker: 'Student Affairs', title: 'Every week on the Hill, in your pocket.',
+      text: 'Spring Ready Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
+      ctas: [{ label: 'Spring Ready Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
       image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus',
-      ada: { text: 'Charter Week starts October 20 at 8:30 with check-in at the main entrance, and it ends with Charter Day on October 23. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
-    { type: 'agenda', id: 'orientation', title: 'Charter Week', meta: 'Three days before the 152nd Charter Day · sample schedule', event: { name: 'Charter Week', dates: 'Tue Oct 20 to Thu Oct 22, 2026', place: 'Huston-Tillotson University', note: 'Sample schedule' }, days: [
+      ada: { text: 'Spring Ready Week starts October 20 at 8:30 with check-in at the main entrance: advising, aid, wellness, and the clubs fair, the three days before Charter Day. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
+    { type: 'agenda', id: 'orientation', title: 'Spring Ready Week', meta: 'The three days before Charter Day · advising opens Oct 19, registration Oct 26 · sample schedule', event: { name: 'Spring Ready Week', dates: 'Tue Oct 20 to Thu Oct 22, 2026', place: 'Huston-Tillotson University', note: 'Sample schedule' }, days: [
       { label: 'Tuesday, October 20', date: '2026-10-20', items: [
-        { time: '8:30 AM', title: 'Check-in and Charter Week bags', where: 'Main entrance', who: 'Student Affairs', tag: 'Code on screen', tagCls: 'green' }, { time: '10:00 AM', title: 'Welcome to Charter Week', where: 'The auditorium', who: 'Dr. Melva K. Wallace' },
+        { time: '8:30 AM', title: 'Check-in and welcome bags', where: 'Main entrance', who: 'Student Affairs', tag: 'Code on screen', tagCls: 'green' }, { time: '10:00 AM', title: 'Opening the week', where: 'The auditorium', who: 'Dean of Students (sample)' },
         { time: '11:30 AM', title: 'Lunch with your class', where: 'The library lawn', who: 'Peer leaders (sample)' }, { time: '1:30 PM', title: 'Spring advising by program', where: 'Classrooms listed on your schedule', who: 'Faculty advisors' },
         { time: '3:30 PM', title: 'Study skills before finals', where: 'The library', who: 'The library' }, { time: '5:00 PM', title: 'Residence hall meetings', where: 'Your hall', who: 'Residence life' } ] },
       { label: 'Wednesday, October 21', date: '2026-10-21', items: [
@@ -455,23 +455,23 @@ HT.spaces.students = {
         { time: '2:30 PM', title: 'Clubs and organizations fair', where: 'The library lawn', who: 'Student orgs' }, { time: '6:30 PM', title: 'Evening social', where: 'The courtyard', who: 'Peer leaders (sample)' } ] },
       { label: 'Thursday, October 22', date: '2026-10-22', items: [
         { time: '9:00 AM', title: 'First-generation family session', where: 'The auditorium', who: 'Student Affairs and families' }, { time: '10:30 AM', title: 'Health and wellness session', where: 'The chapel', who: 'Counseling and health services' },
-        { time: '12:00 PM', title: 'Charter Day eve · the 152nd story, live', where: 'The auditorium', who: 'Dr. Melva K. Wallace', tag: 'Live', tagCls: 'live' }, { time: '2:00 PM', title: 'All-campus photo', where: 'The steps', who: 'Campus photographer (sample)' },
-        { time: '3:30 PM', title: 'Charter Day, planned', where: 'The library', who: 'Peer leaders (sample)' } ] } ] },
-    { type: 'checkin', title: 'Check in at the door', meta: 'One tap marks you present', session: 'Charter Week · Day one', sub: 'Tuesday, Oct 20 · 8:30 AM · main entrance', code: 'HILL30', hint: 'The code is on the screen at the door. Sample code for this preview: HILL30.' },
+        { time: '12:00 PM', title: 'Charter Day eve · A century and a half on the Hill, live', where: 'The auditorium', who: 'A faculty historian (sample)', tag: 'Live room', tagCls: 'soft' }, { time: '2:00 PM', title: 'All-campus photo', where: 'The steps', who: 'Campus photographer (sample)' },
+        { time: '3:30 PM', title: 'Charter Day, planned · how the Hill marks Friday', where: 'The library', who: 'Peer leaders (sample)' } ] } ] },
+    { type: 'checkin', title: 'Check in at the door', meta: 'One tap marks you present', session: 'Spring Ready Week · Day one', sub: 'Tuesday, Oct 20 · 8:30 AM · main entrance', code: 'HILL30', hint: 'The code is on the screen at the door. Sample code for this preview: HILL30.' },
     { type: 'cards', id: 'orgs', title: 'Student organizations', meta: 'Each has its own channel · counts are sample', items: [
-      { meta: 'Student government · 41 members', title: 'Student Government Association', text: 'Meets Mondays at 5. Minutes post in the channel the same night.', foot: 'Join the channel →', href: '/ht/hub/community/' },
+      { meta: 'Student government · 41 members', title: 'Student Government Association', text: 'Meets Wednesdays at 5. Minutes post in the channel the same night.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Music · 58 members', title: 'Gospel choir', text: 'Rehearsal Wednesdays at 6 in the chapel. New voices welcome.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Pre-professional · 27 members', title: 'Pre-law society', text: 'Speakers, practice tests, and a spring trip to the courthouse.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'STEM · 33 members', title: 'STEM club', text: 'Study groups, the research showcase, and a build night each month.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Media · 22 members', title: 'Creative media collective', text: 'Photo, video, and the campus channel\'s weekly recap.', foot: 'Join the channel →', href: '/ht/hub/community/' },
       { meta: 'Service · 36 members', title: 'Service society', text: 'Saturday service in East Austin. Hours logged in the hub.', foot: 'Join the channel →', href: '/ht/hub/community/' } ] },
     { type: 'tracks', title: 'Leadership programs', meta: 'Certificate from HT at the end · next', items: [
-      { title: 'Emerging Leaders', text: 'Six sessions for first- and second-year students who want to run something.', tag: 'Fall 2026', sessions: [
+      { title: 'Emerging Leaders', text: 'Six sessions for first- and second-year students who want to run something.', tag: 'Fall 2026 · Spring 2027', sessions: [
         { no: '01', title: 'What a leader on the Hill does', date: 'Oct 27 · 5:00 PM', status: 'Next' }, { no: '02', title: 'Running a meeting people come back to', date: 'Nov 10', status: 'Upcoming' }, { no: '03', title: 'Money and a budget', date: 'Nov 17', status: 'Upcoming' },
         { no: '04', title: 'Asking for help', date: 'Dec 1', status: 'Upcoming' }, { no: '05', title: 'Your org\'s channel', date: 'Jan 26', status: 'Upcoming' }, { no: '06', title: 'Passing it on', date: 'Feb 9', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } },
-      { title: 'Peer mentors', text: 'Four sessions for the students who run Charter Week.', tag: 'Fall 2026', sessions: [
-        { no: '01', title: 'Charter Week, from their side', date: 'Oct 6', status: 'Next' }, { no: '02', title: 'When someone is struggling', date: 'Oct 8', status: 'Upcoming' }, { no: '03', title: 'The hub, the codes, the calendar', date: 'Oct 13', status: 'Upcoming' }, { no: '04', title: 'Day-of rehearsal', date: 'Oct 19', status: 'Next' } ],
+      { title: 'Peer mentors', text: 'Four sessions for the students who run Spring Ready Week.', tag: 'Fall 2026', sessions: [
+        { no: '01', title: 'Spring Ready Week, from their side', date: 'Oct 12', status: 'Next' }, { no: '02', title: 'When someone is struggling', date: 'Oct 14', status: 'Upcoming' }, { no: '03', title: 'The hub, the codes, the calendar', date: 'Oct 15', status: 'Upcoming' }, { no: '04', title: 'Day-of rehearsal', date: 'Oct 19', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Seminar series with attendance', meta: 'Check-in code on screen', items: [
       { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', foot: 'Check-in code on screen' },
@@ -480,15 +480,15 @@ HT.spaces.students = {
       { meta: 'Spring · civic engagement', title: 'Civic engagement', text: 'Voting, city council, and the service society\'s Saturdays.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'Check-in code on screen' } ] },
     { type: 'cta', title: 'Everything on the Hill, one sign-in.', text: 'Your orgs, your seminars, your first week, and the campus channel, all in the same place as the live room.', primary: { label: 'Open the Community', href: '/ht/hub/community/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Student Affairs desk', meta: 'Sample', items: [
-      { who: 'Student Affairs', when: 'This week', text: 'Charter Week codes are shown on the screen at each session. One tap marks you present.' },
-      { who: 'Residence life', when: 'This week', text: 'Hall meetings are Tuesday at 7. Bring your ID.' },
+      { who: 'Student Affairs', when: 'This week', text: 'Spring Ready Week codes are shown on the screen at each session. One tap marks you present.' },
+      { who: 'Residence life', when: 'This week', text: 'Hall meetings are October 20 at 5 in your hall. Bring your ID.' },
       { who: 'Student orgs', when: 'Last week', text: 'The clubs fair is October 21 at 2:30 on the library lawn. Every org has a table and a channel.' } ] },
-    { type: 'calendar', side: true, title: 'This month', meta: 'Sample', items: [
-      { date: '2026-10-15', title: 'Fall town hall, live', where: 'The auditorium · noon', tag: 'Live', tagCls: 'live' }, { date: '2026-10-20', title: 'Charter Week begins', where: 'Main entrance · 8:30 AM' },
+    { type: 'calendar', side: true, title: 'Coming up', meta: 'Sample', items: [
+      { date: '2026-10-15', title: 'Fall town hall, live', where: 'The auditorium · noon', tag: 'Live room', tagCls: 'soft' }, { date: '2026-10-20', title: 'Spring Ready Week begins', where: 'Main entrance · 8:30 AM' },
       { date: '2026-10-21', title: 'Clubs and organizations fair', where: 'The library lawn · 2:30 PM' }, { date: '2026-10-23', title: '152nd Charter Day Observance', where: 'HT\'s published calendar · Campus' },
       { date: '2026-10-24', title: 'Service Saturday', where: 'East Austin · 9:00 AM' }, { date: '2026-10-27', title: 'Emerging Leaders · Session 01', where: 'The library · 5:00 PM' }, { date: '2026-10-28', title: 'Wellness Wednesday', where: 'The chapel · 5:00 PM' } ] },
     { type: 'people', side: true, title: 'Student Affairs desk', meta: 'Sample roles', dm: false, items: [
-      { name: 'Dean of Students (sample)', role: 'Student Affairs', org: 'Space owner', tag: 'Owner', tagCls: 'green' }, { name: 'Charter Week lead (sample)', role: 'Charter Week', org: 'Runs the schedule and the codes' },
+      { name: 'Dean of Students (sample)', role: 'Student Affairs', org: 'Space owner', tag: 'Owner', tagCls: 'green' }, { name: 'Spring Ready Week lead (sample)', role: 'Spring Ready Week', org: 'Runs the schedule and the codes' },
       { name: 'Student orgs coordinator (sample)', role: 'Organizations', org: 'Opens channels, approves events' }, { name: 'Residence life director (sample)', role: 'Housing', org: 'Hall meetings and the housing channel' } ] }
   ]
 };
@@ -527,7 +527,7 @@ HT.spaces.career = {
       { title: 'The first interview, rehearsed', date: 'Sep 2026', len: '36:20', poster: '/ht/img/fall-convocation.jpg', tag: 'Career Services' },
       { title: 'Your resume, read out loud', date: 'Aug 2026', len: '28:45', poster: '/ht/img/students-library.jpg', tag: 'Career Services' },
       { title: 'Negotiating the first offer', date: 'Apr 2026', len: '41:10', poster: '/ht/img/campus-hero.jpg', tag: 'Alumni panel' },
-      { title: 'Building a business in Austin', date: 'Oct 2026', len: '58:47', poster: '/ht/img/r-retail-street.jpg', tag: 'Guest lecture' } ] },
+      { title: 'Building a business in Austin', date: 'Mar 2026', len: '58:47', poster: '/ht/img/r-retail-street.jpg', tag: 'Guest lecture' } ] },
     { type: 'split', kicker: 'Why a directory', title: 'The work, searchable.',
       text: 'An employer types "Python" or "patient care" and finds a student with a project to show, not a line on a resume. Students choose what appears and can close the tag with one tap.',
       bullets: ['Search by program, skill, or class year', 'Every entry links to the student\'s Showcase work', '"Open to internships" is the student\'s own switch'],
@@ -539,14 +539,14 @@ HT.spaces.career = {
     { type: 'cta', title: 'Bring the employers to the Hill.', text: 'The employer showcase runs each semester in the live room and on campus.', primary: { label: 'The Showcase', href: '/ht/hub/showcase/', style: 'ht-gold' }, secondary: { label: 'The tracks', href: '/ht/hub/learn/', style: 'ht-line' } },
     { type: 'calendar', side: true, title: 'Mock interviews and workshops', meta: 'Sample', items: [
       { date: '2026-10-14', title: 'Mock interviews, round one', where: 'Career Services · by appointment' }, { date: '2026-10-21', title: 'Resume clinic', where: 'The library · walk in' },
-      { date: '2026-10-22', title: 'Building a business in Austin', where: 'Live room · 6:00 PM', tag: 'Live', tagCls: 'live' }, { date: '2026-11-05', title: 'Employer showcase, fall', where: 'The student center' },
+      { date: '2026-10-22', title: 'Building a business in Austin', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2026-11-05', title: 'Employer showcase, fall', where: 'The student center' },
       { date: '2027-02-04', title: 'Mock interviews, round two', where: 'Career Services · by appointment' } ] },
     { type: 'materials', side: true, title: 'Materials', meta: 'Sample', items: [
       { kind: 'DOC', title: 'The HT resume template', sub: 'One page, in the University\'s type', restricted: true }, { kind: 'DOC', title: 'Interview guide', sub: 'Twelve questions and how to answer them', restricted: true },
       { kind: 'PLAY', title: 'Your portfolio page', sub: 'AI Literacy · Session 07', href: '/ht/hub/learn/' } ] },
     { type: 'announcements', side: true, title: 'Career desk', meta: 'Sample', items: [
       { who: 'Career Services', when: 'This week', text: 'Three internship postings from last spring\'s showcase employers are open in the hub.' },
-      { who: 'Career Services', when: 'This week', text: 'Mock interview slots for the 14th are open. Book from the calendar.' },
+      { who: 'Career Services', when: 'This week', text: 'Mock interview slots for October 14 are open. Book from the calendar.' },
       { who: 'Alumni Relations', when: 'Last week', text: 'Alumni-owned businesses posted two part-time roles in the Alumni channel.' } ] }
   ]
 };
@@ -589,7 +589,7 @@ HT.spaces.alumni = {
       { who: "Keisha L. '05", chan: 'All alumni', when: 'This week', text: 'Signed up for the alumni track: four evenings, October 8 to December 3, live in the hub, and the replay if you miss one. Who else is in?', likes: 34 },
       { who: "Priscilla O. '98", chan: 'All alumni', when: 'Last week', text: 'To whoever left the note in my old dorm mailbox at the last reunion: I found it. Thank you. I am still laughing.', likes: 91 },
       { who: "Renee W. '09", chan: 'Austin chapter', when: 'Last week', text: 'Meetup October 20, 6:30, the coffee shop across from campus. Students welcome. Come ask what the first job after HT actually looks like.', likes: 27 },
-      { who: "Andre B. '17", chan: 'Class of 2017', when: 'Last week', text: 'Ten years. Who is in for a class table at the brunch? Drop a reply and I will start the list. Planning call is December 10 in this channel.', likes: 22 },
+      { who: "Andre B. '17", chan: 'Class of 2017', when: 'Last week', text: 'Ten years. Who is in for a class table at the brunch? Drop a reply and I will start the list. Planning call is December 3 in this channel.', likes: 22 },
       { who: "Marcus T. '14", chan: 'Mentors', when: 'Last week', text: 'Took my first mentee through a mock interview this week. She got the callback. If you have been on the fence about the mentor list, this is your sign.', likes: 46 } ] },
     { type: 'tracks', id: 'learning', title: 'Lifelong learning', meta: 'Open to all alumni · sample track', items: [
       { title: 'AI for alumni professionals', text: 'Four evening sessions, live in the hub with the replay the same night. Built for the alum with a job, not the one with a computer science degree. Bring one task from your work and leave with it done faster.', tag: 'Fall 2026', tagCls: 'soft',
@@ -600,10 +600,10 @@ HT.spaces.alumni = {
           { no: '04', title: 'Your own small automation, built in the room', date: 'Dec 3 · 6:30 PM CT', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on your page after all four sessions and one finished task from your own work', status: 'Next', cls: 'soft' } } ] },
     { type: 'calendar', side: true, title: 'The alumni calendar', meta: 'Sample', items: [
-      { date: '2026-10-08', title: 'AI for alumni professionals · Session 01', where: 'Live in the hub · 6:30 PM CT', tag: 'Live', tagCls: 'live' },
-      { date: '2026-10-20', title: 'Austin chapter meetup', where: 'Near campus · 6:30 PM' },
-      { date: '2026-10-29', title: 'AI for alumni professionals · Session 02', where: 'Live in the hub · 6:30 PM CT', tag: 'Live', tagCls: 'live' },
+      { date: '2026-10-08', title: 'AI for alumni professionals · Session 01', where: 'Live in the hub · 6:30 PM CT', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-10-15', title: 'Mentor matching opens for spring', where: 'Mentors · Alumni Relations' },
+      { date: '2026-10-20', title: 'Austin chapter meetup', where: 'Near campus · 6:30 PM' },
+      { date: '2026-10-29', title: 'AI for alumni professionals · Session 02', where: 'Live in the hub · 6:30 PM CT', tag: 'Live room', tagCls: 'soft' },
       { date: '2026-11-17', title: 'Alumni giving update goes out from each page', where: 'Alumni Relations with Advancement' },
       { date: '2026-12-03', title: 'Class of 2017 reunion planning call', where: 'Class of 2017 channel' },
       { day: 'Feb', mon: '2027', title: 'Homecoming 2027', where: 'Campus · dates announced by HT', tag: 'Save the month', tagCls: 'soft' } ] },
@@ -641,10 +641,10 @@ HT.spaces.admissions = {
       { who: 'Residence life desk (sample)', chan: 'Housing', when: 'This week', text: 'Housing forms open April 1. You pick a hall and a roommate preference in the hub. We answer here the same day.', likes: 41 },
       { who: 'Financial aid desk (sample)', chan: 'Financial aid Q&A', when: 'Last week', text: 'Award letters go out the last week of March. If yours has a line you do not understand, message your counselor and we will read it with you.', likes: 52 },
       { who: 'Ms. Robinson (parent, sample)', chan: 'Parents', when: 'Last week', text: 'Is there a session for parents who have never done this before? First one in our family.', likes: 33 },
-      { who: 'Admissions', chan: 'Parents', when: 'Last week', text: 'Yes. First-generation family night is March 18, live in the hub and in the auditorium. Bring every question.', likes: 45 },
+      { who: 'Admissions', chan: 'Parents', when: 'Last week', text: 'Yes. First-generation family night is March 23, live in the hub and in the auditorium. Bring every question.', likes: 45 },
       { who: 'Tasha L.', chan: 'Admitted 2031', when: 'Last week', text: 'Toured the campus today. The bell tower is real and the library is quiet. See you all in August.', likes: 71 } ] },
     { type: 'calendar', id: 'yield', title: 'Yield events, live in the hub', meta: 'Sample', items: [
-      { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live', tagCls: 'live' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
+      { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
       { date: '2027-03-23', title: 'First-generation family night', where: 'The auditorium and live · 6:00 PM' }, { date: '2027-03-25', title: 'Housing tour, live from the halls', where: 'Live room · 5:30 PM' },
       { date: '2027-04-08', title: 'Parent session', where: 'Live room · 6:30 PM' }, { date: '2027-05-01', title: 'Decision Day', where: 'The Admitted 2031 channel' } ] },
     { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/r-student-center.jpg',
@@ -657,13 +657,13 @@ HT.spaces.admissions = {
     { type: 'split', kicker: 'Move-in weekend', title: 'The move-in weekend, in their pocket.',
       text: 'The schedule, the hall check-in, the family sessions, and the first campus walk, on the same phone that opened the acceptance letter. Parents see the same schedule in their own space.',
       bullets: ['Hall check-in by code, no line at a table', 'Family sessions Saturday morning, live for anyone who could not travel', 'Orientation starts in the same place the following week'],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See a campus week in the hub', href: '/ht/hub/students/#orientation', style: 'ht' } },
+      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus', side: 'right', cta: { label: 'See a week in a student\'s pocket', href: '/ht/hub/students/#orientation', style: 'ht' } },
     { type: 'faq', title: 'What families ask', items: [
       { q: 'Do parents get their own space?', a: 'Yes. The Parents channel opens the day of admission, and the parent session is live in April.' },
       { q: 'Is this on my phone?', a: 'Yes. It installs from Safari with the HT icon and opens like an app.' },
       { q: 'What about a student without a laptop?', a: 'Everything here works on a phone. The library has laptops for the sessions that need one.' },
       { q: 'When does the admitted community close?', a: 'It does not. On move-in day it becomes the Class of 2031 channel, with the same people in it.' } ] },
-    { type: 'cta', title: 'The class that already knows each other.', text: 'By move-in, the Class of 2031 has been talking for five months.', primary: { label: 'See the Students space', href: '/ht/hub/students/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
+    { type: 'cta', title: 'The class that already knows each other.', text: 'By move-in, the Class of 2031 has been talking for five months.', primary: { label: 'Open the Students space', href: '/ht/hub/students/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Admissions desk', meta: 'Sample', items: [
       { who: 'Admissions', when: 'This week', text: 'Admitted Student Night is March 4 at 6, live in the hub.' },
       { who: 'Residence life', when: 'This week', text: 'Housing forms open April 1 in the hub.' },
@@ -688,10 +688,10 @@ HT.spaces.outreach = {
       text: 'A public education series anyone in East Austin can join. Partner programs with churches, neighborhood associations, and high schools. A summer bridge that brings tenth and eleventh graders onto campus before their first fall. The community joins the same live room the campus uses, with the same sign-in.',
       ctas: [{ label: 'The public series', href: '#series', style: 'ht' }, { label: 'Summer Bridge', href: '#bridge', style: 'ht-line' }],
       image: '/ht/img/fall-convocation.jpg', imageAlt: 'Fall convocation at Huston-Tillotson',
-      ada: { text: 'The first evening of AI for small business owners is Tuesday, October 6, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
-      { meta: 'Tuesdays in October · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
-      { meta: 'Thursdays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Feb 2027 · one evening', title: 'A history of the Hill', text: 'Roots that reach to 1875, and the 1952 union of Samuel Huston College and Tillotson College. Told by faculty, with the archives.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Apr 2027 · one evening', title: 'A health and wellness evening', text: 'Screenings, a panel of alumni in health careers, and the questions people do not ask their doctor.', img: '/ht/img/commencement.jpg', alt: 'Commencement on the Hill', badge: 'Sample', foot: 'Free · open to the neighborhood' } ] },
     { type: 'cards', title: 'Partner programs', meta: 'Sample · no real organization named here', items: [
@@ -713,14 +713,14 @@ HT.spaces.outreach = {
       { q: 'Can my church or school become a partner?', a: 'Yes. Message the outreach desk here. A partner program is a calendar, a channel, and a student host.' } ] },
     { type: 'cta', title: 'Bring the neighborhood up the Hill.', text: 'The first evening of the public series is in October, in the auditorium and live in the room.', primary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' } },
     { type: 'calendar', side: true, title: 'The outreach calendar', meta: 'Sample', items: [
-      { date: '2026-10-06', title: 'AI for small business owners · evening one', where: 'The auditorium and live · 6:30 PM', tag: 'Live', tagCls: 'live' }, { date: '2026-10-24', title: 'Service Saturday with the service society', where: 'East Austin · 9:00 AM' },
-      { date: '2026-11-05', title: 'Financial wellness for families · evening one', where: 'The auditorium and live · 6:30 PM' }, { date: '2027-02-11', title: 'A history of the Hill', where: 'The auditorium and live · 6:30 PM' },
+      { date: '2026-10-12', title: 'AI for small business owners · evening one', where: 'The auditorium and live · 6:30 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2026-10-24', title: 'Service Saturday with the service society', where: 'East Austin · 9:00 AM' },
+      { date: '2026-11-09', title: 'Financial wellness for families · evening one', where: 'The auditorium and live · 6:30 PM' }, { date: '2027-02-11', title: 'A history of the Hill', where: 'The auditorium and live · 6:30 PM' },
       { date: '2027-06-08', title: 'Summer Bridge begins', where: 'Campus · 9:00 AM' } ] },
     { type: 'announcements', side: true, title: 'Outreach desk', meta: 'Sample', items: [
-      { who: 'Community outreach', when: 'This week', text: 'AI for small business owners begins October 6. Free, and open to the neighborhood.' },
+      { who: 'Community outreach', when: 'This week', text: 'AI for small business owners begins October 12. Free, and open to the neighborhood.' },
       { who: 'Community outreach', when: 'This week', text: 'Summer Bridge 2027 applications open in January through partner high schools.' },
       { who: 'Service society', when: 'Last week', text: 'Service Saturday is October 24. Hours are logged in the hub.' } ] },
-    { type: 'checkin', side: true, title: 'Check in at the door', meta: 'Code on the screen', session: 'AI for small business owners · evening one', sub: 'Tuesday, Oct 6 · 6:30 PM · the auditorium', code: 'EAST26', hint: 'Sample code for this preview: EAST26.' }
+    { type: 'checkin', side: true, title: 'Check in at the door', meta: 'Code on the screen', session: 'AI for small business owners · evening one', sub: 'Monday, Oct 12 · 6:30 PM · the auditorium', code: 'EAST26', hint: 'Sample code for this preview: EAST26.' }
   ]
 };
 
@@ -766,7 +766,7 @@ HT.spaces.board = {
       { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees and trustees message the secretary directly. There is no open feed in this space, by design.' },
       { q: 'Can I download the materials?', a: 'Materials marked Restricted open in place, on your phone or laptop, and are not sent as attachments. The agenda prints from this page for anyone who wants paper at the table.' } ] },
     { type: 'calendar', side: true, title: 'The meeting cycle', meta: 'Sample dates', items: [
-      { date: '2026-10-16', title: 'Fall board meeting', where: 'The boardroom · 9:00 AM', tag: 'Next', tagCls: 'green' },
+      { date: '2026-10-16', title: 'Fall board meeting', where: 'The boardroom · 9:00 AM' },
       { date: '2027-01-22', title: 'Winter board meeting', where: 'The boardroom · 9:00 AM' },
       { date: '2027-03-12', title: 'Board retreat', where: 'Off campus · one day · trustees join', tag: 'Retreat', tagCls: 'soft' },
       { date: '2027-04-16', title: 'Spring board meeting', where: 'The boardroom · 9:00 AM' },
