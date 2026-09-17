@@ -35,7 +35,7 @@ let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
    create(ctx) → { start, stop, onBind? }. The room hands each the same ctx (tabs, bar, stage, channels,
    the class's key) and never lets one break the class: a plugin that throws is dropped with a console
    line. The list is by room kind so the same feature lights up an Academy room later. */
-const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster'], room: ['presence', 'reactions', 'warmup', 'roster'], team: ['presence', 'reactions', 'roster'] };
+const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster', 'help', 'scoring'], room: ['presence', 'reactions', 'warmup', 'roster', 'help'], team: ['presence', 'reactions', 'roster', 'help'] };
 const pluginMods = {};
 async function loadPlugin(name) {
   if (pluginMods[name] !== undefined) return pluginMods[name];
@@ -334,7 +334,7 @@ export async function mountRoomV2(o) {
   /* the plugins: one ctx, every feature */
   const plugins = [];
   {
-    const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, roomKey: roomKeyFor(target), words, facilitator: facilitator || null, session: isRoom ? null : session, target: isRoom ? target : null, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
+    const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, roomKey: roomKeyFor(target), judge: o.isJudge, admin: o.isAdmin, words, facilitator: facilitator || null, session: isRoom ? null : session, target: isRoom ? target : null, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
     for (const name of pluginNames) {
       const mod = pluginMods[name]; if (!mod || typeof mod.create !== 'function') continue;
       try { const p = mod.create(ctx); if (p) { plugins.push(p);

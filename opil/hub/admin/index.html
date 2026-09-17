@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=e7a9fe2601">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=e7a9fe2601">
+<link rel="stylesheet" href="/css/build-mode.css?v=549b4aab4f">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=549b4aab4f">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -67,6 +67,12 @@
 <div class="bd" style="overflow-x:auto" id="dvWrap"><div class="empty">Loading&hellip;</div></div>
 </div>
 
+<div class="hcard" style="margin-bottom:26px" id="remindCard"><div class="hd2"><h2>Class reminders</h2></div><div class="bd" style="font-size:13.5px;color:var(--muted)" id="remindStatus">Checking…</div></div>
+<div class="hcard" style="margin-bottom:26px" id="help">
+  <div class="hd2"><h2>Help requests <span id="helpCount" class="pill"></span></h2></div>
+  <div class="bd"><p style="margin:0 0 14px;font-size:13.5px;color:var(--muted)">What students sent from “Need help with something?” on the hub. Claim one so the others know it is yours; Answer emails the student.</p>
+  <div id="helpQueue"></div></div>
+</div>
 <div class="hcard" style="margin-bottom:26px" id="facCard">
 <div class="hd2"><h2>Facilitators</h2><span class="mono" style="font-size:11px;color:var(--muted)">THEY SEE ONLY THEIR SESSIONS</span></div>
 <div class="bd">
@@ -122,15 +128,16 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=e7a9fe2601"></script>
+<script src="/js/config.js?v=549b4aab4f"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=e7a9fe2601';
-import { roomPath } from '/opil/hub/live-rooms.js?v=e7a9fe2601';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=549b4aab4f';
+import { roomPath } from '/opil/hub/live-rooms.js?v=549b4aab4f';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
 const facOnly = !isAdmin && (facSessions || []).length > 0;
 if (!isAdmin && !facOnly) { location.replace('/opil/hub/'); throw new Error('not admin'); }
+sb.rpc('ea_opil_remind_status').then(({ data, error }) => { const el = document.getElementById('remindStatus'); if (!el) return; if (error) { console.warn('[admin] remind status', error); el.textContent = 'Reminders go out half an hour before every class.'; return; } el.textContent = data || 'Reminders go out half an hour before every class.'; }).catch(() => {});
 if (facOnly) {
   document.querySelector('.hub-head h1').textContent = 'My sessions';
   document.getElementById('csvBtn').style.display = 'none';
@@ -492,8 +499,9 @@ function renderMgr(){
   open.forEach(no => { const d = mgr.querySelector('details[data-sess="' + no + '"]'); if (d) d.open = true; });
 }
 async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
-if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard') el.style.display = 'none'; });
+if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard' && el.id !== 'help') el.style.display = 'none'; });
 renderMgr();
+try { const { mount: mountHelp } = await import('/opil/hub/admin/help-queue.js?v=549b4aab4f'); mountHelp(sb, document.getElementById('helpQueue'), { esc, countEl: document.getElementById('helpCount') }); } catch (e) { console.warn('[admin] help queue', e); }
 /* a class in progress or a replay in flight refreshes itself: LIVE now → recording → preparing →
    ready, without a reload. Open rows stay open across the re-render (renderMgr restores them). */
 setInterval(async () => {
@@ -505,7 +513,7 @@ setInterval(async () => {
   if (after !== before) renderMgr();
 }, 20000);
 /* attendance that takes itself (0043): the room beats presence; this reads it and exports a CSV */
-const presenceMod = await import('/js/rtk-presence.js?v=e7a9fe2601');
+const presenceMod = await import('/js/rtk-presence.js?v=549b4aab4f');
 async function loadAttendance(no) {
   const body = mgr.querySelector(`.attBody[data-s="${no}"]`), sum = mgr.querySelector(`.attSum[data-s="${no}"]`); if (!body) return;
   const { data, error } = await sb.rpc('ea_class_attendance_rows', { p_key: 'opil:' + no });
@@ -724,6 +732,8 @@ async function renderScores(){
       .map(([tid, ev]) => `<tr><td><b>${esc(teamName[tid] || '')}</b></td><td>${cell(ev.pitch)}</td><td>${cell(ev.showcase)}</td></tr>`).join('') + '</tbody></table>';
 }
 renderScores();
+/* class-room scores (0046): per session — leaderboard, every judge's row, Export CSV, the rubric editor */
+try { const scoresEl = document.createElement('div'); scoresEl.style.marginTop = '16px'; document.getElementById('scoreWrap').insertAdjacentElement('afterend', scoresEl); const { mount: mountScores } = await import('/opil/hub/admin/scores.js?v=549b4aab4f'); mountScores(sb, scoresEl, { esc, sessLabel, zone: 'America/New_York', canEdit: isAdmin }); } catch (e) { console.warn('[admin] scores', e); }
 
 /* credentials: one per member, verifiable at /opil/verify/?c=CODE */
 async function renderCreds(){

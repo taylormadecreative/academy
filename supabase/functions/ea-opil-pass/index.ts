@@ -50,6 +50,11 @@ Deno.serve(async (req: Request) => {
         const row = data as Row | null;
         if (row && String(row[col] || "").trim().toLowerCase() === email) return { full_name: row.full_name };
       }
+      /* teammates: the lead listed them in members [{ name, email, classification }] — they are approved too (ea_opil_claim_team seats them) */
+      const { data: team } = await admin.from("ea_opil_registrations").select("members").eq("approved", true).contains("members", [{ email }]).limit(1).maybeSingle();
+      const mates = (team as { members?: unknown } | null)?.members;
+      const mate = Array.isArray(mates) ? (mates as { email?: unknown; name?: unknown }[]).find((m) => String(m?.email ?? "").trim().toLowerCase() === email) : null;
+      if (mate) return { full_name: typeof mate.name === "string" ? mate.name : null };
       return null;
     },
     mintToken: async (email, fullName) => {
