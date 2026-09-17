@@ -14,15 +14,22 @@ export const createClient = () => ({
   },
   from: (table) => {
     const q = { _t: table, _f: [], _patch: null };
+    /* the class tables the replay page reads (0044/0045/0054): events, summaries, transcripts, materials */
+    const rowsOf = () => table === 'ea_room_replays' ? window.__db.replays : table === 'ea_room_members' ? window.__db.members : table === 'ea_profiles' ? window.__db.profiles
+      : table === 'ea_class_events' ? (window.__db.events || []) : table === 'ea_class_transcripts' ? (window.__db.transcripts || []) : table === 'ea_opil_materials' ? (window.__db.materials || []) : [];
     const chain = {
-      select: () => chain, eq: (c, v) => { q._f.push([c, v]); return chain; }, in: () => chain, order: () => chain, limit: () => chain,
+      select: () => chain, eq: (c, v) => { q._f.push([c, v]); return chain; }, in: () => chain, order: () => chain, limit: () => chain, range: () => chain,
       update: (p) => { q._patch = p; return chain; },
-      maybeSingle: async () => ({ data: table === 'ea_rooms' ? window.__db.room : null, error: null }),
+      maybeSingle: async () => {
+        window.__calls.push(['from', table, 'maybeSingle', q._f, null]);
+        if (table === 'ea_rooms') return { data: window.__db.room, error: null };
+        if (table === 'ea_class_summaries') return { data: window.__db.summary || null, error: null };
+        return { data: null, error: null };
+      },
       then: (res) => {
         window.__calls.push(['from', table, q._patch ? 'update' : 'select', q._f, q._patch]);
         if (q._patch && table === 'ea_rooms') { Object.assign(window.__db.room, q._patch); Object.assign(window.__db.state, { is_live: window.__db.room.is_live }); return res({ data: null, error: null }); }
-        const rows = table === 'ea_room_replays' ? window.__db.replays : table === 'ea_room_members' ? window.__db.members : table === 'ea_profiles' ? window.__db.profiles : [];
-        return res({ data: rows, error: null });
+        return res({ data: rowsOf(), error: null });
       },
     };
     return chain;

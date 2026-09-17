@@ -87,7 +87,7 @@ const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air'
 function card(inner, after) { ctl.innerHTML = '<div class="ht-room-card">' + WM + inner + '</div>' + (after || ''); mount.innerHTML = ''; mount.classList.remove('r2host'); }
 function lastSession(st) {
   const u = iframeUrl(st && st.recording_url); if (!u) return '';
-  return '<div class="ht-room-last"><b>Last session</b><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a></div>';
+  return '<div class="ht-room-last"><b>Last session</b><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener">Open in a new tab</a> · <a href="/ht/hub/replay/">Chapters, summary and transcript &rarr;</a></div>';
 }
 const here = () => location.pathname + location.search;
 /* The ended card keeps listening (a poll every 20 s, the first look at 5 s because an End takes the row off
@@ -425,8 +425,11 @@ const host = {
     }).join('') : '<p class="fine">No replays yet. Each session records itself and lands here to review.</p>';
     e.reps.querySelectorAll('[data-pub]').forEach((b) => b.addEventListener('click', async () => {
       b.disabled = true;
-      const { error } = await sb.rpc('ea_room_publish_replay', { p_replay: b.getAttribute('data-pub'), p_publish: b.getAttribute('data-on') === '1' });
+      const publishing = b.getAttribute('data-on') === '1';
+      const { error } = await sb.rpc('ea_room_publish_replay', { p_replay: b.getAttribute('data-pub'), p_publish: publishing });
       if (error) this.note('Could not change the replay — ' + error.message);
+      /* Publish also writes the lesson summary the replay page shows (the function answers room keys); its Make summary retries */
+      else if (publishing) { try { fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ room_key: 'room:' + this.room.id }) }).catch(() => {}); } catch (x) {} }
       try { state = await getState(); } catch (x) {}
       e.last.innerHTML = lastSession(state);
       await this.loadReplays();

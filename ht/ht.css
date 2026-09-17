@@ -418,3 +418,10 @@ button.rep:hover{border-color:#d9bfae}
   .yr .f{grid-column:2;justify-content:flex-start}
 }
 @media print{.yrbar,.yrtools{display:none!important}.yrlist{max-height:none;overflow:visible}.yr{break-inside:avoid}.yr.is-past{opacity:1}}
+/* the replay page (ht/hub/replay.js): the lesson column wide enough for its five tabs on one row; HT hairlines */
+.ht-replay .rp-grid{grid-template-columns:minmax(0,1fr) 500px}
+.ht-replay .rp-tab{padding-inline:11px}
+.ht-replay .rp-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.ht-replay .rp-tabs::-webkit-scrollbar{display:none}
+@media(max-width:980px){.ht-replay .rp-grid{grid-template-columns:1fr}}
+.ht-replay .rp-tabs{border-bottom-color:var(--ht-ember)}
+.ht-replay .rp-chip.draft{background:var(--ht-ember);color:var(--ht-mahogany)}

@@ -3,6 +3,7 @@ window.HT = window.HT || {};
 HT.site = { name: 'Huston-Tillotson University', short: 'HT', partner: 'Taylormade Academy', hub: '/ht/hub/', sample: true, adaPoster: '/ht/img/ada-face.jpg' };
 HT.spaces = HT.spaces || {};
 HT.order = ['advancement', 'president', 'events', 'live', 'learn', 'community', 'showcase', 'students', 'career', 'alumni', 'admissions', 'outreach', 'board'];
+HT.pages = ['replay'];   /* shells that exist but are not tabs (the replay page keeps the Live tab current) */
 
 HT.home = {
   title: 'Home', kicker: 'Huston-Tillotson University · Austin, Texas', stamp: 'Preview · sample content',

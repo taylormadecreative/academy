@@ -172,6 +172,8 @@
   };
   /* the HT class room: the mount the room module fills, and the cards/host card above it.
      Inert until ht/hub/room.js loads (wire() imports it when this block is on the page). */
+  /* the replay page (spec 2026-09-17 §2.2): ht/hub/replay.js fills this block from the class tables */
+  R.replay = function (b) { return '<div class="ht-replay" id="htReplay"' + (b.id ? h` data-id="${b.id}"` : '') + '><p class="ht-room-loading">Finding the replay&hellip;</p></div>'; };
   R.room = function (b) {
     var inner = '<div data-room><div class="ht-room-ctl"><p class="ht-room-loading">Opening the room&hellip;</p></div><div id="rtkMount"></div></div>';
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
@@ -257,11 +259,12 @@
   function render(key) {
     var space = key === 'home' ? HT.home : HT.spaces[key];
     var root = document.getElementById('htRoot'); if (!root || !space) return;
+    var tabKey = space.tab || key;   /* a page that is not a tab (the replay page) keeps its parent tab current */
     var head = '<div class="ht-head"><div class="hub-wrap"><div>' +
       '<div class="ht-lockup"><img src="/ht/img/ht-wordmark-maroon.png" alt="Huston-Tillotson University"><span class="x" aria-hidden="true">×</span><span class="tma"><img src="/assets/logo-nav.webp" alt="">Taylormade Academy</span></div>' +
       h`<h1>${space.title === 'Home' ? 'The HT Hub' : space.title}</h1>` + (space.office ? h`<div class="kick" style="margin-top:8px">${space.office}</div>` : h`<div class="kick" style="margin-top:8px">${space.kicker || 'One campus, one hub'}</div>`) + (space.sub ? h`<p class="sub">${space.sub}</p>` : '') +
       '</div><div class="side"><span class="mono">' + esc(space.stamp || 'Preview · sample content') + '</span>' + (space.headCta ? btn(space.headCta) : '') + '</div></div></div>' +
-      '<nav class="ht-tabs" aria-label="Spaces"><div class="hub-wrap">' + tabsHtml(key) + '</div></nav>';
+      '<nav class="ht-tabs" aria-label="Spaces"><div class="hub-wrap">' + tabsHtml(tabKey) + '</div></nav>';
     var main = [], side = [];
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
     var body = '<main class="ht-main" id="htMain" tabindex="-1"><div class="hub-wrap"><div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></div></main>';
@@ -431,6 +434,14 @@
         var c = root.querySelector('.ht-room-ctl');
         if (c) c.innerHTML = '<p class="ht-room-loading">The room could not load. Reload to try again.</p>';
         try { console.error('ht room', e); } catch (x) {}
+      });
+    }
+    /* the replay page: the same shape — one module, loaded only where its block is */
+    if (root.querySelector('#htReplay')) {
+      import('/ht/hub/replay.js' + V).catch(function (e) {
+        var c = root.querySelector('#htReplay .ht-room-loading');
+        if (c) c.textContent = 'The replay page could not load. Reload to try again.';
+        try { console.error('ht replay', e); } catch (x) {}
       });
     }
   }
