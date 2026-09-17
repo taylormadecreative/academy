@@ -5,7 +5,7 @@
    broadcast channel (`sg-<key>`, event `sg`) — no table. "Needs help" is a hand of kind 'help' in the
    same hands table the question line uses (0040), note = the room's meeting id.
    Pure decisions (who goes where, the clock's words, whose note it is) live in opil/hub/live-rooms.js. */
-export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host, uid, rootId, getMeeting, myIdIn, hands, toast, confirmInline, onTick, closeSheet, facilitator }) {
+export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host, uid, rootId, getMeeting, myIdIn, hands, toast, confirmInline, onTick, closeSheet, facilitator, onGroups }) {
   let chan = null, timer = { endsAt: null, minutes: 0 }, heartbeat = null, tick = null, noteEl = null, board = null, boardTick = null;
   const m = () => getMeeting();
   const cm = () => m().connectedMeetings;
@@ -260,7 +260,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
           if (host) await clearAllHelp().catch(() => {});   /* a request from a previous round never starts the new one */
           const made = await cm().createMeetings(plan.map(r => ({ title: r.title })));
           for (let i = 0; i < made.length; i++) if (plan[i] && plan[i].ids.length) await cm().moveParticipants(rootId, made[i].id, plan[i].ids);
-          setTimer(minutes);
+          setTimer(minutes); try { if (onGroups) onGroups(true); } catch (e) {}
           toast(people.length ? people.length + ' ' + (people.length === 1 ? words.one : words.many) + ' moved into ' + made.length + ' rooms · ' + minutes + ' minutes on the clock.' : 'Rooms are open — nobody to move yet.');
         } catch (e) { console.warn('[sg] split', e); toast('Could not finish the split. Check the board — some ' + words.many + ' may already be in rooms — then try again.', 7000); }
         b.disabled = false; b.innerHTML = '<b>Split ' + esc(words.many) + ' into rooms</b>';
@@ -285,7 +285,7 @@ export function createSmallGroups({ sb, copy, el, esc, key, isRoom, words, host,
     if (back) back.addEventListener('click', async (ev) => {
       const b = ev.currentTarget; if (!confirmInline(b, 'Bring everyone back?')) return;
       b.disabled = true;
-      try { const rooms = await readRooms(); if (inRoom()) await goRoot(); if (rooms.length) await cm().deleteMeetings(rooms.map(r => r.id)); setTimer(0); lastRooms = null; if (host) await clearAllHelp().catch(() => {}); toast('Small groups closed — everyone is coming back.'); }
+      try { const rooms = await readRooms(); if (inRoom()) await goRoot(); if (rooms.length) await cm().deleteMeetings(rooms.map(r => r.id)); setTimer(0); lastRooms = null; try { if (onGroups) onGroups(false); } catch (e) {} if (host) await clearAllHelp().catch(() => {}); toast('Small groups closed — everyone is coming back.'); }
       catch (e) { console.warn('[sg] close', e); toast('Could not close the rooms. Tap Bring everyone back again.'); }
       b.disabled = false; await refresh();
     });

@@ -13,7 +13,7 @@ const ACCEPT = '.pdf,.ppt,.pptx,.key,.doc,.docx,.pages,.txt,.md,.xls,.xlsx,.csv,
 const inlinePdfOk = () => { try { return navigator.pdfViewerEnabled !== false && !matchMedia('(max-width:720px), (pointer:coarse)').matches; } catch (e) { return false; } };
 const canShareScreen = () => { try { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) { return false; } };
 
-export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMeeting, toast, paneEl, stageEl, countEl }) {
+export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMeeting, toast, paneEl, stageEl, countEl, onShow, getPlugins }) {
   let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null, lastBeat = 0, watchdog = null;
   const nameCache = new Map();
   const m = () => getMeeting();
@@ -46,7 +46,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
       <span class="r2-file-kind k-${esc(kind)}">${kind === 'link' ? 'Link' : esc(copy.KIND_WORD[kind] || 'File')}</span>
       <div class="r2-file-who"><b>${esc(r.title)}</b><span>${mine ? 'You added this' : 'Added by ' + esc(who(r.uploaded_by))}</span></div>
       <div class="r2-file-actions">
-        ${r.file_path ? `<button type="button" class="r2-mini r2-bring" data-show="${esc(r.id)}">${showable ? 'Show to class' : 'Share to class'}</button><button type="button" class="r2-mini" data-dl="${esc(r.id)}">Download</button>` : `<a class="r2-mini" href="${esc(r.link_url || '#')}" target="_blank" rel="noopener">Open link</a>`}
+        ${r.file_path ? `<button type="button" class="r2-mini r2-bring" data-show="${esc(r.id)}">${showable ? 'Show to class' : 'Share to class'}</button><button type="button" class="r2-mini" data-dl="${esc(r.id)}">Download</button>${/\.(png|jpe?g|gif|webp)$/i.test(r.title) ? `<button type="button" class="r2-mini" data-board="${esc(r.id)}">Put on the whiteboard</button>` : ''}` : `<a class="r2-mini" href="${esc(r.link_url || '#')}" target="_blank" rel="noopener">Open link</a>`}
         ${mine || host ? `<button type="button" class="r2-mini r2-file-x" data-rm="${esc(r.id)}" aria-label="Remove ${esc(r.title)}">Remove</button>` : ''}
       </div>
     </div>`;
@@ -70,6 +70,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     add.addEventListener('click', () => input.click());
     input.addEventListener('change', () => { const f = input.files && input.files[0]; input.value = ''; if (f) upload(f); });
     paneEl.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => show(rows.find(r => r.id === b.dataset.show))));
+    paneEl.querySelectorAll('[data-board]').forEach(b => b.addEventListener('click', async () => { const r = rows.find(x => x.id === b.dataset.board); if (!r) return; const bp = (getPlugins ? getPlugins() : []).find(p => p && p.name === 'board'); if (!bp) { toast('The whiteboard isn’t available right now — reload the page and try again.', 6000); return; } try { const url = await signed(r, false); await bp.addImage(url, r.file_path); } catch (e) { console.warn('[files] board', e); toast('Could not put that picture on the whiteboard. Try again.'); } }));
     paneEl.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => download(rows.find(r => r.id === b.dataset.dl))));
     paneEl.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => remove(rows.find(r => r.id === b.dataset.rm), b)));
   }
@@ -166,6 +167,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, uid, host, getMe
     const kind = copy.fileKind(r.title);
     const payload = () => ({ type: 'show', id: r.id, title: r.title, path: r.file_path, kind, from: uid, from_name: inRoomName(uid) || who(uid) });
     showing = { id: r.id, title: r.title, path: r.file_path, kind, from: uid, from_name: payload().from_name }; hidden = false; paintShow();
+    try { if (onShow) onShow(r.title); } catch (e) {}
     await send(payload());
     clearInterval(heartbeat); heartbeat = setInterval(() => { if (showing && showing.from === uid) send(payload()); else clearInterval(heartbeat); }, 15000);
     toast(copy.canShowInline(kind) ? 'Showing ' + r.title + ' to everyone. Stop showing is at the top of the stage.' : r.title + ' is shared — everyone sees a Download.' + (canShareScreen() ? ' To walk through it live, use Share my screen.' : ' To walk through it live, open it on a laptop and use Share my screen.'), 8000);

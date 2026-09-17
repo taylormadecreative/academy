@@ -16,7 +16,7 @@ def _asset_ver():
                 "css/agent.css", "js/agent.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
-                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js"):
+                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -231,10 +231,10 @@ def _ensure_pwa_head(html):
 # The public OPIL pages stamp here too: they carry build-mode.css and config.js like
 # every other page, and nothing else was ever bumping those pins.
 HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/messages", "opil/hub/admin",
-             "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/showcase",
+             "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/hub/replay", "opil/showcase",
              "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
              "live", "room")   # the Academy live page + room: hand-written, stamped like the hub pages
-_HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js|hide-card\.js|help-button\.js|admin/help-queue\.js|admin/scores\.js|calendar-buttons\.js)|/js/rtk-presence\.js)(?:\?v=[a-z0-9]+)?')
+_HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js|hide-card\.js|help-button\.js|admin/help-queue\.js|admin/scores\.js|calendar-buttons\.js)|/js/rtk-presence\.js|/js/rtk-chapters\.js|/css/rtk-chapters\.css)(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
     stamped = []

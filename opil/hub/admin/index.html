@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=549b4aab4f">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=549b4aab4f">
+<link rel="stylesheet" href="/css/build-mode.css?v=e7ee5e5760">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=e7ee5e5760">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -128,10 +128,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=549b4aab4f"></script>
+<script src="/js/config.js?v=e7ee5e5760"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=549b4aab4f';
-import { roomPath } from '/opil/hub/live-rooms.js?v=549b4aab4f';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=e7ee5e5760';
+import { roomPath } from '/opil/hub/live-rooms.js?v=e7ee5e5760';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'admin');
@@ -425,7 +425,7 @@ function replayLine(s) {
   if (!r) return '';
   const chip = (txt, bg, fg) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:${fg};background:${bg};border-radius:980px;padding:6px 12px">${txt}</span>`;
   const btn = (label, pub) => `<button type="button" class="pillbtn pubReplay" data-s="${s.no}" data-pub="${pub ? 1 : 0}"${pub ? ' style="background:var(--blue);color:#fff"' : ''}>${label}</button>`;
-  const link = (label) => `<a class="pillbtn" href="${esc(r.watch_url)}" target="_blank" rel="noopener">${label}</a>`;
+  const link = (label) => `<a class="pillbtn" href="${esc(r.watch_url)}" target="_blank" rel="noopener">${label}</a><a class="pillbtn" href="/opil/hub/replay/?s=${s.no}" title="The lesson page: chapters, summary, what was assigned, files, transcript">Replay page</a>`;
   let inner;
   if (r.status === 'invoked' || r.status === 'recording') inner = chip('&#9679; Recording this session…', '#fdf0e7', '#b4451f');
   else if (r.status === 'uploading' || r.status === 'uploaded') inner = chip('Replay is being prepared…', 'var(--gold-soft)', 'var(--gold-ink)') + `<span style="font-size:12.5px;color:var(--muted)">Usually a few minutes.</span>`;
@@ -501,7 +501,7 @@ function renderMgr(){
 async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
 if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard' && el.id !== 'help') el.style.display = 'none'; });
 renderMgr();
-try { const { mount: mountHelp } = await import('/opil/hub/admin/help-queue.js?v=549b4aab4f'); mountHelp(sb, document.getElementById('helpQueue'), { esc, countEl: document.getElementById('helpCount') }); } catch (e) { console.warn('[admin] help queue', e); }
+try { const { mount: mountHelp } = await import('/opil/hub/admin/help-queue.js?v=e7ee5e5760'); mountHelp(sb, document.getElementById('helpQueue'), { esc, countEl: document.getElementById('helpCount') }); } catch (e) { console.warn('[admin] help queue', e); }
 /* a class in progress or a replay in flight refreshes itself: LIVE now → recording → preparing →
    ready, without a reload. Open rows stay open across the re-render (renderMgr restores them). */
 setInterval(async () => {
@@ -513,7 +513,7 @@ setInterval(async () => {
   if (after !== before) renderMgr();
 }, 20000);
 /* attendance that takes itself (0043): the room beats presence; this reads it and exports a CSV */
-const presenceMod = await import('/js/rtk-presence.js?v=549b4aab4f');
+const presenceMod = await import('/js/rtk-presence.js?v=e7ee5e5760');
 async function loadAttendance(no) {
   const body = mgr.querySelector(`.attBody[data-s="${no}"]`), sum = mgr.querySelector(`.attSum[data-s="${no}"]`); if (!body) return;
   const { data, error } = await sb.rpc('ea_class_attendance_rows', { p_key: 'opil:' + no });
@@ -542,6 +542,7 @@ mgr.addEventListener('click', async (ev) => {
     pub.disabled = true; pub.textContent = on ? 'Publishing…' : 'Unpublishing…';
     const { error } = await sb.rpc('ea_opil_publish_replay', { p_session: no, p_publish: on });
     if (error) { pub.disabled = false; pub.textContent = on ? 'Publish to students' : 'Unpublish'; alert('Could not ' + (on ? 'publish' : 'unpublish') + ': ' + plainErr(error.message)); return; }
+    if (on) { try { const tok = (await sb.auth.getSession()).data.session?.access_token || ''; fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ room_key: 'opil:' + no }) }).catch(() => {}); } catch (e) {} }   /* Publish also makes the lesson summary (the replay page's Make summary retries) */
     await loadReplays(); await reloadSess();   /* replays first — reloadSess() is what re-renders */
     return; }
   const rt = ev.target.closest('.retryReplay');
@@ -733,7 +734,7 @@ async function renderScores(){
 }
 renderScores();
 /* class-room scores (0046): per session — leaderboard, every judge's row, Export CSV, the rubric editor */
-try { const scoresEl = document.createElement('div'); scoresEl.style.marginTop = '16px'; document.getElementById('scoreWrap').insertAdjacentElement('afterend', scoresEl); const { mount: mountScores } = await import('/opil/hub/admin/scores.js?v=549b4aab4f'); mountScores(sb, scoresEl, { esc, sessLabel, zone: 'America/New_York', canEdit: isAdmin }); } catch (e) { console.warn('[admin] scores', e); }
+try { const scoresEl = document.createElement('div'); scoresEl.style.marginTop = '16px'; document.getElementById('scoreWrap').insertAdjacentElement('afterend', scoresEl); const { mount: mountScores } = await import('/opil/hub/admin/scores.js?v=e7ee5e5760'); mountScores(sb, scoresEl, { esc, sessLabel, zone: 'America/New_York', canEdit: isAdmin }); } catch (e) { console.warn('[admin] scores', e); }
 
 /* credentials: one per member, verifiable at /opil/verify/?c=CODE */
 async function renderCreds(){

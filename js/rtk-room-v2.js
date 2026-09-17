@@ -35,7 +35,7 @@ let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
    create(ctx) → { start, stop, onBind? }. The room hands each the same ctx (tabs, bar, stage, channels,
    the class's key) and never lets one break the class: a plugin that throws is dropped with a console
    line. The list is by room kind so the same feature lights up an Academy room later. */
-const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster', 'help', 'scoring'], room: ['presence', 'reactions', 'warmup', 'roster', 'help'], team: ['presence', 'reactions', 'roster', 'help'] };
+const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster', 'help', 'scoring', 'chapters', 'board'], room: ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board'], team: ['presence', 'reactions', 'roster', 'help', 'board'] };
 const pluginMods = {};
 async function loadPlugin(name) {
   if (pluginMods[name] !== undefined) return pluginMods[name];
@@ -349,6 +349,7 @@ export async function mountRoomV2(o) {
     if (host) { try { const wp = plugins.find(p => p && typeof p.mountAnswers === 'function'); const pane = room.node.querySelector('.r2-pane[data-pane="queue"]'); if (wp && pane) wp.mountAnswers(pane); } catch (e) { console.warn('[room] warm-up answers', e); } }
   }
   room.hooks.emit('joined', meeting);
+  try { transcript.watchRaw((x) => room.hooks.emit('transcript', x)); } catch (e) {}   /* chapters: the host page saves final lines */
 
   /* breakout rooms hand the page a NEW meeting: rebind everything to it */
   let switching = false;
@@ -902,6 +903,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       m.participants.joined.toArray().forEach(x => { if (x.isPinned && x.id !== p.id) { try { x.unpin(); } catch (e) {} } });
       try { if (m.self.isPinned) m.self.unpin(); } catch (e) {}
       await p.pin(); pinnedId = h.user_id;
+      try { hooks.emit('stage', nameOf(h.user_id) || 'Someone'); } catch (e) {}
       /* the previous person on stage is done; this one is on stage now */
       const prev = hands.find(x => x.staged_at && x.id !== h.id); if (prev) await sb.from(handsAt.table).update({ done_at: new Date().toISOString() }).eq('id', prev.id);
       await sb.from(handsAt.table).update({ staged_at: new Date().toISOString() }).eq('id', h.id);
@@ -919,6 +921,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
         getMeeting: () => m, myIdIn, toast, confirmInline, facilitator: facilitator || null,
         hands: { rows: () => hands, load: loadHands, table: handsAt.table, col: handsAt.col, val: handsAt.val },
         onTick: () => { try { setNow(); } catch (e) {} },
+        onGroups: (open) => { try { hooks.emit('groups', open); } catch (e) {} },
         closeSheet: () => closeSheet(),
       });
       sg.bindNote(q('.r2-note'));
@@ -927,7 +930,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
   /* Files for the class: the Files tab and the stage overlay (OPIL sessions; the Academy/HT rooms have no materials table) */
   if (resMod && !isRoom && q('.r2-files')) {
     try {
-      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em') });
+      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em'), onShow: (title) => { try { hooks.emit('file', title); } catch (e) {} }, getPlugins: () => hooks.plugins || [] });
     } catch (e) { res = null; }
   }
 
@@ -976,6 +979,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <button type="button" class="r2-btn" data-tool="captions"><b>${ccOn ? 'Turn captions off' : 'Turn captions on'}</b><span>Words appear over the video as people speak</span></button>
       <button type="button" class="r2-btn" data-tool="settings"><b>Camera &amp; mic settings</b><span>Pick a different device</span></button>
       <button type="button" class="r2-btn" data-tool="poll"><b>Poll</b><span>Ask everyone, see the bars live (opens the Polls tab)</span></button>
+      <button type="button" class="r2-btn" data-tool="board"><b>Whiteboard</b><span>Draw, write and add pictures over the video — everyone sees the same board</span></button>
       <button type="button" class="r2-btn" data-tool="breakout"><b>Small groups</b><span>${host ? 'Split ' + esc(words.many) + ' into rooms, join one, bring everyone back' : 'See the rooms and join one'}</span></button>
       <button type="button" class="r2-btn" data-tool="transcript"><b>Save transcript</b><span>Everything said, as a text file</span></button>
       <button type="button" class="r2-btn danger" data-tool="end"><b>${esc(ec.endButton)}</b><span>${esc(ec.endHint)}</span></button>
@@ -984,6 +988,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const t = b.dataset.tool;
       if (t === 'share') { sheet.hidden = true; await toggleShare(); }
       else if (t === 'fx') openSheet('Effects', effectsPane());
+      else if (t === 'board') { sheet.hidden = true; sheetBody.innerHTML = ''; const bp = (hooks.plugins || []).find(p => p && p.name === 'board'); if (bp) { try { bp.open(); hooks.emit('board', 'Whiteboard'); } catch (e) { console.warn('[board]', e); } } else toast('The whiteboard isn’t available right now — reload the page and try again.', 6000); }
       else if (t === 'captions') { sheet.hidden = true; sheetBody.innerHTML = ''; if (ccBtn) ccBtn.click(); }
       else if (t === 'breakout') openSheet('Small groups', sg ? sg.board() : el('<div class="r2-empty">Small groups aren’t available right now — reload the page and try again.</div>'));
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }
@@ -1067,11 +1072,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       channel(name) {
         const key = name + '-' + base.roomKey; let ch = null;
         const subs = [];
-        try { ch = sb.channel(key, { config: { broadcast: { self: true } } }); ch.on('broadcast', { event: 'p' }, (msg) => { const p = msg && msg.payload; if (!p) return; const fromHost = p.from === user.id ? host : seenHosts.has(p.from); subs.forEach(cb => { try { cb(p, { fromHost, mine: p.from === user.id }); } catch (e) {} }); }); ch.subscribe(); } catch (e) { ch = null; }
+        try { ch = sb.channel(key, { config: { private: true, broadcast: { self: true } } }); ch.on('broadcast', { event: 'p' }, (msg) => { const p = msg && msg.payload; if (!p) return; const fromHost = p.from === user.id ? host : seenHosts.has(p.from); subs.forEach(cb => { try { cb(p, { fromHost, mine: p.from === user.id }); } catch (e) {} }); }); ch.subscribe(); } catch (e) { ch = null; }
         return { on(cb) { subs.push(cb); }, async send(payload) { try { if (ch) await ch.send({ type: 'broadcast', event: 'p', payload: Object.assign({}, payload, { from: user.id }) }); } catch (e) {} }, stop() { try { if (ch) sb.removeChannel(ch); } catch (e) {} ch = null; } };
       },
       events: {
-        async log(kind, label, data) { try { const { error } = await sb.from('ea_class_events').insert({ room_key: base.roomKey, kind, label: label || null, data: data || null }); if (error) console.warn('[room] event', error.message); } catch (e) {} },
+        async log(kind, label, data) { try { const { error } = await sb.from('ea_class_events').insert({ room_key: base.roomKey, kind, label: label || null, data: data || null }); if (error && error.code !== '23505') console.warn('[room] event', error.message); } catch (e) {} },
         async list() { try { const { data } = await sb.from('ea_class_events').select('*').eq('room_key', base.roomKey).order('at'); return data || []; } catch (e) { return []; } },
       },
     });
