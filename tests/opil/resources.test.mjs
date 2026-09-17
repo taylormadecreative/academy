@@ -48,3 +48,11 @@ test('showingCopy says who is showing what, and that a deck is a download', () =
   assert.equal(showingCopy({ who: 'Kiara Pee', title: 'deck.pdf', kind: 'pdf', mine: false }), 'Kiara Pee is showing deck.pdf');
   assert.equal(showingCopy({ who: 'Kiara Pee', title: 'deck.pptx', kind: 'slides', mine: true }), 'You’re sharing deck.pptx — download it to open');
 });
+
+test('storagePath: a room key files the bytes under the room prefix, everything else as before (0054)', () => {
+  assert.equal(storagePath('u1', 'Deck.pdf', 'abc'), 'materials/u1/abc-Deck.pdf');
+  assert.equal(storagePath('u1', 'Deck.pdf', 'abc', 'team:t9'), 'materials/u1/abc-Deck.pdf', 'teams keep the flat path (0045\'s honest limit, unchanged)');
+  assert.equal(storagePath('u1', 'Deck.pdf', 'abc', 'room:5d2f'), 'materials/u1/room/5d2f/abc-Deck.pdf');
+  assert.equal(storagePath('u1', 'Deck.pdf', 'abc', 'room:../x'), 'materials/u1/abc-Deck.pdf', 'a key that is not an id never makes a path');
+  assert.equal(storagePath('u1', 'Deck.pdf', 'abc', 'opil:7'), 'materials/u1/abc-Deck.pdf');
+});

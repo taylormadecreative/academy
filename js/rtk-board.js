@@ -593,18 +593,21 @@ export function create(ctx) {
   }
   async function save() {
     if (saving) return;
-    if (!ctx.session || ctx.session.no == null) { toast('Saving to Files needs a class session — this room has none. Take a screenshot to keep it.', 7000); return; }
+    /* an ea_rooms room (HT, the Academy) saves under its class key (0054); an OPIL session under its number */
+    const roomKey = ctx.isRoom && ctx.target && ctx.target.id ? 'room:' + ctx.target.id : null;
+    if (!roomKey && (!ctx.session || ctx.session.no == null)) { toast('Saving to Files needs a class session — this room has none. Take a screenshot to keep it.', 7000); return; }
+    if (roomKey && !ctx.host) { toast('Only a host can save the board to Files here — take a screenshot to keep it.', 7000); return; }
     if (!shapes.length) { toast('The board is empty — draw something first.'); return; }
     saving = true; const btns = saveButtons(); btns.forEach(btn => { btn.disabled = true; btn.textContent = 'Saving…'; });
     try {
       const blob = await renderPng();
       const title = whiteboardTitle(now(), 'America/New_York');
-      const path = 'materials/' + uid + '/' + now().toString(36) + '-Whiteboard.png';
+      const path = 'materials/' + uid + '/' + (roomKey ? 'room/' + ctx.target.id + '/' : '') + now().toString(36) + '-Whiteboard.png';
       const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/png', upsert: false });
       if (up.error) throw up.error;
-      const ins = await sb.from('ea_opil_materials').insert({ session_no: ctx.session.no, kind: 'resource', title, file_path: path, uploaded_by: uid });
+      const ins = await sb.from('ea_opil_materials').insert(roomKey ? { room_key: roomKey, kind: 'resource', title, file_path: path, uploaded_by: uid } : { session_no: ctx.session.no, kind: 'resource', title, file_path: path, uploaded_by: uid });
       if (ins.error) { try { await sb.storage.from(BUCKET).remove([path]); } catch (e) {} throw ins.error; }
-      toast('Saved to Files as “' + title + '” — everyone in the class can download it.', 7000);
+      toast('Saved to Files as “' + title + '” — everyone in the ' + (roomKey ? 'room' : 'class') + ' can download it.', 7000);
       try { ctx.events.log('board', 'Whiteboard saved to Files', { path }); } catch (e) {}
     } catch (e) {
       console.warn('[board] save', e);

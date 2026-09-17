@@ -669,14 +669,14 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
           <button type="button" class="r2-tab" data-tab="people">People <em></em></button>
           <button type="button" class="r2-tab" data-tab="polls">Polls <em></em></button>
           ${SHOW_TRANSCRIPT ? '<button type="button" class="r2-tab" data-tab="transcript">Transcript <em></em></button>' : ''}
-          ${isRoom ? '' : '<button type="button" class="r2-tab" data-tab="files">Files <em></em></button>'}
+          <button type="button" class="r2-tab" data-tab="files">Files <em></em></button>
         </div>
         <div class="r2-pane" data-pane="queue" hidden><div class="r2-queue-head">Ready to speak</div><div class="r2-queue"></div></div>
         <div class="r2-pane" data-pane="chat" hidden><rtk-chat></rtk-chat></div>
         <div class="r2-pane" data-pane="people" hidden>${host ? '<div class="r2-stagelist"></div>' : ''}<rtk-participants></rtk-participants></div>
         <div class="r2-pane" data-pane="polls" hidden><rtk-polls></rtk-polls></div>
         ${SHOW_TRANSCRIPT ? '<div class="r2-pane" data-pane="transcript" hidden><div class="r2-transcript"></div></div>' : ''}
-        ${isRoom ? '' : '<div class="r2-pane" data-pane="files" hidden><div class="r2-files"></div></div>'}
+        <div class="r2-pane" data-pane="files" hidden><div class="r2-files"></div></div>
         <button type="button" class="r2-close" aria-label="Close">Close</button>
       </aside>
     </div>
@@ -688,7 +688,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-primary"></div>
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
-        ${isRoom ? '' : '<button type="button" class="r2-btn r2-files-btn">Files</button>'}
+        <button type="button" class="r2-btn r2-files-btn">Files</button>
         <button type="button" class="r2-btn r2-tools">Tools</button>
         <!-- Share my screen, Effects and Captions live in Tools (Nelson 9/16: "simplify it"); these two stay in the DOM, hidden, because the rest of the room reads their pressed state -->
         <button type="button" class="r2-btn r2-share" aria-pressed="false" hidden>Share my screen</button>
@@ -938,10 +938,12 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       sg.bindNote(q('.r2-note'));
     } catch (e) { sg = null; }
   }
-  /* Files for the class: the Files tab and the stage overlay (OPIL sessions; the Academy/HT rooms have no materials table) */
-  if (resMod && !isRoom && q('.r2-files')) {
+  /* Files for the class: the Files tab and the stage overlay. An OPIL session scopes by its number; a team room
+     (0045) and an ea_rooms room — HT, the Academy — by their class key (0054: read = in the room, write = a host). */
+  if (resMod && q('.r2-files')) {
     try {
-      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, roomKey: handsAt.off ? 'team:' + handsAt.team : null, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em'), onShow: (title) => { try { hooks.emit('file', title); } catch (e) {} }, getPlugins: () => hooks.plugins || [] });
+      const filesKey = isRoom ? 'room:' + handsAt.val : handsAt.off ? 'team:' + handsAt.team : null;
+      res = resMod.createResources({ sb, copy, el, esc, sessionNo: handsAt.val, roomKey: filesKey, uid, host, getMeeting: () => m, toast, paneEl: q('.r2-files'), stageEl: q('.r2-show'), countEl: q('.r2-tab[data-tab="files"] em'), onShow: (title) => { try { hooks.emit('file', title); } catch (e) {} }, getPlugins: () => hooks.plugins || [] });
     } catch (e) { res = null; }
   }
 

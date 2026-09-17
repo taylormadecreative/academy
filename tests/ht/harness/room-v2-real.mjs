@@ -147,4 +147,15 @@ export async function realModuleScenarios(b, ok) {
     await p.waitForFunction(() => /Split people into rooms$/.test(document.querySelector('.r2-groups [data-g="split"]').textContent.trim()), null, { timeout: 5000 }).catch(() => {});
     ok('real split: the second tap splits once, and the button reads its label again', (await p.evaluate(() => window.__split)) === 1 && /Split people into rooms$/.test((await p.textContent('.r2-groups [data-g="split"]')).trim()));
     ok('real split: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+
+  /* R4 a room has Files (0054): the tab, the pane and the bar button for a room-kind target — the gates that used to
+     say "the Academy/HT rooms have no materials table" are open, and the Files plugin is created with the room's key */
+  { const { p, errs } = await open();
+    await enter(p);
+    const files = await p.evaluate(() => ({ tab: !!document.querySelector('.r2-tab[data-tab="files"]'), pane: !!document.querySelector('.r2-pane[data-pane="files"] .r2-files'), btn: !!document.querySelector('.r2-files-btn') }));
+    ok('real room: Files — the tab, the pane, the bar button', files.tab && files.pane && files.btn, JSON.stringify(files));
+    await p.click('.r2-files-btn');
+    await p.waitForSelector('.r2-files-head', { timeout: 5000 }).catch(() => {});
+    ok('real room: a host sees Add a file with the room wording', /everyone in the room/.test(await p.evaluate(() => (document.querySelector('.r2-file-add') || {}).textContent || '')), await p.evaluate(() => (document.querySelector('.r2-files') || {}).innerHTML || '').then((h) => h.slice(0, 200)));
+    ok('real room Files: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
 }

@@ -17,7 +17,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
   /* roomKey ('team:<uuid>', 0045) scopes everything to a class key; without it the session number scopes it as before */
   const scoped = (qb) => roomKey ? qb.eq('room_key', roomKey) : qb.eq('session_no', sessionNo);
   const scopeId = String(roomKey || sessionNo).replace(/[^\w-]/g, '-');
-  const forWhom = roomKey && roomKey.startsWith('team:') ? 'your team' : 'everyone in the class';
+  const forWhom = roomKey && roomKey.startsWith('team:') ? 'your team' : roomKey && roomKey.startsWith('room:') ? 'everyone in the room' : 'everyone in the class';
   let rows = [], chan = null, matsChan = null, poll = null, showing = null, heartbeat = null, hidden = false, urlTimer = null, lastBeat = 0, watchdog = null;
   const nameCache = new Map();
   const m = () => getMeeting();
@@ -60,19 +60,23 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
     if (paneEl.querySelector('[data-armed="1"]')) { if (countEl) countEl.textContent = rows.length || ''; return; }   /* a Remove mid-tap is never wiped by a poll */
     const keepTop = paneEl.scrollTop;
     const busy = paneEl.querySelector('.r2-file-busy');
+    /* in an ea_rooms room only a host adds (0054's insert rule); a guest's pane is the list and the downloads */
+    const canAdd = !(roomKey && roomKey.startsWith('room:')) || host;
     paneEl.innerHTML = `<div class="r2-files-head">
-        <button type="button" class="r2-btn r2-file-add"><b>Add a file</b><span>PDF, slides, docs, pictures · up to 50 MB · everyone in the class can download it</span></button>
-        <input type="file" class="r2-file-input" accept="${ACCEPT}" hidden>
+        ${canAdd ? `<button type="button" class="r2-btn r2-file-add"><b>Add a file</b><span>PDF, slides, docs, pictures · up to 50 MB · ${esc(forWhom)} can download it</span></button>
+        <input type="file" class="r2-file-input" accept="${ACCEPT}" hidden>` : ''}
       </div>
       ${busy ? busy.outerHTML : ''}
-      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : '<div class="r2-empty">No files yet. Add a PDF or your slides and everyone in the class can download it — it stays on the hub after class.</div>'}</div>`;
+      <div class="r2-file-list">${rows.length ? rows.map(rowHTML).join('') : `<div class="r2-empty">${canAdd ? 'No files yet. Add a PDF or your slides and ' + esc(forWhom) + ' can download it — it stays on the hub after class.' : 'No files yet. When your host adds one it shows here to download.'}</div>`}</div>`;
     if (countEl) countEl.textContent = rows.length || '';
     wire(); paneEl.scrollTop = keepTop;
   }
   function wire() {
     const add = paneEl.querySelector('.r2-file-add'), input = paneEl.querySelector('.r2-file-input');
-    add.addEventListener('click', () => input.click());
-    input.addEventListener('change', () => { const f = input.files && input.files[0]; input.value = ''; if (f) upload(f); });
+    if (add && input) {
+      add.addEventListener('click', () => input.click());
+      input.addEventListener('change', () => { const f = input.files && input.files[0]; input.value = ''; if (f) upload(f); });
+    }
     paneEl.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => show(rows.find(r => r.id === b.dataset.show))));
     paneEl.querySelectorAll('[data-board]').forEach(b => b.addEventListener('click', async () => { const r = rows.find(x => x.id === b.dataset.board); if (!r) return; const bp = (getPlugins ? getPlugins() : []).find(p => p && p.name === 'board'); if (!bp) { toast('The whiteboard isn’t available right now — reload the page and try again.', 6000); return; } try { const url = await signed(r, false); await bp.addImage(url, r.file_path); } catch (e) { console.warn('[files] board', e); toast('Could not put that picture on the whiteboard. Try again.'); } }));
     paneEl.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => download(rows.find(r => r.id === b.dataset.dl))));
@@ -88,7 +92,7 @@ export function createResources({ sb, copy, el, esc, sessionNo, roomKey, uid, ho
   /* ---- add a file: storage first, then the row the hub lists ---- */
   async function upload(file) {
     const why = copy.fileRefusal(file); if (why) { toast(why, 7000); return; }
-    const path = copy.storagePath(uid, file.name, Date.now().toString(36));
+    const path = copy.storagePath(uid, file.name, Date.now().toString(36), roomKey);   /* a room's file lands under its room prefix (0054) */
     busyLine('Uploading ' + file.name + ' (' + copy.fmtSize(file.size) + ')…');
     try {
       const up = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });

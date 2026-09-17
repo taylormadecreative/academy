@@ -344,10 +344,13 @@ export function fmtSize(bytes) {
   return (n / (1024 * 1024)).toFixed(n < 10 * 1024 * 1024 ? 1 : 0) + ' MB';
 }
 export const FILE_MAX_BYTES = 50 * 1024 * 1024;
-/* the storage path: materials/<uploader>/<stamp>-<clean name> — inside the folder the cohort may read */
-export function storagePath(uid, name, stamp) {
+/* the storage path: materials/<uploader>/<stamp>-<clean name> — inside the folder the cohort may read.
+   A room's file (key 'room:<uuid>') goes under materials/<uploader>/room/<uuid>/ — the prefix 0054's storage
+   policies scope to that room (read = in the room, write = a host), because an HT guest is in no cohort. */
+export function storagePath(uid, name, stamp, roomKey) {
   const clean = String(name || 'file').normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'file';
-  return 'materials/' + uid + '/' + stamp + '-' + clean;
+  const m = /^room:([A-Za-z0-9-]{4,64})$/.exec(String(roomKey || ''));
+  return 'materials/' + uid + '/' + (m ? 'room/' + m[1] + '/' : '') + stamp + '-' + clean;
 }
 /* why a file is refused, in words; null when it is fine */
 export const FILE_EXTS = Object.keys(KIND_BY_EXT).filter(e => e !== 'heic');
