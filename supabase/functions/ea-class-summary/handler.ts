@@ -18,6 +18,11 @@ export type SummaryDeps = {
   roomFacts: (roomKey: string) => Promise<RoomFacts>;
   /* when the recording began (the replay row's created_at), or null: chapters are offsets from it */
   startedAt: (roomKey: string) => Promise<string | null>;
+  /* how long that recording is, in seconds, or null. A standing room (HT, the Academy) files every session under
+     ONE key for the life of the room, so the summary must read only the lines and events inside this replay's
+     window — otherwise every rehearsal since the room was made lands in the notes. Optional: without it the
+     window is open-ended after the start. */
+  durationS?: (roomKey: string) => Promise<number | null>;
   /* which model may answer, or null when no key is set */
   provider: () => Provider | null;
   /* one completion: the system prompt + the user prompt → the model's text (throws on a failed call) */
@@ -59,6 +64,18 @@ export function chapterLabel(ev: EventRow): string {
     default: return label || clean(ev.kind) || "Something happened";
   }
 }
+/* is this row inside the replay's window? Without a start everything is in; before the start (a minute of grace for
+   the lines said while the recording spun up) is out; with a duration, more than a quarter hour after the end is out
+   (the transcript flushes and a board save can land a little after End). */
+export const WINDOW_BEFORE_S = 60, WINDOW_AFTER_S = 15 * 60;
+export function inWindow(at: string, startedAt: string | null, durationS: number | null): boolean {
+  const t0 = Date.parse(startedAt || ""); if (!(t0 > 0)) return true;
+  const t = Date.parse(at || ""); if (!(t > 0)) return false;
+  if (t < t0 - WINDOW_BEFORE_S * 1000) return false;
+  if (Number(durationS) > 0 && t > t0 + (Number(durationS) + WINDOW_AFTER_S) * 1000) return false;
+  return true;
+}
+
 /* the chapters as offsets from the recording's start; without a start, from the first line said or the first event */
 export function chaptersFrom(events: EventRow[], startedAt: string | null, fallbackStart?: string | null): Chapter[] {
   const t0 = Date.parse(startedAt || fallbackStart || "");
@@ -132,7 +149,10 @@ export async function handleSummary(body: SummaryBody, deps: SummaryDeps): Promi
   if (!(await deps.canRun(key))) return { status: 403, body: { error: "not_allowed" } };
   const provider = deps.provider();
   if (!provider) return { status: 503, body: { error: "no_key" } };
-  const [rows, events, facts, startedAt] = await Promise.all([deps.loadTranscript(key), deps.loadEvents(key), deps.roomFacts(key), deps.startedAt(key)]);
+  const [allRows, allEvents, facts, startedAt, durationS] = await Promise.all([deps.loadTranscript(key), deps.loadEvents(key), deps.roomFacts(key), deps.startedAt(key), deps.durationS ? deps.durationS(key) : Promise.resolve(null)]);
+  /* only this replay's session — a standing room's key carries every session it ever held */
+  const rows = allRows.filter((r) => inWindow(r.at, startedAt, durationS));
+  const events = allEvents.filter((e) => inWindow(e.at, startedAt, durationS));
   if (!rows.length && !events.length) return { status: 409, body: { error: "nothing_to_summarize" } };
   const chapters = chaptersFrom(events, startedAt, rows[0]?.at ?? events[0]?.at ?? null);
   const t = transcriptForPrompt(rows, startedAt);

@@ -18,7 +18,7 @@ export const createClient = () => ({
     const rowsOf = () => table === 'ea_room_replays' ? window.__db.replays : table === 'ea_room_members' ? window.__db.members : table === 'ea_profiles' ? window.__db.profiles
       : table === 'ea_class_events' ? (window.__db.events || []) : table === 'ea_class_transcripts' ? (window.__db.transcripts || []) : table === 'ea_opil_materials' ? (window.__db.materials || []) : [];
     const chain = {
-      select: () => chain, eq: (c, v) => { q._f.push([c, v]); return chain; }, in: () => chain, order: () => chain, limit: () => chain, range: () => chain,
+      select: () => chain, eq: (c, v) => { q._f.push([c, v]); return chain; }, gte: () => chain, lte: () => chain, in: () => chain, order: () => chain, limit: () => chain, range: () => chain,
       update: (p) => { q._patch = p; return chain; },
       maybeSingle: async () => {
         window.__calls.push(['from', table, 'maybeSingle', q._f, null]);

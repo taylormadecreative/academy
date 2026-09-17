@@ -20,6 +20,12 @@ const [{ chapterOffsets, chapterAt, durationWord, transcriptOffsets, transcriptS
 ]);
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+/* the shared lesson helpers speak OPIL ("the program team", "this class"); HT's room has hosts and sessions */
+const roomWords = (t) => String(t == null ? '' : t)
+  .replace(/the program team makes it after class/gi, 'your host makes it after the session')
+  .replace(/Only the coordinator or this session[’']s facilitator[^.]*\./g, 'Only a host can make the summary.')
+  .replace(/Nelson can do that in a minute\.?/g, 'The summary isn’t set up on the server yet.')
+  .replace(/the program team/gi, 'a host').replace(/this class/g, 'this session').replace(/which class/g, 'which session').replace(/after class/g, 'after the session');
 const root = document.getElementById('htReplay');
 if (!root || !window.BM_CONFIG) throw new Error('replay block or config missing');
 const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
@@ -78,27 +84,38 @@ if (!user) {
 const key = 'room:' + state.id, staff = !!state.is_host;
 let replay = null;
 if (staff) {
+  /* a host sees the newest READY replay — a draft until it is published (spec §2.2) */
   const { data, error } = await sb.from('ea_room_replays').select('id, status, stream_uid, watch_url, duration_s, published, created_at').eq('room_id', state.id).order('created_at', { ascending: false });
   if (error) console.warn('[replay] replays', error.message);
-  replay = pickReplay(data || []);
+  replay = (data || []).filter((r) => r && r.status === 'ready' && (r.watch_url || r.stream_uid))[0] || null;
 } else if (state.recording_url) {
-  /* a past joiner: the published recording, through the state (the replays table is hosts-only) */
-  replay = { watch_url: state.recording_url, published: true, created_at: null, duration_s: null };
+  /* a past joiner: the published recording, through the state (the replays table is hosts-only); the state also
+     carries that replay's start and length (0054), the window the chapters and lines are read from */
+  replay = { watch_url: state.recording_url, published: true, created_at: state.replay_started_at || null, duration_s: state.replay_duration_s || null };
 }
 if (!replay) {
-  idle(staff ? 'No replay yet' : 'Nothing published yet',
+  idle(staff ? 'No replay yet' : 'Nothing to watch here yet',
     staff ? 'A session records itself. Its replay lands on the Live space to review and publish, and here with its chapters.'
-          : 'When your host publishes the last session it shows here, with its chapters and summary.');
+          : 'Replays show here for the people who were in the room, once the host publishes the session.');
+  if (!staff) { emptyPanes('The chapters, the summary, the files and the transcript arrive with the published replay.'); return; }
 }
+/* the session's window: a standing room files every session under ONE key for the life of the room, so only the
+   rows inside this replay's span are this session's (a minute before the start; a quarter hour after the end) */
+const WIN_BEFORE = 60e3, WIN_AFTER = 15 * 60e3;
+const winStart = replay && replay.created_at ? Date.parse(replay.created_at) : NaN;
+const winEnd = Number.isFinite(winStart) && Number(replay.duration_s) > 0 ? winStart + Number(replay.duration_s) * 1000 + WIN_AFTER : Infinity;
+const inWindow = (at) => { if (!Number.isFinite(winStart)) return true; const t = Date.parse(at || ''); return t >= winStart - WIN_BEFORE && t <= winEnd; };
+const sinceIso = Number.isFinite(winStart) ? new Date(winStart - WIN_BEFORE).toISOString() : null;
 
 /* ---- the lesson rows, loading while the player sets up ----
    The offsets count from the replay's start. A host's replay row carries created_at; a guest's came through the
    state with no clock, so the guest's chapters line up from the first event or transcript line of the session
    (a few seconds after the recording began — close enough to tap into). */
+const since = (qb) => (sinceIso ? qb.gte('at', sinceIso) : qb);   /* the database drops what came before the window; the page trims the after */
 const lessonLoad = Promise.all([
-  sb.from('ea_class_events').select('id, at, kind, label, data').eq('room_key', key).order('at').order('id').limit(1000),
+  since(sb.from('ea_class_events').select('id, at, kind, label, data').eq('room_key', key)).order('at').order('id').limit(1000),
   sb.from('ea_class_summaries').select('summary, assignments, chapters, updated_at').eq('room_key', key).maybeSingle(),
-  loadAllRows((from, to) => sb.from('ea_class_transcripts').select('id, at, speaker_name, text').eq('room_key', key).order('at').order('id').range(from, to)),
+  loadAllRows((from, to) => since(sb.from('ea_class_transcripts').select('id, at, speaker_name, text').eq('room_key', key)).order('at').order('id').range(from, to)),
   sb.from('ea_opil_materials').select('id, title, kind, link_url, file_path, created_at').eq('room_key', key).order('created_at'),
 ]);
 
@@ -136,7 +153,9 @@ function seek(s) {
 const [ev, sm, tr, mt] = await lessonLoad;
 [ev, sm, tr, mt].forEach((r) => { if (r.error) console.warn('[replay] load', r.error.message || r.error); });
 let summaryRow = sm.data || null;
-const events = ev.data || [], transcriptRows = tr.rows || [], materials = mt.data || [];
+const events = (ev.data || []).filter((e) => inWindow(e.at)), transcriptRows = (tr.rows || []).filter((r) => inWindow(r.at));
+/* the files shown in this session — a file added in an earlier session belongs to that session's page */
+const materials = (mt.data || []).filter((m) => inWindow(m.created_at));
 /* the clock the offsets count from: the replay's start when we know it, else the first event or line of this class */
 const firstAt = [events[0] && events[0].at, transcriptRows[0] && transcriptRows[0].at].filter(Boolean).sort()[0] || null;
 const started = (replay && replay.created_at) || firstAt;
@@ -167,7 +186,7 @@ function paintSummary() {
   const todo = summaryRow ? assignmentList(summaryRow.assignments) : [];
   $('nAsg').textContent = todo.length || '';
   const madeOn = summaryRow && summaryRow.updated_at ? new Date(summaryRow.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
-  const st = summaryStateCopy({ row: summaryRow, staff, busy });
+  const st = roomWords(summaryStateCopy({ row: summaryRow, staff, busy }));
   p.innerHTML = (lines.length
       ? `<ul class="rp-lines">${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul><p class="rp-fine">Written from the transcript and the chapters${madeOn ? ' on ' + esc(madeOn) : ''}. Read it as notes, not as the record.</p>`
       : `<div class="rp-empty">${esc(st)}</div>`)
@@ -182,12 +201,12 @@ async function makeSummary() {
     const tok = (await sb.auth.getSession()).data.session?.access_token || '';
     const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ room_key: key }) });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok || !d.ok) { console.warn('[replay] summary', r.status, d); throw new Error(summaryErrorCopy(d.error || (r.status === 401 ? 'sign_in' : ''))); }
+    if (!r.ok || !d.ok) { console.warn('[replay] summary', r.status, d); throw new Error(roomWords(summaryErrorCopy(d.error || (r.status === 401 ? 'sign_in' : '')))); }
     summaryRow = { summary: d.summary, assignments: d.assignments, chapters: d.chapters, updated_at: new Date().toISOString() };
     busy = false; paintSummary(); showPane('summary');
   } catch (e) {
     busy = false; paintSummary();
-    const err = $('mkErr'); if (err) { err.textContent = e.message || summaryErrorCopy(''); err.hidden = false; }
+    const err = $('mkErr'); if (err) { err.textContent = e.message || roomWords(summaryErrorCopy('')); err.hidden = false; }
   }
 }
 paintSummary();
@@ -212,7 +231,7 @@ const lines = transcriptOffsets(transcriptRows, started);
 $('nLines').textContent = lines.length || '';
 function paintTranscript() {
   const p = pane('transcript');
-  const gate = transcriptGateCopy({ open: true, lines: lines.length, failed: !!tr.error });
+  const gate = roomWords(transcriptGateCopy({ open: true, lines: lines.length, failed: !!tr.error }));
   if (gate) { p.innerHTML = `<div class="rp-empty">${esc(gate)}</div>`; return; }
   p.innerHTML = `<div class="rp-search"><input type="search" id="tq" placeholder="Search what was said" autocomplete="off" aria-label="Search the transcript"><button type="button" id="tdl">Download</button></div><p class="rp-count" id="tcount"></p><div id="tlist"></div>`;
   const input = $('tq'), list = $('tlist'), count = $('tcount');

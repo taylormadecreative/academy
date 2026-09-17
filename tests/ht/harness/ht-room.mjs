@@ -312,7 +312,8 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
 { const t0 = '2026-09-16T18:00:00.000Z';
   const db = { state: { ...base, is_host: true, recording_url: null }, room: { ...room }, session: sess, admin: true, profiles: [], members: [],
     replays: [{ id: 'rp1', status: 'ready', watch_url: 'https://customer-x.cloudflarestream.com/abc123/watch', duration_s: 1800, published: false, created_at: t0 }],
-    events: [{ id: 1, at: '2026-09-16T18:05:00.000Z', kind: 'stage', label: 'Imani on stage', data: null }, { id: 2, at: '2026-09-16T18:20:00.000Z', kind: 'file', label: 'Deck shown', data: null }],
+    /* the third event is from an earlier session under the same room key (two hours before this replay began): never a chapter here */
+    events: [{ id: 1, at: '2026-09-16T18:05:00.000Z', kind: 'stage', label: 'Imani on stage', data: null }, { id: 2, at: '2026-09-16T18:20:00.000Z', kind: 'file', label: 'Deck shown', data: null }, { id: 3, at: '2026-09-16T16:00:00.000Z', kind: 'stage', label: 'Yesterday on stage', data: null }],
     summary: { summary: 'One.\nTwo.\nThree.', assignments: ['Read chapter 2'], chapters: null, updated_at: t0 },
     transcripts: [{ id: 1, at: '2026-09-16T18:01:00.000Z', speaker_name: 'Dr. Gray', text: 'Welcome to the Hill.' }],
     materials: [{ id: 'm1', title: 'Deck.pdf', kind: 'resource', link_url: null, file_path: 'materials/u1/room/r-ht/x-Deck.pdf', created_at: t0 }] };
@@ -323,7 +324,7 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   await p.route('https://embed.cloudflarestream.com/**', r => r.abort());   /* the player SDK is offline here; the page goes on without it */
   await p.goto('http://127.0.0.1:8790/ht/hub/replay/');
   await p.waitForSelector('.rp-chapter', { timeout: 20000 }).catch(() => {});
-  ok('10 chapters from the events', (await p.locator('.rp-chapter').count()) === 2, String(await p.locator('.rp-chapter').count()));
+  ok('10 chapters from the events — this session only, the earlier session\'s event is not a chapter', (await p.locator('.rp-chapter').count()) === 2 && !/Yesterday/.test(await text(p, '.rp-pane[data-pane="chapters"]')), String(await p.locator('.rp-chapter').count()));
   ok('10 the first chapter is 5 minutes in', /5:00/.test(await text(p, '.rp-chapter')), await text(p, '.rp-chapter'));
   ok('10 the Live tab stays current on the replay page', (await text(p, '.ht-tab.on')) === 'Live', await text(p, '.ht-tab.on'));
   ok('10 the player iframe uses the /iframe URL', /\/abc123\/iframe/.test(await p.getAttribute('#player iframe', 'src') || ''));
@@ -342,7 +343,15 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   await p2.waitForSelector('#idle a[href^="/login/"]', { timeout: 10000 }).catch(() => {});
   ok('10 signed out: a Sign in link that comes back here', /next=%2Fht%2Fhub%2Freplay%2F/.test(await p2.getAttribute('#idle a', 'href') || ''));
   ok('10 signed out: the class tables were never read', (await p2.evaluate(() => window.__calls.filter(c => c[0] === 'from' && /ea_class_/.test(c[1])).length)) === 0);
-  await p2.close(); }
+  await p2.close();
+  /* signed in, never joined, nothing published: told so, and the class tables are never read */
+  const p3 = await b.newPage({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
+  await p3.addInitScript((d) => { window.__db = d; window.__calls = []; }, { ...db, state: { ...base, is_host: false, recording_url: null } });
+  await p3.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
+  await p3.goto('http://127.0.0.1:8790/ht/hub/replay/');
+  await p3.waitForFunction(() => /Nothing to watch/.test(document.getElementById('idle').textContent), null, { timeout: 10000 }).catch(() => {});
+  ok('10 a non-joiner: "Nothing to watch here yet", and the class tables were never read', /Nothing to watch here yet/.test(await text(p3, '#idle')) && (await p3.evaluate(() => window.__calls.filter(c => c[0] === 'from' && /ea_class_/.test(c[1])).length)) === 0);
+  await p3.close(); }
 /* R1–R4 the real js/rtk-room-v2.js: a drop that cannot be mended tells the dead client to leave; Leave during a
    rejoin in flight wins; Split students into rooms is two taps; a room has Files (room-v2-real.mjs) */
 await realModuleScenarios(b, ok);

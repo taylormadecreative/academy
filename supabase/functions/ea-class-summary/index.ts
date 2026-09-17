@@ -100,6 +100,21 @@ Deno.serve(async (req: Request) => {
   let body: SummaryBody = {};
   try { body = await req.json(); } catch (_) { /* handler answers bad_key */ }
 
+  /* the replay this summary is for: the newest published ready row, else the newest ready one (read once, used twice) */
+  const replayCache = new Map<string, Promise<{ created_at?: string; duration_s?: number } | null>>();
+  const replayRow = (key: string) => {
+    if (!replayCache.has(key)) replayCache.set(key, (async () => {
+      const [kind, id] = [key.split(":")[0], key.slice(key.indexOf(":") + 1)];
+      const table = kind === "opil" ? "ea_opil_replays" : kind === "room" ? "ea_room_replays" : null;
+      if (!table) return null;
+      const col = kind === "opil" ? "session_no" : "room_id";
+      const val = kind === "opil" ? Number(id) : id;
+      const { data } = await admin.from(table).select("created_at, duration_s, published").eq(col, val).eq("status", "ready")
+        .order("published", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      return (data as { created_at?: string; duration_s?: number } | null) ?? null;
+    })());
+    return replayCache.get(key)!;
+  };
   const reply = await handleSummary(body, {
     canRun: async (key) => {
       if (who.role.admin || who.academyAdmin) return true;
@@ -117,16 +132,8 @@ Deno.serve(async (req: Request) => {
       const { data } = await who.asUser.rpc("ea_class_room_of", { p_key: key });   /* the caller may read the class, so this answers */
       return (data && typeof data === "object" ? data : null) as Record<string, string> | null;
     },
-    startedAt: async (key) => {
-      const [kind, id] = [key.split(":")[0], key.slice(key.indexOf(":") + 1)];
-      const table = kind === "opil" ? "ea_opil_replays" : kind === "room" ? "ea_room_replays" : null;
-      if (!table) return null;
-      const col = kind === "opil" ? "session_no" : "room_id";
-      const val = kind === "opil" ? Number(id) : id;
-      const { data } = await admin.from(table).select("created_at, published").eq(col, val).eq("status", "ready")
-        .order("published", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      return (data as { created_at?: string } | null)?.created_at ?? null;
-    },
+    startedAt: async (key) => (await replayRow(key))?.created_at ?? null,
+    durationS: async (key) => { const d = (await replayRow(key))?.duration_s; return typeof d === "number" && d > 0 ? d : null; },
     provider: () => pickProvider(Deno.env),
     complete,
     save: async (row) => {

@@ -1,6 +1,6 @@
 // deno test supabase/functions/ea-class-summary/
 import { assertEquals, assertMatch, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildUserPrompt, chaptersFrom, cleanKey, fmtClock, handleSummary, parseSummary, transcriptForPrompt, type EventRow, type SummaryDeps, type TranscriptRow } from "./handler.ts";
+import { buildUserPrompt, chaptersFrom, cleanKey, fmtClock, handleSummary, inWindow, parseSummary, transcriptForPrompt, type EventRow, type SummaryDeps, type TranscriptRow } from "./handler.ts";
 
 const T0 = "2026-09-16T22:30:00.000Z";
 const at = (s: number) => new Date(Date.parse(T0) + s * 1000).toISOString();
@@ -151,4 +151,25 @@ Deno.test("OpenAI is the provider when it is the one with a key", async () => {
   const d = deps({ provider: () => ({ name: "openai", model: "gpt-5-mini" }) });
   const r = await handleSummary({ room_key: "opil:1" }, d);
   assertEquals(r.body.model, "openai:gpt-5-mini");
+});
+
+Deno.test("inWindow: a standing room's key holds every session — only this replay's rows count", () => {
+  assertEquals(inWindow(at(-30), T0, 3600), true, "a minute of grace before the start");
+  assertEquals(inWindow(at(-120), T0, 3600), false, "yesterday's rehearsal is out");
+  assertEquals(inWindow(at(3600 + 600), T0, 3600), true, "a board save ten minutes after End is in");
+  assertEquals(inWindow(at(3600 + 1200), T0, 3600), false, "twenty minutes after End is the next session");
+  assertEquals(inWindow(at(999999), T0, null), true, "no duration: open-ended after the start");
+  assertEquals(inWindow(at(-120), null, null), true, "no start: everything is in (an OPIL session with no replay yet)");
+  assertEquals(inWindow("not a date", T0, 3600), false);
+});
+
+Deno.test("handleSummary: rows and events from an earlier session under the same key never reach the model", async () => {
+  const old = [{ id: "o1", at: at(-7200), speaker_name: "Rehearsal", text: "This was yesterday and must not be summarised." }];
+  const d = deps({ loadTranscript: async () => [...old, ...ROWS], loadEvents: async () => [{ id: "e9", at: at(-7000), kind: "stage", label: "Old stage", data: null }, ...EVENTS], durationS: async () => 3600 });
+  const r = await handleSummary({ room_key: "room:5f4a1d2e-3b6c-4d7e-8f90-a1b2c3d4e5f6" }, d);
+  assertEquals(r.status, 200);
+  const user = d.calls[0].user;
+  assertEquals(user.includes("This was yesterday"), false, "yesterday's line was dropped");
+  assertEquals(user.includes("Old stage"), false, "yesterday's chapter was dropped");
+  assertStringIncludes(user, "Welcome to the lab.");
 });
