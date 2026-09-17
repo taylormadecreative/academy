@@ -43,8 +43,8 @@ jq -e '.[0].status == "calendar reminders ready"' "$TMP/out.json" >/dev/null || 
 
 echo "== 3/4 store the secret in Vault as opil_remind_secret (pg_cron reads it on every run)"
 # jq builds the SQL and the JSON body in one go (\u0027 is a single quote; one inside the value is doubled); nothing is echoed.
-# create on the first run, update after; an old app.remind_secret database setting from an earlier apply is cleared.
-jq -n --arg s "$SECRET" '{query: ("do $$ declare v_id uuid; begin select id into v_id from vault.secrets where name = \u0027opil_remind_secret\u0027; if v_id is null then perform vault.create_secret(\u0027" + ($s | gsub("\u0027"; "\u0027\u0027")) + "\u0027, \u0027opil_remind_secret\u0027, \u0027x-remind-secret for ea-opil-remind; equals the function secret REMIND_SECRET\u0027); else perform vault.update_secret(v_id, \u0027" + ($s | gsub("\u0027"; "\u0027\u0027")) + "\u0027); end if; end $$; alter database postgres reset app.remind_secret;")}' > "$TMP/body.json"
+# create on the first run, update after.
+jq -n --arg s "$SECRET" '{query: ("do $$ declare v_id uuid; begin select id into v_id from vault.secrets where name = \u0027opil_remind_secret\u0027; if v_id is null then perform vault.create_secret(\u0027" + ($s | gsub("\u0027"; "\u0027\u0027")) + "\u0027, \u0027opil_remind_secret\u0027, \u0027x-remind-secret for ea-opil-remind; equals the function secret REMIND_SECRET\u0027); else perform vault.update_secret(v_id, \u0027" + ($s | gsub("\u0027"; "\u0027\u0027")) + "\u0027); end if; end $$;")}' > "$TMP/body.json"
 code=$(curl -sS -o "$TMP/out.json" -w '%{http_code}' -X POST "$API" -H "Authorization: Bearer $SB_TOKEN" -H "Content-Type: application/json" -d @"$TMP/body.json")
 rm -f "$TMP/body.json"
 case "$code" in 2*) echo "vault secret saved";; *) echo "VAULT FAILED (HTTP $code)"; cat "$TMP/out.json"; echo; exit 1;; esac
