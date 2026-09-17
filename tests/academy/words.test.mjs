@@ -7,9 +7,11 @@ import * as mod from '../../opil/hub/live-rooms.js';
 import { capFirst, OPIL_WORDS, ROOM_WORDS, nowCopy, joinCopy } from '../../opil/hub/live-rooms.js';
 
 test('live-rooms.js keeps every OPIL export and adds exactly capFirst, OPIL_WORDS, ROOM_WORDS (+ the 9/15 ask/transcript/caption helpers, + the never-end helpers)', () => {
+  /* the words + the 9/15 helpers, then the 9/16–17 class-feature helpers (Files, help, small groups, the class clock) */
   assert.deepEqual(Object.keys(mod).sort(), [
-    'CAPTION_MAX', 'CAPTION_TTL_MS', 'OPIL_WORDS', 'REJOIN_DELAYS_MS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'backOn', 'capFirst', 'endCopy', 'joinCopy', 'leftKind', 'liveListHTML', 'nextInLine', 'nowCopy', 'pickRoom',
-    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'reconnectCopy', 'rejoinPlan', 'roomFromQuery', 'roomPath', 'saidAt', 'sessLabel', 'stateCopy', 'takeCaption', 'transcriptText', 'useV2',
+    'CAPTION_MAX', 'CAPTION_TTL_MS', 'FILE_EXTS', 'FILE_MAX_BYTES', 'KIND_WORD', 'OPIL_WORDS', 'REJOIN_DELAYS_MS', 'ROOM_WORDS', 'addTranscript', 'askLineCopy', 'backOn', 'canShowInline', 'capFirst', 'classWhen', 'endCopy',
+    'fileKind', 'fileRefusal', 'fmtSize', 'helpCopy', 'helpRows', 'joinCopy', 'leftKind', 'liveListHTML', 'nextInLine', 'noteIsForMe', 'nowCopy', 'passCopy', 'pickRoom', 'programInstant',
+    'queueEmptyCopy', 'queueOrder', 'queuePosition', 'recChipHidden', 'reconnectCopy', 'rejoinPlan', 'roomFromQuery', 'roomPath', 'roomStatus', 'roomsByTeam', 'roomsEvenly', 'saidAt', 'sessLabel', 'showingCopy', 'stateCopy', 'storagePath', 'takeCaption', 'timerCopy', 'transcriptText', 'useV2',
   ]);
 });
 
@@ -70,8 +72,8 @@ test('nowCopy with ROOM_WORDS: Nelson is live, a session in progress, recorded, 
 
 test('joinCopy: the OPIL default and an explicit OPIL_WORDS give the exact strings tests/opil/room-v2.test.mjs checks', () => {
   const cases = [
-    [{ live: true, host: false, facilitator: 'Casey Dike', joined: 26 }, 'Casey Dike is in the room · 26 students joined'],
-    [{ live: true, host: false, facilitator: null, joined: 1 }, 'The class is running · 1 student joined'],
+    [{ live: true, host: false, facilitator: 'Casey Dike', joined: 26 }, 'Casey Dike and 25 others are in the room.'],
+    [{ live: true, host: false, facilitator: null, joined: 1 }, '1 in the room so far.'],
     [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: '7:00 PM' }, "Class hasn’t started yet. You’re all set — it starts at 7:00 PM — press Enter when it does."],
     [{ live: false, host: false, facilitator: 'Casey Dike', startsAt: null }, "Class hasn’t started yet. You’re all set — press Enter when Casey Dike starts it."],
     [{ live: false, host: false, facilitator: null, startsAt: null }, "Class hasn’t started yet. You’re all set — press Enter when your facilitator starts it."],
@@ -93,10 +95,11 @@ test('joinCopy with ROOM_WORDS: not live and not Nelson → the waiting sentence
 });
 
 test('joinCopy with ROOM_WORDS: live and host sentences count people', () => {
-  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Nelson', joined: 12 }, ROOM_WORDS), "Nelson is in the room · 12 people joined");
-  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Nelson', joined: 1 }, ROOM_WORDS), "Nelson is in the room · 1 person joined");
-  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 1 }, ROOM_WORDS), "The session is running · 1 person joined");
-  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 0 }, ROOM_WORDS), "The session is running · 0 people joined");
+  /* the guest's line since 9/16 (the join screen counts "others", never the guest): tests/opil/room-v2.test.mjs carries the OPIL twins */
+  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Nelson', joined: 12 }, ROOM_WORDS), "Nelson and 11 others are in the room.");
+  assert.equal(joinCopy({ live: true, host: false, facilitator: 'Nelson', joined: 1 }, ROOM_WORDS), "Nelson is in the room — come on in.");
+  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 1 }, ROOM_WORDS), "1 in the room so far.");
+  assert.equal(joinCopy({ live: true, host: false, facilitator: null, joined: 0 }, ROOM_WORDS), "The room is open — come on in.");
   assert.equal(joinCopy({ live: false, host: true }, ROOM_WORDS), "This room is yours. Start the session when you’re ready — people who have the link are waiting here.");
   assert.equal(joinCopy({ live: true, host: true, joined: 3 }, ROOM_WORDS), "Your session is running · 3 people joined");
   assert.equal(joinCopy({ live: true, host: true, joined: 1 }, ROOM_WORDS), "Your session is running · 1 person joined");
