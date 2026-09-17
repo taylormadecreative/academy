@@ -1,0 +1,61 @@
+/* Warm-ups (js/rtk-warmup.js): the Question of the day card on the waiting screen, the cities line, the
+   Already-here list, and the host's Warm-up answers section in the Questions tab. Tokens follow
+   css/rtk-room-v2.css: navy #04123a / #0a1733 / #162650, gold #fdc921 = the one action, slate #9fb0d4,
+   hairlines rgba(255,255,255,.1), Inter + Space Grotesk, 999px pills, targets ≥ 48px, one column ≤ 720px. */
+
+/* ---- the waiting screen ---- */
+.r2-warm{display:grid;gap:14px;margin-top:18px;color:#fcfdff;font-family:Inter,system-ui,sans-serif}
+.r2-warm-card{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#0a1733;padding:18px 20px;display:grid;gap:12px}
+.r2-warm-kicker{font:700 11.5px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fdc921}
+.r2-warm-q{margin:0;font:600 clamp(18px,2vw,24px)/1.25 'Space Grotesk',Inter,sans-serif;color:#fff;overflow-wrap:anywhere}
+.r2-warm-field{display:grid;gap:6px}
+.r2-warm-field span{font-size:13.5px;color:#9fb0d4}
+.r2-warm-field input,.r2-warm-edit input{width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:#162650;color:#fff;font:inherit;font-size:16px}
+.r2-warm-field input::placeholder,.r2-warm-edit input::placeholder{color:#6f80a8}
+.r2-warm-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.r2-warm-save{background:#fdc921;color:#04123a;border-color:#fdc921;min-height:48px;padding:0 20px}
+.r2-warm-save:disabled{opacity:.6;cursor:default}
+.r2-warm-status{font-size:13.5px;color:#3ddc97;line-height:1.4;flex:1 1 200px}
+.r2-warm-status.bad{color:#ff8a7a}
+.r2-warm-cities{margin:0;padding:0 4px;font-size:14px;line-height:1.5;color:#c9d4ee}
+.r2-warm-cities[hidden]{display:none}
+.r2-warm-here{border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 18px;display:grid;gap:8px}
+.r2-warm-here-line{margin:0;font-size:15px;line-height:1.4;color:#fff}
+.r2-warm-chips{display:flex;gap:6px;flex-wrap:wrap}
+.r2-warm-chips:empty{display:none}
+.r2-warm-chip{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:#162650;color:#fff;font-size:13px}
+
+/* ---- in class: the host's Warm-up answers section (inside the Questions pane) ---- */
+/* The section sits after .r2-queue inside .r2-pane[data-pane="queue"] — a bounded flex column under
+   .r2-panel{overflow:hidden}. Left alone, thirty answers would take their full height, squeeze the
+   Ready-to-speak queue to nothing and cut the tail off with no scrollbar. So: the section keeps to half
+   the pane and scrolls inside it; the queue keeps the rest (never under 120px), the way the Files pane does. */
+.r2-warm-answers{flex:0 1 auto;min-height:0;max-height:50%;overflow:auto;margin:18px 10px 10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);display:grid;gap:8px;align-content:start}
+.r2-pane[data-pane="queue"]:has(.r2-warm-answers)>.r2-queue{flex:1 1 auto;min-height:120px}
+.r2-warm-head{padding-bottom:4px}
+.r2-warm-qline{display:grid;gap:6px;padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#0a1733}
+.r2-warm-qline b{font:600 15px/1.35 'Space Grotesk',Inter,sans-serif;color:#fff;overflow-wrap:anywhere}
+.r2-warm-qline .r2-mini{justify-self:start;min-height:48px}
+.r2-warm-edit{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center}
+.r2-warm-edit .r2-mini{min-height:48px}
+.r2-warm-sum{text-align:left;margin:0 2px}
+.r2-warm-list{display:grid;gap:8px}
+.r2-warm-row.r2-hand{grid-template-columns:minmax(120px,.8fr) 1.4fr auto;align-items:start}
+.r2-warm-a{font-size:14px;line-height:1.45;color:#fcfdff;overflow-wrap:anywhere}
+.r2-warm-a i{color:#9fb0d4;font-style:normal}
+.r2-warm-x{color:#ff8a7a;border-color:rgba(255,92,92,.5);min-height:48px}
+.r2-warm-x[data-armed="1"]{border-color:#fdc921;color:#fff}
+
+/* ---- phone ---- */
+@media(max-width:720px){
+  .r2-warm{margin-top:14px}
+  .r2-warm-card{padding:16px}
+  .r2-warm-save{width:100%}
+  .r2-warm-status{flex-basis:100%}
+  .r2-warm-edit{grid-template-columns:1fr}
+  .r2-warm-row.r2-hand{grid-template-columns:1fr}
+  .r2-warm-x{justify-self:start;min-height:48px}
+  .r2-warm-qline .r2-mini{min-height:48px}
+  .r2-warm-answers{max-height:50%;overflow:auto;margin:14px 10px 10px}
+  .r2-pane[data-pane="queue"]:has(.r2-warm-answers)>.r2-queue{flex:1 1 auto;min-height:120px}
+}

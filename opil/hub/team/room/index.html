@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Team room · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=b42f3cd0d4">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=b42f3cd0d4">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=b42f3cd0d4">
+<!-- /css/rtk-teamroom.css is added by the module below on the page's live stamp (build_site.py only restamps the pins it knows) -->
+<script>document.documentElement.classList.add('js')</script>
+</head><body>
+<!-- The team's standing room (spec 2026-09-16-class-features-design.md §3). One of two things is on the page:
+     a card (no team yet, not your team, you left, it could not open) or the room itself (#rtkMount, drawn by
+     js/rtk-room-v2.js in team mode: no host, no recording, no question line, Files filed under team:<id>).
+     The first teammate in opens it; it stays open all year. A coordinator opens a student team's room with ?t=<id>. -->
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap tm-shell">
+<div class="hub-tabs"></div>
+<div class="tm-head">
+  <div><span class="kicker gold">Team room</span><h1 id="tmTitle">Your team room</h1></div>
+  <a class="tm-back" id="tmBack" href="/opil/hub/team/">&larr; Team page</a>
+</div>
+<section id="tmCard" hidden></section>
+<div id="rtkMount"></div>
+</main>
+
+<script src="/js/config.js?v=b42f3cd0d4"></script>
+<script type="module">
+import { boot, nav, esc } from '/opil/hub/hub.js?v=b42f3cd0d4';
+import { joinErrorText } from '/js/room-page.js?v=b42f3cd0d4';
+/* every module and stylesheet this page pulls in rides the stamp build_site.py writes on the config.js
+   tag above (this page is in HUB_PAGES): sw.js is cache-first on every ?v= asset, so a stamp typed here
+   by hand would pin the first rtk-room-v2.js forever. No config.js tag (never) → no stamp, still loads. */
+const STAMP = (() => { try { const t = document.querySelector('script[src*="/js/config.js"]'); const q = t && t.src.indexOf('?'); return t && q > -1 ? t.src.slice(q) : ''; } catch (e) { return ''; } })();
+if (!document.querySelector('link[href^="/css/rtk-teamroom.css"]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/css/rtk-teamroom.css' + STAMP; document.head.appendChild(l); }
+const W = await import('/js/rtk-teamroom-words.js' + STAMP);
+const { TEAM_WORDS, TEAM_WHEN, teamTitle, teamRoomBranch, teamLeftCopy } = W;
+
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, user, teamId: myTeam, isAdmin, isJudge, facSessions } = ctx;
+/* 'team-room' has no first-visit tour (tour.js keys steps by this name; the team page's steps point at
+   cards this page does not have) — so no veil over the room, and no "Show me around" control */
+nav(ctx, 'team-room');
+try { document.querySelectorAll('.ln-tab[href="/opil/hub/team/"], .ln-dock-a[href="/opil/hub/team/"]').forEach(a => { a.classList.add('on'); a.setAttribute('aria-current', 'page'); }); } catch (e) {}
+
+const card = document.getElementById('tmCard'), mount = document.getElementById('rtkMount'), ttl = document.getElementById('tmTitle'), back = document.getElementById('tmBack');
+const here = location.pathname + location.search;
+
+/* ---------- cards: one at a time, in place of the room ---------- */
+function showCard(html) {
+  document.body.classList.remove('in-room', 'in-room-v2');   /* a mount that never finished still marked the body */
+  mount.innerHTML = '';
+  card.innerHTML = '<div class="tm-card">' + html + '</div>';
+  card.hidden = false;
+}
+const acts = (inner) => '<div class="tm-acts">' + inner + '</div>';
+const goBtn = (label, href) => '<a class="tm-go" href="' + esc(href) + '">' + esc(label) + ' <span aria-hidden="true">&rarr;</span></a>';
+const ghost = (label, href) => '<a class="tm-ghost" href="' + esc(href) + '">' + esc(label) + '</a>';
+/* a join refusal carries a code from the server; anything else (the video library, a lost connection) speaks for itself */
+function failText(e) {
+  if (e && /module script|Failed to fetch|Load failed|NetworkError|dynamically imported module/i.test(String(e.message || e))) return 'The room didn’t load. Check your connection, then try again.';
+  if (e && e.code === 'bad_team') return 'That team link isn’t right — open the room from your team page.';
+  if (e && e.code === 'not_found') return 'We couldn’t find that team — open the room from your team page.';
+  return (e && e.code) ? joinErrorText(e.code, e.status, TEAM_WORDS) : ((e && e.message) || 'Could not open the team room.');
+}
+function failCard(e) {
+  console.warn('[teamroom]', e);
+  showCard('<span class="tm-k">Hold on</span><h2>' + esc(failText(e)) + '</h2>' +
+    '<p class="lede">Nothing is lost — try again in a moment. If it keeps happening, message your coordinator from the hub.</p>' +
+    acts(goBtn('Try again', here) + ghost('Team page', '/opil/hub/team/')));
+}
+function leftCard(reason) {
+  const c = teamLeftCopy(reason);
+  showCard('<span class="tm-k">' + esc(c.kicker) + '</span><h2>' + esc(c.title) + '</h2><p class="lede">' + esc(c.lede) + '</p>' +
+    acts('<button type="button" class="tm-go" id="tmRejoin">Open team room <span aria-hidden="true">&rarr;</span></button>' + ghost('Team page', '/opil/hub/team/')));
+  document.getElementById('tmRejoin').addEventListener('click', () => location.reload());
+}
+
+/* ---------- which team, and may this person open it ---------- */
+/* the hub seats every admin on the staff team (0030) — that is nobody's room, so for the program team we
+   check once whether "my team" is the staff team; if so they get the picker instead of "Team Program Team" */
+let isStaffTeam = false;
+if (myTeam && (isAdmin || isJudge || (facSessions && facSessions.length))) {
+  try { const { data } = await sb.from('ea_opil_teams').select('is_staff').eq('id', myTeam).maybeSingle(); isStaffTeam = !!(data && data.is_staff); } catch (e) { console.warn('[teamroom] my team', e); }
+}
+const b = teamRoomBranch({ teamId: myTeam, isStaffTeam, isAdmin, isJudge, facSessions, query: location.search });
+if (b.branch === 'no_team') {
+  showCard('<span class="tm-k">Not yet</span><h2>You’re not on a team yet.</h2>' +
+    '<p class="lede">Your team room appears here once your coordinator puts you on a team. Until then, the class room is on the Live page.</p>' +
+    acts(goBtn('Hub home', '/opil/hub/') + ghost('Live page', '/opil/hub/live/')));
+} else if (b.branch === 'not_yours') {
+  showCard('<span class="tm-k">This room</span><h2>' + esc(TEAM_WORDS.notAllowed) + '</h2>' +
+    '<p class="lede">Your own team’s room is one tap away.</p>' +
+    acts(goBtn('My team room', '/opil/hub/team/room/') + ghost('Team page', '/opil/hub/team/')));
+} else if (b.branch === 'pick') {
+  await pickTeam();
+} else {
+  await openRoom(b.teamId);
+}
+
+/* a coordinator with no team of their own: every student team, one tap each (feature 5's "Start a quick room" lands here with ?t=) */
+async function pickTeam() {
+  let teams = [];
+  try { const { data } = await sb.from('ea_opil_teams').select('id, name, school, is_staff').order('name'); teams = (data || []).filter(t => !t.is_staff); } catch (e) { console.warn('[teamroom] teams', e); }
+  ttl.textContent = 'Team rooms';
+  showCard('<span class="tm-k">Program team</span><h2>Which team’s room?</h2>' +
+    '<p class="lede">You can drop into any team’s room. They see you as a teammate — every tool, no host seat.</p>' +
+    (teams.length ? '<div class="tm-pick">' + teams.map(t => '<a href="/opil/hub/team/room/?t=' + esc(t.id) + '">' + esc(teamTitle(t.name)) + '<span>' + esc(t.school || '') + '</span></a>').join('') + '</div>'
+                  : '<p class="fine">No student teams yet.</p>'));
+}
+
+/* ---------- the room ---------- */
+let room = null, inRoom = false, closing = false;
+async function openRoom(id) {
+  let team = null;
+  try { const { data, error } = await sb.from('ea_opil_teams').select('id, name, school, is_staff').eq('id', id).maybeSingle(); if (error) console.warn('[teamroom] team', error.message); team = data || null; } catch (e) { console.warn('[teamroom] team', e); }
+  if (!team) { showCard('<span class="tm-k">Hold on</span><h2>We couldn’t find that team.</h2><p class="lede">Open the room from your team page and it will be the right one.</p>' + acts(goBtn('Team page', '/opil/hub/team/'))); return; }
+  const title = teamTitle(team.name);
+  ttl.textContent = title; document.title = title + ' · Lab Hub';
+  if (b.staff && (team.id !== myTeam || isStaffTeam)) back.href = '/opil/hub/admin/';
+  const tok = (await sb.auth.getSession()).data.session?.access_token || '';
+  card.hidden = true; card.innerHTML = '';
+  try {
+    const { mountRoomV2 } = await loadRoom();
+    room = await mountRoomV2({
+      mountEl: mount, cfg: window.BM_CONFIG, token: tok, sb, user, mode: 'student',
+      target: { kind: 'team', id: team.id, title, words: TEAM_WORDS, when: TEAM_WHEN },
+      onState: roomState,
+    });
+  } catch (e) { failCard(e); }
+}
+/* the room's code, with one retry: a dropped fetch on a phone connection should not be the end of it */
+async function loadRoom() {
+  try { return await import('/js/rtk-room-v2.js' + STAMP); }
+  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js' + STAMP); }
+}
+/* 'joined' (first join, or 'rejoined' after a drop the room mended), 'reconnecting' (nothing to do),
+   'left' (Leave, or 'dropped' = a drop that could not be mended), 'ended' / 'kicked'. A team room has no
+   host, so nobody ends it — 'ended' can only mean the meeting itself went away; the card offers the way back. */
+function roomState(st, m, reason) {
+  if (st === 'joined') { inRoom = true; return; }
+  if (st !== 'left' && st !== 'ended') return;
+  if (closing || !inRoom) return;
+  inRoom = false; closing = true;
+  leftCard(reason || st);
+  closing = false;
+}
+</script>
+</body></html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Replay · Lab Hub</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#04123a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/build-mode.css?v=b42f3cd0d4">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=b42f3cd0d4">
+<link rel="stylesheet" href="/css/rtk-chapters.css?v=b42f3cd0d4">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* the replay page: the player and the lesson beside it (styles in /css/rtk-chapters.css) */
+.hub-head .rp-back{font-size:13.5px;font-weight:600;color:var(--blue);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+#lesson{overflow:clip}   /* clips the card's corners without making a scroll container — the transcript search stays stuck on a phone */
+</style>
+</head><body>
+<header class="site-header"><div class="wrap"><div class="bar">
+<a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
+<div class="nav-cta"><span class="mono" style="color:var(--muted)">OPIL LAB HUB · 2026–27</span></div>
+</div></div></header>
+
+<main class="hub-wrap">
+<div class="hub-head">
+<div><span class="kicker gold">Replay</span><h1 id="ttl" style="margin-top:10px">The replay</h1></div>
+<a class="rp-back" href="/opil/hub/">&larr; Back to the hub</a>
+</div>
+<div class="hub-tabs"></div>
+
+<div class="rp-grid">
+<div>
+<div class="rp-player" id="player"><div class="rp-idle" id="idle"><b>Finding the replay&hellip;</b><span>One moment.</span></div></div>
+<p class="rp-now" id="now"></p>
+<p class="rp-fine" id="msg" role="status" hidden></p>
+</div>
+<div class="hcard" id="lesson">
+<div class="rp-tabs" role="tablist">
+<button type="button" class="rp-tab on" data-tab="chapters" role="tab">Chapters <em id="nChap"></em></button>
+<button type="button" class="rp-tab" data-tab="summary" role="tab">Summary</button>
+<button type="button" class="rp-tab" data-tab="assigned" role="tab">Assigned <em id="nAsg"></em></button>
+<button type="button" class="rp-tab" data-tab="files" role="tab">Files <em id="nFiles"></em></button>
+<button type="button" class="rp-tab" data-tab="transcript" role="tab">Transcript <em id="nLines"></em></button>
+</div>
+<div class="rp-pane" data-pane="chapters"><div class="rp-empty">Loading the chapters&hellip;</div></div>
+<div class="rp-pane" data-pane="summary" hidden><div class="rp-empty">Loading the summary&hellip;</div></div>
+<div class="rp-pane" data-pane="assigned" hidden><div class="rp-empty">Loading&hellip;</div></div>
+<div class="rp-pane" data-pane="files" hidden><div class="rp-empty">Loading the files&hellip;</div></div>
+<div class="rp-pane" data-pane="transcript" hidden><div class="rp-empty">Loading the transcript&hellip;</div></div>
+</div>
+</div>
+</main>
+
+<script src="/js/config.js?v=b42f3cd0d4"></script>
+<script type="module">
+import { boot, esc, nav } from '/opil/hub/hub.js?v=b42f3cd0d4';
+import { sessLabel } from '/opil/hub/live-rooms.js?v=b42f3cd0d4';
+import { chapterOffsets, chapterAt, durationWord, transcriptOffsets, transcriptSearch, searchCopy, transcriptText, transcriptGateCopy, markText, loadAllRows, summaryLines, assignmentList, summaryErrorCopy, summaryStateCopy, pickReplay, replayPlayerSrc, replayMissingCopy, STREAM_SDK, STREAM_SDK_WAIT_MS } from '/js/rtk-chapters.js?v=b42f3cd0d4';
+
+const ctx = await boot(); if (!ctx) throw new Error('gate');
+const { sb, isAdmin, facSessions } = ctx;
+/* 'replay' on purpose, not 'home': the nav's first-visit tour keys off this name — 'home' would run the home
+   tour over this page on a student's first visit (the nav links match its steps) and mark it seen. */
+nav(ctx, 'replay');
+
+/* which class: ?s=<session no>. Students see the published replay; the coordinator and that session's
+   facilitator also see a draft (0034), so they can check the lesson before Publish. */
+const no = Number(new URLSearchParams(location.search).get('s'));
+const key = 'opil:' + no;
+const staff = isAdmin || (facSessions || []).includes(no);
+const q = (s) => document.querySelector(s);
+const pane = (n) => q(`.rp-pane[data-pane="${n}"]`);
+const $ = (id) => document.getElementById(id);
+/* a passing message under the player — its own line, gone after a few seconds; the date and the draft note stay */
+const toast = (m, ms = 6000) => { const e = $('msg'); e.textContent = m; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, ms); };
+
+/* ---- the tabs ---- */
+document.querySelectorAll('.rp-tab').forEach((t) => t.addEventListener('click', () => showPane(t.dataset.tab)));
+function showPane(name) {
+  document.querySelectorAll('.rp-tab').forEach((t) => t.classList.toggle('on', t.dataset.tab === name));
+  document.querySelectorAll('.rp-pane').forEach((p) => { p.hidden = p.dataset.pane !== name; });
+}
+
+/* ---- the class and its replay ---- */
+let session = null, replays = [], replay = null;
+if (Number.isInteger(no) && no > 0) {
+  const [s, r] = await Promise.all([
+    sb.from('ea_opil_sessions').select('no, title, kind, session_date, start_time, recording_url').eq('no', no).maybeSingle(),
+    sb.from('ea_opil_replays').select('id, session_no, status, stream_uid, watch_url, duration_s, published, created_at').eq('session_no', no).order('created_at', { ascending: false }),
+  ]);
+  session = s.data || null; replays = r.data || [];
+  if (r.error) console.warn('[replay] replays', r.error.message);
+}
+replay = pickReplay(replays);
+if (session) {
+  $('ttl').textContent = sessLabel(session) + ' · ' + session.title;
+  document.title = 'Replay · ' + session.title;
+}
+const when = session && session.session_date ? new Date(session.session_date + 'T12:00:00').toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+
+/* ---- the lesson's rows start loading now, while the player sets up ---- */
+const startedAt = replay ? replay.created_at : null;
+/* students read the transcript once the replay is published (0044's rule matches this: the coordinator reviews first) */
+const transcriptOpen = staff || !!(replay && replay.published);
+const lessonLoad = Promise.all([
+  sb.from('ea_class_events').select('id, at, kind, label, data').eq('room_key', key).order('at').order('id').limit(1000),
+  sb.from('ea_class_summaries').select('summary, assignments, chapters, updated_at').eq('room_key', key).maybeSingle(),
+  transcriptOpen
+    ? loadAllRows((from, to) => sb.from('ea_class_transcripts').select('id, at, speaker_name, text').eq('room_key', key).order('at').order('id').range(from, to))
+    : Promise.resolve({ rows: [], error: null }),
+  sb.from('ea_opil_materials').select('id, title, kind, link_url, file_path, created_at').eq('session_no', no).order('created_at'),
+]);
+
+/* ---- the player: Cloudflare Stream in an iframe; the embed SDK seeks it ---- */
+let player = null, iframe = null, seekReady = false;
+const playerSrc = replayPlayerSrc(replay);
+if (playerSrc) {
+  iframe = document.createElement('iframe');
+  iframe.src = playerSrc + '?preload=metadata';
+  iframe.allow = 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;';
+  iframe.allowFullscreen = true;
+  iframe.title = session ? 'Replay of ' + session.title : 'Replay';
+  $('player').innerHTML = ''; $('player').appendChild(iframe);
+  $('now').innerHTML = `<b>${esc(when || 'This class')}</b>${replay.duration_s ? ' · ' + esc(durationWord(replay.duration_s)) + ' long' : ''}${replay.published ? '' : ' <span class="rp-chip draft">Draft — students can’t see this yet</span>'}<span>Tap a chapter or a transcript line to jump to that moment.</span>`;
+  try {
+    /* the SDK gets a few seconds; past that the page goes on without it and a tap reloads the player at that moment instead */
+    await new Promise((resolve, reject) => {
+      const sc = document.createElement('script'); sc.src = STREAM_SDK; sc.onload = resolve; sc.onerror = () => reject(new Error('sdk failed to load'));
+      setTimeout(() => reject(new Error('sdk took too long')), STREAM_SDK_WAIT_MS);
+      document.head.appendChild(sc);
+    });
+    player = window.Stream(iframe); seekReady = true;
+    player.addEventListener('timeupdate', () => { try { markPlaying(player.currentTime || 0); } catch (e) {} });
+  } catch (e) { console.warn('[replay] player sdk', e); }
+} else {
+  $('idle').innerHTML = `<b>${esc(session ? 'No replay to play yet' : 'Which class?')}</b><span>${esc(replayMissingCopy({ session, staff, replays }))}</span>`;
+  $('now').textContent = when;
+}
+/* jump to a second: the SDK when it loaded; else the iframe reloads at that time */
+function seek(s) {
+  s = Math.max(0, Math.floor(Number(s) || 0));
+  if (!iframe) return;
+  if (seekReady && player) { try { player.currentTime = s; const p = player.play(); if (p && p.catch) p.catch(() => {}); return; } catch (e) {} }
+  iframe.src = playerSrc + '?startTime=' + s + 's&autoplay=true';
+}
+
+/* ---- the lesson: chapters, summary, what was assigned, files, transcript ---- */
+const [ev, sm, tr, mt] = await lessonLoad;
+[ev, sm, tr, mt].forEach((r) => { if (r.error) console.warn('[replay] load', r.error.message || r.error); });
+let summaryRow = sm.data || null;
+const events = ev.data || [], transcriptRows = tr.rows || [], materials = mt.data || [];
+
+/* chapters */
+const chapters = chapterOffsets(events, startedAt, { duration: replay && replay.duration_s });
+$('nChap').textContent = chapters.length || '';
+function paintChapters() {
+  const p = pane('chapters');
+  if (!chapters.length) {
+    p.innerHTML = `<div class="rp-empty">${startedAt ? 'No chapters were logged for this class — the timeline fills in when someone is brought on stage, a file is shown, small groups open, or a poll runs.' : (events.length ? 'The chapters line up with the video once the replay is ready.' : 'No chapters were logged for this class.')}</div>`;
+    return;
+  }
+  p.innerHTML = chapters.map((c, i) => `<button type="button" class="rp-chapter" data-i="${i}" data-off="${c.offset}"><span class="rp-clock">${esc(c.clock)}</span><span><b>${esc(c.label)}</b></span></button>`).join('');
+  p.querySelectorAll('.rp-chapter').forEach((b) => b.addEventListener('click', () => { seek(b.dataset.off); p.querySelectorAll('.rp-chapter').forEach((x) => x.classList.toggle('on', x === b)); }));
+}
+function markPlaying(t) {
+  const i = chapterAt(chapters, t);
+  pane('chapters').querySelectorAll('.rp-chapter').forEach((b) => b.classList.toggle('on', Number(b.dataset.i) === i));
+}
+paintChapters();
+
+/* summary + assigned */
+let busy = false;
+function paintSummary() {
+  const p = pane('summary'), a = pane('assigned');
+  const lines = summaryRow ? summaryLines(summaryRow.summary) : [];
+  const todo = summaryRow ? assignmentList(summaryRow.assignments) : [];
+  $('nAsg').textContent = todo.length || '';
+  const madeOn = summaryRow && summaryRow.updated_at ? new Date(summaryRow.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '';
+  const state = summaryStateCopy({ row: summaryRow, staff, busy });
+  p.innerHTML = (lines.length ? `<ul class="rp-lines">${lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul><p class="rp-fine">Written from the transcript and the chapters${madeOn ? ' on ' + esc(madeOn) : ''}. Read it as notes, not as the last word — the replay is.</p>` : `<div class="rp-empty">${esc(state)}</div>`)
+    + (staff ? `<button type="button" class="rp-make${lines.length ? ' quiet' : ''}" id="make"${busy ? ' disabled' : ''}>${busy ? 'Writing the summary…' : (lines.length ? 'Make it again' : 'Make summary')}<span>${busy ? 'About half a minute' : 'Reads the transcript and the chapters, writes five lines and what was assigned'}</span></button><p class="rp-err" id="mkErr" role="alert" hidden></p>` : '');
+  a.innerHTML = todo.length ? `<ul class="rp-lines rp-todo">${todo.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`
+    : `<div class="rp-empty">${summaryRow ? 'Nothing was assigned in this class.' : 'What was assigned shows up here with the summary.'}</div>`;
+  const mk = $('make'); if (mk) mk.addEventListener('click', makeSummary);
+}
+async function makeSummary() {
+  if (busy) return; busy = true; paintSummary();
+  try {
+    const tok = (await sb.auth.getSession()).data.session?.access_token || '';
+    const r = await fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ room_key: key }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) { console.warn('[replay] summary', r.status, d); throw new Error(summaryErrorCopy(d.error || (r.status === 401 ? 'sign_in' : ''))); }
+    summaryRow = { summary: d.summary, assignments: d.assignments, chapters: d.chapters, updated_at: new Date().toISOString() };
+    busy = false; paintSummary(); showPane('summary');
+  } catch (e) {
+    busy = false; paintSummary();
+    const err = $('mkErr'); if (err) { err.textContent = e.message || summaryErrorCopy(''); err.hidden = false; }
+  }
+}
+paintSummary();
+
+/* files: the session's materials, the hub's own Download */
+function paintFiles() {
+  const p = pane('files');
+  $('nFiles').textContent = materials.length || '';
+  if (!materials.length) { p.innerHTML = '<div class="rp-empty">No files were added for this class. Files added on the hub or shown in the room land here.</div>'; return; }
+  p.innerHTML = materials.map((m) => `<div class="rp-file"><span class="rp-kindtag">${esc(m.kind || 'file')}</span>${m.link_url ? `<a href="${esc(m.link_url)}" target="_blank" rel="noopener">${esc(m.title)}</a>` : `<a href="#" data-matfile="${esc(m.file_path || '')}">${esc(m.title)}</a>`}</div>`).join('');
+  p.querySelectorAll('[data-matfile]').forEach((a) => a.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    const { data, error } = await sb.storage.from('opil-files').createSignedUrl(a.dataset.matfile, 300);
+    if (error || !data || !data.signedUrl) { console.warn('[replay] file', error && error.message); toast('That file could not be opened right now. Try again in a moment.'); return; }
+    window.open(data.signedUrl, '_blank');
+  }));
+}
+paintFiles();
+
+/* transcript: search, tap to jump, download */
+const lines = transcriptOffsets(transcriptRows, startedAt);
+$('nLines').textContent = lines.length || '';
+function paintTranscript() {
+  const p = pane('transcript');
+  const gate = transcriptGateCopy({ open: transcriptOpen, lines: lines.length, failed: !!tr.error });
+  if (gate) { p.innerHTML = `<div class="rp-empty">${esc(gate)}</div>`; return; }
+  p.innerHTML = `<div class="rp-search"><input type="search" id="tq" placeholder="Search what was said" autocomplete="off" aria-label="Search the transcript"><button type="button" id="tdl">Download</button></div><p class="rp-count" id="tcount"></p><div id="tlist"></div>`;
+  const input = $('tq'), list = $('tlist'), count = $('tcount');
+  const draw = () => {
+    const needle = input.value.trim();
+    const hits = transcriptSearch(lines, needle);
+    count.textContent = searchCopy(hits.length, needle, lines.length);
+    /* the match is found on the raw words, then each piece is escaped — so “<agent>” and “&” highlight instead of breaking */
+    const mark = (s) => markText(s, needle).map((x) => x.hit ? '<mark>' + esc(x.text) + '</mark>' : esc(x.text)).join('');
+    list.innerHTML = hits.slice(0, 600).map((l) => `<button type="button" class="rp-tline" data-off="${l.offset == null ? '' : l.offset}"><span class="rp-clock">${esc(l.clock)}</span><b>${esc(l.speaker)}</b><span class="rp-text">${mark(l.text)}</span></button>`).join('')
+      + (hits.length > 600 ? '<div class="rp-empty">Showing the first 600 lines — search to narrow it.</div>' : '');
+    list.querySelectorAll('.rp-tline').forEach((b) => b.addEventListener('click', () => { if (b.dataset.off !== '') seek(b.dataset.off); list.querySelectorAll('.rp-tline').forEach((x) => x.classList.toggle('on', x === b)); }));
+  };
+  let t = null; input.addEventListener('input', () => { clearTimeout(t); t = setTimeout(draw, 120); });
+  $('tdl').addEventListener('click', () => {
+    const title = (session ? sessLabel(session) + ' · ' + session.title : 'Class') + (when ? ' · ' + when : '');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([transcriptText(lines, title)], { type: 'text/plain' }));
+    a.download = ((session ? sessLabel(session) + ' ' + session.title : 'class').replace(/[^\w\- ]+/g, '').trim() || 'transcript') + ' transcript.txt';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  });
+  draw();
+}
+paintTranscript();
+/* a phone starts on the video; the chapters are one tap away. A desktop shows both. */
+</script>
+</body></html>

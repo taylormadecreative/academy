@@ -35,7 +35,7 @@ let resMod = null;  /* js/rtk-resources.js — the Files tab (OPIL sessions) */
    create(ctx) → { start, stop, onBind? }. The room hands each the same ctx (tabs, bar, stage, channels,
    the class's key) and never lets one break the class: a plugin that throws is dropped with a console
    line. The list is by room kind so the same feature lights up an Academy room later. */
-const PLUGINS = { opil: ['presence'], room: ['presence'], team: ['presence'] };
+const PLUGINS = { opil: ['presence', 'reactions', 'warmup', 'roster'], room: ['presence', 'reactions', 'warmup', 'roster'], team: ['presence', 'reactions', 'roster'] };
 const pluginMods = {};
 async function loadPlugin(name) {
   if (pluginMods[name] !== undefined) return pluginMods[name];
@@ -208,7 +208,9 @@ export async function mountRoomV2(o) {
     wirePrecheck(screen);
     /* attendance that takes itself: a waiting student is counted as waiting (spec §1) */
     let waitBeat = null; try { const pm = pluginMods.presence; if (pm && pm.startBeating) waitBeat = pm.startBeating(sb, roomKeyFor(target), 'waiting', pm.deviceWord(navigator.userAgent)); } catch (e) {}
-    return { meetingId: null, leave: () => { stopPrecheck(); try { if (waitBeat) waitBeat.stop(); } catch (e) {} mountEl.innerHTML = ''; }, setRecording() {} };
+    /* the Question of the day card, the cities line and Already here (spec §8) */
+    let warmUi = null; try { const wm = pluginMods.warmup; if (wm && wm.mountWaiting) warmUi = wm.mountWaiting({ sb, copy, el, esc, user, uid: user.id, roomKey: roomKeyFor(target), session: isRoom ? null : session, container: screen.querySelector('.r2-join-left') }); } catch (e) { console.warn('[room] warm-up', e); }
+    return { meetingId: null, leave: () => { stopPrecheck(); try { if (waitBeat) waitBeat.stop(); } catch (e) {} try { if (warmUi) warmUi.stop(); } catch (e) {} mountEl.innerHTML = ''; }, setRecording() {} };
   }
   stopPrecheck();   /* a camera check from the waiting screen must let go before the room takes the camera */
 
@@ -335,10 +337,16 @@ export async function mountRoomV2(o) {
     const ctx = room.pluginCtx({ sb, copy, el, esc, user, uid: user.id, host, isRoom, roomKey: roomKeyFor(target), words, facilitator: facilitator || null, session: isRoom ? null : session, target: isRoom ? target : null, getMeeting: () => current, rootId: meeting.meta && meeting.meta.meetingId, now: () => Date.now() });
     for (const name of pluginNames) {
       const mod = pluginMods[name]; if (!mod || typeof mod.create !== 'function') continue;
-      try { const p = mod.create(ctx); if (p) { plugins.push(p); try { p.start && p.start(); } catch (e) { console.warn('[room] plugin start:', name, e); } } }
+      try { const p = mod.create(ctx); if (p) { plugins.push(p);
+        try { if (p.pulseEl && p.placePulseAfter) p.placePulseAfter(room.node.querySelector('.r2-now')); } catch (e) {}   /* reactions: the host's Pulse strip under the Now line */
+        try { p.start && p.start(); } catch (e) { console.warn('[room] plugin start:', name, e); }
+        try { p.mount && p.mount(room.node.querySelector('.r2-pane[data-pane="people"]')); } catch (e) { console.warn('[room] plugin mount:', name, e); }   /* roster: the Class roster block in People */
+      } }
       catch (e) { console.warn('[room] plugin create:', name, e); }
     }
     room.hooks.plugins = plugins;
+    /* the host's Warm-up answers section under the Ready-to-speak queue */
+    if (host) { try { const wp = plugins.find(p => p && typeof p.mountAnswers === 'function'); const pane = room.node.querySelector('.r2-pane[data-pane="queue"]'); if (wp && pane) wp.mountAnswers(pane); } catch (e) { console.warn('[room] warm-up answers', e); } }
   }
   room.hooks.emit('joined', meeting);
 

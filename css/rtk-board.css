@@ -1,0 +1,72 @@
+/* Whiteboard — the stage overlay js/rtk-board.js draws (spec 2026-09-16 §7). Navy canvas, gold as the
+   one accent (the tool you are holding), word buttons ≥ 48 px, a toolbar that stays short on a phone
+   (colors become dots, the actions move into a More sheet, the bar scrolls before the board shrinks),
+   and a board that scrolls instead of shrinking past readable — the Scroll tool pans it by finger.
+   The room's own tokens: css/rtk-room-v2.css. */
+.r2-overlay.r2-wb{position:absolute;inset:12px;z-index:9;display:flex;flex-direction:column;background:#04123a;border:1px solid rgba(253,201,33,.5);border-radius:14px;overflow:hidden;color:#fcfdff;font-family:Inter,system-ui,sans-serif}
+.r2-overlay.r2-wb[hidden]{display:none}
+
+/* ---- the toolbar: a sentence, then groups of word buttons ---- */
+.r2-wb-bar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;padding:8px 12px;background:#0a1733;border-bottom:1px solid rgba(255,255,255,.1);flex:0 0 auto}
+.r2-wb-line{flex:1 1 100%;min-width:0;font:600 14px Inter,sans-serif;color:#9fb0d4;line-height:1.35}
+.r2-wb-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.r2-wb-group[hidden]{display:none}
+.r2-wb-group.r2-wb-off{opacity:.4;pointer-events:none}
+.r2-wb-group + .r2-wb-group,.r2-wb-style .r2-wb-widths{padding-left:14px;border-left:1px solid rgba(255,255,255,.1)}
+.r2-wb-style{display:contents}   /* widths + colors: one row that scrolls sideways on a phone, plain groups on a wide screen */
+.r2-wb-acts{margin-left:auto}
+.r2-wb-more,.r2-wb .r2-mini.r2-wb-phone{display:none}   /* phone only: the More sheet and the Scroll tool */
+.r2-wb .r2-mini{min-height:48px;padding:0 14px;font-size:13.5px}
+/* the tool you are holding is the bar's one gold; a chosen width or color is white, so the eye finds the tool first */
+.r2-wb .r2-mini[aria-pressed="true"]{background:#fcfdff;color:#04123a;border-color:#fcfdff}
+.r2-wb-tools .r2-mini[aria-pressed="true"]{background:#fdc921;border-color:#fdc921}
+.r2-wb .r2-mini.r2-wb-danger{color:#ff5c5c;border-color:rgba(255,92,92,.55)}
+.r2-wb .r2-mini.r2-wb-danger[data-armed="1"]{background:#ff5c5c;color:#04123a;border-color:#ff5c5c}
+.r2-wb .r2-mini em{font-style:normal;font-weight:400;opacity:.8;margin-left:6px}
+.r2-wb .r2-mini:disabled{opacity:.55;cursor:default}
+/* a color is a dot and its name — the name is what a screen reader and a colorblind reader get (aria-label keeps it on a phone) */
+.r2-wb-swatch{display:inline-flex;align-items:center;gap:8px}
+.r2-wb-swatch i{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--ink,#fcfdff);border:1px solid rgba(4,18,58,.4);flex:0 0 auto}
+.r2-wb-swatch[aria-pressed="true"] i{box-shadow:0 0 0 2px #04123a}
+
+/* ---- the board ---- */
+.r2-wb-scroll{flex:1;min-height:0;overflow:auto;display:grid;place-items:center;background:#04123a;-webkit-overflow-scrolling:touch}
+.r2-wb-wrap{position:relative;line-height:0;margin:auto}
+.r2-wb-canvas{display:block;touch-action:none;border-radius:8px;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.r2-wb-canvas[data-scroll="1"]{touch-action:pan-x pan-y;cursor:grab}
+.r2-wb-input{position:absolute;min-width:220px;max-width:min(720px,90%);padding:6px 8px;border:1px dashed #fdc921;border-radius:6px;background:rgba(4,18,58,.85);color:#fcfdff;font:600 24px Inter,system-ui,sans-serif;line-height:1.25;resize:none;outline:none;z-index:2}
+.r2-wb-input.note{background:#fdc921;color:#04123a;border-color:#04123a;width:min(320px,90%);min-height:120px;font-size:26px}
+.r2-wb-input[hidden]{display:none}
+.r2-wb-input::placeholder{color:rgba(159,176,212,.9);font-weight:400;font-size:14px}
+.r2-wb-input.note::placeholder{color:rgba(4,18,58,.6)}
+
+/* ---- the More sheet (the room's sheet, phone): the actions as a column of whole-width word buttons ---- */
+.r2-wb-sheet .r2-fine{margin:0 0 12px;color:#9fb0d4;font:400 13px/1.45 Inter,sans-serif}
+.r2-wb-sheet-acts{display:flex;flex-direction:column;gap:8px}
+.r2-wb-sheet-acts .r2-mini{min-height:48px;width:100%;font-size:14px}
+.r2-wb-sheet-acts .r2-mini.r2-wb-danger{color:#ff5c5c;border-color:rgba(255,92,92,.55)}
+.r2-wb-sheet-acts .r2-mini.r2-wb-danger[data-armed="1"]{background:#ff5c5c;color:#04123a;border-color:#ff5c5c}
+.r2-wb-sheet-acts .r2-mini em{font-style:normal;font-weight:400;opacity:.8;margin-left:6px}
+
+/* ---- a phone: three short rows (the sentence with More beside it; the tools; widths + color dots), each
+        tool row scrolling sideways instead of wrapping, so the board keeps most of the stage; Scroll pans it ---- */
+@media(max-width:720px){
+  .r2-overlay.r2-wb{inset:8px}
+  .r2-wb-bar{padding:8px 10px;gap:8px;flex-wrap:wrap;align-items:center}
+  .r2-wb-line{order:-2;flex:1 1 0;font-size:13px}
+  .r2-wb-more{order:-1;display:flex;flex:0 0 auto}
+  .r2-wb .r2-mini{padding:0 10px;font-size:13px}
+  .r2-wb-group{gap:6px;flex-wrap:nowrap}
+  .r2-wb-group + .r2-wb-group,.r2-wb-style .r2-wb-widths{padding-left:0;border-left:0}
+  .r2-wb-tools,.r2-wb-style{flex:0 0 100%;display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:6px}
+  .r2-wb-tools::-webkit-scrollbar,.r2-wb-style::-webkit-scrollbar{display:none}
+  .r2-wb-style .r2-wb-colors{padding-left:8px;border-left:1px solid rgba(255,255,255,.1)}
+  .r2-wb-tools .r2-mini,.r2-wb-style .r2-mini{flex:0 0 auto}
+  .r2-wb-acts{display:none}
+  .r2-wb .r2-mini.r2-wb-phone{display:inline-flex;align-items:center;justify-content:center}
+  .r2-wb-swatch{width:48px;padding:0;justify-content:center;gap:0}
+  .r2-wb-swatch span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .r2-wb-swatch i{width:18px;height:18px}
+  .r2-wb-scroll{place-items:start;min-height:200px}
+}
+@media(prefers-reduced-motion:no-preference){.r2-wb .r2-mini{transition:background .15s,color .15s}}

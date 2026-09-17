@@ -1,0 +1,39 @@
+/* Profile cards in People — the "Class roster" block above the kit's list, and the card in the sheet.
+   Tokens follow css/rtk-room-v2.css: navy #04123a / #0a1733 / #162650, gold #fdc921 (the one action
+   colour), slate #9fb0d4, hairlines rgba(255,255,255,.1), Inter / Space Grotesk, 999px pills, ≥ 48px targets. */
+/* The block is one flex item of .r2-pane (a flex column, .r2-panel is overflow:hidden) next to the kit's
+   own <rtk-participants> (flex:1;min-height:0). It must never grow with the class: 31 students at 52px a
+   row would push the kit's list (mute / pin / remove) to nothing and hide its own tail. So the block is
+   capped and its LIST scrolls; the heading stays put. */
+.r2-roster{flex:none;display:flex;flex-direction:column;min-height:0;max-height:min(44vh,340px);padding:10px 10px 6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:6px;font-family:Inter,system-ui,sans-serif;color:#fcfdff}
+.r2-roster-head{flex:none;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:6px 4px 10px}
+.r2-roster-head b{font:700 15px 'Space Grotesk',Inter,sans-serif}
+.r2-roster-count{font-size:12.5px;color:#9fb0d4;white-space:nowrap}
+.r2-roster-list{display:grid;gap:6px;align-content:start;min-height:0;overflow:auto;overscroll-behavior:contain;padding:4px;scrollbar-width:thin}   /* 4px so a row's gold focus ring (2px + 2px offset) is not clipped by the scroller */
+.r2-roster-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;min-height:52px;padding:6px 10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:none;color:#fcfdff;font:inherit;text-align:left;cursor:pointer}
+.r2-roster-row:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.03)}
+.r2-roster-row:focus-visible{outline:2px solid #fdc921;outline-offset:2px}
+.r2-roster-row.me{border-color:rgba(253,201,33,.45)}
+.r2-roster-row .r2-who{min-width:0}
+.r2-roster-row .r2-who b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r2-roster-row .r2-who span{font-size:12px;color:#9fb0d4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.r2-roster-go{font:600 12.5px Inter,sans-serif;color:#fdc921;padding:0 4px}
+.r2-roster-av{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:#162650;color:#fdc921;font:700 15px 'Space Grotesk',Inter,sans-serif;flex:none}
+.r2-roster-av.big{width:56px;height:56px;font-size:22px}
+/* the card, inside the room's sheet */
+.r2-roster-card{display:grid;gap:14px;padding:4px 2px 6px;font-family:Inter,system-ui,sans-serif;color:#fcfdff}
+.r2-roster-card-top{display:flex;align-items:center;gap:14px}
+.r2-roster-card-top>div{min-width:0;display:grid;gap:3px}
+.r2-roster-card-top b{font:700 20px 'Space Grotesk',Inter,sans-serif;line-height:1.2;overflow-wrap:anywhere}
+.r2-roster-card-top span{font-size:13.5px;color:#9fb0d4;line-height:1.35}
+.r2-roster-host{color:#3ddc97}
+.r2-roster-body{margin:0;padding:14px 16px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#0a1733;font-size:15px;line-height:1.55;overflow-wrap:anywhere}
+.r2-roster-note{margin:0;font-size:13.5px;line-height:1.5;color:#9fb0d4}
+.r2-roster-card .r2-fine{text-align:left;margin-top:2px}
+@media (max-width:720px){
+  /* the panel is a 62%-tall sheet on a phone; the roster keeps to a third of it so the kit's list stays reachable */
+  .r2-roster{padding:8px 8px 4px;max-height:26vh}
+  .r2-roster-row{min-height:56px}
+  .r2-roster-card-top b{font-size:18px}
+}
+@media (prefers-reduced-motion:no-preference){ .r2-roster-row{transition:border-color .15s ease,background-color .15s ease} }

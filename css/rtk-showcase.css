@@ -1,0 +1,39 @@
+/* Showcase page per team — the room's "Our page" tab (navy, room tokens) and the team page's editor
+   card (the hub's light card). One gold action per surface; ≥ 48px targets; one column on a phone. */
+
+/* ---- in a team room: the Our page tab ---- */
+.r2-sc{display:grid;gap:12px;padding:14px}
+.r2-sc-state{margin:0;font-size:14px;line-height:1.5;color:#9fb0d4;overflow-wrap:anywhere}
+.r2-sc-state.on{color:#3ddc97}
+.r2-sc-actions{display:flex;flex-wrap:wrap;gap:10px}
+.r2-sc-actions .r2-btn{text-decoration:none}
+.r2-btn.r2-sc-edit{background:#fdc921;color:#04123a;border-color:#fdc921}
+
+/* ---- on the team page: the editor card (inside .hcard) ---- */
+.sc-ed{display:grid;gap:14px}
+.sc-ed label{display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ink,#0b1220)}
+.sc-ed label span{font-weight:400;font-size:12.5px;color:var(--muted,#6b7280)}
+.sc-ed input[type="text"],.sc-ed input[type="url"],.sc-ed textarea{font:inherit;font-size:14px;padding:11px 14px;border:1.5px solid var(--hair,#e5e7eb);border-radius:12px;min-height:48px;box-sizing:border-box;width:100%;background:#fff;color:var(--ink,#0b1220)}
+.sc-ed textarea{min-height:140px;resize:vertical;line-height:1.5}
+.sc-ed input:focus,.sc-ed textarea:focus{outline:2px solid #fdc921;outline-offset:1px;border-color:#fdc921}
+.sc-ed .sc-ed-hint{font-size:12.5px;color:var(--muted,#6b7280);margin:0;line-height:1.45}
+.sc-ed .sc-ed-hint.bad{color:#b42318}
+.sc-ed .sc-ed-hint.ok{color:#067a56}
+.sc-ed-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sc-ed-save{font:inherit;font-weight:700;font-size:14px;min-height:48px;padding:0 22px;border-radius:999px;border:0;background:#fdc921;color:#04123a;cursor:pointer}
+.sc-ed-save:disabled{opacity:.6;cursor:default}
+.sc-ed-msg{font-size:13px;color:var(--muted,#6b7280);min-height:1.4em}
+.sc-ed-msg.bad{color:#b42318}
+.sc-ed-msg.ok{color:#067a56}
+.sc-ed-state{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2,#374151);padding:12px 14px;border-radius:12px;background:var(--bg-soft,#f6f7fb);border:1px solid var(--hair-soft,#eef0f4);overflow-wrap:anywhere}
+.sc-ed-state.on{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+.sc-ed-state a{color:inherit;font-weight:600}
+.sc-ed-switch{font:inherit;font-weight:600;font-size:14px;min-height:48px;padding:0 20px;border-radius:999px;border:1.5px solid var(--navy,#04123a);background:#fff;color:var(--navy,#04123a);cursor:pointer}
+.sc-ed-switch.on{background:#ecfdf5;border-color:#10b981;color:#065f46}
+.sc-ed-switch[data-armed="1"]{background:var(--navy,#04123a);color:#fff;border-color:#fdc921}
+.sc-ed-switch:disabled{opacity:.6;cursor:default}
+.sc-ed-see{display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:999px;border:1.5px solid var(--hair,#e5e7eb);color:var(--ink,#0b1220);font-weight:600;font-size:14px;text-decoration:none}
+.sc-ed-cover{display:grid;gap:8px}
+.sc-ed-cover img{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--hair,#e5e7eb)}
+.sc-ed-cover input[type="file"]{font:inherit;font-size:13px}
+@media (max-width:720px){.sc-ed-row{flex-direction:column;align-items:stretch}.sc-ed-row>*{width:100%;justify-content:center}}
