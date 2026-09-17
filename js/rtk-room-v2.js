@@ -999,7 +999,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       const t = b.dataset.tool;
       if (t === 'share') { sheet.hidden = true; await toggleShare(); }
       else if (t === 'fx') openSheet('Effects', effectsPane());
-      else if (t === 'board') { sheet.hidden = true; sheetBody.innerHTML = ''; const bp = (hooks.plugins || []).find(p => p && p.name === 'board'); if (bp) { try { bp.open(); hooks.emit('board', 'Whiteboard'); } catch (e) { console.warn('[board]', e); } } else toast('The whiteboard isn’t available right now — reload the page and try again.', 6000); }
+      else if (t === 'board') { sheet.hidden = true; sheetBody.innerHTML = ''; const bp = (hooks.plugins || []).find(p => p && p.name === 'board'); if (bp) { try { bp.open(); } catch (e) { console.warn('[board]', e); } }   /* the board logs its own chapter on a fresh open (and on clear / save) — no hooks.emit here, or every open lands twice */ else toast('The whiteboard isn’t available right now — reload the page and try again.', 6000); }
       else if (t === 'captions') { sheet.hidden = true; sheetBody.innerHTML = ''; if (ccBtn) ccBtn.click(); }
       else if (t === 'breakout') openSheet('Small groups', sg ? sg.board() : el('<div class="r2-empty">Small groups aren’t available right now — reload the page and try again.</div>'));
       else if (t === 'poll') { sheet.hidden = true; sheetBody.innerHTML = ''; showPane('polls'); }

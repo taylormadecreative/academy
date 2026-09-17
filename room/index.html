@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=c2cd4413db">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=c2cd4413db">
+<link rel="stylesheet" href="/css/build-mode.css?v=e994d3b7e0">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=e994d3b7e0">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 /* The room page. One of three things is on it at a time: a card (signed out, dead link, not allowed,
@@ -70,10 +70,10 @@ body.in-room .room-ctl, body.in-room .site-header, body.in-room #card { display:
 <div id="rtkMount"></div>
 </div></main>
 
-<script src="/js/config.js?v=c2cd4413db"></script>
+<script src="/js/config.js?v=e994d3b7e0"></script>
 <script type="module">
-import { roomKey, roomBranch, loginHref, joinErrorText } from '/js/room-page.js?v=c2cd4413db';
-import { ROOM_WORDS, endCopy, backOn } from '/opil/hub/live-rooms.js?v=c2cd4413db';
+import { roomKey, roomBranch, loginHref, joinErrorText } from '/js/room-page.js?v=e994d3b7e0';
+import { ROOM_WORDS, endCopy, backOn } from '/opil/hub/live-rooms.js?v=e994d3b7e0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CFG = window.BM_CONFIG || {};
@@ -158,8 +158,8 @@ const branch = roomBranch(state);
 
 /* the room's code, with one retry: a dropped fetch on a phone connection should not be the end of it */
 async function loadRoom() {
-  try { return await import('/js/rtk-room-v2.js?v=c2cd4413db'); }
-  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js?v=c2cd4413db'); }
+  try { return await import('/js/rtk-room-v2.js?v=e994d3b7e0'); }
+  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js?v=e994d3b7e0'); }
 }
 /* v2 in room mode: the same module OPIL uses, pointed at the room instead of a session */
 async function enter(mode, hooks) {
