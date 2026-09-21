@@ -1,6 +1,6 @@
 # HT Hub presidential demo
 
-This build is a working campus-hub pilot: cohort classrooms, learning, events, student support and community in one place. It complements the university's academic LMS. The new backend is implemented and locally tested, but has not been activated on the live site.
+Taylormade Academy / HT Hub is being developed as a standalone learning and campus platform. This pilot brings cohort classrooms, learning, events, student support and community together; a full academic gradebook, richer assignments and instructor assessment tools remain to be built. Canvas integration is not planned. See the [standalone LMS roadmap](ht-standalone-lms-roadmap.md). The new backend is implemented and locally tested, but has not been activated on the live site.
 
 ## Open the local demonstration
 
@@ -41,7 +41,7 @@ Create Ada's videos separately in your normal workflow. The Hub accepts a direct
 
 ## What is still needed for real campus use
 
-Follow [the activation guide](ht-campus-setup.md) for staging, membership provisioning, the classroom and messaging migrations and Edge-function deployment. Hosted multi-user classroom and messaging testing, the real Ada media, campus access arrangements, accessibility review and the university's data-handling decisions remain release work. Messages refresh on focus and the existing polling cycle; instant delivery, typing indicators and read receipts are not claimed. Canvas/SSO integration and email/push notifications are separate integrations, not included in this pilot.
+Follow [the activation guide](ht-campus-setup.md) for staging, membership provisioning, the classroom and messaging migrations and Edge-function deployment. Hosted multi-user classroom and messaging testing, the real Ada media, campus access arrangements, accessibility review and the university's data-handling decisions remain release work. Messages refresh on focus and the existing polling cycle; instant delivery, typing indicators and read receipts are not claimed. Institutional single sign-on and email/push notifications are not included in this pilot. The [standalone LMS roadmap](ht-standalone-lms-roadmap.md) defines the native academic features needed for a full LMS.
 
 ## Classroom setup rehearsal
 

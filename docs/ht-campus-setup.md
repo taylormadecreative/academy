@@ -2,6 +2,8 @@
 
 The development upgrade is implemented locally. **The new database migrations have not been applied to the live Academy project.** Until activation, authenticated users see an explicit unavailable message rather than simulated success. `?demo=student`, `?demo=staff`, and `?demo=leadership` run isolated fictional data in the browser; these switches never grant database permissions.
 
+Product direction: build Taylormade Academy / HT Hub into a standalone LMS and campus hub. Canvas integration is not planned. Current capabilities and future native academic work are distinguished in the [standalone LMS roadmap](ht-standalone-lms-roadmap.md).
+
 ## What is implemented
 
 - Cohort classrooms with instructor-managed rosters, separately scheduled session rooms, campus live events, scoped recording access and session entry records.
@@ -112,7 +114,7 @@ New message notifications link to `/ht/hub/messages/?person=<sender UUID>`. Mess
 
 ## Limits to address before a broad campus rollout
 
-- No SSO, SIS/Canvas/LTI synchronization, cross-institution tenancy, public credential verification endpoint, transcript export standard or production deployment is claimed. Credential records are currently verified inside the authenticated campus/staff experience or database.
+- No SSO, student-information-system synchronization, cross-institution tenancy, public credential verification endpoint, transcript export standard or production deployment is claimed. Credential records are currently verified inside the authenticated campus/staff experience or database.
 - No email/push notifications, automatic calendar invitations, appointment booking, secure file-upload workflow, content moderation console or AI model/chat service is included. Assignment links and text are supported. Ada is a supplied video plus transcript and useful navigation, not a synthesized live assistant.
 - One HT institution is supported. The `ht_` namespace is separated from Academy/OPIL tables, but it is not a multi-university tenant schema.
 - Staff/admin have access to campus support and submitted work. This pilot supports general learning/career/technology/campus-life requests; narrower office permissions and university-approved handling are needed before placing counseling, disability, health or similarly restricted records here.
