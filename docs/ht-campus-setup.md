@@ -16,6 +16,7 @@ The development upgrade is implemented locally. **The new database migrations ha
 
 - `supabase/migrations/20260921180637_ht_campus_hub.sql`: additive tables, RLS, read/state API and validated command API.
 - `supabase/migrations/20260921193229_ht_cohort_classrooms.sql`: cohorts, rosters, individual session rooms and managed-room authorization.
+- `supabase/migrations/20260921200136_ht_community_messages.sql`: recipient-only inbox read state and direct conversation links in new message notifications.
 - `supabase/seeds/ht-campus-ai-literacy.sql`: optional real three-activity learning pathway. No fictional users, activity, events or requests are inserted.
 - `ht/hub/campus-store.js`: production adapter and explicitly selected demo behavior.
 - `tools/ht-campus-tests/`: pinned local PostgreSQL/PGlite verification and store integration tests.
@@ -100,6 +101,14 @@ Real events always use stored timestamps. RSVP capacity is guarded by a database
 The live client refreshes on focus and approximately every 15 seconds while visible. This is polling, not instant push delivery. The shell should defer noncritical refresh while a form is dirty and force an identity refresh on actual sign-out/account change. Store auth events include `{ reason: 'auth', event, user_id }` for that purpose; the same-identity `SIGNED_IN` event can occur on refocus and should not discard a draft.
 
 Learning content is locked once anyone enrolls. Create a new pathway version for changed requirements; this prevents editing a course out from under issued completion records. Course metadata and publication state can still be edited. Knowledge checks provide correct/incorrect feedback rather than revealing the answer in a live student response.
+
+### Activate the dedicated inbox
+
+Apply `20260921200136_ht_community_messages.sql` after both HT campus and classroom migrations in reviewed staging, then deploy the matching frontend. This additive migration preserves the existing public command function's OID and delegates existing campus/classroom commands through the prior implementation. It grants no direct client message writes and introduces no email, push, online status or delivery receipts.
+
+`ht_campus_command('readMessages', { message_ids: [...] })` accepts at most 200 explicit message UUIDs. The client should pass only incoming messages displayed in the conversation it opened. An active member may mark only messages addressed to their own Auth identity; staff, administrators and leadership receive no privilege over another inbox. An unknown, outgoing or unrelated ID rejects the entire batch. Empty batches and repeated IDs are valid, and a previously stored `read_at` remains unchanged. A newer message outside that displayed ID set remains unread. This timestamp is personal inbox state, not evidence that a person read or understood a message.
+
+New message notifications link to `/ht/hub/messages/?person=<sender UUID>`. Message body validation, membership checks, message privacy policies and body-free audit logging remain in force. The same command behavior and notification links are available in the existing fictional `ht-campus-demo-v2` data; upgrading does not reset a saved rehearsal. Staging verification should open two independent accounts, send in both directions, open one conversation, confirm its unread count updates, and verify an unrelated member and a deactivated account cannot read or mark its messages. The focused local checks are `tools/ht-campus-tests/messages.test.mjs` and `tools/ht-campus-tests/messages-store.test.mjs`.
 
 ## Limits to address before a broad campus rollout
 

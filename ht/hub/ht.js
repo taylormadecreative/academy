@@ -268,17 +268,15 @@
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
     var body = '<main class="ht-main" id="htMain" tabindex="-1"><div class="hub-wrap"><div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></div></main>';
     root.innerHTML = head + body;
-    /* The reference calendar is read-only; retain the workspace chosen for the
-       return trip without creating or changing any demo records. */
-    if (key === 'calendar') {
-      var demoRole = new URLSearchParams(location.search).get('demo');
-      if (['student', 'staff', 'leadership'].indexOf(demoRole) !== -1) {
-        document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
-          var destination = new URL(a.getAttribute('href'), location.origin);
-          destination.searchParams.set('demo', demoRole);
-          a.setAttribute('href', destination.pathname + destination.search + destination.hash);
-        });
-      }
+    /* Keep the chosen workspace when returning from a reference calendar or
+       office preview, without creating or changing any demo records. */
+    var demoRole = new URLSearchParams(location.search).get('demo');
+    if (['student', 'staff', 'leadership'].indexOf(demoRole) !== -1) {
+      document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
+        var destination = new URL(a.getAttribute('href'), location.origin);
+        destination.searchParams.set('demo', demoRole);
+        a.setAttribute('href', destination.pathname + destination.search + destination.hash);
+      });
     }
     if (!side.length) { var g = root.querySelector('.ht-grid'); if (g) g.style.gridTemplateColumns = 'minmax(0,1fr)'; }
     wire(root, space);
@@ -577,6 +575,7 @@
   window.HTHub = { render: render, boot: boot, esc: esc, icon: icon };
   document.addEventListener('DOMContentLoaded', function () {
     var k = document.body.getAttribute('data-space') || 'home';
+    if (k === 'messages') k = 'people';
     var params = new URLSearchParams(location.search), demo = params.get('demo');
     var isDemo = ['student','staff','leadership'].indexOf(demo) !== -1;
     if (isDemo && ['session','replay','legacy-live'].indexOf(k) !== -1) { location.replace('/ht/hub/live/?demo=' + encodeURIComponent(demo)); return; }

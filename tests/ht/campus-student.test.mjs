@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const code = fs.readFileSync(new URL('../../ht/hub/campus-student.js', import.meta.url), 'utf8');
-const { renderStudent, safeCampusUrl, calendarForEvent } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const { renderStudent, bindStudent, safeCampusUrl, calendarForEvent } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const start = new Date(Date.now() + 10 * 60_000).toISOString();
 const end = new Date(Date.now() + 60 * 60_000).toISOString();
@@ -76,7 +76,8 @@ test('untrusted content stays text across course, event, community, directory an
   state.events = [{ id: 'event', title: payload, description: payload, location: payload, starts_at: start, ends_at: end, status: 'published', join_url: 'javascript:alert(1)' }];
   state.posts = [{ id: 'post', author_id: 'learner', channel: payload, body: payload, created_at: start }];
   state.replies = [{ id: 'reply', post_id: 'post', author_id: 'learner', body: payload, created_at: start }];
-  state.members = [{ user_id: 'learner', display_name: payload, role: 'student' }];
+  state.members = [{ user_id: 'learner', display_name: payload, role: 'student' }, { user_id: 'staff', display_name: payload, role: 'staff' }];
+  state.messages = [{ id: 'unsafe-message', sender_id: 'staff', recipient_id: 'learner', body: payload, created_at: start }];
   state.announcements = [{ id: 'notice', title: payload, body: payload, status: 'published', created_at: start }];
   state.settings = { ada_video_url: 'https://example.com/ada.mp4', ada_video_transcript: payload };
   for (const view of ['home', 'learn', 'events', 'community', 'people']) {
@@ -124,6 +125,189 @@ test('messages open the latest valid conversation and never expose unrelated con
   assert.match(html, /data-recipient-id="staff"/);
   assert.match(html, /Your project looks interesting\./);
   assert.doesNotMatch(html, /This conversation is unrelated/);
+});
+
+test('inbox puts unread conversations first, shows real counts, and scopes every preview to the current member', () => {
+  const state = base();
+  state.members = [{ user_id: 'older', display_name: 'Older unread', role: 'staff' }, { user_id: 'newer', display_name: 'Newest read', role: 'student' }];
+  state.messages = [
+    { id: 'unread-1', sender_id: 'older', recipient_id: 'learner', body: 'A message for you', created_at: start, read_at: null },
+    { id: 'unread-2', sender_id: 'older', recipient_id: 'learner', body: 'Another message for you', created_at: start, read_at: null },
+    { id: 'read', sender_id: 'newer', recipient_id: 'learner', body: 'A recent read message', created_at: end, read_at: end },
+    { id: 'private', sender_id: 'newer', recipient_id: 'older', body: 'Private unrelated content', created_at: end, read_at: null },
+  ];
+  const html = renderStudent('messages', context(state));
+  assert.ok(html.indexOf('Message Older unread, 2 unread') < html.indexOf('Message Newest read'));
+  assert.match(html, /data-recipient-id="older"/);
+  assert.match(html, /data-campus-message-id="unread-1" data-campus-message-unread/);
+  assert.doesNotMatch(html, /Private unrelated content/);
+  assert.doesNotMatch(html, /Online now|Seen by|Read by|Typing/);
+  for (const view of ['home', 'community']) {
+    const preview = renderStudent(view, context(state));
+    assert.match(preview, /Message Older unread, 2 unread/);
+    assert.doesNotMatch(preview, /Private unrelated content/);
+  }
+  state.mode = 'guest'; state.user = null; state.member = null;
+  for (const view of ['home', 'community', 'messages']) {
+    const preview = renderStudent(view, context(state));
+    assert.doesNotMatch(preview, /A message for you|Another message for you|A recent read message|Private unrelated content/);
+  }
+});
+
+test('inbox deep links select only an active available recipient and directory is explicit', () => {
+  const previous = globalThis.location;
+  const state = base();
+  state.members = [{ user_id: 'staff', display_name: 'Morgan T.', role: 'staff' }];
+  try {
+    globalThis.location = { href: 'http://localhost/ht/hub/people/?person=staff' };
+    let html = renderStudent('people', context(state));
+    assert.match(html, /campus-messages-layout is-thread/);
+    assert.match(html, /Back to messages/);
+    assert.match(html, /Your message to Morgan T\./);
+    assert.match(html, /data-recipient-id="staff"/);
+    globalThis.location.href = 'http://localhost/ht/hub/messages/?person=not-available';
+    html = renderStudent('messages', context(state));
+    assert.match(html, /This conversation isn’t available/);
+    assert.doesNotMatch(html, /data-campus-command="sendMessage"/);
+    globalThis.location.href = 'http://localhost/ht/hub/messages/?new=1';
+    html = renderStudent('messages', context(state));
+    assert.match(html, /campus-messages-layout is-directory/);
+    assert.match(html, /Find a campus member/);
+    assert.match(html, /data-campus-person="staff"/);
+  } finally { if (previous === undefined) delete globalThis.location; else globalThis.location = previous; }
+});
+
+test('community filters keep all posts accessible and add direct author messaging', () => {
+  const previous = globalThis.location;
+  const state = base();
+  state.members = [{ user_id: 'staff', display_name: 'Morgan T.', role: 'staff' }];
+  state.posts = [{ id: 'question', author_id: 'staff', body: 'Campus question', channel: 'Questions', created_at: start }, { id: 'win', author_id: 'learner', body: 'Campus win', channel: 'Celebrations', created_at: end }];
+  try {
+    globalThis.location = { href: 'http://localhost/ht/hub/community/?channel=Questions' };
+    const html = renderStudent('community', context(state));
+    assert.match(html, /data-campus-channel="Questions" aria-pressed="true"/);
+    assert.match(html, /data-campus-post hidden data-channel="Celebrations"/);
+    assert.match(html, /data-campus-post data-channel="Questions"/);
+    assert.match(html, /href="\/ht\/hub\/messages\/\?person=staff" aria-label="Message Morgan T\."/);
+    assert.match(html, /data-campus-feed-count>1 post/);
+    assert.match(html, /Community feed/);
+    state.members[0].active = false;
+    assert.doesNotMatch(renderStudent('community', context(state)), /class="campus-post-message"/, 'inactive authors cannot start a new direct conversation');
+  } finally { if (previous === undefined) delete globalThis.location; else globalThis.location = previous; }
+});
+
+test('a removed directory member keeps only the caller’s history accessible with sending disabled', () => {
+  const previous = globalThis.location, state = base();
+  state.members = [{ user_id: 'inactive', display_name: 'A removed private name', active: false, role: 'staff' }];
+  state.messages = [
+    { id: 'incoming', sender_id: 'inactive', recipient_id: 'learner', body: 'Your earlier campus conversation.', created_at: start, read_at: null },
+    { id: 'outgoing', sender_id: 'learner', recipient_id: 'inactive', body: 'My earlier response.', created_at: end, read_at: null },
+    { id: 'unrelated', sender_id: 'inactive', recipient_id: 'someone-else', body: 'Unrelated private history.', created_at: end, read_at: null },
+  ];
+  try {
+    globalThis.location = { href: 'http://localhost/ht/hub/messages/?person=inactive' };
+    let html = renderStudent('messages', context(state));
+    assert.match(html, /campus-messages-layout is-thread/);
+    assert.match(html, /View conversation with Unavailable campus member, 1 unread/);
+    assert.match(html, /Your earlier campus conversation\./);
+    assert.match(html, /My earlier response\./);
+    assert.match(html, /data-campus-message-id="incoming" data-campus-message-unread/);
+    assert.match(html, /<textarea[^>]+ disabled>/);
+    assert.match(html, /<button type="submit" class="campus-button" disabled>Send message/);
+    assert.match(html, /Your conversation history stays here/);
+    assert.doesNotMatch(html, /A removed private name|Unrelated private history/);
+    state.members = [];
+    html = renderStudent('messages', context(state));
+    assert.match(html, /Your earlier campus conversation\./, 'complete removal from the directory retains the caller’s own history');
+    globalThis.location.href = 'http://localhost/ht/hub/messages/?person=unrelated-person';
+    html = renderStudent('messages', context(state));
+    assert.match(html, /This conversation isn’t available/);
+    assert.doesNotMatch(html, /data-recipient-id="unrelated-person"/);
+    globalThis.location.href = 'http://localhost/ht/hub/messages/?new=1';
+    html = renderStudent('messages', context(state));
+    assert.doesNotMatch(html, /data-campus-person="inactive"/);
+  } finally { if (previous === undefined) delete globalThis.location; else globalThis.location = previous; }
+});
+
+test('read acknowledgement is limited to incoming IDs in the visible conversation and runs once per batch', async () => {
+  const original = Object.fromEntries(['window', 'document', 'location', 'requestAnimationFrame', 'cancelAnimationFrame'].map((key) => [key, globalThis[key]]));
+  const frames = [], calls = [], state = base(), api = {};
+  state.messages = [
+    { id: 'visible', sender_id: 'staff', recipient_id: 'learner', read_at: null },
+    { id: 'new-unrendered', sender_id: 'staff', recipient_id: 'learner', read_at: null },
+    { id: 'outgoing', sender_id: 'learner', recipient_id: 'staff', read_at: null },
+    { id: 'other-thread', sender_id: 'other', recipient_id: 'learner', read_at: null },
+  ];
+  let visible = false;
+  const conversation = { dataset: { campusOpenPerson: 'staff' }, getClientRects: () => visible ? [{}] : [], querySelectorAll: () => [{ dataset: { campusMessageId: 'visible' } }, { dataset: { campusMessageId: 'outgoing' } }, { dataset: { campusMessageId: 'other-thread' } }] };
+  const root = { isConnected: true, addEventListener() {}, removeEventListener() {}, querySelector: (selector) => selector === '[data-campus-open-person]' ? conversation : null };
+  const ctx = { ...context(state), api, run: async (...args) => { calls.push(args); return true; } };
+  let cleanup;
+  try {
+    globalThis.window = { addEventListener() {}, removeEventListener() {} };
+    globalThis.document = { hidden: false, addEventListener() {}, removeEventListener() {} };
+    globalThis.location = { href: 'http://localhost/ht/hub/messages/' };
+    globalThis.requestAnimationFrame = (callback) => { frames.push(callback); return frames.length; };
+    globalThis.cancelAnimationFrame = () => {};
+    cleanup = bindStudent('people', root, ctx); frames.shift()(); cleanup();
+    assert.equal(calls.length, 0, 'hidden phone preview must stay unread');
+    visible = true;
+    cleanup = bindStudent('people', root, ctx); frames.shift()(); cleanup();
+    assert.equal(calls.length, 0, 'the desktop inbox preview also waits for an explicit conversation open');
+    globalThis.location.href = 'http://localhost/ht/hub/messages/?person=staff';
+    cleanup = bindStudent('people', root, ctx); frames.shift()(); cleanup();
+    assert.deepEqual(calls, [['readMessages', { message_ids: ['visible'] }]], 'capture only rendered incoming IDs from this thread');
+    cleanup = bindStudent('people', root, ctx); frames.shift()(); cleanup();
+    assert.equal(calls.length, 1, 'a state refresh cannot retry the same batch in a loop');
+    globalThis.document.hidden = true;
+    state.messages.push({ id: 'newer', sender_id: 'staff', recipient_id: 'learner', read_at: null });
+    conversation.querySelectorAll = () => [{ dataset: { campusMessageId: 'newer' } }];
+    cleanup = bindStudent('people', root, ctx); frames.shift()(); cleanup();
+    assert.equal(calls.length, 1, 'a background tab does not mark messages read');
+  } finally {
+    cleanup?.();
+    for (const [key, value] of Object.entries(original)) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; }
+  }
+});
+
+test('a failed read acknowledgement retries on a later bind without immediately looping', async () => {
+  const original = Object.fromEntries(['window', 'document', 'location', 'requestAnimationFrame', 'cancelAnimationFrame'].map((key) => [key, globalThis[key]]));
+  let cleanup;
+  try {
+    globalThis.window = { addEventListener() {}, removeEventListener() {} };
+    globalThis.document = { hidden: false, addEventListener() {}, removeEventListener() {} };
+    globalThis.location = { href: 'http://localhost/ht/hub/messages/?person=staff' };
+    globalThis.cancelAnimationFrame = () => {};
+    for (const failure of ['false', 'rejection']) {
+      const frames = [], calls = [], state = base();
+      state.messages = [{ id: 'unread', sender_id: 'staff', recipient_id: 'learner', read_at: null }];
+      const conversation = { dataset: { campusOpenPerson: 'staff' }, getClientRects: () => [{}], querySelectorAll: () => [{ dataset: { campusMessageId: 'unread' } }] };
+      const root = { isConnected: true, addEventListener() {}, removeEventListener() {}, querySelector: (selector) => selector === '[data-campus-open-person]' ? conversation : null };
+      const ctx = { ...context(state), api: {}, run: async (...args) => {
+        calls.push(args);
+        if (calls.length > 1) return true;
+        if (failure === 'rejection') throw new Error('Temporary connection failure');
+        return false;
+      } };
+      globalThis.requestAnimationFrame = (callback) => { frames.push(callback); return frames.length; };
+      cleanup = bindStudent('people', root, ctx); frames.shift()();
+      await Promise.resolve();
+      assert.equal(calls.length, 1, `${failure}: the initial request is attempted once`);
+      assert.equal(frames.length, 0, `${failure}: failure does not schedule an immediate retry`);
+      cleanup();
+      cleanup = bindStudent('people', root, ctx); frames.shift()();
+      await Promise.resolve();
+      assert.deepEqual(calls, [['readMessages', { message_ids: ['unread'] }], ['readMessages', { message_ids: ['unread'] }]], `${failure}: a later bind can acknowledge the still-unread batch`);
+      cleanup();
+      cleanup = bindStudent('people', root, ctx); frames.shift()();
+      await Promise.resolve();
+      assert.equal(calls.length, 2, `${failure}: successful acknowledgement keeps batch deduplication`);
+      cleanup();
+    }
+  } finally {
+    cleanup?.();
+    for (const [key, value] of Object.entries(original)) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; }
+  }
 });
 
 test('student rendering follows the actual store through knowledge checks, review and completion', async () => {

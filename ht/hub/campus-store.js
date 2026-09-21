@@ -61,7 +61,7 @@ function filterDemo(source,role,now){
  delete s._codes;delete s._checks;delete s.version;delete s.created_day;return s;
 }
 function demoCommand(s,role,name,p,now){
- const u=IDS[role],staff=['staff','admin'].includes(role),iso=new Date(now).toISOString();if(!u)fail('Sign in with an HT membership to make changes.');
+ const u=IDS[role],staff=['staff','admin'].includes(role),iso=new Date(now).toISOString();if(!u||!demoActive(s,u))fail('Sign in with an active HT membership to make changes.');
  if(['saveAnnouncement','saveEvent','saveCourse','saveModule','saveSettings','reviewWork','updateRequest','saveCohort','setCohortMember','saveClassSession'].includes(name)&&!staff)fail('Staff access is required.');
  const find=(key,id)=>s[key].find(x=>x.id===id)||fail('This item is no longer available.');
  const notify=(user_id,title,body,href)=>s.notifications.push({id:uuid(),user_id,title,body,href,read_at:null,created_at:iso});
@@ -117,7 +117,13 @@ function demoCommand(s,role,name,p,now){
  case 'post':id=uuid();s.posts.unshift({id,author_id:u,channel:required(p.channel,'Channel',60),body:required(p.body,'Post',5000),created_at:iso});break;
  case 'reply':find('posts',p.post_id);s.replies.push({id:uuid(),post_id:p.post_id,author_id:u,body:required(p.body,'Reply',5000),created_at:iso});break;
  case 'like':find('posts',p.post_id);s.likes=s.likes.filter(x=>x.post_id!==p.post_id||x.user_id!==u);if(p.liked)s.likes.push({post_id:p.post_id,user_id:u});break;
- case 'sendMessage':if(p.recipient_id===u||!s.members.some(m=>m.user_id===p.recipient_id))fail('Choose another active campus member.');s.messages.push({id:uuid(),sender_id:u,recipient_id:p.recipient_id,body:required(p.body,'Message',5000),created_at:iso,read_at:null});notify(p.recipient_id,'A new campus message','Open your campus messages to read it.','/ht/hub/people/');break;
+ case 'sendMessage':if(p.recipient_id===u||!demoActive(s,p.recipient_id))fail('Choose another active campus member.');s.messages.push({id:uuid(),sender_id:u,recipient_id:p.recipient_id,body:required(p.body,'Message',5000),created_at:iso,read_at:null});notify(p.recipient_id,'A new campus message','Open your campus messages to read it.',`/ht/hub/messages/?person=${u}`);break;
+ case 'readMessages':{
+  if(!Array.isArray(p.message_ids)||p.message_ids.length>200||p.message_ids.some(id=>typeof id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)))fail('Choose up to 200 valid message IDs.');
+  const ids=new Set(p.message_ids.map(id=>id.toLowerCase())),incoming=s.messages.filter(m=>ids.has(m.id.toLowerCase())&&m.recipient_id===u);
+  if(incoming.length!==ids.size)fail('Only messages addressed to you can be marked as read.');
+  for(const message of incoming)message.read_at||=iso;
+  break;}
  case 'readNotification':item=s.notifications.find(n=>n.id===p.id&&n.user_id===u);if(item)item.read_at||=iso;break;
  case 'saveAnnouncement':id=p.id||uuid();upsert(s.announcements,{id,title:required(p.title,'Title',160),body:required(p.body,'Announcement'),office:String(p.office||'Campus'),audience:choice(p.audience||'campus',['campus','students','staff'],'audience'),status:choice(p.status||'draft',['draft','published'],'publication status'),publish_at:p.publish_at?datetime(p.publish_at,'publication time'):iso,created_at:s.announcements.find(a=>a.id===id)?.created_at||iso,author_id:s.announcements.find(a=>a.id===id)?.author_id||u});break;
  case 'saveEvent':{

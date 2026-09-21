@@ -34,6 +34,68 @@ function memberName(state, id) {
     || (id === userId(state) ? state.member?.display_name : '') || 'Campus member';
 }
 
+// Ephemeral interface state is scoped to the store and current member, never persisted across accounts.
+const communicationStates = new WeakMap();
+function communicationState(ctx) {
+  if (!ctx.api || (typeof ctx.api !== 'object' && typeof ctx.api !== 'function')) return { search: '', readBatches: new Set() };
+  const identity = `${ctx.state.mode}:${userId(ctx.state)}`;
+  let entry = communicationStates.get(ctx.api);
+  if (!entry || entry.identity !== identity) {
+    entry = { identity, search: '', readBatches: new Set() };
+    communicationStates.set(ctx.api, entry);
+  }
+  return entry;
+}
+
+function conversations(ctx) {
+  const { state } = ctx, id = userId(state);
+  if (!canAct(state) || !id) return [];
+  const grouped = new Map();
+  for (const message of rows(state, 'messages')) {
+    if (message.sender_id !== id && message.recipient_id !== id) continue;
+    const personId = message.sender_id === id ? message.recipient_id : message.sender_id;
+    if (personId === id) continue;
+    const activeMember = rows(state, 'members').find((person) => person.user_id === personId && person.active !== false);
+    // The directory only contains active members. A removed member must not erase
+    // the caller's existing private history or strand an incoming unread message.
+    const member = activeMember ? { ...activeMember, available: true } : { user_id: personId, display_name: 'Unavailable campus member', available: false };
+    if (!grouped.has(personId)) grouped.set(personId, { member, messages: [], unread: 0 });
+    const conversation = grouped.get(personId);
+    conversation.messages.push(message);
+    if (message.recipient_id === id && !message.read_at) conversation.unread++;
+  }
+  return [...grouped.values()].map((conversation) => {
+    conversation.messages.sort((a, b) => -newest(a, b));
+    return { ...conversation, last: conversation.messages.at(-1) };
+  }).sort((a, b) => Number(b.unread > 0) - Number(a.unread > 0) || newest(a.last, b.last));
+}
+
+function messageExcerpt(message, ctx, limit = 80) {
+  const characters = Array.from(String(message?.body || ''));
+  return `${message?.sender_id === userId(ctx.state) ? 'You: ' : ''}${ctx.esc(characters.slice(0, limit).join(''))}${characters.length > limit ? '…' : ''}`;
+}
+
+function communicationNav(ctx, active) {
+  const count = conversations(ctx).reduce((sum, item) => sum + item.unread, 0);
+  return `<nav class="campus-communication-nav" aria-label="Community and messages"><a href="${ctx.esc(ctx.href('community'))}"${active === 'community' ? ' aria-current="page"' : ''}>Community feed</a><a href="${ctx.esc(ctx.href('messages'))}"${active === 'messages' ? ' aria-current="page"' : ''}>Messages${count ? ` <span class="campus-message-unread">${count}<span class="campus-sr-only"> unread</span></span>` : ''}</a></nav>`;
+}
+
+function conversationRow(conversation, ctx, selected = '', local = false) {
+  const { member, unread, last } = conversation, { esc, href } = ctx;
+  return `<a class="campus-conversation-row${unread ? ' is-unread' : ''}${selected === member.user_id ? ' is-selected' : ''}" href="${esc(href('messages', { person: member.user_id }))}"${local ? ` data-campus-person="${esc(member.user_id)}"` : ''}${selected === member.user_id ? ' aria-current="true"' : ''} aria-label="${member.available === false ? 'View conversation with' : 'Message'} ${esc(member.display_name)}${unread ? `, ${unread} unread` : ''}"><span class="campus-avatar" aria-hidden="true">${esc(initials(member.display_name))}</span><span class="campus-conversation-copy"><span class="campus-conversation-meta"><strong>${esc(member.display_name)}</strong><time datetime="${esc(last.created_at)}">${esc(ctx.formatDate(last.created_at))}</time></span><span class="campus-message-preview">${messageExcerpt(last, ctx)}</span></span>${unread ? `<span class="campus-message-unread" aria-hidden="true">${unread}</span>` : ''}</a>`;
+}
+
+function recentConversations(ctx, limit = 3) {
+  const recent = conversations(ctx).slice(0, limit);
+  return recent.length ? `<div class="campus-conversation-list">${recent.map((conversation) => conversationRow(conversation, ctx)).join('')}</div>` : `<p class="campus-muted">${canAct(ctx.state) ? 'Your conversations will appear here. Start with a classmate or someone who can help.' : 'Sign in with a campus membership to open your messages.'}</p>`;
+}
+
+function connectionPreview(ctx) {
+  const { state, esc, href } = ctx;
+  const posts = rows(state, 'posts').slice().sort(newest), count = conversations(ctx).reduce((sum, item) => sum + item.unread, 0);
+  return `<section class="campus-communication-preview"><div class="campus-section-head"><div><p class="campus-eyebrow">Your campus connections</p><h2>Keep the conversation going.</h2></div><a href="${esc(href('community'))}">Open community <span aria-hidden="true">→</span></a></div><div class="campus-connect-grid"><div><div class="campus-section-head"><h3>Messages${count ? ` <span class="campus-message-unread">${count}<span class="campus-sr-only"> unread</span></span>` : ''}</h3><a href="${esc(href('messages'))}">Open inbox</a></div>${recentConversations(ctx, 2)}</div><div><p class="campus-eyebrow">In the community</p>${posts[0] ? `<strong>${esc(memberName(state, posts[0].author_id))} <span class="campus-muted">· ${esc(posts[0].channel || 'Campus')}</span></strong><p>${esc(Array.from(String(posts[0].body || '')).slice(0, 160).join(''))}${Array.from(String(posts[0].body || '')).length > 160 ? '…' : ''}</p>` : '<p>Ask a question, share a resource, or introduce yourself.</p>'}<a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('community'))}">Join the conversation</a></div></div></section>`;
+}
+
 function initials(name) {
   return String(name || 'HT').trim().split(/\s+/).slice(0, 2).map((part) => Array.from(part)[0] || '').join('').toUpperCase();
 }
@@ -101,6 +163,7 @@ function homeView(ctx) {
   const courseLink = recommended ? `${href('learn')}#course-${encodeURIComponent(recommended.id)}` : href('learn');
   return `${guestNotice(state)}
     <section class="campus-hero"><div class="campus-hero-copy"><p class="campus-eyebrow">${current ? 'Continue your learning' : 'Your day on the Hill'}</p><h2>${esc(current?.title || 'Find your next opportunity.')}</h2><p>${current ? 'Pick up where you left off. Your progress and instructor feedback are saved here.' : 'Explore campus learning, find an event, or connect with someone who can help.'}</p><div class="campus-card-actions"><a class="campus-button" href="${esc(courseLink)}">${current ? 'Continue learning' : 'Explore learning'}</a><a class="campus-button campus-button-secondary" href="${esc(href('support'))}">Get help</a></div></div><div class="campus-hero-aside"><p class="campus-eyebrow">${next ? (time(next.starts_at) <= Date.now() && time(next.ends_at) >= Date.now() ? 'Happening now' : 'Coming up') : 'Make the most of campus'}</p>${next ? `<h3>${esc(next.title)}</h3><p>${esc(dateText(next.starts_at, ctx, true))}</p><p>${esc(next.location || next.office || 'Campus')}</p><a href="${esc(href('events'))}#event-${esc(next.id)}">View event <span aria-hidden="true">→</span></a>` : `<h3>Find your next opportunity.</h3><p>Explore campus events and connect with the people who can help.</p><a href="${esc(href('people'))}">Meet the community <span aria-hidden="true">→</span></a>`}</div></section>
+    ${connectionPreview(ctx)}
     <div class="campus-classroom-shortcut"><span class="campus-shortcut-icon" aria-hidden="true">${ctx.icon('play')}</span><div><strong>Your classes, in one place.</strong><p>See your cohort, upcoming classes, and session recordings.</p></div><a class="campus-button campus-button-secondary" href="${esc(href('live'))}">Open classrooms</a></div>
     <div class="campus-grid campus-stats"><div class="campus-stat"><span class="campus-stat-value">${enrollments.length}</span><span>Learning pathways</span></div><div class="campus-stat"><span class="campus-stat-value">${reservedEvents.length}</span><span>Upcoming RSVPs</span></div><div class="campus-stat"><span class="campus-stat-value">${completed}</span><span>Pathways completed</span></div></div>
     <div class="campus-grid campus-grid-main"><div class="campus-stack"><section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Keep your momentum</p><h2>Your next steps</h2></div></div><div class="campus-list">
@@ -169,48 +232,39 @@ function eventsView(ctx) {
 }
 
 function postCard(post, ctx) {
-  const { state, esc } = ctx;
+  const { state, esc, href } = ctx;
   const author = memberName(state, post.author_id);
   const replies = rows(state, 'replies').filter((reply) => reply.post_id === post.id).sort((a, b) => -newest(a, b));
   const likes = rows(state, 'likes').filter((like) => like.post_id === post.id);
   const liked = likes.some((like) => like.user_id === userId(state));
-  return `<article class="campus-panel campus-post" data-campus-post data-channel="${esc(post.channel || 'Campus')}"><div class="campus-row"><span class="campus-avatar" aria-hidden="true">${esc(initials(author))}</span><div><h3>${esc(author)}</h3><p class="campus-muted"><time datetime="${esc(post.created_at)}">${esc(dateText(post.created_at, ctx, true))}</time> · ${esc(post.channel || 'Campus')}</p></div></div>${textBlock(post.body, ctx)}<div class="campus-card-actions"><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="like" data-post-id="${esc(post.id)}" data-liked="${liked ? 'true' : 'false'}" aria-pressed="${liked}"${canAct(state) ? '' : ' disabled'}>${liked ? 'Liked' : 'Like'}${likes.length ? ` · ${likes.length}` : ''}</button><span class="campus-muted">${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}</span></div><details class="campus-replies"><summary>${replies.length ? 'Read replies & respond' : 'Start a conversation'}</summary><div class="campus-thread">${replies.map((reply) => `<div class="campus-reply"><p class="campus-meta"><strong>${esc(memberName(state, reply.author_id))}</strong><time datetime="${esc(reply.created_at)}">${esc(dateText(reply.created_at, ctx, true))}</time></p>${textBlock(reply.body, ctx)}</div>`).join('')}</div>${canAct(state) ? `<form data-campus-command="reply" data-post-id="${esc(post.id)}"><label class="campus-field"><span>Your reply</span><textarea name="body" rows="2" maxlength="5000" required placeholder="Add something to the conversation."></textarea></label><button type="submit" class="campus-button campus-button-small">Post reply</button><p class="campus-form-status" role="status"></p></form>` : '<p class="campus-muted">Sign in with a campus membership to reply.</p>'}</details></article>`;
+  return `<article class="campus-panel campus-post" data-campus-post data-channel="${esc(post.channel || 'Campus')}"><div class="campus-row"><span class="campus-avatar" aria-hidden="true">${esc(initials(author))}</span><div><h3>${esc(author)}</h3><p class="campus-muted"><time datetime="${esc(post.created_at)}">${esc(dateText(post.created_at, ctx, true))}</time> · ${esc(post.channel || 'Campus')}</p></div></div>${textBlock(post.body, ctx)}<div class="campus-card-actions"><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="like" data-post-id="${esc(post.id)}" data-liked="${liked ? 'true' : 'false'}" aria-pressed="${liked}"${canAct(state) ? '' : ' disabled'}>${liked ? 'Liked' : 'Like'}${likes.length ? ` · ${likes.length}` : ''}</button><span class="campus-muted">${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}</span>${canAct(state) && post.author_id !== userId(state) && rows(state, 'members').some((member) => member.user_id === post.author_id && member.active !== false) ? `<a class="campus-post-message" href="${esc(href('messages', { person: post.author_id }))}" aria-label="Message ${esc(author)}">Message author</a>` : ''}</div><details class="campus-replies"><summary>${replies.length ? 'Read replies & respond' : 'Start a conversation'}</summary><div class="campus-thread">${replies.map((reply) => `<div class="campus-reply"><p class="campus-meta"><strong>${esc(memberName(state, reply.author_id))}</strong><time datetime="${esc(reply.created_at)}">${esc(dateText(reply.created_at, ctx, true))}</time></p>${textBlock(reply.body, ctx)}</div>`).join('')}</div>${canAct(state) ? `<form data-campus-command="reply" data-post-id="${esc(post.id)}"><label class="campus-field"><span>Your reply</span><textarea name="body" rows="2" maxlength="5000" required placeholder="Add something to the conversation."></textarea></label><button type="submit" class="campus-button campus-button-small">Post reply</button><p class="campus-form-status" role="status"></p></form>` : '<p class="campus-muted">Sign in with a campus membership to reply.</p>'}</details></article>`;
 }
 
 function communityView(ctx) {
   const { state, esc, href } = ctx;
   const posts = rows(state, 'posts').slice().sort(newest);
   const channels = [...new Set(['Campus', 'Questions', 'Resources', 'Celebrations', ...posts.map((post) => post.channel).filter(Boolean)])];
-  return `${guestNotice(state)}<div class="campus-grid campus-grid-main"><div class="campus-stack"><section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">A place for your voice</p><h2>What’s happening on the Hill?</h2></div></div><form data-campus-command="post"><label class="campus-field"><span>Share with your campus</span><textarea name="body" rows="3" maxlength="5000" required placeholder="Ask a question, share a resource, or celebrate a win."${canAct(state) ? '' : ' disabled'}></textarea></label><div class="campus-form-actions"><label class="campus-field"><span>Conversation</span><select name="channel"${canAct(state) ? '' : ' disabled'}>${channels.map((channel) => `<option value="${esc(channel)}">${esc(channel)}</option>`).join('')}</select></label><button type="submit" class="campus-button"${canAct(state) ? '' : ' disabled'}>Share post</button></div><p class="campus-form-status" role="status"></p></form></section><div class="campus-section-head"><h2>Campus conversations</h2><label class="campus-field campus-field-inline"><span class="campus-sr-only">Filter conversation</span><select data-campus-filter="channel"><option value="">All conversations</option>${channels.map((channel) => `<option value="${esc(channel)}">${esc(channel)}</option>`).join('')}</select></label></div><p class="campus-sr-only" data-campus-filter-status role="status"></p><div class="campus-feed">${posts.length ? posts.map((post) => postCard(post, ctx)).join('') : empty('Start something good', 'The first conversation can be a simple introduction. Share what you’re learning or ask a question.', ctx)}<p class="campus-empty" data-campus-filter-empty hidden>No posts in this conversation yet.</p></div></div><aside class="campus-stack"><section class="campus-panel"><p class="campus-eyebrow">Our shared space</p><h2>Make room for each other.</h2><p>Be thoughtful. Give credit. Ask with curiosity. Share only information you have permission to share.</p><p class="campus-muted">Posts and replies are visible to campus members. Use support requests for personal student concerns.</p><a href="${esc(href('support'))}">Get private support <span aria-hidden="true">→</span></a></section><section class="campus-panel"><h2>Find your people</h2><p>Connect directly with active members of your campus community.</p><a class="campus-button campus-button-secondary" href="${esc(href('people'))}">Open the directory</a></section></aside></div>`;
+  const selected = channels.includes(queryValue('channel')) ? queryValue('channel') : '';
+  const filtered = posts.filter((post) => !selected || (post.channel || 'Campus') === selected);
+  return `${guestNotice(state)}${communicationNav(ctx, 'community')}<div class="campus-grid campus-grid-main"><div class="campus-stack"><section class="campus-panel campus-community-compose"><div class="campus-section-head"><div><p class="campus-eyebrow">A place for your voice</p><h2>What’s happening on the Hill?</h2></div></div><form data-campus-command="post"><label class="campus-field"><span>Share with your campus</span><textarea name="body" rows="3" maxlength="5000" required placeholder="Ask a question, share a resource, or celebrate a win."${canAct(state) ? '' : ' disabled'}></textarea></label><div class="campus-form-actions"><label class="campus-field"><span>Conversation</span><select name="channel"${canAct(state) ? '' : ' disabled'}>${channels.map((channel) => `<option value="${esc(channel)}"${channel === selected ? ' selected' : ''}>${esc(channel)}</option>`).join('')}</select></label><button type="submit" class="campus-button"${canAct(state) ? '' : ' disabled'}>Share post</button></div><p class="campus-form-status" role="status"></p></form></section><div class="campus-section-head"><h2>Campus conversations</h2><span class="campus-muted" data-campus-feed-count>${filtered.length} ${filtered.length === 1 ? 'post' : 'posts'}</span></div><div class="campus-channel-filters" role="group" aria-label="Filter community feed">${['', ...channels].map((channel) => `<button type="button" class="campus-channel-filter" data-campus-channel="${esc(channel)}" aria-pressed="${channel === selected}">${esc(channel || 'All conversations')}</button>`).join('')}</div><p class="campus-sr-only" data-campus-filter-status role="status"></p><div class="campus-feed">${posts.length ? posts.map((post) => postCard(post, ctx).replace('data-campus-post ', `data-campus-post ${selected && (post.channel || 'Campus') !== selected ? 'hidden ' : ''}`)).join('') : empty('Start something good', 'The first conversation can be a simple introduction. Share what you’re learning or ask a question.', ctx)}<p class="campus-empty" data-campus-filter-empty${filtered.length || !posts.length ? ' hidden' : ''}>No posts in this conversation yet. You can start one above.</p></div></div><aside class="campus-stack"><section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Keep in touch</p><h2>Your messages</h2></div><a href="${esc(href('messages'))}">Open inbox</a></div>${recentConversations(ctx)}<a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('messages', { new: '1' }))}">New message</a></section><section class="campus-panel"><p class="campus-eyebrow">Find your people</p><h2>Connection starts here.</h2><div class="campus-list campus-community-links"><a href="${esc(href('live'))}">Your cohort classrooms <span aria-hidden="true">→</span></a><a href="${esc(href('events'))}">Meet at a campus event <span aria-hidden="true">→</span></a><a href="${esc(href('messages', { new: '1' }))}">Find a campus member <span aria-hidden="true">→</span></a></div></section><section class="campus-panel"><p class="campus-eyebrow">Our shared space</p><h2>Make room for each other.</h2><p>Be thoughtful. Give credit. Ask with curiosity.</p><p class="campus-muted">Posts and replies are visible to campus members. Use support requests for personal student concerns.</p><a href="${esc(href('support'))}">Get private support <span aria-hidden="true">→</span></a></section></aside></div>`;
 }
 
 function peopleView(ctx) {
   const { state, esc, href } = ctx;
-  const id = userId(state);
-  const recentMessages = new Map();
-  for (const message of rows(state, 'messages').filter((item) => item.sender_id === id || item.recipient_id === id).slice().sort(newest)) {
-    const person = message.sender_id === id ? message.recipient_id : message.sender_id;
-    if (!recentMessages.has(person)) recentMessages.set(person, message);
-  }
-  const members = rows(state, 'members').slice().sort((a, b) => {
-    const aMessage = recentMessages.get(a.user_id), bMessage = recentMessages.get(b.user_id);
-    if (aMessage || bMessage) return (time(bMessage?.created_at) || 0) - (time(aMessage?.created_at) || 0);
-    return String(a.display_name).localeCompare(String(b.display_name));
-  });
-  const preview = (member) => {
-    const message = recentMessages.get(member.user_id);
-    if (!message || !canAct(state)) return '';
-    const excerpt = Array.from(String(message.body || ''));
-    return `<p class="campus-message-preview"><span class="campus-sr-only">Last message: </span>${message.sender_id === id ? 'You: ' : ''}${esc(excerpt.slice(0, 70).join(''))}${excerpt.length > 70 ? '…' : ''}</p>`;
-  };
-  const requested = queryValue('person');
-  const selected = requested ? members.find((member) => member.user_id === requested && member.user_id !== id) : members.find((member) => member.user_id !== id && recentMessages.has(member.user_id));
-  const messages = selected ? rows(state, 'messages').filter((message) => (message.sender_id === id && message.recipient_id === selected.user_id) || (message.sender_id === selected.user_id && message.recipient_id === id)).sort((a, b) => -newest(a, b)) : [];
-  return `${guestNotice(state)}<div class="campus-page-intro"><p>A campus is a community of people. Find a familiar face or start a new conversation.</p></div><div class="campus-grid campus-people-grid"><section class="campus-panel campus-directory"><div class="campus-section-head"><h2>Campus directory</h2><span class="campus-label">${members.length} ${members.length === 1 ? 'member' : 'members'}</span></div><label class="campus-field"><span>Find a campus member</span><input type="search" data-campus-filter="people" placeholder="Search by name or role" autocomplete="off"></label><p class="campus-sr-only" data-campus-filter-status role="status"></p><div class="campus-list">${members.length ? members.map((member) => `<div class="campus-row campus-member-row" data-campus-member data-search="${esc(`${member.display_name} ${roleLabel(member.role)}`.toLowerCase())}"><span class="campus-avatar" aria-hidden="true">${esc(initials(member.display_name))}</span><div><h3>${esc(member.display_name)}${member.user_id === id ? ' <span class="campus-muted">(you)</span>' : ''}</h3><p class="campus-muted">${esc(roleLabel(member.role))}</p>${preview(member)}</div>${member.user_id !== id && canAct(state) ? `<a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('people', { person: member.user_id }))}"${selected?.user_id === member.user_id ? ' aria-current="true"' : ''} aria-label="Message ${esc(member.display_name)}">Message</a>` : ''}</div>`).join('') : empty('Your community is taking shape', 'Approved campus members will appear in this directory.', ctx)}<p class="campus-empty" data-campus-filter-empty hidden>No members match your search.</p></div></section><section class="campus-panel campus-conversation" aria-label="Direct messages">${selected && canAct(state) ? `<div class="campus-section-head"><div><p class="campus-eyebrow">Direct conversation</p><h2>${esc(selected.display_name)}</h2><p class="campus-muted">${esc(roleLabel(selected.role))}</p></div></div><div class="campus-message-history" role="log" aria-label="Conversation with ${esc(selected.display_name)}">${messages.length ? messages.map((message) => `<div class="campus-message${message.sender_id === id ? ' campus-message-own' : ''}"><p class="campus-message-author">${message.sender_id === id ? 'You' : esc(selected.display_name)}</p>${textBlock(message.body, ctx)}<time class="campus-muted" datetime="${esc(message.created_at)}">${esc(dateText(message.created_at, ctx, true))}</time></div>`).join('') : empty('Say hello', `Start your conversation with ${selected.display_name}. Messages are visible to the two of you.`, ctx)}</div><form data-campus-command="sendMessage" data-recipient-id="${esc(selected.user_id)}"><label class="campus-field"><span>Your message</span><textarea name="body" required rows="3" maxlength="5000" placeholder="Write a thoughtful message."></textarea></label><button type="submit" class="campus-button">Send message</button><p class="campus-form-status" role="status"></p></form>` : `<div class="campus-conversation-empty"><p class="campus-eyebrow">Start a connection</p><h2>A conversation can open a door.</h2><p>${requested ? 'That member is unavailable. Choose someone from the directory to start a conversation.' : 'Choose a campus member from the directory to open your conversation.'}</p><a href="${esc(href('support'))}">Need help with something? Contact support <span aria-hidden="true">→</span></a></div>`}</section></div>`;
+  const id = userId(state), inbox = conversations(ctx), ui = communicationState(ctx);
+  const members = rows(state, 'members').filter((member) => member.user_id !== id && member.active !== false).slice().sort((a, b) => String(a.display_name).localeCompare(String(b.display_name)));
+  const requested = queryValue('person'), directory = queryValue('new') === '1';
+  const selected = canAct(state) && !directory ? requested ? members.find((member) => member.user_id === requested) || inbox.find((conversation) => conversation.member.user_id === requested)?.member : inbox[0]?.member : null;
+  const messages = selected ? inbox.find((conversation) => conversation.member.user_id === selected.user_id)?.messages || [] : [];
+  const unread = inbox.reduce((sum, conversation) => sum + conversation.unread, 0);
+  const search = String(ui.search || '');
+  const matches = members.filter((member) => `${member.display_name} ${roleLabel(member.role)}`.toLowerCase().includes(search.toLowerCase().trim()));
+  const list = directory ? `<div class="campus-section-head"><div><p class="campus-eyebrow">Start a conversation</p><h2>New message</h2></div><a href="${esc(href('messages'))}" data-campus-message-list>Inbox</a></div><label class="campus-field"><span>Find a campus member</span><input type="search" data-campus-filter="people" placeholder="Search by name or role" autocomplete="off" value="${esc(search)}"></label><p class="campus-sr-only" data-campus-filter-status role="status"></p><div class="campus-list">${members.length ? members.map((member) => `<div class="campus-row campus-member-row" data-campus-member data-search="${esc(`${member.display_name} ${roleLabel(member.role)}`.toLowerCase())}"${matches.includes(member) ? '' : ' hidden'}><span class="campus-avatar" aria-hidden="true">${esc(initials(member.display_name))}</span><div><h3>${esc(member.display_name)}</h3><p class="campus-muted">${esc(roleLabel(member.role))}</p></div>${canAct(state) ? `<a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('messages', { person: member.user_id }))}" data-campus-person="${esc(member.user_id)}" aria-label="Message ${esc(member.display_name)}">Message</a>` : ''}</div>`).join('') : empty('Your community is taking shape', 'Approved campus members will appear here.', ctx)}<p class="campus-empty" data-campus-filter-empty${matches.length || !members.length ? ' hidden' : ''}>No members match your search.</p></div>` : `<div class="campus-section-head"><div><p class="campus-eyebrow">Your conversations</p><h2>Inbox${unread ? ` <span class="campus-message-unread">${unread}<span class="campus-sr-only"> unread</span></span>` : ''}</h2></div><a class="campus-button campus-button-small" href="${esc(href('messages', { new: '1' }))}" data-campus-message-new>New message</a></div>${inbox.length ? `<div class="campus-conversation-list">${inbox.map((conversation) => conversationRow(conversation, ctx, selected?.user_id, true)).join('')}</div>` : empty('A conversation starts with hello.', canAct(state) ? 'Message a classmate, reconnect with your cohort, or reach out to a campus staff member.' : 'Sign in with a campus membership to open your inbox.', ctx)}`;
+  return `${guestNotice(state)}${communicationNav(ctx, 'messages')}<div class="campus-messages-layout${requested && selected ? ' is-thread' : ''}${directory ? ' is-directory' : ''}"><section class="campus-panel campus-inbox-list" aria-label="${directory ? 'Campus directory' : 'Recent conversations'}">${list}</section><section class="campus-panel campus-conversation" aria-label="Direct messages"${selected ? ` data-campus-open-person="${esc(selected.user_id)}"` : ''}>${selected ? `<div class="campus-message-heading"><a class="campus-message-back" href="${esc(href('messages'))}" data-campus-message-list><span aria-hidden="true">←</span> Back to messages</a><div class="campus-row"><span class="campus-avatar" aria-hidden="true">${esc(initials(selected.display_name))}</span><div><h2 tabindex="-1" data-campus-thread-heading>${esc(selected.display_name)}</h2><p class="campus-muted">${selected.available === false ? 'No longer in the campus directory' : esc(roleLabel(selected.role))} · Direct conversation</p></div></div></div><div class="campus-message-history" role="log" aria-label="Conversation with ${esc(selected.display_name)}">${messages.length ? messages.map((message) => `<div class="campus-message${message.sender_id === id ? ' campus-message-own' : ''}" data-campus-message-id="${esc(message.id)}"${message.recipient_id === id && !message.read_at ? ' data-campus-message-unread' : ''}><p class="campus-message-author">${message.sender_id === id ? 'You' : esc(selected.display_name)}</p>${textBlock(message.body, ctx)}<time class="campus-muted" datetime="${esc(message.created_at)}">${esc(dateText(message.created_at, ctx, true))}</time></div>`).join('') : empty('Say hello', `Start your conversation with ${selected.display_name}. Messages are visible to the two of you.`, ctx)}</div><form data-campus-command="sendMessage" data-recipient-id="${esc(selected.user_id)}" class="campus-compose"><label class="campus-field"><span>Your message to ${esc(selected.display_name)}</span><textarea name="body" required rows="3" maxlength="5000" placeholder="${selected.available === false ? 'Messaging is unavailable for this member.' : 'Write a message…'}"${selected.available === false ? ' disabled' : ''}></textarea></label><div class="campus-form-actions"><p class="campus-muted">${selected.available === false ? 'This member is no longer available for messages. Your conversation history stays here.' : state.mode === 'demo' ? 'Sample conversation · saved in this browser.' : 'Visible to you and this campus member.'}</p><button type="submit" class="campus-button"${selected.available === false ? ' disabled' : ''}>Send message</button></div><p class="campus-form-status" role="status"></p></form>` : `<div class="campus-conversation-empty"><p class="campus-eyebrow">${directory ? 'Find your people' : 'Keep in touch'}</p><h2>${requested ? 'This conversation isn’t available.' : 'A conversation can open a door.'}</h2><p>${requested ? 'Choose an active campus member to start a conversation.' : directory ? 'Search for a classmate or campus staff member, then select Message.' : 'Choose a conversation from your inbox or send someone a new message.'}</p>${!directory ? `<a class="campus-button campus-button-secondary" href="${esc(href('messages', { new: '1' }))}" data-campus-message-new>Find someone to message</a>` : ''}<p><a href="${esc(href('support'))}">Need help? Contact support <span aria-hidden="true">→</span></a></p></div>`}</section></div>`;
 }
 
 export function renderStudent(view, ctx) {
-  const render = { home: homeView, learn: learnView, events: eventsView, community: communityView, people: peopleView }[view];
+  const render = { home: homeView, learn: learnView, events: eventsView, community: communityView, people: peopleView, messages: peopleView }[view];
   return render ? render(ctx) : '';
 }
 
@@ -264,7 +318,39 @@ async function runWithButton(button, callback) {
 }
 
 export function bindStudent(view, root, ctx) {
+  const messageView = ['people', 'messages'].includes(view);
+  let disposed = false, readFrame = null;
+  const ui = communicationState(ctx);
+  const navigateMessages = async (anchor) => {
+    const next = new URL(anchor.href, globalThis.location.href);
+    globalThis.history.pushState({}, '', next.pathname + next.search + next.hash);
+    await ctx.refresh();
+    const target = root.querySelector(anchor.hasAttribute('data-campus-person') ? '[data-campus-thread-heading]' : anchor.hasAttribute('data-campus-message-new') ? '[data-campus-filter="people"]' : '.campus-inbox-list h2');
+    if (target) { if (!target.matches('input')) target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); }
+  };
   const onClick = async (event) => {
+    const messageLink = event.target.closest?.('[data-campus-person],[data-campus-message-list],[data-campus-message-new]');
+    if (messageView && messageLink && root.contains(messageLink) && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      event.preventDefault();
+      try { await navigateMessages(messageLink); }
+      catch (error) { ctx.notify(error.message || 'This conversation could not open. Please try again.', 'error'); }
+      return;
+    }
+    const channel = event.target.closest?.('[data-campus-channel]');
+    if (channel && root.contains(channel)) {
+      const value = channel.dataset.campusChannel;
+      let count = 0;
+      root.querySelectorAll('[data-campus-channel]').forEach((button) => button.setAttribute('aria-pressed', String(button === channel)));
+      root.querySelectorAll('[data-campus-post]').forEach((post) => { post.hidden = !!value && post.dataset.channel !== value; if (!post.hidden) count++; });
+      const url = new URL(globalThis.location.href);
+      if (value) url.searchParams.set('channel', value); else url.searchParams.delete('channel');
+      globalThis.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      const status = root.querySelector('[data-campus-filter-status]'), placeholder = root.querySelector('[data-campus-filter-empty]'), label = root.querySelector('[data-campus-feed-count]');
+      if (status) status.textContent = `${count} ${count === 1 ? 'post' : 'posts'} shown.`;
+      if (placeholder) placeholder.hidden = count > 0 || !rows(ctx.state, 'posts').length;
+      if (label) label.textContent = `${count} ${count === 1 ? 'post' : 'posts'}`;
+      return;
+    }
     const button = event.target.closest?.('[data-campus-action]');
     if (!button || !root.contains(button) || button.disabled) return;
     const action = button.dataset.campusAction;
@@ -326,6 +412,10 @@ export function bindStudent(view, root, ctx) {
       message = 'Your reply is posted.';
     } else if (command === 'sendMessage') {
       payload = { recipient_id: form.dataset.recipientId, body: field('body') };
+      if (!rows(ctx.state, 'members').some((member) => member.user_id === payload.recipient_id && member.active !== false)) {
+        ctx.notify('This member is no longer available for messages. Your conversation history is still here.', 'error');
+        return;
+      }
       message = 'Message sent.';
     } else { return; }
     if ('body' in payload && !payload.body) { ctx.notify('Write a message before sending.', 'error'); return; }
@@ -349,6 +439,7 @@ export function bindStudent(view, root, ctx) {
     if (!control || !root.contains(control)) return;
     const type = control.dataset.campusFilter;
     const value = control.value.trim().toLowerCase();
+    if (type === 'people') ui.search = control.value;
     const items = root.querySelectorAll(type === 'people' ? '[data-campus-member]' : '[data-campus-post]');
     let count = 0;
     for (const item of items) {
@@ -367,7 +458,48 @@ export function bindStudent(view, root, ctx) {
   root.addEventListener('change', onFilter);
   const history = root.querySelector('.campus-message-history');
   if (history) history.scrollTop = history.scrollHeight;
+  // Only acknowledge the IDs rendered in the open, visible conversation. A hidden phone
+  // preview, another conversation, or a newer message arriving after render stays unread.
+  const readVisibleConversation = () => {
+    if (disposed || !messageView || !canAct(ctx.state) || document.hidden || !root.isConnected) return;
+    const conversation = root.querySelector('[data-campus-open-person]');
+    if (!conversation || !conversation.getClientRects().length || queryValue('new') === '1') return;
+    const selected = conversation.dataset.campusOpenPerson, requested = queryValue('person');
+    if (!requested || requested !== selected) return;
+    const renderedIds = new Set(Array.from(conversation.querySelectorAll('[data-campus-message-unread]')).map((element) => element.dataset.campusMessageId));
+    const messageIds = rows(ctx.state, 'messages').filter((message) => renderedIds.has(message.id) && message.sender_id === selected && message.recipient_id === userId(ctx.state) && !message.read_at).map((message) => message.id).slice(0, 200);
+    if (!messageIds.length) return;
+    const key = JSON.stringify(messageIds.slice().sort());
+    if (ui.readBatches.has(key)) return;
+    ui.readBatches.add(key);
+    const focusedHeading = conversation.querySelector?.('[data-campus-thread-heading]');
+    const keepHeadingFocus = !!focusedHeading && focusedHeading === document.activeElement;
+    void ctx.run('readMessages', { message_ids: messageIds }).then((succeeded) => {
+      // A failed attempt can retry on the next ordinary bind/visibility event;
+      // do not immediately reschedule it and turn a connection failure into a loop.
+      if (succeeded === false) ui.readBatches.delete(key);
+      if (keepHeadingFocus && !document.hidden && document.activeElement === document.body && queryValue('person') === selected) {
+        root.querySelector('[data-campus-thread-heading]')?.focus({ preventScroll: true });
+      }
+    }, () => { ui.readBatches.delete(key); });
+  };
+  const scheduleRead = () => {
+    if (readFrame !== null) cancelAnimationFrame(readFrame);
+    readFrame = requestAnimationFrame(() => { readFrame = null; readVisibleConversation(); });
+  };
+  const onPopState = () => { if (messageView) void ctx.refresh(); };
+  if (messageView) {
+    scheduleRead();
+    window.addEventListener('resize', scheduleRead);
+    window.addEventListener('popstate', onPopState);
+    document.addEventListener('visibilitychange', scheduleRead);
+  }
   return () => {
+    disposed = true;
+    if (readFrame !== null) cancelAnimationFrame(readFrame);
+    window.removeEventListener('resize', scheduleRead);
+    window.removeEventListener('popstate', onPopState);
+    document.removeEventListener('visibilitychange', scheduleRead);
     root.removeEventListener('click', onClick);
     root.removeEventListener('submit', onSubmit);
     root.removeEventListener('input', onFilter);

@@ -14,15 +14,16 @@ Open `http://127.0.0.1:8871/ht/hub/?demo=student`.
 
 The **View as** selector switches between Student, Staff and Leadership. All three share fictional records in this browser only. The banner stays visible so sample activity cannot be confused with university results. These roles do not grant real account access.
 
-## A seven-minute walkthrough
+## An eight-minute walkthrough
 
 1. **Today — 45 seconds.** Start with Jordan's personalized workspace. Show the next learning step, upcoming campus event, progress and support. Explain the aim: students should know what to do next and where to get help.
-2. **Learning — 90 seconds.** Open the AI Literacy pathway. Answer a knowledge check; the next module unlocks. Show the project submission and explain that staff feedback and approval are required before completion. Completion records are issued by the Hub; they are not a promise of academic credit or an institutional certification.
-3. **Classrooms — 60 seconds.** Open Classrooms in the navigation, then Jordan's AI Literacy cohort. Show the next session, agenda, connected learning pathway and instructor. Open a rehearsal and record a practice join. Explain that a real scheduled session uses the existing video-classroom tools, with its own room and records; this clearly labeled rehearsal does not start conferencing. Campus live events appear separately. Staff can create classrooms, manage enrollment and schedule sessions from **Manage classrooms**.
-4. **Events — 45 seconds.** RSVP to a sample event, download its labeled calendar file, and demonstrate attendance check-in for the current sample session with `HT2026`. Use the Academic calendar link to show the existing published university dates and source PDF separately.
-5. **Get help — 90 seconds.** Submit a fictional career or technology question as Student. Change **View as** to Staff, open the same request, assign it and reply. Return to Student and show that the response is waiting. This is the strongest cross-role workflow to rehearse.
-6. **Staff — 45 seconds.** Show announcement scheduling, event creation, learning authoring and project review. Under Settings, show where Ada's finished video URL, poster and transcript can be added.
-7. **Leadership — 45 seconds.** Switch to Leadership and open Insights. Show participation, learning completion and unresolved requests. The sample overview and CSV are labeled. These are lifetime participation counts, not proven retention or academic outcome measures. Leadership access does not reveal private cohort rosters or class content.
+2. **Community and Messages — 60 seconds.** Show Community and Messages in the main navigation and phone bottom bar. In Community, filter conversations or use **Message author** to open a private conversation. In Messages, choose **New message**, find Morgan, and send a fictional project question. Switch **View as** to Staff, open Jordan's conversation and reply; switch back to Student to show the unread count and response. Opening the conversation clears its unread badge. Point out the conversation previews on Today.
+3. **Learning — 90 seconds.** Open the AI Literacy pathway. Answer a knowledge check; the next module unlocks. Show the project submission and explain that staff feedback and approval are required before completion. Completion records are issued by the Hub; they are not a promise of academic credit or an institutional certification.
+4. **Classrooms — 60 seconds.** Open Classrooms in the navigation, then Jordan's AI Literacy cohort. Show the next session, agenda, connected learning pathway and instructor. Open a rehearsal and record a practice join. Explain that a real scheduled session uses the existing video-classroom tools, with its own room and records; this clearly labeled rehearsal does not start conferencing. Campus live events appear separately. Staff can create classrooms, manage enrollment and schedule sessions from **Manage classrooms**.
+5. **Events — 45 seconds.** RSVP to a sample event, download its labeled calendar file, and demonstrate attendance check-in for the current sample session with `HT2026`. Use the Academic calendar link to show the existing published university dates and source PDF separately.
+6. **Get help — 90 seconds.** Submit a fictional career or technology question as Student. Change **View as** to Staff, open the same request, assign it and reply. Return to Student and show that the response is waiting. Rehearse this alongside the private message workflow.
+7. **Staff — 45 seconds.** Show announcement scheduling, event creation, learning authoring and project review. Under Settings, show where Ada's finished video URL, poster and transcript can be added.
+8. **Leadership — 45 seconds.** Switch to Leadership and open Insights. Show participation, learning completion and unresolved requests. The sample overview and CSV are labeled. These are lifetime participation counts, not proven retention or academic outcome measures. Leadership access does not reveal private cohort rosters or class content.
 
 End with a proposed small pilot, a university owner, a defined student group, and agreed measures of success. Avoid presenting a campus-wide implementation as already approved.
 
@@ -40,7 +41,7 @@ Create Ada's videos separately in your normal workflow. The Hub accepts a direct
 
 ## What is still needed for real campus use
 
-Follow [the activation guide](ht-campus-setup.md) for staging, membership provisioning, the classroom migration and Edge-function deployment. Hosted multi-user classroom testing, the real Ada media, campus access arrangements, accessibility review and the university's data-handling decisions remain release work. Canvas/SSO integration and email/push notifications are separate integrations, not included in this pilot.
+Follow [the activation guide](ht-campus-setup.md) for staging, membership provisioning, the classroom and messaging migrations and Edge-function deployment. Hosted multi-user classroom and messaging testing, the real Ada media, campus access arrangements, accessibility review and the university's data-handling decisions remain release work. Messages refresh on focus and the existing polling cycle; instant delivery, typing indicators and read receipts are not claimed. Canvas/SSO integration and email/push notifications are separate integrations, not included in this pilot.
 
 ## Classroom setup rehearsal
 

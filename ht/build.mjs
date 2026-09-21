@@ -71,6 +71,7 @@ shell('home', 'Home', global.HT.home.sub || '', HUB);
 for (const k of present.concat(pages)) { const s = global.HT.spaces[k]; shell(k, s.title, s.sub || s.blurb || '', path.join(HUB, k)); }
 for (const [key,title,desc] of [
   ['people','People & messages','Connect with your campus community.'],
+  ['messages','Messages','Your campus conversations, all in one place.'],
   ['spaces','Around campus','Find the right office, resource, or opportunity.'],
   ['support','Get help','Ask the campus team for help and follow your request.'],
   ['staff','Staff workspace','Manage announcements, events, learning, and support.'],
