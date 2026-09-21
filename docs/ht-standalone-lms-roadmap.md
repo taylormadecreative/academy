@@ -17,7 +17,7 @@ Success means students can find their next task and get help quickly, instructor
 - Campus events, RSVP/check-in, support requests, staff announcements and aggregate leadership counts.
 - Community posts and replies, one-to-one text messages, unread counts, member search and phone navigation.
 
-The current learning enrollment and classroom membership models are separate. Staff access to learning submissions is broader than course-instructor scope. There is no academic gradebook, weighted grading, assignment deadline model, rich quiz engine or general secure assignment-upload workflow. Those are native product work, not integrations.
+The current learning enrollment and classroom membership models are separate. Legacy pathway reviews retain their existing campus-staff scope; new section assignments and grades use assigned-instructor scope. The first native coursework milestone adds section assignments with deadlines, attempts, extensions and published/draft points-based grading. Weighted grading, a rich quiz engine and general secure assignment uploads remain native product work.
 
 The backend has been tested locally. Hosted activation and real multi-account verification remain required; sample-browser behavior is not evidence of a production deployment.
 
@@ -25,7 +25,7 @@ The backend has been tested locally. Hosted activation and real multi-account ve
 
 ### 1. Complete one native course from enrollment to final grade
 
-Make this the next implementation milestone. Create a course workspace with **Overview, Modules, Assignments, Grades, People and Classroom**, with controls appropriate to the viewer's role.
+Implemented locally in the first milestone; hosted activation and real-account verification remain pending. The course workspace includes **Overview, Modules, Assignments, Grades, People and Classroom**, with controls appropriate to the viewer's role.
 
 - Establish course sections, assigned instructors and enrollments. Define how each section connects to a cohort classroom. A student joining a learning pathway must not silently acquire access to a private classroom or another section's records.
 - Add published assignments with instructions, points possible, availability/due/close dates, student-specific extensions and submission attempts. Start with text and links; add protected file submissions as a separately verified capability.
@@ -75,4 +75,4 @@ Acceptance: a student can find a deadline, ask their class a question, join the 
 
 Present the vision as **a standalone learning and campus platform built around the student journey**. Demonstrate only completed behavior, using clearly labeled sample records. Show one coherent academic workflow alongside community and support; identify planned capabilities explicitly.
 
-The near-term milestone is the native course/assignment/gradebook workflow. Group spaces and My Week follow that academic foundation. The long-term ambition does not depend on another LMS.
+The native course/assignment/gradebook workflow is implemented locally. Instructor tools such as rubrics and weighted grading, then group spaces and My Week, build on that academic foundation. The long-term ambition does not depend on another LMS.

@@ -13,12 +13,14 @@ Product direction: build Taylormade Academy / HT Hub into a standalone LMS and c
 - Server-enforced enrollment, module order, correct knowledge-check answers and staff approval. A credential UUID and completion timestamp are issued only after every requirement is complete. Withdrawing approval clears that completion and dependent progress, and permits dependent assignments to be revised and resubmitted.
 - Leadership receives aggregate counts. The leadership role does not confer access to other students' individual support cases, submissions, attendance, enrollments or messages.
 - Server audit metadata for each successful command, without copying private message or request bodies into the log.
+- Native course sections reuse classroom rosters and assigned instructors. Section assignments support availability/due/close dates, extensions, submission attempts, instructor-only draft feedback, published grades and explicit excused work. Course grades are independent of pathway completion records.
 
 ## Files
 
 - `supabase/migrations/20260921180637_ht_campus_hub.sql`: additive tables, RLS, read/state API and validated command API.
 - `supabase/migrations/20260921193229_ht_cohort_classrooms.sql`: cohorts, rosters, individual session rooms and managed-room authorization.
 - `supabase/migrations/20260921200136_ht_community_messages.sql`: recipient-only inbox read state and direct conversation links in new message notifications.
+- `supabase/migrations/20260921221338_ht_native_coursework.sql`: section coursework, submission history, grade revisions and student-specific deadline extensions.
 - `supabase/seeds/ht-campus-ai-literacy.sql`: optional real three-activity learning pathway. No fictional users, activity, events or requests are inserted.
 - `ht/hub/campus-store.js`: production adapter and explicitly selected demo behavior.
 - `tools/ht-campus-tests/`: pinned local PostgreSQL/PGlite verification and store integration tests.
@@ -121,6 +123,24 @@ New message notifications link to `/ht/hub/messages/?person=<sender UUID>`. Mess
 - State loading currently returns the user's full permitted dataset. Add pagination, incremental synchronization, query/load budgets, retention policies and operational monitoring before large-scale use. The current leadership metrics are lifetime counts; `active_learners` means distinct enrolled members, not activity within a specified time window.
 - Add service-side abuse controls/rate limits and check-in attempt limits before public-scale use. The RPC validates membership, ownership, payload size and requirements, but it is not an anti-spam system.
 - Production backup/restore verification, institutional data governance, security review, accessibility testing and iPhone/live-session rehearsal remain release tasks. No compliance certification is asserted by these local checks.
+
+## Activate native courses and grading in staging
+
+Apply `20260921221338_ht_native_coursework.sql` after the three HT campus, classroom and messaging migrations. Deploy the matching course workspace and store together. No production schema was changed while developing this feature.
+
+Open **Learning → My courses** at `/ht/hub/courses/`. Existing cohorts are the sections for native coursework: their assigned instructor manages assignments and grades, and their active classroom roster determines who can submit. Create sections and enroll members through **Manage classrooms**. Connecting an optional learning pathway supplies reusable lessons; pathway enrollment alone does not grant section coursework access.
+
+The new arrays are `assignments`, `assignment_extensions`, `assignment_attempts` and `assignment_grades`. Writes use checked commands through `ht_campus_command`; direct client writes are denied. New records are restricted to the section instructor/campus administrator and the enrolled student as appropriate. Leadership and unrelated staff cannot see private section work. Historical grade revisions do not expose draft feedback to students.
+
+Points-based course grades use published grades for the latest attempt. Ungraded or resubmitted work remains pending, and excused assignments are excluded. An explicit published zero is different from missing/ungraded work. A final points total is available only after all published assignments are resolved; an empty or entirely excused set has no numeric grade. Publishing or changing these grades does not issue or revoke a learning-pathway completion record.
+
+Grade saves check the expected revision and latest attempt so a stale grading screen cannot silently overwrite newer work. A rejected draft stays intact; **Discard draft & load latest review** explicitly replaces it with the current submission and grade before further review. Assignment points/publication lock once work or grades exist. Availability and closing times are enforced server-side; due dates determine lateness. Student-specific extensions use validated effective deadlines. Times display in the user's local zone and are stored as instants.
+
+Use two real staging accounts to complete the publish → submit → draft grade → publish grade workflow. Verify drafts remain invisible to the learner, timestamps/late work/attempt limits match the rules, extensions reopen eligible work, revoked enrollment blocks old links, and an unrelated instructor cannot read or grade the submission. Local tests exercise these policies, but do not replace hosted Auth/PostgREST verification.
+
+The demo adds native-coursework fixtures to `ht-campus-demo-v2` once, preserving earlier rehearsal activity. Jordan's section starts with a published “Responsible AI project brief”; Morgan also has an unpublished assignment. No completed submission or grade is invented for this demonstration. Reset only that demo key when a fresh rehearsal is needed.
+
+This milestone supports text and HTTPS-link submissions and a points-based gradebook. Weighted categories, reusable rubrics, rich quizzes/question banks, file uploads, formal transcript issuance and course cloning remain roadmap work. See [the academic contract](ht-academic-contract.md) for exact fields and command rules.
 
 
 ## Activate cohort classrooms in staging

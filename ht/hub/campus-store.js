@@ -1,6 +1,8 @@
 /** HT Hub persistence. Explicit demo only; live failures never become sample success. */
 const DEMO_KEY = 'ht-campus-demo-v2';
-const COLLECTIONS = ['announcements','events','rsvps','attendance','courses','modules','enrollments','progress','submissions','requests','responses','posts','replies','likes','members','messages','notifications','cohorts','cohort_members','class_sessions','session_attendance'];
+const BASE_COLLECTIONS = ['announcements','events','rsvps','attendance','courses','modules','enrollments','progress','submissions','requests','responses','posts','replies','likes','members','messages','notifications','cohorts','cohort_members','class_sessions','session_attendance'];
+const ACADEMIC_COLLECTIONS = ['assignments','assignment_extensions','assignment_attempts','assignment_grades'];
+const COLLECTIONS = [...BASE_COLLECTIONS,...ACADEMIC_COLLECTIONS];
 const SETTINGS = {ada_video_url:'',ada_video_poster:'',ada_video_transcript:'',support_email:''};
 const IDS = {instructor:'10000000-0000-4000-8000-000000000008',cohort:'a0000000-0000-4000-8000-000000000001',otherCohort:'a0000000-0000-4000-8000-000000000002',student:'10000000-0000-4000-8000-000000000001',staff:'10000000-0000-4000-8000-000000000002',leadership:'10000000-0000-4000-8000-000000000003',other:'10000000-0000-4000-8000-000000000004',course:'20000000-0000-4000-8000-000000000001',event:'30000000-0000-4000-8000-000000000001'};
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -12,6 +14,35 @@ const choice = (value,values,label) => values.includes(value)?value:fail(`Choose
 const url = value => {const text=String(value??'').trim();if(text&&!/^https:\/\//i.test(text)) fail('Use a secure https:// URL.');return text||null;};
 const datetime = (value,label) => {const d=new Date(value);if(!Number.isFinite(d.getTime())) fail(`Enter a valid ${label}.`);return d.toISOString();};
 const upsert = (rows,data,keys=['id']) => {const old=rows.find(r=>keys.every(k=>r[k]===data[k]));if(old)Object.assign(old,data);else rows.push(data);return old||data;};
+function upgradeAcademics(s,now){
+ for(const key of ACADEMIC_COLLECTIONS)if(!Array.isArray(s[key]))s[key]=[];
+ if(s._academics_version===1)return s;
+ const iso=offset=>new Date(now+offset*60000).toISOString();
+ const assignment=(n,cohort_id,title,instructions,points_possible,max_attempts,status,due,close)=>({id:`d0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id,title,instructions,points_possible,max_attempts,status,opens_at:iso(-60),due_at:iso(due),closes_at:iso(close),created_by:cohort_id===IDS.cohort?IDS.staff:IDS.instructor,created_at:iso(0),updated_at:iso(0)});
+ const seeds=[
+  assignment(1,IDS.cohort,'Responsible AI project brief','Describe a useful campus project, its audience, and a prompt you would use. Include one result you would verify, the source you would consult, and a limitation you would explain. Submit your brief as text or an HTTPS project link. This fictional assignment is separate from pathway completion.',100,3,'published',2880,4320),
+  assignment(2,IDS.cohort,'Evaluate a source and explain your reasoning','Choose a claim from an AI-generated draft. Identify a primary source, explain how you would check the claim, and describe the change you would make. This is an unpublished sample assignment.',50,2,'draft',10080,11520),
+  assignment(3,IDS.otherCohort,'Shape a digital story','Outline a short story about a campus experience. Describe your intended audience, opening scene, and one ethical choice about the people represented. This sample belongs to a separate cohort.',50,2,'published',2880,4320)
+ ];
+ for(const row of seeds)if(s.cohorts.some(c=>c.id===row.cohort_id)&&!s.assignments.some(a=>a.id===row.id))s.assignments.push(row);
+ s._academics_version=1;return s;
+}
+const academicDate=(value,label)=>value==null||value===''?null:datetime(value,label);
+const academicText=(value,label,max=12000)=>{const text=String(value??'');if(text.length>max)fail(`${label} must contain at most ${max} characters.`);return text;};
+const academicNumber=(value,label)=>{if(!['number','string'].includes(typeof value)||String(value).trim()===''||!Number.isFinite(Number(value)))fail(`Enter a valid ${label}.`);return Number(value);};
+function academicDates(opens,due,closes){if(opens&&due&&opens>due||due&&closes&&due>closes||opens&&closes&&opens>closes)fail('Assignment dates must follow open, due, then close.');}
+function academicExtension(a,p){
+ const due_at=academicDate(p.due_at,'extension due date'),closes_at=academicDate(p.closes_at,'extension close date');
+ if(due_at&&(!a.due_at||due_at<a.due_at)||closes_at&&(!a.closes_at||closes_at<a.closes_at))fail('Extensions may lengthen existing deadlines, not shorten or introduce them.');
+ academicDates(a.opens_at,due_at||a.due_at,closes_at||a.closes_at);return {due_at,closes_at};
+}
+function academicLink(value){
+ const text=String(value??'').trim();if(!text)return null;
+ let parsed;try{parsed=new URL(text);}catch{fail('Use a valid HTTPS project link without credentials.');}
+ if(text.length>2000||/[\u0000-\u0020\u007f\\]/.test(text)||!/^https:\/\//i.test(text)||parsed.protocol!=='https:'||!parsed.hostname||parsed.username||parsed.password)fail('Use a valid HTTPS project link without credentials, up to 2000 characters.');
+ const authority=text.slice(8).split(/[/?#]/,1)[0];if(/[@%]/.test(authority))fail('Use a valid HTTPS project link without credentials.');
+ return 'https://'+text.slice(8);
+}
 function fixtures(now) {
  const iso=offset=>new Date(now+offset*60000).toISOString();
  const s=empty();s.version=2;s.created_day=new Date(now).toISOString().slice(0,10);s._codes={[IDS.event]:'HT2026'};s._checks=[];
@@ -37,13 +68,16 @@ function fixtures(now) {
  const session=(n,cohort,title,start,end,extra={})=>({id:`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id:cohort?.id||null,event_id:null,title,description:'Bring one question and a small project idea. We will review a prompt, compare sources, and share our next step.',starts_at:iso(start),ends_at:iso(end),status:'scheduled',audience:cohort?'cohort':'campus',instructor_id:cohort?.instructor_id||IDS.staff,room_id:`c0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,room_slug:`htc-${String(n).padStart(24,'0')}`,is_live:false,recording_url:null,replay_published:false,...extra});
  s.class_sessions=[session(1,s.cohorts[0],'Prompt Lab: From question to useful draft',30,90),session(2,s.cohorts[1],'Story Studio: Shape your opening',30,90),session(3,s.cohorts[0],'Project Clinic: Evaluate and improve',1470,1530),session(4,null,'Campus conversation: Learning with AI',120,180,{event_id:IDS.event}),session(5,s.cohorts[0],'Getting started with responsible AI',-1440,-1380,{replay_published:true})];
  s._session_joins=[];
- return s;
+ return upgradeAcademics(s,now);
 }
 const demoActive=(s,id)=>s.members.some(m=>m.user_id===id&&m.active!==false);
 const demoManager=(s,u,r,c)=>!!c&&demoActive(s,u)&&(r==='admin'||r==='staff'&&c.instructor_id===u);
 const demoCohortVisible=(s,u,r,c)=>demoManager(s,u,r,c)||!!c&&demoActive(s,u)&&['student','staff'].includes(r)&&c.status==='active'&&s.cohort_members.some(m=>m.cohort_id===c.id&&m.user_id===u&&m.active);
 const demoSessionVisible=(s,u,r,x)=>demoActive(s,u)&&(x.audience==='campus'||demoCohortVisible(s,u,r,s.cohorts.find(c=>c.id===x.cohort_id)));
 const demoSessionAllowed=(s,u,r,x)=>demoSessionVisible(s,u,r,x)&&x.status==='scheduled'&&(x.audience==='campus'||s.cohorts.some(c=>c.id===x.cohort_id&&c.status==='active'));
+const academicLearner=(s,u,c)=>!!c&&c.status==='active'&&s.members.some(m=>m.user_id===u&&m.active!==false&&['student','staff'].includes(m.role))&&s.cohort_members.some(m=>m.cohort_id===c.id&&m.user_id===u&&m.active);
+const academicManager=(s,u,r,a)=>demoManager(s,u,r,s.cohorts.find(c=>c.id===a.cohort_id));
+const academicVisible=(s,u,r,a)=>academicManager(s,u,r,a)||a.status==='published'&&academicLearner(s,u,s.cohorts.find(c=>c.id===a.cohort_id));
 function metrics(s){return {members:s.members.length,active_learners:new Set(s.enrollments.map(e=>e.user_id)).size,enrollments:s.enrollments.length,completions:s.enrollments.filter(e=>e.completed_at).length,rsvps:s.rsvps.filter(e=>e.status==='going').length,checkins:s.attendance.length,open_requests:s.requests.filter(r=>r.status!=='resolved').length,unanswered_requests:s.requests.filter(r=>r.status!=='resolved'&&!s.responses.some(a=>a.request_id===r.id&&s.members.some(m=>m.user_id===a.author_id&&['staff','admin'].includes(m.role)))).length,announcements:s.announcements.filter(a=>a.status==='published'&&new Date(a.publish_at)<=new Date()).length};}
 function filterDemo(source,role,now){
  const s=clone(source),u=IDS[role],staff=['staff','admin'].includes(role);s.mode=role?'demo':'guest';s.error=null;s.user=role?{id:u,email:`${role}@example.test`}:null;s.member=s.members.find(m=>m.user_id===u)||null;s.metrics=staff||role==='leadership'?metrics(s):null;
@@ -56,19 +90,68 @@ function filterDemo(source,role,now){
  s.cohorts=s.cohorts.filter(c=>!role?c.id===IDS.cohort:demoCohortVisible(source,u,role,c));
  s.cohort_members=s.cohort_members.filter(m=>!!role&&(demoManager(source,u,role,sourceCohorts.find(c=>c.id===m.cohort_id))||m.user_id===u&&m.active&&s.cohorts.some(c=>c.id===m.cohort_id)));
  s.session_attendance=s.session_attendance.filter(a=>!!role&&s.class_sessions.some(x=>x.id===a.session_id&&(role==='admin'||role==='staff'&&x.instructor_id===u||a.user_id===u)));
+ s.assignments=s.assignments.filter(a=>!!role&&academicVisible(source,u,role,a));
+ for(const key of ['assignment_extensions','assignment_attempts','assignment_grades'])s[key]=s[key].filter(row=>s.assignments.some(a=>a.id===row.assignment_id&&(academicManager(source,u,role,a)||row.user_id===u&&(key!=='assignment_grades'||row.status==='published'))));
  delete s._session_joins;
  if(!role){s.posts=[];s.replies=[];s.likes=[];s.members=[];}
- delete s._codes;delete s._checks;delete s.version;delete s.created_day;return s;
+ delete s._codes;delete s._checks;delete s._academics_version;delete s.version;delete s.created_day;return s;
 }
 function demoCommand(s,role,name,p,now){
  const u=IDS[role],staff=['staff','admin'].includes(role),iso=new Date(now).toISOString();if(!u||!demoActive(s,u))fail('Sign in with an active HT membership to make changes.');
- if(['saveAnnouncement','saveEvent','saveCourse','saveModule','saveSettings','reviewWork','updateRequest','saveCohort','setCohortMember','saveClassSession'].includes(name)&&!staff)fail('Staff access is required.');
+ if(['saveAnnouncement','saveEvent','saveCourse','saveModule','saveSettings','reviewWork','updateRequest','saveCohort','setCohortMember','saveClassSession','saveAssignment','gradeAssignment','setAssignmentExtension'].includes(name)&&!staff)fail('Staff access is required.');
  const find=(key,id)=>s[key].find(x=>x.id===id)||fail('This item is no longer available.');
  const notify=(user_id,title,body,href)=>s.notifications.push({id:uuid(),user_id,title,body,href,read_at:null,created_at:iso});
  const learning=(mid,uid=u)=>{const m=find('modules',mid);if(!s.enrollments.some(e=>e.course_id===m.course_id&&e.user_id===uid))fail('Enroll in this pathway first.');if(s.modules.some(x=>x.course_id===m.course_id&&x.position<m.position&&!s.progress.some(a=>a.module_id===x.id&&a.user_id===uid)))fail('Complete the earlier activities first.');return m;};
  const finish=(cid,uid)=>{const e=s.enrollments.find(e=>e.course_id===cid&&e.user_id===uid),mods=s.modules.filter(m=>m.course_id===cid);if(e){if(mods.length&&mods.every(m=>s.progress.some(p=>p.module_id===m.id&&p.user_id===uid))){e.completed_at||=iso;e.credential_id||=uuid();}else{e.completed_at=null;e.credential_id=null;}}};
  let item,id;
  switch(name){
+ case 'saveAssignment':{
+  id=p.id||uuid();const old=s.assignments.find(a=>a.id===id),cohort=find('cohorts',p.cohort_id);
+  if(cohort.status!=='active'||!demoManager(s,u,role,cohort)||old&&!academicManager(s,u,role,old))fail('Choose an active section you manage.');
+  if(old&&old.cohort_id!==cohort.id)fail('An assignment cannot change its section.');
+  const points_possible=academicNumber(p.points_possible,'points possible'),max_attempts=academicNumber(p.max_attempts??1,'attempt limit'),status=choice(p.status||'draft',['draft','published'],'assignment status');
+  if(points_possible<=0||points_possible>10000)fail('Points possible must be greater than zero and at most 10000.');
+  if(!Number.isInteger(max_attempts)||max_attempts<1||max_attempts>10)fail('The attempt limit must be a whole number from 1 to 10.');
+  const attempts=s.assignment_attempts.filter(x=>x.assignment_id===id);
+  if(old&&(attempts.length||s.assignment_grades.some(x=>x.assignment_id===id))&&(points_possible!==old.points_possible||status!==old.status))fail('Points and publication are locked after submissions or grades exist.');
+  if(attempts.some(x=>x.attempt_no>max_attempts))fail('The attempt limit cannot be below an existing attempt count.');
+  const opens_at=academicDate(p.opens_at,'open date'),due_at=academicDate(p.due_at,'due date'),closes_at=academicDate(p.closes_at,'close date');academicDates(opens_at,due_at,closes_at);
+  const assignment={id,cohort_id:cohort.id,title:required(p.title,'Title',160),instructions:academicText(p.instructions,'Instructions'),points_possible,opens_at,due_at,closes_at,max_attempts,status,created_by:old?.created_by||u,created_at:old?.created_at||iso,updated_at:iso};
+  for(const extension of s.assignment_extensions.filter(x=>x.assignment_id===id))academicExtension(assignment,extension);
+  upsert(s.assignments,assignment);break;}
+ case 'submitAssignment':{
+  const assignment=find('assignments',p.assignment_id),cohort=find('cohorts',assignment.cohort_id);
+  if(assignment.status!=='published'||!academicLearner(s,u,cohort)||cohort.instructor_id===u)fail('This assignment is not available for your current section enrollment.');
+  const extension=s.assignment_extensions.find(x=>x.assignment_id===assignment.id&&x.user_id===u),close=extension?.closes_at||assignment.closes_at;
+  if(assignment.opens_at&&now<new Date(assignment.opens_at).getTime())fail('This assignment has not opened yet.');
+  if(close&&now>new Date(close).getTime())fail('This assignment is closed. Ask your instructor about an extension.');
+  const attempts=s.assignment_attempts.filter(x=>x.assignment_id===assignment.id&&x.user_id===u),attempt_no=Math.max(0,...attempts.map(x=>x.attempt_no))+1;
+  if(attempt_no>assignment.max_attempts)fail('You have used every allowed submission attempt.');
+  const body=academicText(p.body,'Submission'),link_url=academicLink(p.link_url);if(!body.trim()&&!link_url)fail('Add your work or a secure HTTPS project link.');
+  id=uuid();s.assignment_attempts.push({id,assignment_id:assignment.id,user_id:u,attempt_no,body,link_url,submitted_at:iso});break;}
+ case 'gradeAssignment':{
+  const assignment=find('assignments',p.assignment_id),cohort=find('cohorts',assignment.cohort_id);
+  if(cohort.status!=='active'||!academicManager(s,u,role,assignment))fail('Choose an active section you manage.');
+  if(assignment.status!=='published')fail('Publish the assignment before grading.');
+  if(!academicLearner(s,p.user_id,cohort)||p.user_id===u)fail('Choose another active enrolled student or staff learner.');
+  const attempts=s.assignment_attempts.filter(x=>x.assignment_id===assignment.id&&x.user_id===p.user_id).sort((a,b)=>b.attempt_no-a.attempt_no),latest=attempts[0]||null,attempt_id=p.attempt_id||null;
+  if(attempt_id!==(latest?.id||null))fail('Grade the latest submission attempt. Reload before grading.');
+  const revision=Math.max(0,...s.assignment_grades.filter(x=>x.assignment_id===assignment.id&&x.user_id===p.user_id).map(x=>x.revision)),expected=academicNumber(p.expected_revision,'expected grade revision');
+  if(!Number.isInteger(expected)||expected!==revision)fail('The grade changed. Reload before saving another revision.');
+  const disposition=choice(p.disposition,['graded','excused'],'grade disposition'),status=choice(p.status,['draft','published'],'grade status'),feedback=academicText(p.feedback,'Feedback');
+  let score=null;if(disposition==='graded'){score=academicNumber(p.score,'score');if(score<0||score>assignment.points_possible)fail('Score must be between zero and the assignment points possible.');}
+  else if(p.score!=null&&p.score!=='')fail('Excused work cannot have a numeric score.');
+  if(!latest&&disposition==='graded'&&(score!==0||!feedback.trim()))fail('Without a submission, publish or save an explicit zero with explanatory feedback, or excuse the work.');
+  id=uuid();s.assignment_grades.push({id,assignment_id:assignment.id,user_id:p.user_id,attempt_id,score,feedback,disposition,status,revision:revision+1,graded_by:u,created_at:iso,published_at:status==='published'?iso:null});
+  if(status==='published')notify(p.user_id,'Coursework feedback is available',assignment.title,`/ht/hub/courses/?cohort=${cohort.id}&tab=grades`);break;}
+ case 'setAssignmentExtension':{
+  const assignment=find('assignments',p.assignment_id),cohort=find('cohorts',assignment.cohort_id);
+  if(cohort.status!=='active'||!academicManager(s,u,role,assignment))fail('Choose an active section you manage.');
+  if(assignment.status!=='published')fail('Publish the assignment before adding an extension.');
+  if(!academicLearner(s,p.user_id,cohort))fail('Choose an active enrolled student or staff learner.');
+  if(p.clear===true)s.assignment_extensions=s.assignment_extensions.filter(x=>x.assignment_id!==assignment.id||x.user_id!==p.user_id);
+  else upsert(s.assignment_extensions,{assignment_id:assignment.id,user_id:p.user_id,...academicExtension(assignment,p),updated_at:iso},['assignment_id','user_id']);
+  id=assignment.id;break;}
  case 'saveCohort':{
   id=p.id||uuid();const old=s.cohorts.find(c=>c.id===id);if(old&&!demoManager(s,u,role,old))fail('You do not manage this cohort.');
   const instructor=p.instructor_id||old?.instructor_id||u;if(role!=='admin'&&instructor!==u)fail('Only a campus administrator can assign another instructor.');
@@ -145,7 +228,7 @@ export function createCampusStore(options={}) {
  let storage=options.storage;try{storage??=win?.localStorage;}catch{/* memory demo remains usable */}
  let data=null,client=options.client||null,clientPromise=null,destroyed=false,timer=null,authSubscription=null,current=empty(),authEpoch=0,observedUserId,watchingAuth=false;
  const listeners=new Set();const emit=(event={reason:'refresh'})=>{if(!destroyed)listeners.forEach(fn=>fn(event));};
- const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());return data;};
+ const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&BASE_COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());const upgrade=!saved||data._academics_version!==1;upgradeAcademics(data,now());if(upgrade)try{storage?.setItem(DEMO_KEY,JSON.stringify(data));}catch{/* in-memory demonstration */}return data;};
  const watchAuth=sb=>{if(watchingAuth)return;watchingAuth=true;authSubscription=sb.auth.onAuthStateChange?.((event,session)=>{
   const user_id=session?.user?.id||null;
   const identityChanged=event==='SIGNED_OUT'||(observedUserId!==undefined&&user_id!==observedUserId);

@@ -580,7 +580,7 @@
     var isDemo = ['student','staff','leadership'].indexOf(demo) !== -1;
     if (isDemo && ['session','replay','legacy-live'].indexOf(k) !== -1) { location.replace('/ht/hub/live/?demo=' + encodeURIComponent(demo)); return; }
     if (k === 'live' && params.has('k') && !isDemo) k = 'legacy-live';
-    if (['home','learn','events','community','people','spaces','support','staff','insights','live'].indexOf(k) !== -1) {
+    if (['home','courses','learn','events','community','people','spaces','support','staff','insights','live'].indexOf(k) !== -1) {
       import('/ht/hub/campus-app.js' + V).then(function(m){return m.mountCampus(k);}).catch(function(){
         var root=document.getElementById('htRoot');
         if(root)root.innerHTML='<main id="htMain" class="hub-wrap" style="padding-block:60px"><h1>The Hub could not open.</h1><p>Check your connection and reload this page.</p><button class="btn ht" type="button" id="htCampusReload">Try again</button></main>';

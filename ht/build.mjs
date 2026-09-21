@@ -48,7 +48,7 @@ const hash = createHash('sha1')
 /* the class plugins the room loads for HT under the same ?v= (spec 2026-09-17 §2.5), and the replay page's stylesheet */
 for (const n of ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board', 'resources', 'small-groups']) hash.update(stampIn(path.join(ROOT, '..', 'js', 'rtk-' + n + '.js')));
 for (const n of ['reactions', 'warmup', 'roster', 'board', 'help', 'chapters']) hash.update(stampIn(path.join(ROOT, '..', 'css', 'rtk-' + n + '.css')));
-for (const n of ['app.js','store.js','student.js','staff.js','classrooms.js','demo.js','css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
+for (const n of ['app.js','store.js','student.js','staff.js','classrooms.js','academics.js','demo.js','css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
 const V = hash.digest('hex').slice(0, 8);
 const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function shell(key, title, desc, dir) {
@@ -72,6 +72,7 @@ for (const k of present.concat(pages)) { const s = global.HT.spaces[k]; shell(k,
 for (const [key,title,desc] of [
   ['people','People & messages','Connect with your campus community.'],
   ['messages','Messages','Your campus conversations, all in one place.'],
+  ['courses','My courses','Lessons, assignments, instructor feedback, and grades in your course workspace.'],
   ['spaces','Around campus','Find the right office, resource, or opportunity.'],
   ['support','Get help','Ask the campus team for help and follow your request.'],
   ['staff','Staff workspace','Manage announcements, events, learning, and support.'],

@@ -35,7 +35,7 @@
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
 <p>The HT Hub is prepared for Huston-Tillotson University by Taylormade Academy. Sample content for a working session with Institutional Advancement.</p></div>
-<div class="foot-col"><h4>The hub</h4><a href="/ht/hub/">Home</a><a href="/ht/hub/community/">Community</a><a href="/ht/hub/messages/">Messages</a><a href="/ht/hub/events/">Events</a><a href="/ht/hub/live/">Classrooms</a><a href="/ht/hub/learn/">Learn</a></div>
+<div class="foot-col"><h4>The hub</h4><a href="/ht/hub/">Home</a><a href="/ht/hub/community/">Community</a><a href="/ht/hub/messages/">Messages</a><a href="/ht/hub/events/">Events</a><a href="/ht/hub/live/">Classrooms</a><a href="/ht/hub/courses/">Courses</a><a href="/ht/hub/learn/">Learning pathways</a></div>
 <div class="foot-col"><h4>The partnership</h4><a href="/ht/">About</a><a href="/ht/playbook/">The playbook</a><a href="/ht/fund/">Fund a cohort</a><a href="/login/">Sign in</a></div>
 </div>
 <div class="foot-bottom"><span>&copy; 2026 Taylormade Creative. Huston-Tillotson University marks are the property of the University.</span>
