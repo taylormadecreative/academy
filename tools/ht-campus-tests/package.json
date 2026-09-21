@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "playwright": "1.58.2"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node database.test.mjs && node store.test.mjs",
+    "test:views": "node --test ../../tests/ht/campus-student.test.mjs ../../tests/ht/calendar-route.test.mjs",
+    "test:browser": "node ../../tests/ht/campus-app.test.mjs && node ../../tests/ht/campus-staff.test.mjs"
+  }
+}

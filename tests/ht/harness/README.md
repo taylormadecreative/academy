@@ -2,6 +2,8 @@
 
 Run: `python3 -m http.server 8790 --bind 127.0.0.1` from the repo root, then in another
 shell `node tests/ht/harness/ht-room.mjs`.
+To use another local port, run `HT_TEST_BASE_URL=http://127.0.0.1:8871 node tests/ht/harness/ht-room.mjs`. The override also applies to the imported room-module and OPIL scenarios.
+
 Needs `npm i -D playwright` once (not committed to this repo).
 It never touches prod: Supabase and the room kit are stubbed in-browser (`stub-supabase.js`,
 `stub-room-v2.js`); nothing here signs in or reaches a real backend.

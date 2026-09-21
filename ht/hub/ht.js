@@ -252,9 +252,8 @@
 
   /* ---------- page assembly ---------- */
   function tabsHtml(active) {
-    var t = '<a class="ht-tab home' + (active === 'home' ? ' on' : '') + '"' + (active === 'home' ? ' aria-current="page"' : '') + ' href="' + HT.site.hub + '">' + ICONS.home + ' Home</a>';
-    HT.order.forEach(function (k) { var s = HT.spaces[k]; if (!s) return; t += '<a class="ht-tab' + (k === active ? ' on' : '') + '"' + (k === active ? ' aria-current="page"' : '') + ' href="' + esc(HT.site.hub + k + '/') + '">' + esc(s.title) + '</a>'; });
-    return t;
+    var menu = [['home','Today'],['learn','Learning'],['events','Events'],['community','Community'],['spaces','Campus'],['support','Get help'],['live','Live room']];
+    return menu.map(function(item){var k=item[0], on=k===active || (k==='spaces' && !menu.some(function(x){return x[0]===active;}));return '<a class="ht-tab'+(on?' on':'')+'"'+(on?' aria-current="page"':'')+' href="'+esc(HT.site.hub+(k==='home'?'':k+'/'))+'">'+esc(item[1])+'</a>';}).join('');
   }
   function render(key) {
     var space = key === 'home' ? HT.home : HT.spaces[key];
@@ -269,6 +268,18 @@
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
     var body = '<main class="ht-main" id="htMain" tabindex="-1"><div class="hub-wrap"><div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></div></main>';
     root.innerHTML = head + body;
+    /* The reference calendar is read-only; retain the workspace chosen for the
+       return trip without creating or changing any demo records. */
+    if (key === 'calendar') {
+      var demoRole = new URLSearchParams(location.search).get('demo');
+      if (['student', 'staff', 'leadership'].indexOf(demoRole) !== -1) {
+        document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
+          var destination = new URL(a.getAttribute('href'), location.origin);
+          destination.searchParams.set('demo', demoRole);
+          a.setAttribute('href', destination.pathname + destination.search + destination.hash);
+        });
+      }
+    }
     if (!side.length) { var g = root.querySelector('.ht-grid'); if (g) g.style.gridTemplateColumns = 'minmax(0,1fr)'; }
     wire(root, space);
     /* external links leave the hub in a new tab so the demo stays put */
@@ -545,7 +556,8 @@
     if (/[?&]fresh\b/.test(location.search)) clearDemo();
     var bar = document.getElementById('htBar'); if (!bar) return;
     var next = encodeURIComponent(location.pathname);
-    bar.innerHTML = '<div class="wrap"><span><b>Preview</b> · sample content, built for Huston-Tillotson University</span><span class="who"></span></div>';
+    var calendarPage = document.body.getAttribute('data-space') === 'calendar';
+    bar.innerHTML = '<div class="wrap"><span>' + (calendarPage ? '<b>Academic calendar</b> · reference dates from the University’s published calendar' : '<b>Preview</b> · sample content, built for Huston-Tillotson University') + '</span><span class="who"></span></div>';
     if (!window.BM_CONFIG) return;
     import('https://esm.sh/@supabase/supabase-js@2').then(function (m) {
       var sb = m.createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
@@ -562,5 +574,16 @@
   }
 
   window.HTHub = { render: render, boot: boot, esc: esc, icon: icon };
-  document.addEventListener('DOMContentLoaded', function () { var k = document.body.getAttribute('data-space') || 'home'; render(k); boot(); });
+  document.addEventListener('DOMContentLoaded', function () {
+    var k = document.body.getAttribute('data-space') || 'home';
+    if (['home','learn','events','community','people','spaces','support','staff','insights'].indexOf(k) !== -1) {
+      import('/ht/hub/campus-app.js' + V).then(function(m){return m.mountCampus(k);}).catch(function(){
+        var root=document.getElementById('htRoot');
+        if(root)root.innerHTML='<main id="htMain" class="hub-wrap" style="padding-block:60px"><h1>The Hub could not open.</h1><p>Check your connection and reload this page.</p><button class="btn ht" type="button" id="htCampusReload">Try again</button></main>';
+        var b=document.getElementById('htCampusReload');if(b)b.addEventListener('click',function(){location.reload();});
+      });
+      return;
+    }
+    render(k); boot();
+  });
 })();

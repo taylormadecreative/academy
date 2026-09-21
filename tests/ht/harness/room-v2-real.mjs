@@ -6,6 +6,7 @@
 // Nothing here reaches a real backend: the kit's three CDN files, the effects addon and ea-rtk-join are
 // all answered in-browser (the join function on the page's own origin, so no preflight); `sb` is a stub
 // object; the page is a one-line HTML shell on the local server.
+const TEST_BASE_URL = (process.env.HT_TEST_BASE_URL || 'http://127.0.0.1:8790').replace(/\/+$/, '');
 const CORE = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@2.0.2/dist/browser.js';
 const UI_LOADER = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/loader/index.es2017.js';
 const UI_MAIN = 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@2.0.2/dist/index.js';
@@ -59,7 +60,7 @@ import { sb } from '/__harness/sb.js';
 const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=harness');
 window.__states = [];
 window.__mountReal = (mode) => mountRoomV2({
-  mountEl: document.getElementById('rtkMount'), cfg: { FUNCTIONS_BASE: 'http://127.0.0.1:8790/__fn' }, token: 't', sb, user: { id: 'u1' }, mode,
+  mountEl: document.getElementById('rtkMount'), cfg: { FUNCTIONS_BASE: '${TEST_BASE_URL}/__fn' }, token: 't', sb, user: { id: 'u1' }, mode,
   target: { kind: 'room', slug: 'ht', id: 'r-ht', title: 'HT Live', key: 'k' }, facilitator: 'Dr. Gray',
   onState: (st, m, reason) => { window.__states.push(st + (reason ? ':' + reason : '')); },
 }).then((r) => { window.__real = r; return r; });
@@ -71,14 +72,14 @@ export async function realModuleScenarios(b, ok) {
     const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
     const joins = [];
     const cors = { 'Access-Control-Allow-Origin': '*' };
-    await p.route('http://127.0.0.1:8790/__harness/room.html', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: PAGE }));
-    await p.route('http://127.0.0.1:8790/__harness/sb.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
+    await p.route(TEST_BASE_URL + '/__harness/room.html', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: PAGE }));
+    await p.route(TEST_BASE_URL + '/__harness/sb.js', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
     await p.route(CORE, (r) => r.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: KIT }));
     await p.route(UI_LOADER, (r) => r.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: 'export function defineCustomElements() {}' }));
     await p.route(UI_MAIN, (r) => r.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: 'export function provideRtkDesignSystem() {}' }));
     await p.route(VB_ADDON, (r) => r.fulfill({ status: 200, contentType: 'application/javascript', headers: cors, body: 'export default { init: async () => { throw new Error("no effects in the harness"); } };' }));
-    await p.route('http://127.0.0.1:8790/__fn/ea-rtk-join', (r) => { joins.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'tok-' + joins.length, meeting_id: 'meet-1', preset: 'ht-class-host', host: true, name: 'Me' }) }); });
-    await p.goto('http://127.0.0.1:8790/__harness/room.html');
+    await p.route(TEST_BASE_URL + '/__fn/ea-rtk-join', (r) => { joins.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'tok-' + joins.length, meeting_id: 'meet-1', preset: 'ht-class-host', host: true, name: 'Me' }) }); });
+    await p.goto(TEST_BASE_URL + '/__harness/room.html');
     await p.waitForFunction(() => typeof window.__mountReal === 'function');
     return { p, errs, joins };
   };

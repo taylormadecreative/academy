@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import { realModuleScenarios } from './room-v2-real.mjs';   /* the REAL room module against a fake kit client (R1–R3) */
 import { opilScenarios } from './opil-live.mjs';             /* the OPIL live page against the stubbed module (O1–O2) */
+const TEST_BASE_URL = (process.env.HT_TEST_BASE_URL || 'http://127.0.0.1:8790').replace(/\/+$/, '');
 const H = new URL('./', import.meta.url);
 const SB = fs.readFileSync(new URL('stub-supabase.js', H), 'utf8'), R2 = fs.readFileSync(new URL('stub-room-v2.js', H), 'utf8');
 const KEY = 'AbC123_-xyzXYZ0987ab-_';
@@ -29,7 +30,7 @@ async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY, stateFor
   await p.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
   await p.route('**/js/rtk-room-v2.js*', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: R2 }));
   await p.route('**/ea-rtk-record', async r => { rec.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, stopped: true }) }); });
-  await p.goto('http://127.0.0.1:8790' + url);
+  await p.goto(TEST_BASE_URL + url);
   await settle(p);
   return { p, errs, rec };
 }
@@ -65,7 +66,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
 { const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
   ok('remembered key: first load asked with the URL key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
-  await p.goto('http://127.0.0.1:8790/ht/hub/live/'); await settle(p); await p.waitForSelector('.r2-join');
+  await p.goto(TEST_BASE_URL + '/ht/hub/live/'); await settle(p); await p.waitForSelector('.r2-join');
   ok('remembered key: reload without ?k= still asks with the key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
   ok('remembered key: the join target carries it', await p.evaluate(() => window.__mount.target.key === 'AbC123_-xyzXYZ0987ab-_' && window.__mount.mode === 'waiting'));
   ok('remembered key: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
@@ -74,7 +75,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
   await p.addInitScript('window.__db.stateFor = ' + rotated.toString() + ';');   /* the next navigation: the server no longer knows the key */
-  await p.goto('http://127.0.0.1:8790/ht/hub/live/'); await settle(p);
+  await p.goto(TEST_BASE_URL + '/ht/hub/live/'); await settle(p);
   ok('rotated key: asked with the stored key, then again with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY, null]));
   ok('rotated key: forgotten on the device', (await stored(p)) === null);
   ok('rotated key: Almost in., not the dead-link card', (await text(p, '.ht-room-card h3')) === 'Almost in.' && !/isn’t active anymore/.test(await text(p, '.ht-room-card')));
@@ -328,11 +329,11 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   await p.addInitScript((d) => { window.__db = d; window.__calls = []; }, db);
   await p.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
   await p.route('https://embed.cloudflarestream.com/**', r => r.abort());   /* the player SDK is offline here; the page goes on without it */
-  await p.goto('http://127.0.0.1:8790/ht/hub/replay/');
+  await p.goto(TEST_BASE_URL + '/ht/hub/replay/');
   await p.waitForSelector('.rp-chapter', { timeout: 20000 }).catch(() => {});
   ok('10 chapters from the events — this session only, the earlier session\'s event is not a chapter', (await p.locator('.rp-chapter').count()) === 2 && !/Yesterday/.test(await text(p, '.rp-pane[data-pane="chapters"]')), String(await p.locator('.rp-chapter').count()));
   ok('10 the first chapter is 5 minutes in', /5:00/.test(await text(p, '.rp-chapter')), await text(p, '.rp-chapter'));
-  ok('10 the Live tab stays current on the replay page', (await text(p, '.ht-tab.on')) === 'Live', await text(p, '.ht-tab.on'));
+  ok('10 the Live room tab stays current on the replay page', (await text(p, '.ht-tab.on')) === 'Live room' && (await p.getAttribute('.ht-tab.on', 'href')) === '/ht/hub/live/', await text(p, '.ht-tab.on'));
   ok('10 the player iframe uses the /iframe URL', /\/abc123\/iframe/.test(await p.getAttribute('#player iframe', 'src') || ''));
   ok('10 draft chip for the host', /Draft/.test(await text(p, '#now')), await text(p, '#now'));
   await p.click('.rp-tab[data-tab="summary"]'); ok('10 three summary lines and a Make it again button', (await p.locator('.rp-pane[data-pane="summary"] .rp-lines li').count()) === 3 && /Make it again/.test(await text(p, '#make')));
@@ -345,7 +346,7 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   const p2 = await b.newPage({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
   await p2.addInitScript((d) => { window.__db = d; window.__calls = []; }, { ...db, session: null, state: { ...base, is_host: false } });
   await p2.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
-  await p2.goto('http://127.0.0.1:8790/ht/hub/replay/');
+  await p2.goto(TEST_BASE_URL + '/ht/hub/replay/');
   await p2.waitForSelector('#idle a[href^="/login/"]', { timeout: 10000 }).catch(() => {});
   ok('10 signed out: a Sign in link that comes back here', /next=%2Fht%2Fhub%2Freplay%2F/.test(await p2.getAttribute('#idle a', 'href') || ''));
   ok('10 signed out: the class tables were never read', (await p2.evaluate(() => window.__calls.filter(c => c[0] === 'from' && /ea_class_/.test(c[1])).length)) === 0);
@@ -354,7 +355,7 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   const p3 = await b.newPage({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
   await p3.addInitScript((d) => { window.__db = d; window.__calls = []; }, { ...db, state: { ...base, is_host: false, recording_url: null } });
   await p3.route('https://esm.sh/**', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: SB }));
-  await p3.goto('http://127.0.0.1:8790/ht/hub/replay/');
+  await p3.goto(TEST_BASE_URL + '/ht/hub/replay/');
   await p3.waitForFunction(() => /Nothing to watch/.test(document.getElementById('idle').textContent), null, { timeout: 10000 }).catch(() => {});
   ok('10 a non-joiner: "Nothing to watch here yet", and the class tables were never read', /Nothing to watch here yet/.test(await text(p3, '#idle')) && (await p3.evaluate(() => window.__calls.filter(c => c[0] === 'from' && /ea_class_/.test(c[1])).length)) === 0);
   await p3.close(); }

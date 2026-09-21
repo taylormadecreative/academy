@@ -7,6 +7,7 @@
 //   O2 a student in the room whose class is ended from outside the room: the 20 s row poll (shortened here) leaves
 //      the room and shows "Class ended." — nobody is left in a headless meeting.
 import fs from 'node:fs';
+const TEST_BASE_URL = (process.env.HT_TEST_BASE_URL || 'http://127.0.0.1:8790').replace(/\/+$/, '');
 const H = new URL('./', import.meta.url);
 const SB = fs.readFileSync(new URL('stub-supabase-opil.js', H), 'utf8'), R2 = fs.readFileSync(new URL('stub-room-v2.js', H), 'utf8');
 const sess = { user: { id: 'u1', email: 'x@y.z' }, access_token: 't' };
@@ -25,7 +26,7 @@ export async function opilScenarios(b, ok) {
     await p.route('**/js/rtk-room-v2.js*', (r) => r.fulfill({ status: 200, contentType: 'application/javascript', body: R2 }));
     await p.route('**/ea-rtk-record', async (r) => { rec.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, stopped: true, recording_id: 'rec-1', status: 'invoked' }) }); });
     await p.route(/^https:\/\/fonts\./, (r) => r.abort());
-    await p.goto('http://127.0.0.1:8790/opil/hub/live/?s=7');
+    await p.goto(TEST_BASE_URL + '/opil/hub/live/?s=7');
     return { p, errs, rec };
   }
   const text = (p, s) => p.locator(s).first().textContent().then((t) => (t || '').trim());
