@@ -14,6 +14,10 @@ Open `http://127.0.0.1:8871/ht/hub/?demo=student`.
 
 The **View as** selector switches between Student, Staff and Leadership. All three share fictional records in this browser only. The banner stays visible so sample activity cannot be confused with university results. These roles do not grant real account access.
 
+## Optional first-visit orientation
+
+Open **Guide** in the header to demonstrate the new student or staff onboarding. Start with the suggested course action, show one contextual next-step panel, then use **Find any page** to search the entire Hub. Progress counts places explored and stays in this browser. The guide can be skipped, resumed or restarted. See [the onboarding guide](ht-onboarding-guide.md).
+
 ## A nine-minute walkthrough
 
 1. **Today — 45 seconds.** Start with Jordan's personalized workspace. Show the next learning step, upcoming campus event, progress and support. Explain the aim: students should know what to do next and where to get help.
