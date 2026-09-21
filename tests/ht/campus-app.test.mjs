@@ -120,9 +120,9 @@ try {
   assert.equal(new URL(page.url()).pathname,'/ht/hub/');
   assert.equal(new URL(page.url()).searchParams.get('demo'),'staff');
  });
- const routes=[['','student'],['learn','student'],['events','student'],['community','student'],['people','student'],['spaces','student'],['support','student'],['staff','staff'],['insights','leadership']];
+ const routes=[['','student'],['learn','student'],['events','student'],['community','student'],['people','student'],['spaces','student'],['live','student'],['support','student'],['staff','staff'],['insights','leadership']];
  for(const width of [1440,390,320]) {
-  await check(`Nine real routes fit the ${width}px viewport`,async()=>{
+  await check(`Ten real routes fit the ${width}px viewport`,async()=>{
    await page.setViewportSize({width,height:width===1440?1000:844});
    const overflows=[];
    for(const [route,role] of routes){

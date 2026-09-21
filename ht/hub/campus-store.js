@@ -1,8 +1,8 @@
 /** HT Hub persistence. Explicit demo only; live failures never become sample success. */
-const DEMO_KEY = 'ht-campus-demo-v1';
-const COLLECTIONS = ['announcements','events','rsvps','attendance','courses','modules','enrollments','progress','submissions','requests','responses','posts','replies','likes','members','messages','notifications'];
+const DEMO_KEY = 'ht-campus-demo-v2';
+const COLLECTIONS = ['announcements','events','rsvps','attendance','courses','modules','enrollments','progress','submissions','requests','responses','posts','replies','likes','members','messages','notifications','cohorts','cohort_members','class_sessions','session_attendance'];
 const SETTINGS = {ada_video_url:'',ada_video_poster:'',ada_video_transcript:'',support_email:''};
-const IDS = {student:'10000000-0000-4000-8000-000000000001',staff:'10000000-0000-4000-8000-000000000002',leadership:'10000000-0000-4000-8000-000000000003',other:'10000000-0000-4000-8000-000000000004',course:'20000000-0000-4000-8000-000000000001',event:'30000000-0000-4000-8000-000000000001'};
+const IDS = {instructor:'10000000-0000-4000-8000-000000000008',cohort:'a0000000-0000-4000-8000-000000000001',otherCohort:'a0000000-0000-4000-8000-000000000002',student:'10000000-0000-4000-8000-000000000001',staff:'10000000-0000-4000-8000-000000000002',leadership:'10000000-0000-4000-8000-000000000003',other:'10000000-0000-4000-8000-000000000004',course:'20000000-0000-4000-8000-000000000001',event:'30000000-0000-4000-8000-000000000001'};
 const clone = value => JSON.parse(JSON.stringify(value));
 const uuid = () => globalThis.crypto.randomUUID();
 const empty = () => ({mode:'unavailable',user:null,member:null,error:null,...Object.fromEntries(COLLECTIONS.map(k=>[k,[]])),settings:{...SETTINGS},metrics:null});
@@ -14,8 +14,8 @@ const datetime = (value,label) => {const d=new Date(value);if(!Number.isFinite(d
 const upsert = (rows,data,keys=['id']) => {const old=rows.find(r=>keys.every(k=>r[k]===data[k]));if(old)Object.assign(old,data);else rows.push(data);return old||data;};
 function fixtures(now) {
  const iso=offset=>new Date(now+offset*60000).toISOString();
- const s=empty();s.version=1;s.created_day=new Date(now).toISOString().slice(0,10);s._codes={[IDS.event]:'HT2026'};s._checks=[];
- s.members=[{user_id:IDS.student,display_name:'Jordan R.',role:'student'},{user_id:IDS.staff,display_name:'Morgan T.',role:'staff'},{user_id:IDS.leadership,display_name:'Avery W.',role:'leadership'},{user_id:IDS.other,display_name:'Cameron L.',role:'student'}];
+ const s=empty();s.version=2;s.created_day=new Date(now).toISOString().slice(0,10);s._codes={[IDS.event]:'HT2026'};s._checks=[];
+ s.members=[{user_id:IDS.student,display_name:'Jordan R.',role:'student'},{user_id:IDS.staff,display_name:'Morgan T.',role:'staff'},{user_id:IDS.leadership,display_name:'Avery W.',role:'leadership'},{user_id:IDS.other,display_name:'Cameron L.',role:'student'},{user_id:IDS.instructor,display_name:'Riley S.',role:'staff'}].map(m=>({...m,active:true}));
  s.announcements=[{id:'40000000-0000-4000-8000-000000000001',title:'Your next chapter starts here',body:'Explore the AI Literacy pathway, join a campus conversation, and connect with support when you need it. This is an illustrative campus announcement for your demo.',office:'Student Success',audience:'campus',status:'published',publish_at:iso(-180),created_at:iso(-180),author_id:IDS.staff}];
  s.events=[{id:IDS.event,title:'AI Literacy · Open Studio',description:'Bring one question and a project idea. Practice writing a clear prompt, evaluating an AI response, and deciding what to verify. Sample event for demonstration.',office:'Academic Innovation',location:'Innovation Lab · HT campus',starts_at:iso(-15),ends_at:iso(45),capacity:24,status:'published',join_url:null},{id:'30000000-0000-4000-8000-000000000002',title:'Build your next opportunity',description:'A practical career conversation: connect your campus learning with a portfolio story and your next opportunity.',office:'Career Services',location:'Student Center',starts_at:iso(1440),ends_at:iso(1500),capacity:40,status:'published',join_url:null}];
  s.courses=[{id:IDS.course,title:'AI Literacy: From Curiosity to Practice',description:'Build a thoughtful, practical approach to AI. Learn the fundamentals, write a useful prompt, and create a small project with human review.',category:'AI Literacy',status:'published',image_url:null}];
@@ -32,8 +32,18 @@ function fixtures(now) {
  s.posts=[{id:'80000000-0000-4000-8000-000000000001',author_id:IDS.other,channel:'Campus',body:'What is one thing you would like to build with what you learn this semester? I am working on a better study plan.',created_at:iso(-50)}];
  s.messages=[{id:'90000000-0000-4000-8000-000000000001',sender_id:IDS.staff,recipient_id:IDS.student,body:'Welcome, Jordan. The open studio is a good place to bring your first project idea.',created_at:iso(-25),read_at:null}];
  s.notifications=[{id:'91000000-0000-4000-8000-000000000001',user_id:IDS.student,title:'Morgan replied to your request',body:'Open Student support to continue the conversation.',href:'/ht/hub/support/',created_at:iso(-30),read_at:null}];
+ s.cohorts=[{id:IDS.cohort,title:'AI Literacy · First-Year Scholars',description:'A small cohort turning responsible AI practice into useful work, with Morgan as your instructor.',course_id:IDS.course,instructor_id:IDS.staff,status:'active',created_at:iso(-10080)},{id:IDS.otherCohort,title:'Digital Storytelling · Creative Lab',description:'A separate classroom with its own instructor, roster, and session records.',course_id:null,instructor_id:IDS.instructor,status:'active',created_at:iso(-10080)}];
+ s.cohort_members=[{cohort_id:IDS.cohort,user_id:IDS.student,active:true,joined_at:iso(-10080)},{cohort_id:IDS.otherCohort,user_id:IDS.other,active:true,joined_at:iso(-10080)}];
+ const session=(n,cohort,title,start,end,extra={})=>({id:`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id:cohort?.id||null,event_id:null,title,description:'Bring one question and a small project idea. We will review a prompt, compare sources, and share our next step.',starts_at:iso(start),ends_at:iso(end),status:'scheduled',audience:cohort?'cohort':'campus',instructor_id:cohort?.instructor_id||IDS.staff,room_id:`c0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,room_slug:`htc-${String(n).padStart(24,'0')}`,is_live:false,recording_url:null,replay_published:false,...extra});
+ s.class_sessions=[session(1,s.cohorts[0],'Prompt Lab: From question to useful draft',30,90),session(2,s.cohorts[1],'Story Studio: Shape your opening',30,90),session(3,s.cohorts[0],'Project Clinic: Evaluate and improve',1470,1530),session(4,null,'Campus conversation: Learning with AI',120,180,{event_id:IDS.event}),session(5,s.cohorts[0],'Getting started with responsible AI',-1440,-1380,{replay_published:true})];
+ s._session_joins=[];
  return s;
 }
+const demoActive=(s,id)=>s.members.some(m=>m.user_id===id&&m.active!==false);
+const demoManager=(s,u,r,c)=>!!c&&demoActive(s,u)&&(r==='admin'||r==='staff'&&c.instructor_id===u);
+const demoCohortVisible=(s,u,r,c)=>demoManager(s,u,r,c)||!!c&&demoActive(s,u)&&['student','staff'].includes(r)&&c.status==='active'&&s.cohort_members.some(m=>m.cohort_id===c.id&&m.user_id===u&&m.active);
+const demoSessionVisible=(s,u,r,x)=>demoActive(s,u)&&(x.audience==='campus'||demoCohortVisible(s,u,r,s.cohorts.find(c=>c.id===x.cohort_id)));
+const demoSessionAllowed=(s,u,r,x)=>demoSessionVisible(s,u,r,x)&&x.status==='scheduled'&&(x.audience==='campus'||s.cohorts.some(c=>c.id===x.cohort_id&&c.status==='active'));
 function metrics(s){return {members:s.members.length,active_learners:new Set(s.enrollments.map(e=>e.user_id)).size,enrollments:s.enrollments.length,completions:s.enrollments.filter(e=>e.completed_at).length,rsvps:s.rsvps.filter(e=>e.status==='going').length,checkins:s.attendance.length,open_requests:s.requests.filter(r=>r.status!=='resolved').length,unanswered_requests:s.requests.filter(r=>r.status!=='resolved'&&!s.responses.some(a=>a.request_id===r.id&&s.members.some(m=>m.user_id===a.author_id&&['staff','admin'].includes(m.role)))).length,announcements:s.announcements.filter(a=>a.status==='published'&&new Date(a.publish_at)<=new Date()).length};}
 function filterDemo(source,role,now){
  const s=clone(source),u=IDS[role],staff=['staff','admin'].includes(role);s.mode=role?'demo':'guest';s.error=null;s.user=role?{id:u,email:`${role}@example.test`}:null;s.member=s.members.find(m=>m.user_id===u)||null;s.metrics=staff||role==='leadership'?metrics(s):null;
@@ -41,18 +51,52 @@ function filterDemo(source,role,now){
  s.events=s.events.filter(e=>staff||e.status!=='draft');s.courses=s.courses.filter(c=>staff||c.status==='published');s.modules=s.modules.filter(m=>s.courses.some(c=>c.id===m.course_id));
  for(const key of ['rsvps','attendance','enrollments','progress','submissions','requests'])s[key]=s[key].filter(x=>staff||x.user_id===u);
  s.responses=s.responses.filter(a=>s.requests.some(r=>r.id===a.request_id));s.messages=s.messages.filter(m=>m.sender_id===u||m.recipient_id===u);s.notifications=s.notifications.filter(n=>n.user_id===u);
+ const sourceCohorts=s.cohorts;
+ s.class_sessions=s.class_sessions.filter(x=>!role?x.audience==='campus'||x.cohort_id===IDS.cohort:demoSessionVisible(source,u,role,x)).map(x=>({...x,recording_url:role&&demoSessionAllowed(source,u,role,x)&&x.replay_published?x.recording_url:null,replay_published:!!role&&demoSessionAllowed(source,u,role,x)&&x.replay_published}));
+ s.cohorts=s.cohorts.filter(c=>!role?c.id===IDS.cohort:demoCohortVisible(source,u,role,c));
+ s.cohort_members=s.cohort_members.filter(m=>!!role&&(demoManager(source,u,role,sourceCohorts.find(c=>c.id===m.cohort_id))||m.user_id===u&&m.active&&s.cohorts.some(c=>c.id===m.cohort_id)));
+ s.session_attendance=s.session_attendance.filter(a=>!!role&&s.class_sessions.some(x=>x.id===a.session_id&&(role==='admin'||role==='staff'&&x.instructor_id===u||a.user_id===u)));
+ delete s._session_joins;
  if(!role){s.posts=[];s.replies=[];s.likes=[];s.members=[];}
  delete s._codes;delete s._checks;delete s.version;delete s.created_day;return s;
 }
 function demoCommand(s,role,name,p,now){
  const u=IDS[role],staff=['staff','admin'].includes(role),iso=new Date(now).toISOString();if(!u)fail('Sign in with an HT membership to make changes.');
- if(['saveAnnouncement','saveEvent','saveCourse','saveModule','saveSettings','reviewWork','updateRequest'].includes(name)&&!staff)fail('Staff access is required.');
+ if(['saveAnnouncement','saveEvent','saveCourse','saveModule','saveSettings','reviewWork','updateRequest','saveCohort','setCohortMember','saveClassSession'].includes(name)&&!staff)fail('Staff access is required.');
  const find=(key,id)=>s[key].find(x=>x.id===id)||fail('This item is no longer available.');
  const notify=(user_id,title,body,href)=>s.notifications.push({id:uuid(),user_id,title,body,href,read_at:null,created_at:iso});
  const learning=(mid,uid=u)=>{const m=find('modules',mid);if(!s.enrollments.some(e=>e.course_id===m.course_id&&e.user_id===uid))fail('Enroll in this pathway first.');if(s.modules.some(x=>x.course_id===m.course_id&&x.position<m.position&&!s.progress.some(a=>a.module_id===x.id&&a.user_id===uid)))fail('Complete the earlier activities first.');return m;};
  const finish=(cid,uid)=>{const e=s.enrollments.find(e=>e.course_id===cid&&e.user_id===uid),mods=s.modules.filter(m=>m.course_id===cid);if(e){if(mods.length&&mods.every(m=>s.progress.some(p=>p.module_id===m.id&&p.user_id===uid))){e.completed_at||=iso;e.credential_id||=uuid();}else{e.completed_at=null;e.credential_id=null;}}};
  let item,id;
  switch(name){
+ case 'saveCohort':{
+  id=p.id||uuid();const old=s.cohorts.find(c=>c.id===id);if(old&&!demoManager(s,u,role,old))fail('You do not manage this cohort.');
+  const instructor=p.instructor_id||old?.instructor_id||u;if(role!=='admin'&&instructor!==u)fail('Only a campus administrator can assign another instructor.');
+  if(!s.members.some(m=>m.user_id===instructor&&m.active!==false&&['staff','admin'].includes(m.role)))fail('Choose an active staff instructor.');
+  if(p.course_id)find('courses',p.course_id);const status=choice(p.status||'active',['active','archived'],'cohort status');
+  if(old&&old.instructor_id!==instructor&&s.class_sessions.some(x=>x.cohort_id===id))fail('The instructor is locked after sessions are scheduled.');
+  if(status==='archived'&&s.class_sessions.some(x=>x.cohort_id===id&&x.is_live))fail('End the live classroom before archiving this cohort.');
+  upsert(s.cohorts,{id,title:required(p.title,'Title',160),description:String(p.description||''),course_id:p.course_id||null,instructor_id:instructor,status,created_at:old?.created_at||iso});break;}
+ case 'setCohortMember':{
+  const cohort=find('cohorts',p.cohort_id);if(!demoManager(s,u,role,cohort))fail('You do not manage this cohort.');
+  if(!s.members.some(m=>m.user_id===p.user_id&&m.active!==false&&['student','staff'].includes(m.role)))fail('Choose an active campus student or staff member.');
+  const old=s.cohort_members.find(m=>m.cohort_id===cohort.id&&m.user_id===p.user_id);upsert(s.cohort_members,{cohort_id:cohort.id,user_id:p.user_id,active:p.active!==false,joined_at:old?.joined_at||iso},['cohort_id','user_id']);id=cohort.id;break;}
+ case 'saveClassSession':{
+  id=p.id||uuid();const old=s.class_sessions.find(x=>x.id===id);if(old&&!(role==='admin'||old.instructor_id===u))fail('You do not manage this session.');
+  const audience=choice(p.audience,['cohort','campus'],'audience'),cohort_id=p.cohort_id||null,event_id=p.event_id||null;let instructor;
+  if(audience==='cohort'){const cohort=find('cohorts',cohort_id);if(cohort.status!=='active'||!demoManager(s,u,role,cohort))fail('Choose an active cohort you manage.');instructor=cohort.instructor_id;}
+  else {if(cohort_id)fail('A campus session cannot also belong to a cohort.');instructor=p.instructor_id||old?.instructor_id||u;if(role!=='admin'&&instructor!==u)fail('Only an administrator can assign another instructor.');}
+  if(!s.members.some(m=>m.user_id===instructor&&m.active!==false&&['staff','admin'].includes(m.role)))fail('Choose an active staff instructor.');if(event_id)find('events',event_id);
+  if(old&&(old.cohort_id!==cohort_id||old.event_id!==event_id||old.instructor_id!==instructor||old.audience!==audience))fail('A scheduled session cannot change its cohort, event, instructor or audience. Create a separate session.');
+  const starts_at=datetime(p.starts_at,'start time'),ends_at=datetime(p.ends_at,'end time'),status=choice(p.status||'scheduled',['scheduled','cancelled'],'session status');if(ends_at<=starts_at)fail('The end time must be after the start time.');
+  if(old&&status==='cancelled'&&old.is_live)fail('End the live classroom before cancelling the session.');
+  if(old&&(starts_at!==old.starts_at||ends_at!==old.ends_at)&&s.session_attendance.some(a=>a.session_id===id))fail('Session dates are locked after meeting activity begins. Create a new session.');
+  upsert(s.class_sessions,{...old,id,cohort_id,event_id,title:required(p.title,'Title',120),description:String(p.description||''),starts_at,ends_at,status,audience,instructor_id:instructor,room_id:old?.room_id||uuid(),room_slug:old?.room_slug||'htc-'+uuid().replace(/-/g,'').slice(0,24),is_live:old?.is_live||false,recording_url:old?.recording_url||null,replay_published:old?.replay_published||false});break;}
+ case 'demoJoinSession':case 'demoLeaveSession':{
+  const session=find('class_sessions',p.session_id);if(!demoSessionAllowed(s,u,role,session))fail('This session is not available for your current classroom access.');
+  s._session_joins||=[];const joined=s._session_joins.some(a=>a.session_id===session.id&&a.user_id===u);
+  if(name==='demoJoinSession'&&!joined){const old=s.session_attendance.find(a=>a.session_id===session.id&&a.user_id===u);upsert(s.session_attendance,{session_id:session.id,user_id:u,first_joined_at:old?.first_joined_at||iso,last_joined_at:iso,joins:(old?.joins||0)+1},['session_id','user_id']);s._session_joins.push({session_id:session.id,user_id:u});}
+  if(name==='demoLeaveSession')s._session_joins=s._session_joins.filter(a=>a.session_id!==session.id||a.user_id!==u);id=session.id;break;}
  case 'rsvp':{
   const e=find('events',p.event_id),status=choice(p.status||'going',['going','cancelled'],'RSVP status');if(e.status!=='published')fail('This event is not available.');if(status==='going'&&new Date(e.ends_at).getTime()<now)fail('This event has ended.');
   if(status==='going'&&e.capacity&&!s.rsvps.some(r=>r.event_id===e.id&&r.user_id===u&&r.status==='going')&&s.rsvps.filter(r=>r.event_id===e.id&&r.status==='going').length>=e.capacity)fail('This event is full.');upsert(s.rsvps,{event_id:e.id,user_id:u,status,created_at:iso},['event_id','user_id']);break;}
@@ -95,7 +139,7 @@ export function createCampusStore(options={}) {
  let storage=options.storage;try{storage??=win?.localStorage;}catch{/* memory demo remains usable */}
  let data=null,client=options.client||null,clientPromise=null,destroyed=false,timer=null,authSubscription=null,current=empty(),authEpoch=0,observedUserId,watchingAuth=false;
  const listeners=new Set();const emit=(event={reason:'refresh'})=>{if(!destroyed)listeners.forEach(fn=>fn(event));};
- const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===1&&COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());return data;};
+ const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());return data;};
  const watchAuth=sb=>{if(watchingAuth)return;watchingAuth=true;authSubscription=sb.auth.onAuthStateChange?.((event,session)=>{
   const user_id=session?.user?.id||null;
   const identityChanged=event==='SIGNED_OUT'||(observedUserId!==undefined&&user_id!==observedUserId);

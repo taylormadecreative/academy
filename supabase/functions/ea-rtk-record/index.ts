@@ -9,7 +9,7 @@
 // SUPABASE_SERVICE_ROLE_KEY. Deploy: --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
-import { handleRecord, type RecordBody } from "./handler.ts";
+import { handleRecord, type RecordBody, type ClassroomAccess } from "./handler.ts";
 import { handleEvent } from "../ea-rtk-webhook/handler.ts";
 import { replayDeps } from "../_shared/replay_deps.ts";
 
@@ -43,6 +43,11 @@ Deno.serve(async (req: Request) => {
   try { body = await req.json(); } catch (_) { /* handler answers bad_action */ }
 
   const reply = await handleRecord(body, { user: who.user, role: who.role, academyAdmin: who.academyAdmin, functionsBase: url + "/functions/v1" }, {
+    classroomAccess: async (slug) => {
+      const { data, error } = await who.asUser.rpc("ht_classroom_access", { p_slug: slug });
+      if (error) throw new Error("Classroom authorization is unavailable.");
+      return data as ClassroomAccess | null;
+    },
     getSession: async (no) => {
       const { data } = await admin.from("ea_opil_sessions").select("no, title, stream_url, is_live").eq("no", no).maybeSingle();
       return data ?? null;
@@ -78,16 +83,14 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.from("ea_rooms").select("id, meeting_id, host_emails").eq("slug", slug).maybeSingle();
       return data ?? null;
     },
-    roomMeetingIds: async () => {
-      /* both reads fail soft: before 0036 exists the tables are missing, data is null, the set is
-         empty and OPIL behaves exactly as today */
+    roomMeetingIds: async (meetingId) => {
+      /* The OPIL path must not operate on a campus meeting when either lookup fails. */
       const ids = new Set<string>();
       const [rooms, replays] = await Promise.all([
-        admin.from("ea_rooms").select("meeting_id").not("meeting_id", "is", null),
-        admin.from("ea_room_replays").select("meeting_id"),
+        admin.from("ea_rooms").select("meeting_id").eq("meeting_id", meetingId).limit(1),
+        admin.from("ea_room_replays").select("meeting_id").eq("meeting_id", meetingId).limit(1),
       ]);
-      if (rooms.error) console.error("[ea-rtk-record] ea_rooms", rooms.error.message);
-      if (replays.error) console.error("[ea-rtk-record] ea_room_replays", replays.error.message);
+      if (rooms.error || replays.error) throw new Error("Classroom meeting isolation could not be verified.");
       for (const r of rooms.data || []) if (typeof r.meeting_id === "string") ids.add(r.meeting_id);
       for (const r of replays.data || []) if (typeof r.meeting_id === "string") ids.add(r.meeting_id);
       return ids;

@@ -252,7 +252,7 @@
 
   /* ---------- page assembly ---------- */
   function tabsHtml(active) {
-    var menu = [['home','Today'],['learn','Learning'],['events','Events'],['community','Community'],['spaces','Campus'],['support','Get help'],['live','Live room']];
+    var menu = [['home','Today'],['learn','Learning'],['events','Events'],['community','Community'],['spaces','Campus'],['support','Get help'],['live','Classrooms']];
     return menu.map(function(item){var k=item[0], on=k===active || (k==='spaces' && !menu.some(function(x){return x[0]===active;}));return '<a class="ht-tab'+(on?' on':'')+'"'+(on?' aria-current="page"':'')+' href="'+esc(HT.site.hub+(k==='home'?'':k+'/'))+'">'+esc(item[1])+'</a>';}).join('');
   }
   function render(key) {
@@ -557,7 +557,8 @@
     var bar = document.getElementById('htBar'); if (!bar) return;
     var next = encodeURIComponent(location.pathname);
     var calendarPage = document.body.getAttribute('data-space') === 'calendar';
-    bar.innerHTML = '<div class="wrap"><span>' + (calendarPage ? '<b>Academic calendar</b> · reference dates from the University’s published calendar' : '<b>Preview</b> · sample content, built for Huston-Tillotson University') + '</span><span class="who"></span></div>';
+    var sessionPage = ['session','replay'].indexOf(document.body.getAttribute('data-space')) !== -1 && /^htc-[a-f0-9]{24}$/.test(new URLSearchParams(location.search).get('room') || '');
+    bar.innerHTML = '<div class="wrap"><span>' + (sessionPage ? '<b>HT classroom</b> · access follows this session’s campus and cohort membership' : calendarPage ? '<b>Academic calendar</b> · reference dates from the University’s published calendar' : '<b>Preview</b> · sample content, built for Huston-Tillotson University') + '</span><span class="who"></span></div>';
     if (!window.BM_CONFIG) return;
     import('https://esm.sh/@supabase/supabase-js@2').then(function (m) {
       var sb = m.createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
@@ -576,7 +577,11 @@
   window.HTHub = { render: render, boot: boot, esc: esc, icon: icon };
   document.addEventListener('DOMContentLoaded', function () {
     var k = document.body.getAttribute('data-space') || 'home';
-    if (['home','learn','events','community','people','spaces','support','staff','insights'].indexOf(k) !== -1) {
+    var params = new URLSearchParams(location.search), demo = params.get('demo');
+    var isDemo = ['student','staff','leadership'].indexOf(demo) !== -1;
+    if (isDemo && ['session','replay','legacy-live'].indexOf(k) !== -1) { location.replace('/ht/hub/live/?demo=' + encodeURIComponent(demo)); return; }
+    if (k === 'live' && params.has('k') && !isDemo) k = 'legacy-live';
+    if (['home','learn','events','community','people','spaces','support','staff','insights','live'].indexOf(k) !== -1) {
       import('/ht/hub/campus-app.js' + V).then(function(m){return m.mountCampus(k);}).catch(function(){
         var root=document.getElementById('htRoot');
         if(root)root.innerHTML='<main id="htMain" class="hub-wrap" style="padding-block:60px"><h1>The Hub could not open.</h1><p>Check your connection and reload this page.</p><button class="btn ht" type="button" id="htCampusReload">Try again</button></main>';

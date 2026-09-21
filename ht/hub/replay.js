@@ -4,7 +4,6 @@
    (spec 2026-09-17-ht-hub-demo-ready-design.md §2.2). Hosts see the newest ready replay (a draft until it
    is published); everyone else the published one — and only if they were in the room: ea_room_state hands
    recording_url to hosts and past joiners alone, and 0044's transcript rule says the same for the words. */
-const SLUG = 'ht';
 const V = new URL(import.meta.url).search;   /* our own ?v= — the HT build stamp from ht/build.mjs */
 
 /* the lesson card's stylesheet first, so nothing paints unstyled */
@@ -28,9 +27,33 @@ const roomWords = (t) => String(t == null ? '' : t)
   .replace(/the program team/gi, 'a host').replace(/this class/g, 'this session').replace(/which class/g, 'which session').replace(/after class/g, 'after the session');
 const root = document.getElementById('htReplay');
 if (!root || !window.BM_CONFIG) throw new Error('replay block or config missing');
+const { classroomContext, classroomLogin, validateClassroomAccess } = await import('/ht/hub/classroom-context.js' + V);
+let classroom;
+try { classroom = classroomContext(location.pathname, location.search, !new URLSearchParams(location.search).has('room')); }
+catch (error) { root.innerHTML = '<p>' + esc(error.message) + '</p><a href="/ht/hub/live/">Classrooms &amp; live sessions</a>'; throw error; }
+const SLUG = classroom.slug;
+document.querySelectorAll('a[href^="/login/"]').forEach(a => a.setAttribute('href', classroomLogin(classroom, true)));
+
 const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
 const user = (await sb.auth.getSession()).data.session?.user || null;
-const { data: state, error: stateErr } = await sb.rpc('ea_room_state', { p_key: null, p_slug: SLUG });
+let state = null, stateErr = null;
+try {
+  let access = null;
+  if (classroom.managed && user) {
+    const result = await sb.rpc('ht_classroom_access', { p_slug: SLUG });
+    if (result.error || !result.data || result.data.managed !== true) throw new Error('Classroom access could not be verified. Please try again.');
+    access = result.data;
+    if (!validateClassroomAccess(access)) throw new Error('This session is not available to your campus account.');
+  }
+  if (!classroom.managed || user) {
+    const result = await sb.rpc('ea_room_state', { p_key: null, p_slug: SLUG });
+    if (result.error) throw result.error;
+    state = result.data;
+    if (classroom.managed && (!state?.id || !validateClassroomAccess(access, state.id))) throw new Error('This classroom could not be verified.');
+    if (classroom.managed) state = { ...state, is_host: access.is_host === true };
+  }
+} catch (error) { state = null; stateErr = error; }
+
 
 root.innerHTML = `<div class="rp-grid">
   <div>
@@ -79,15 +102,15 @@ const emptyPanes = (text) => root.querySelectorAll('.rp-pane').forEach((p) => { 
    module import, and ht.js would log it as a failure to load) */
 async function page() {
 /* ---- who may see what ---- */
+if (!user) {
+  idle('Sign in to watch the replay', 'Use your approved campus account to return to this session.',
+    `<a class="btn ht-gold" style="margin-top:14px" href="${esc(classroomLogin(classroom, true))}">Sign in</a>`);
+  emptyPanes('Sign in to see the chapters, the summary, the files and the transcript.');
+  return;
+}
 if (!state || !state.id) {
   idle('The replay page could not load', stateErr && stateErr.message ? stateErr.message : 'Reload to try again.');
   emptyPanes('Nothing to show until the page loads.');
-  return;
-}
-if (!user) {
-  idle('Sign in to watch the replay', 'Use the email you joined with. We send a six-digit code, no password.',
-    `<a class="btn ht-gold" style="margin-top:14px" href="/login/?next=${encodeURIComponent('/ht/hub/replay/')}">Sign in</a>`);
-  emptyPanes('Sign in to see the chapters, the summary, the files and the transcript.');
   return;
 }
 const key = 'room:' + state.id, staff = !!state.is_host;
@@ -105,7 +128,7 @@ if (staff) {
 if (!replay) {
   idle(staff ? 'No replay yet' : 'Nothing to watch here yet',
     staff ? 'A session records itself. Its replay lands on the Live space to review and publish, and here with its chapters.'
-          : 'Replays show here for the people who were in the room, once the host publishes the session.');
+          : classroom.managed ? 'Your instructor can publish this recording for authorized classroom members to review.' : 'Replays show here for the people who were in the room, once the host publishes the session.');
   if (!staff) { emptyPanes('The chapters, the summary, the files and the transcript arrive with the published replay.'); return; }
 }
 /* the session's window: a standing room files every session under ONE key for the life of the room, so only the
@@ -190,7 +213,7 @@ paintChapters();
 /* summary + assigned (a host may make it; ea-class-summary answers room keys) */
 let busy = false;
 /* Publish on the room card asked for the summary moments ago (room.js): say so, and look again in a little while */
-let pendingSince = 0; try { pendingSince = Number(sessionStorage.getItem('ht-summary-pending')) || 0; } catch (e) {}
+let pendingSince = 0; try { pendingSince = Number(sessionStorage.getItem(classroom.summaryStorageKey)) || 0; } catch (e) {}
 const summaryPending = () => staff && !summaryRow && pendingSince && Date.now() - pendingSince < 3 * 60e3;
 if (summaryPending()) setTimeout(async () => { try { const { data } = await sb.from('ea_class_summaries').select('summary, assignments, chapters, updated_at').eq('room_key', key).maybeSingle(); if (data) { summaryRow = data; pendingSince = 0; paintSummary(); } } catch (e) {} }, 45e3);
 function paintSummary() {

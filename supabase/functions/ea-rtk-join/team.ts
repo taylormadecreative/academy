@@ -27,6 +27,7 @@ export type TeamDeps = {
   rateCheck: (key: string, max: number, windowSecs: number) => Promise<boolean | null>;   /* null = limiter unavailable → allowed */
   getTeam: (teamId: string) => Promise<TeamRow | null>;                  /* service role */
   isMember: (teamId: string) => Promise<boolean>;                         /* this caller sits in ea_opil_team_members for that team */
+  roomMeetingIds: (meetingId: string) => Promise<Set<string>>;            /* exact meeting lookup; any room meeting is never a team meeting */
   /* store meeting_id + room_open_since = now() ONLY IF the row still holds expectPrev (null = no meeting yet);
      answers with the id the row holds after the call — ours when the write landed, the other person's when
      they got there first (index.ts re-reads the row on a no-row update). Service role. */
@@ -88,6 +89,14 @@ export async function handleTeamJoin(body: TeamBody, ctx: Caller, deps: TeamDeps
   let meetingId: string | null = typeof team.meeting_id === "string" && team.meeting_id ? team.meeting_id : null;
   let fresh = false;
   if (!meetingId) { const r = await mint(null); if (typeof r !== "string") return r; meetingId = r; fresh = true; }
+  /* A team row, including a concurrent store's winning value, cannot grant entry to a
+     protected classroom. Recheck the exact target before each participant token request. */
+  const isolationError = async (): Promise<Reply | null> => {
+    try { return (await deps.roomMeetingIds(meetingId!)).has(meetingId!) ? { status: 403, body: { error: "not_allowed" } } : null; }
+    catch { return { status: 503, body: { error: "classroom_unavailable" } }; }
+  };
+  let denied = await isolationError();
+  if (denied) return denied;
   /* 5 — one participant per person; custom_participant_id is the Supabase uid, never an email */
   const name = String((await deps.displayName(uid)) || (ctx.user.email || "Teammate").split("@")[0]).slice(0, 60);
   const add = () => deps.cf("POST", `/meetings/${meetingId}/participants`, { custom_participant_id: uid, preset_name: TEAM_PRESET, name });
@@ -99,6 +108,8 @@ export async function handleTeamJoin(body: TeamBody, ctx: Caller, deps: TeamDeps
     if (!meetingIsGone(got)) return { status: 502, body: { error: "cloudflare_" + added.status } };
     console.warn("[ea-rtk-join] team meeting gone, minting a new one", teamId, meetingId, added.status);
     const r = await mint(meetingId); if (typeof r !== "string") return r; meetingId = r; fresh = true;
+    denied = await isolationError();
+    if (denied) return denied;
     added = await add();
   }
   if (!added.ok) return { status: 502, body: { error: "cloudflare_" + added.status } };

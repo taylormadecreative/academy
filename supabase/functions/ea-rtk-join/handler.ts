@@ -30,7 +30,11 @@ export type RoomRow = {
   open_door?: boolean;   /* 0038: any signed-in account may enter while the class runs (ht); the key is not the gate */
 };
 export type CfResult = { ok: boolean; status: number; data: unknown };
+export type ClassroomAccess = { managed: boolean; can_join: boolean; is_host: boolean; room_id: string | null };
 export type JoinDeps = {
+  classroomAccess?: (slug: string) => Promise<ClassroomAccess | null>; // caller-scoped; managed rooms fail closed when absent
+  claimClassroomMeeting?: (roomId: string, meetingId: string, previousMeetingId: string | null) => Promise<string | null>; // atomic compare-and-set; returns the live winner
+
   cf: (method: "GET" | "POST" | "PUT" | "PATCH", path: string, body?: unknown) => Promise<CfResult>;
   rateCheck: (key: string, max: number, windowSecs: number) => Promise<boolean | null>;   /* null = limiter unavailable → treat as allowed */
   getSession: (no: number) => Promise<SessionRow | null>;      /* OPIL row, service role */
@@ -38,7 +42,7 @@ export type JoinDeps = {
   isMember: () => Promise<boolean>;                             /* rpc ea_is_member AS CALLER */
   getRoom: (slug: string) => Promise<RoomRow | null>;           /* by slug, service role */
   setRoomMeeting: (roomId: string, meetingId: string) => Promise<void>;   /* service role update */
-  roomMeetingIds: () => Promise<Set<string>>;                   /* ea_rooms.meeting_id ∪ ea_room_replays.meeting_id (non-null) */
+  roomMeetingIds: (meetingId: string) => Promise<Set<string>>;   /* exact meeting lookup in ea_rooms and ea_room_replays */
   upsertMember: (roomId: string, userId: string) => Promise<void>;
   displayName: (userId: string) => Promise<string | null>;      /* ea_profiles.display_name */
   ensurePresets: (hostPreset: string, guestPreset: string) => Promise<void>;
@@ -91,7 +95,9 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
 
   // The Academy room's meeting is never an OPIL class: a facilitator who points a session's
   // stream_url at it gets nothing, whatever their OPIL role.
-  if ((await deps.roomMeetingIds()).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
+  try {
+    if ((await deps.roomMeetingIds(meetingId)).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
+  } catch { return { status: 503, body: { error: "classroom_unavailable" } }; }
 
   // A host join is the moment to make sure Cloudflare's OPIL presets match the committed ones
   // (9/15: opil-student / opil-judge transcribe now). Never throws, cached once right — rtk_presets.ts.
@@ -126,17 +132,28 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
   /* 1 — rate limit, fail-open (null = the limiter is down → allowed), before any Cloudflare call */
   if ((await deps.rateCheck("rtk-join:u:" + uid, 30, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   if ((await deps.rateCheck("rtk-join:ip:" + ctx.ip, 90, 600)) === false) return { status: 429, body: { error: "slow_down" } };
+  // Managed HT sessions earn access exclusively from the caller-scoped institutional bridge.
+  const managed = slug.startsWith("htc-");
+  let access: ClassroomAccess | null = null;
+  if (managed) {
+    if (!deps.classroomAccess) return { status: 503, body: { error: "classroom_unavailable" } };
+    try { access = await deps.classroomAccess(slug); }
+    catch { return { status: 503, body: { error: "classroom_unavailable" } }; }
+    if (!access || access.managed !== true) return { status: 503, body: { error: "classroom_unavailable" } };
+    if (access.can_join !== true || !access.room_id) return { status: 403, body: { error: "not_allowed" } };
+  }
   /* 2 — the room */
   const room = await deps.getRoom(slug);
   if (!room) return { status: 503, body: { error: "rtk_not_configured" } };
+  if (managed && room.id !== access!.room_id) return { status: 403, body: { error: "not_allowed" } };
   /* 3 — who is this: the Academy admin, a listed host, a member (Academy room only), or someone holding the current link */
   const email = (ctx.user.email || "").trim().toLowerCase();
-  const isHost = ctx.academyAdmin || (email !== "" && (room.host_emails || []).some((e) => String(e || "").trim().toLowerCase() === email));
+  const isHost = managed ? access!.is_host === true : ctx.academyAdmin || (email !== "" && (room.host_emails || []).some((e) => String(e || "").trim().toLowerCase() === email));
   const key = typeof body.key === "string" ? body.key : "";
   const keyGiven = key.trim() !== "";
   /* a malformed key (wrong length/charset — e.g. a truncated paste) is still a dead link, not "no key" */
   const keyOk = keyGiven && KEY_RX.test(key) && key === room.link_key;
-  if (!isHost) {
+  if (!isHost && !managed) {
     /* an open-door room (ht, 0038) admits any signed-in account — the link is how they found the
        page, not the gate (Nelson, 9/15: "anyone should be able to enter the room once signed in");
        a wrong key on such a room is not a dead link either. The Academy room keeps open_door false. */
@@ -157,8 +174,9 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
   let meetingId: string | null = room.meeting_id;
   let fresh = false;
   if (isHost && (!room.is_live || !meetingId)) {
+    if (managed && !deps.claimClassroomMeeting) return { status: 503, body: { error: "classroom_unavailable" } };
     /* the title people see in the dashboard: room.title is cut first so the date always survives the 80-char cap */
-    const prefix = (slug === "academy" ? "Academy" : slug.toUpperCase()) + " · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
+    const prefix = (managed ? "HT classroom" : slug === "academy" ? "Academy" : slug.toUpperCase()) + " · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
     const title = prefix + String(room.title || "").slice(0, 80 - prefix.length - suffix.length) + suffix;
     const made = await deps.cf("POST", "/meetings", { title, persist_chat: false });
     if (!made.ok) return { status: 502, body: { error: "cloudflare_" + made.status } };
@@ -183,13 +201,30 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
   const preset = isHost ? room.host_preset : room.guest_preset;
   const added = await deps.cf("POST", `/meetings/${meetingId}/participants`, { custom_participant_id: uid, preset_name: preset, name });
   if (!added.ok) return { status: 502, body: { error: "cloudflare_" + added.status } };
-  const token = ((added.data || {}) as Record<string, unknown>).token;
+  let token = ((added.data || {}) as Record<string, unknown>).token;
   /* 9 — Nelson is in: NOW the row goes live (meeting_id, is_live, live_since — server time), and the previous
      meeting closes so a token from last time opens nothing, not even an empty billable session. The PATCH
      is best effort but never silent: T10 reads this log line to confirm invariant 10 on prod. */
   if (fresh) {
-    await deps.setRoomMeeting(room.id, meetingId);
-    if (room.meeting_id) {
+    let claimed = true;
+    if (managed) {
+      const minted = meetingId;
+      let winner: string | null = null;
+      try { winner = await deps.claimClassroomMeeting!(room.id, minted, room.meeting_id); }
+      catch { /* fail closed, retiring the unused meeting below */ }
+      if (winner !== minted) {
+        const off = await deps.cf("PATCH", `/meetings/${minted}`, { status: "INACTIVE" }).catch(() => ({ ok: false, status: 0, data: null }));
+        if (!off.ok) console.warn("[ea-rtk-join] unused classroom meeting not inactivated", minted, off.status);
+        if (!winner) return { status: 503, body: { error: "classroom_unavailable" } };
+        // Another host won the atomic store. Both hosts enter that persisted meeting.
+        meetingId = winner;
+        const joined = await deps.cf("POST", `/meetings/${winner}/participants`, { custom_participant_id: uid, preset_name: preset, name });
+        if (!joined.ok) return { status: 502, body: { error: "cloudflare_" + joined.status } };
+        token = ((joined.data || {}) as Record<string, unknown>).token;
+        claimed = false;
+      }
+    } else await deps.setRoomMeeting(room.id, meetingId);
+    if (claimed && room.meeting_id) {
       const off = await deps.cf("PATCH", `/meetings/${room.meeting_id}`, { status: "INACTIVE" }).catch((e) => ({ ok: false, status: 0, data: String(e) }));
       if (!off.ok) console.warn("[ea-rtk-join] previous meeting not inactivated", room.meeting_id, off.status);
     }

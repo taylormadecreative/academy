@@ -34,6 +34,7 @@ function deps(over: Partial<TeamDeps> = {}) {
       : id === T_TEAM ? { id, name: "Team Aeero", meeting_id: null, room_open_since: null }
       : null,
     isMember: async (id) => id !== "nope" && false,
+    roomMeetingIds: async () => new Set(),
     setTeamMeeting: async (teamId, meetingId, expectPrev) => { stored.push({ teamId, meetingId, expectPrev }); return meetingId; },
     displayName: async () => null,
     ensureOpilPresets: async () => {},
@@ -50,6 +51,40 @@ function deps(over: Partial<TeamDeps> = {}) {
 const member = (over: Partial<TeamDeps> = {}) => deps({ isMember: async (id) => id === T_NEW || id === T_OLD || id === T_TEAM, ...over });
 const err = (r: { body: unknown }) => (r.body as { error: string }).error;
 const participantPosts = (d: { calls: { method: string; path: string }[] }) => d.calls.filter((c) => c.method === "POST" && c.path.endsWith("/participants"));
+
+Deno.test("team participant tokens never enter protected room meetings for any team or admin role", async () => {
+  for (const who of [MEMBER, COORD, JUDGE, FAC, NELSON]) {
+    const d = member({roomMeetingIds: async () => new Set(["meet-old"])});
+    assertEquals((await handleTeamJoin({team:T_OLD},who,d)).status,403);
+    assertEquals(d.calls,[]);
+  }
+});
+Deno.test("team room isolation fails closed when the lookup throws or is missing", async () => {
+  for (const lookup of [async () => {throw new Error("database unavailable");},undefined]) {
+    const d = member();
+    (d as unknown as {roomMeetingIds:unknown}).roomMeetingIds=lookup;
+    assertEquals((await handleTeamJoin({team:T_OLD},MEMBER,d)).status,503);
+    assertEquals(d.calls,[]);
+  }
+});
+Deno.test("a new team meeting cannot use a protected concurrent-store winner", async () => {
+  const lookedUp:string[]=[];
+  const d = member({roomMeetingIds: async id => {lookedUp.push(id);return new Set(["protected"]);},setTeamMeeting:async()=>"protected"});
+  assertEquals((await handleTeamJoin({team:T_NEW},MEMBER,d)).status,403);
+  assertEquals(participantPosts(d),[]);assertEquals(lookedUp,["protected"]);
+});
+Deno.test("a replacement team meeting rechecks a protected concurrent-store winner before another token", async () => {
+  const d = member({
+    roomMeetingIds:async()=>new Set(["protected"]),setTeamMeeting:async()=>"protected",
+    cf:async(method,path,body)=>{
+      d.calls.push({method,path,body});
+      if(path==="/meetings")return {ok:true,status:200,data:{id:"minted"}};
+      return {ok:false,status:404,data:{}};
+    },
+  });
+  assertEquals((await handleTeamJoin({team:T_OLD},MEMBER,d)).status,403);
+  assertEquals(participantPosts(d).map(x=>x.path),["/meetings/meet-old/participants"]);
+});
 
 Deno.test("the constants the room relies on", () => {
   assertEquals(TEAM_PRESET, "opil-student");

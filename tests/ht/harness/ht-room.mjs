@@ -19,7 +19,7 @@ const settle = (p) => p.waitForFunction(() => !document.querySelector('.ht-room-
    it reads window.__db, which every navigation of the page rebuilds from `db`.
    seed: an {k, t} planted under localStorage 'ht-room-key' before the page runs — a key this
    device remembered on an earlier visit. */
-async function page(db, { width = 1280, url = '/ht/hub/live/?k=' + KEY, stateFor = null, seed = null, pollMs = 0 } = {}) {
+async function page(db, { width = 1280, url = '/ht/hub/legacy-live/?k=' + KEY, stateFor = null, seed = null, pollMs = 0 } = {}) {
   const p = await b.newPage({ viewport: { width, height: 900 }, serviceWorkers: 'block' });
   const errs = []; p.on('pageerror', e => errs.push(String(e)));
   const rec = [];
@@ -52,7 +52,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   ok('dead link card', /isn’t active anymore/.test(await text(p, '.ht-room-card h3')));
   ok('dead link in the URL: asked once, with the key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY])); await p.close(); }
 /* 3 (b) signed in, no key, never joined → "Almost in." with the invitation-link line; the live line only when live */
-{ const { p, errs } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
+{ const { p, errs } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/legacy-live/' });
   const t = await text(p, '.ht-room-card');
   ok('not allowed: Almost in.', (await text(p, '.ht-room-card h3')) === 'Almost in.');
   ok('not allowed: the invitation link line', /invitation link/.test(t) && /\?k=/.test(t) && /signed in/.test(t));
@@ -60,13 +60,13 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   ok('not allowed: off air → no "running now" line', !/running now/.test(t));
   ok('not allowed: no button that goes nowhere', (await p.$$('.ht-room-card a.btn, .ht-room-card button')).length === 0);
   ok('not allowed: no host name, no page errors', !/Dr\. Gray/.test(t) && errs.length === 0, errs.join(' | ')); await p.close(); }
-{ const { p } = await page({ state: { ...base, can_join: false, is_live: true }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
+{ const { p } = await page({ state: { ...base, can_join: false, is_live: true }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/legacy-live/' });
   ok('not allowed, live: the session-is-running line', /The session is running now/.test(await text(p, '.ht-room-card'))); await p.close(); }
 /* 3 (a) open with ?k=, then the same page again WITHOUT ?k= (localStorage kept) → the key still reaches ea_room_state and the join target */
 { const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
   ok('remembered key: first load asked with the URL key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
-  await p.goto(TEST_BASE_URL + '/ht/hub/live/'); await settle(p); await p.waitForSelector('.r2-join');
+  await p.goto(TEST_BASE_URL + '/ht/hub/legacy-live/'); await settle(p); await p.waitForSelector('.r2-join');
   ok('remembered key: reload without ?k= still asks with the key', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY]));
   ok('remembered key: the join target carries it', await p.evaluate(() => window.__mount.target.key === 'AbC123_-xyzXYZ0987ab-_' && window.__mount.mode === 'waiting'));
   ok('remembered key: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
@@ -75,21 +75,21 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   const { p, errs } = await page({ state: { ...base }, session: sess, room, replays: [], members: [], profiles: [] });
   await p.waitForSelector('.r2-join');
   await p.addInitScript('window.__db.stateFor = ' + rotated.toString() + ';');   /* the next navigation: the server no longer knows the key */
-  await p.goto(TEST_BASE_URL + '/ht/hub/live/'); await settle(p);
+  await p.goto(TEST_BASE_URL + '/ht/hub/legacy-live/'); await settle(p);
   ok('rotated key: asked with the stored key, then again with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY, null]));
   ok('rotated key: forgotten on the device', (await stored(p)) === null);
   ok('rotated key: Almost in., not the dead-link card', (await text(p, '.ht-room-card h3')) === 'Almost in.' && !/isn’t active anymore/.test(await text(p, '.ht-room-card')));
   ok('rotated key: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
 /* 3 (c″) the same, signed out → the landing card, and neither Sign in carries the dead key */
 { const { p } = await page({ state: { ...base, signed_in: false }, session: null, room, replays: [], members: [], profiles: [] },
-    { url: '/ht/hub/live/', seed: { k: KEY, t: Date.now() - 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
+    { url: '/ht/hub/legacy-live/', seed: { k: KEY, t: Date.now() - 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
   ok('rotated key, signed out: asked with the stored key, then again with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([KEY, null]));
   ok('rotated key, signed out: landing card, key forgotten', (await text(p, '.ht-room-card h3')) === 'Dr. Gray’s room' && (await stored(p)) === null);
   ok('rotated key, signed out: neither Sign in carries it', !(await p.getAttribute('.ht-room-card a.btn', 'href')).includes('k%3D') && !(await p.getAttribute('.site-header a[href^="/login/"]', 'href')).includes('k%3D'));
   await p.close(); }
 /* 3 (c′) a remembered key older than 7 days is ignored: the page asks once, with no key */
 { const { p } = await page({ state: { ...base, can_join: false }, session: sess, room, replays: [], members: [], profiles: [] },
-    { url: '/ht/hub/live/', seed: { k: KEY, t: Date.now() - 8 * 24 * 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
+    { url: '/ht/hub/legacy-live/', seed: { k: KEY, t: Date.now() - 8 * 24 * 3600e3 }, stateFor: (a) => (a.p_key ? { bad_link: true } : window.__db.state) });
   ok('stale key: ignored, asked once with null', JSON.stringify(await stateCalls(p)) === JSON.stringify([null]));
   ok('stale key: Almost in.', (await text(p, '.ht-room-card h3')) === 'Almost in.'); await p.close(); }
 /* 4 waiting → Ada + the host’s name; flips live → reload */
@@ -246,7 +246,7 @@ const text = (p, s) => p.locator(s).first().textContent().then(t => (t || '').tr
   ok('publish: iframe uses /iframe', (await p.getAttribute('#rmLast iframe', 'src')).endsWith('/abc/iframe'));
   ok('publish: button flips', (await text(p, '[data-pub]')) === 'Unpublish'); await p.close(); }
 /* 7 a guest who joined before sees Last session on the landing card */
-{ const { p } = await page({ state: { ...base, can_join: false, recording_url: 'https://customer-x.cloudflarestream.com/abc/watch' }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/live/' });
+{ const { p } = await page({ state: { ...base, can_join: false, recording_url: 'https://customer-x.cloudflarestream.com/abc/watch' }, session: sess, room, replays: [], members: [], profiles: [] }, { url: '/ht/hub/legacy-live/' });
   ok('past joiner: Last session', !!(await p.$('.ht-room-last iframe'))); await p.close(); }
 /* 8 phone (390): no horizontal overflow; while waiting the wordmark is ON SCREEN once the scroll settles (it is measured
    after the mount, when body.in-room has already hidden the chrome above the room); in class the strip mark is the
@@ -333,7 +333,7 @@ for (const [name, db] of [['host', { state: { ...base, is_host: true }, session:
   await p.waitForSelector('.rp-chapter', { timeout: 20000 }).catch(() => {});
   ok('10 chapters from the events — this session only, the earlier session\'s event is not a chapter', (await p.locator('.rp-chapter').count()) === 2 && !/Yesterday/.test(await text(p, '.rp-pane[data-pane="chapters"]')), String(await p.locator('.rp-chapter').count()));
   ok('10 the first chapter is 5 minutes in', /5:00/.test(await text(p, '.rp-chapter')), await text(p, '.rp-chapter'));
-  ok('10 the Live room tab stays current on the replay page', (await text(p, '.ht-tab.on')) === 'Live room' && (await p.getAttribute('.ht-tab.on', 'href')) === '/ht/hub/live/', await text(p, '.ht-tab.on'));
+  ok('10 the Live room tab stays current on the replay page', (await text(p, '.ht-tab.on')) === 'Classrooms' && (await p.getAttribute('.ht-tab.on', 'href')) === '/ht/hub/live/', await text(p, '.ht-tab.on'));
   ok('10 the player iframe uses the /iframe URL', /\/abc123\/iframe/.test(await p.getAttribute('#player iframe', 'src') || ''));
   ok('10 draft chip for the host', /Draft/.test(await text(p, '#now')), await text(p, '#now'));
   await p.click('.rp-tab[data-tab="summary"]'); ok('10 three summary lines and a Make it again button', (await p.locator('.rp-pane[data-pane="summary"] .rp-lines li').count()) === 3 && /Make it again/.test(await text(p, '#make')));

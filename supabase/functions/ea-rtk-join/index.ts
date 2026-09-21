@@ -25,7 +25,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { clientIp, resolveCaller, rtkClient } from "../_shared/rtk_auth.ts";
 import { ensurePresets, ensureOpilPresets } from "../_shared/rtk_presets.ts";
-import { handleJoin, type JoinBody, type RoomRow } from "./handler.ts";
+import { handleJoin, type JoinBody, type RoomRow, type ClassroomAccess } from "./handler.ts";
 import { handleTeamJoin, type TeamRow } from "./team.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
@@ -72,10 +72,22 @@ Deno.serve(async (req: Request) => {
     const { data } = await admin.rpc("ea_rate_check", { p_key: key, p_max: max, p_window_secs: windowSecs });
     return data === true ? true : data === false ? false : null;
   };
+  // Shared by OPIL sessions and team rooms. Partial results cannot establish isolation
+  // from protected campus sessions, so either lookup failing denies the token request.
+  const roomMeetingIds = async (meetingId: string) => {
+    const ids = new Set<string>();
+    const [rooms, replays] = await Promise.all([
+      admin.from("ea_rooms").select("meeting_id").eq("meeting_id", meetingId).limit(1),
+      admin.from("ea_room_replays").select("meeting_id").eq("meeting_id", meetingId).limit(1),
+    ]);
+    if (rooms.error || replays.error) throw new Error("Classroom meeting isolation could not be verified.");
+    for (const r of [...(rooms.data || []), ...(replays.data || [])]) if (typeof r.meeting_id === "string" && r.meeting_id) ids.add(r.meeting_id);
+    return ids;
+  };
   /* a team's standing room (spec §3): its own handler, BEFORE handleJoin (which would answer bad_session) */
   if (typeof (body as { team?: unknown }).team === "string") {
     const reply = await handleTeamJoin(body as { team?: unknown }, caller, {
-      cf, rateCheck, displayName,
+      cf, rateCheck, displayName, roomMeetingIds,
       getTeam: async (id) => { const { data } = await admin.from("ea_opil_teams").select("id, name, meeting_id, room_open_since, is_staff").eq("id", id).maybeSingle(); return (data as TeamRow) ?? null; },
       isMember: async (id) => { const { data } = await admin.from("ea_opil_team_members").select("user_id").eq("team_id", id).eq("user_id", who.user.id).limit(1); return !!(data && data.length); },
       /* conditional store: only while the row still holds expectPrev (null = no meeting yet). Two teammates minting in the same second → one write lands; the other re-reads and joins the winner's meeting */
@@ -105,6 +117,22 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.from("ea_opil_sessions").select("no, title, stream_url, is_live").eq("no", no).maybeSingle();
       return data ?? null;
     },
+    classroomAccess: async (slug) => {
+      const { data, error } = await who.asUser.rpc("ht_classroom_access", { p_slug: slug });
+      if (error) throw new Error("Classroom authorization is unavailable.");
+      return data as ClassroomAccess | null;
+    },
+    claimClassroomMeeting: async (roomId, meetingId, previousMeetingId) => {
+      const at = new Date().toISOString();
+      let q = admin.from("ea_rooms").update({ meeting_id: meetingId, is_live: true, live_since: at, updated_at: at }).eq("id", roomId);
+      q = previousMeetingId ? q.eq("meeting_id", previousMeetingId).eq("is_live", false) : q.is("meeting_id", null);
+      const claimed = await q.select("meeting_id");
+      if (claimed.error) throw new Error("Classroom meeting could not be saved.");
+      if (claimed.data?.length) return meetingId;
+      const current = await admin.from("ea_rooms").select("meeting_id,is_live").eq("id", roomId).maybeSingle();
+      if (current.error) throw new Error("Classroom meeting could not be verified.");
+      return current.data?.is_live === true && typeof current.data.meeting_id === "string" ? current.data.meeting_id : null;
+    },
     inCohort: async () => (await who.asUser.rpc("ea_opil_in_cohort")).data === true,
     isMember: async () => (await who.asUser.rpc("ea_is_member")).data === true,
     getRoom: async (slug) => {
@@ -115,19 +143,7 @@ Deno.serve(async (req: Request) => {
       const at = new Date().toISOString(), { error } = await admin.from("ea_rooms").update({ meeting_id: meetingId, is_live: true, live_since: at, updated_at: at }).eq("id", roomId);
       if (error) throw new Error(error.message);
     },
-    /* Every meeting the Academy room has used. A query error (the room tables not there yet, a
-       hiccup) logs and yields an empty set: the room's plumbing must never lock an OPIL class out. */
-    roomMeetingIds: async () => {
-      const ids = new Set<string>();
-      const [rooms, replays] = await Promise.all([
-        admin.from("ea_rooms").select("meeting_id").not("meeting_id", "is", null),
-        admin.from("ea_room_replays").select("meeting_id").not("meeting_id", "is", null),
-      ]);
-      if (rooms.error) console.error("[ea-rtk-join] ea_rooms", rooms.error.message);
-      if (replays.error) console.error("[ea-rtk-join] ea_room_replays", replays.error.message);
-      for (const r of [...(rooms.data || []), ...(replays.data || [])]) if (typeof r.meeting_id === "string" && r.meeting_id) ids.add(r.meeting_id);
-      return ids;
-    },
+    roomMeetingIds,
     /* joins + 1 and last_joined_at = now(); the first join also sets first_joined_at (a default,
        but stated so a re-join never resets it) */
     upsertMember: async (roomId, userId) => {

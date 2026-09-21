@@ -1,9 +1,10 @@
 # HT campus data setup and verification
 
-The development upgrade is implemented locally. **The new database migration has not been applied to the live Academy project.** Until activation, authenticated users see an explicit unavailable message rather than simulated success. `?demo=student`, `?demo=staff`, and `?demo=leadership` run isolated fictional data in the browser; these switches never grant database permissions.
+The development upgrade is implemented locally. **The new database migrations have not been applied to the live Academy project.** Until activation, authenticated users see an explicit unavailable message rather than simulated success. `?demo=student`, `?demo=staff`, and `?demo=leadership` run isolated fictional data in the browser; these switches never grant database permissions.
 
 ## What is implemented
 
+- Cohort classrooms with instructor-managed rosters, separately scheduled session rooms, campus live events, scoped recording access and session entry records.
 - Active institutional membership with student, staff, administrator and leadership roles. Existing Academy accounts receive no automatic campus membership.
 - Shared records for learning, assignments and feedback; event RSVP and check-in; support cases and replies; announcements; community posts, replies and likes; private member messages; personal in-app notifications; and separately supplied Ada video configuration.
 - Staff publication of drafts and scheduled announcements. A scheduled announcement becomes readable once its persisted `publish_at` arrives; no email or push scheduler is implied.
@@ -14,6 +15,7 @@ The development upgrade is implemented locally. **The new database migration has
 ## Files
 
 - `supabase/migrations/20260921180637_ht_campus_hub.sql`: additive tables, RLS, read/state API and validated command API.
+- `supabase/migrations/20260921193229_ht_cohort_classrooms.sql`: cohorts, rosters, individual session rooms and managed-room authorization.
 - `supabase/seeds/ht-campus-ai-literacy.sql`: optional real three-activity learning pathway. No fictional users, activity, events or requests are inserted.
 - `ht/hub/campus-store.js`: production adapter and explicitly selected demo behavior.
 - `tools/ht-campus-tests/`: pinned local PostgreSQL/PGlite verification and store integration tests.
@@ -36,7 +38,7 @@ The browser suites use the pinned Playwright package and a locally installed Goo
 
 The dependencies are confined to this test folder and pinned in its lockfile. Tests create an in-memory PostgreSQL database, bootstrap a minimal Supabase Auth schema, execute the exact migration and run queries as `anon` and `authenticated` roles. They do not contact or alter Supabase. The test package uses PGlite 0.3.14 and was run with Node 25.8.2; modern Node with `crypto.randomUUID` is required.
 
-The database suite checks real policy/privilege denial, not just SQL text patterns. It covers anonymous access, nonmember denial, self-promotion attempts, direct completion forgery, student isolation, private messages, leadership privacy, scheduling, capacity, event code and time validation, learning order, wrong answers, approval/completion/revocation, dependent assignment recovery, member deactivation, and idempotent content seeding. Store tests cover the same core demo flows and production RPC dispatch/error behavior.
+The database suite checks real policy/privilege denial, not just SQL text patterns. It covers anonymous access, nonmember denial, self-promotion attempts, direct completion forgery, student isolation, private messages, leadership privacy, scheduling, capacity, event code and time validation, learning order, wrong answers, approval/completion/revocation, dependent assignment recovery, member deactivation, and idempotent content seeding. Store tests cover the same core demo flows and production RPC dispatch/error behavior. The separate classroom database suite loads actual legacy room/helper function bodies from the checked-in migrations over a minimal local fixture, then applies the exact new migration. It checks cross-cohort denial, instructor scoping, anonymous/Academy-admin/key bypass attempts, revocation, unpublished/published replay, protected materials/storage, help/attendance reporting, unique room allocation, session identity locking and legacy compatibility. Classroom store tests exercise matching isolated rehearsal behavior. These fixtures are test-only and must never be applied as a production schema.
 
 This verifies PostgreSQL behavior locally. It does not replace a staging test of the hosted PostgREST API, Auth sessions, network failure handling and simultaneous clients.
 
@@ -91,7 +93,7 @@ This verifies PostgreSQL behavior locally. It does not replace a staging test of
 
 ## Demo behavior and operational details
 
-The demo contains fictional Jordan R., Morgan T., Avery W. and Cameron L. Every role shares only the `ht-campus-demo-v1` localStorage record on that browser origin. Clearing this key resets the demonstration. It does not clear or alter live records. Demo event times are relative to the first fixture creation; a saved demo retains its dates. Reset this sample record before rehearsing on another day. The sample current-session check-in code is `HT2026`.
+The demo contains fictional Jordan R., Morgan T., Avery W., Cameron L. and Riley S. Every role shares only the `ht-campus-demo-v2` localStorage record on that browser origin. Clearing this key resets the demonstration. It does not clear or alter live records. Demo event times are relative to the first fixture creation; a saved demo retains its dates. Reset this sample record before rehearsing on another day. The sample current-session check-in code is `HT2026`.
 
 Real events always use stored timestamps. RSVP capacity is guarded by a database row lock. Check-in requires a valid code, a current RSVP, and a time between 30 minutes before the start and two hours after the end. It does not prove physical location or prevent a participant from sharing a code.
 
@@ -108,3 +110,32 @@ Learning content is locked once anyone enrolls. Create a new pathway version for
 - State loading currently returns the user's full permitted dataset. Add pagination, incremental synchronization, query/load budgets, retention policies and operational monitoring before large-scale use. The current leadership metrics are lifetime counts; `active_learners` means distinct enrolled members, not activity within a specified time window.
 - Add service-side abuse controls/rate limits and check-in attempt limits before public-scale use. The RPC validates membership, ownership, payload size and requirements, but it is not an anti-spam system.
 - Production backup/restore verification, institutional data governance, security review, accessibility testing and iPhone/live-session rehearsal remain release tasks. No compliance certification is asserted by these local checks.
+
+
+## Activate cohort classrooms in staging
+
+Apply the campus migration first. The classroom migration additionally requires the existing Academy/HT room and class features through `0054_ht_room_features.sql` (including room replays, presence, help, warm-ups, materials and the associated storage bucket). On an existing project, inspect the actual schema and function signatures before applying **only** `20260921193229_ht_cohort_classrooms.sql`; do not bulk-push historical repository migrations. A missing prerequisite causes the transaction to fail, rather than partially opening rooms. A clean staging project must first receive its reviewed legacy prerequisites.
+
+Deploy the updated `ea-rtk-join`, `ea-rtk-record` and `ea-class-summary` Edge Functions with the classroom SQL change, then deploy the matching frontend. The database bridge is `ht_classroom_access(p_slug text)` and returns `{ managed, can_join, is_host, room_id }` for the caller's Auth identity. The service-role Edge adapters must evaluate this bridge with the original caller's JWT. A service-role lookup or Academy-wide administrator flag cannot substitute for caller authorization. Missing or unavailable authorization denies managed access.
+
+Create actual cohorts in **Classrooms → Manage classrooms**, using an active staff account or HT administrator. Staff create and manage their own cohorts; campus administrators can assign a different active instructor. Add already provisioned campus students/staff to that cohort's roster. Open-learning enrollment does not grant a classroom seat. Schedule a cohort session or a separate campus live event: each receives a unique `ea_rooms` row, immutable audience/roster identity, `open_door=false`, and a reserved `htc-` slug. Repeated saves preserve the room. Session allocation is serialized for the same session ID; unique constraints protect the mappings. Dates lock once meeting entry records exist. End a live call before cancelling its session or archiving its cohort. The existing shared HT room remains a legacy compatibility route and is not a cohort classroom.
+
+Test these paths with two independent student accounts, two instructors and a campus administrator:
+
+1. Put the students in different cohorts, schedule simultaneous sessions, and confirm each user receives only their assigned classroom and the separate campus sessions. The second instructor must be unable to edit the first instructor's roster or session.
+2. Start the real provider meeting as its assigned instructor; join as the assigned student. Confirm camera, microphone, screen sharing, chat, hand raising, class resources, presence, recording and replay on the hosted deployment. Local tests do not mint provider tokens or prove this integration.
+3. Try the other cohort's managed URL with a student, an Academy-only administrator, a signed-out browser, an unknown `htc-` slug and an old invitation key. Each must remain denied. Leadership role alone does not open private cohort classes.
+4. Remove the student's cohort membership and verify subsequent state/record/material reads and new meeting tokens fail. **Access revocation does not itself expel a participant already connected to the video provider.** Use the host's remove/end controls for an active call; automatic provider eviction is a separate operational integration. Previously downloaded files or issued media URLs also cannot be recalled by database RLS.
+5. Verify an unpublished recording stays private. After the instructor publishes it, current authorized cohort members can review it even if they missed the class. Cross-cohort and revoked members cannot obtain the recording through the application. Provider media URLs require suitable hosting/access controls if revocation must invalidate previously issued links.
+
+Session attendance is derived from `ea_room_members` on the dedicated room. The existing Edge join service writes this record when it issues a meeting participant token; it is evidence of authorized session entry, not proof of a completed media connection, physical presence or time attended. Presence duration is separately reported by the existing room heartbeat. A published replay or an ordinary page view does not create session attendance. In `?demo=...`, only an explicitly labeled rehearsal action simulates attendance, stored in localStorage; it never starts conferencing or modifies live attendance.
+
+The sample storage key changed to `ht-campus-demo-v2` for the new classroom schema. Jordan belongs to Morgan's AI Literacy cohort; Cameron belongs to Riley's separate Digital Storytelling cohort. Sample schedules include parallel cohort sessions, a follow-up, a campus gathering and a recording-details preview without an actual media file. These sample schedules never set a room live merely because its scheduled time arrives.
+
+### Room authorization audit
+
+The classroom migration replaces public permission functions in place, retaining their OIDs so existing policies use the new checks. Original behavior is copied into an unexposed private schema for nonmanaged rooms. Any stored room with the `htc-` prefix is managed, even when its session mapping is missing. Authorized identity is an active database HT member plus the active cohort roster, assigned instructor or HT administrator; Academy administrator status, stored host emails and invitation keys grant no managed access.
+
+The guarded surface includes `ea_room_state`, `ea_room_is_host`, `ea_room_in_session`, `ea_class_can`, `ea_class_is_host`, `ea_room_reader`, host-email editing and link rotation. Existing publish-replay, transcript-write, presence-heartbeat, scoring and realtime-channel checks delegate to those replaced permission helpers. Direct room identity edits are blocked for managed rooms; normal host live/end, capacity and warm-up controls remain available. Restrictive RLS policies close older permissive OPIL program-team/uploader branches on class records, hands, materials and their room-prefixed storage objects. Help and attendance reporting RPCs explicitly filter their definer results; managed names use the campus directory and do not expose OPIL registration fields or Auth email addresses. The OPIL-only external help-email handler remains OPIL-only.
+
+Keep `ht_private` outside exposed schemas. Review any future room helper, service-role endpoint, table policy or storage-prefix change against this managed-room boundary. The database tests use deliberately permissive legacy fixtures as well as real function bodies to catch bypasses, but hosted security advisors and real provider rehearsal remain required before production activation.

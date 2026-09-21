@@ -27,7 +27,10 @@ export type ReplayStore = {
   /* a row we believed active turned out not to be (Cloudflare says so): record the truth */
   updateReplayStatus: (recordingId: string, status: string) => Promise<void>;
 };
+export type ClassroomAccess = { managed: boolean; can_join: boolean; is_host: boolean; room_id: string | null };
 export type RecordDeps = ReplayStore & {
+  classroomAccess?: (slug: string) => Promise<ClassroomAccess | null>; // caller-scoped; required for every managed operation
+
   getSession: (no: number) => Promise<SessionRow | null>;
   cf: (method: "GET" | "POST" | "PUT" | "PATCH", path: string, body?: unknown) => Promise<CfResult>;
   /* Retry: the stored UPLOADED event for a recording, and the same processing the webhook
@@ -37,7 +40,7 @@ export type RecordDeps = ReplayStore & {
   /* a room by slug — one row, read with the service role */
   getRoom: (slug: string) => Promise<{ id: string; meeting_id: string | null; host_emails: string[] } | null>;
   /* every meeting that is or was the room's: ea_rooms.meeting_id ∪ ea_room_replays.meeting_id */
-  roomMeetingIds: () => Promise<Set<string>>;
+  roomMeetingIds: (meetingId: string) => Promise<Set<string>>;
   room: ReplayStore & { replayById: (id: string) => Promise<{ id: string; room_id: string | null; meeting_id: string; recording_id: string; status: string } | null> };
 };
 export type Reply = { status: number; body: unknown };
@@ -55,6 +58,7 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
   if (!action || !(ACTIONS as readonly string[]).includes(action)) return { status: 400, body: { error: "bad_action" } };
 
   if (action === "register_webhook" || action === "list_webhooks") {
+    if (typeof body.room === "string" && body.room.startsWith("htc-")) return { status: 400, body: { error: "bad_action" } };
     if (!ctx.role.admin) return { status: 403, body: { error: "not_admin" } };
     const target = ctx.functionsBase + "/ea-rtk-webhook";
     const listed = await deps.cf("GET", "/webhooks");
@@ -88,7 +92,9 @@ export async function handleRecord(body: RecordBody, ctx: Caller, deps: RecordDe
   if (!meetingId) return { status: 409, body: { error: "no_room" } };
   /* A session whose stream_url points at Nelson's Academy room meeting records nothing:
      no OPIL role can record or file a replay of the room (room spec §6.2, §9.11). */
-  if ((await deps.roomMeetingIds()).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
+  try {
+    if ((await deps.roomMeetingIds(meetingId)).has(meetingId)) return { status: 403, body: { error: "not_allowed" } };
+  } catch { return { status: 503, body: { error: "classroom_unavailable" } }; }
 
   if (action === "retry_replay") {
     const last = await deps.latestAny(meetingId);
@@ -144,8 +150,19 @@ async function handleRoom(slug: string, action: "start" | "stop" | "end" | "retr
   let fetched = false;
   const getRoomOnce = async () => { if (!fetched) { room = await deps.getRoom(slug); fetched = true; } return room; };
 
-  let isHost = ctx.academyAdmin;
-  if (!isHost) {
+  const managed = slug.startsWith("htc-");
+  let access: ClassroomAccess | null = null;
+  if (managed) {
+    if (!deps.classroomAccess) return { status: 503, body: { error: "classroom_unavailable" } };
+    try { access = await deps.classroomAccess(slug); }
+    catch { return { status: 503, body: { error: "classroom_unavailable" } }; }
+    if (!access || access.managed !== true) return { status: 503, body: { error: "classroom_unavailable" } };
+    if (access.can_join !== true || access.is_host !== true || !access.room_id) return { status: 403, body: { error: "not_host" } };
+    const r = await getRoomOnce();
+    if (!r || r.id !== access.room_id) return { status: 403, body: { error: "not_host" } };
+  }
+  let isHost = managed ? access!.is_host === true : ctx.academyAdmin;
+  if (!isHost && !managed) {
     const r = await getRoomOnce();
     isHost = !!r && email !== "" && (r.host_emails || []).some((e) => String(e || "").trim().toLowerCase() === email);
   }
@@ -158,12 +175,10 @@ async function handleRoom(slug: string, action: "start" | "stop" | "end" | "retr
     if (!UUID_RX.test(replayId)) return { status: 400, body: { error: "bad_replay" } };
     const row = await deps.room.replayById(replayId);
     if (!row) return { status: 404, body: { error: "no_replay" } };
-    /* a listed host of one room must never reprocess (or read the recording_id of) another room's
-       replay — only the Academy admin keeps today's unrestricted reach across every room */
-    if (!ctx.academyAdmin) {
-      const r = await getRoomOnce();
-      if (!r || row.room_id !== r.id) return { status: 403, body: { error: "not_host" } };
-    }
+    // A replay must belong to the requested room, including for Academy admins. Otherwise
+    // a legacy room request could smuggle a protected classroom replay through the admin path.
+    const requestedRoom = await getRoomOnce();
+    if (!requestedRoom || row.room_id !== requestedRoom.id) return { status: 403, body: { error: "not_host" } };
     if (row.status !== "error") return { status: 409, body: { error: "nothing_to_retry" } };
     const payload = await deps.uploadedEvent(row.recording_id);
     if (!payload) return { status: 409, body: { error: "no_upload" } };

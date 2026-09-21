@@ -40,6 +40,7 @@ const hash = createHash('sha1')
   .update(stampIn(path.join(HUB, 'room.css')))
   .update(stampIn(path.join(HUB, 'room-words.js')))
   .update(stampIn(path.join(HUB, 'replay.js')))
+  .update(stampIn(path.join(HUB, 'classroom-context.js')))
   /* the HT page imports both under the HT ?v=, so their changes must move it */
   .update(stampIn(path.join(ROOT, '..', 'js', 'room-page.js')))
   .update(stampIn(path.join(ROOT, '..', 'js', 'rtk-room-v2.js')))
@@ -47,7 +48,7 @@ const hash = createHash('sha1')
 /* the class plugins the room loads for HT under the same ?v= (spec 2026-09-17 §2.5), and the replay page's stylesheet */
 for (const n of ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board', 'resources', 'small-groups']) hash.update(stampIn(path.join(ROOT, '..', 'js', 'rtk-' + n + '.js')));
 for (const n of ['reactions', 'warmup', 'roster', 'board', 'help', 'chapters']) hash.update(stampIn(path.join(ROOT, '..', 'css', 'rtk-' + n + '.css')));
-for (const n of ['app.js','store.js','student.js','staff.js','demo.js','css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
+for (const n of ['app.js','store.js','student.js','staff.js','classrooms.js','demo.js','css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
 const V = hash.digest('hex').slice(0, 8);
 const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function shell(key, title, desc, dir) {

@@ -18,7 +18,7 @@
 // Secrets: ANTHROPIC_API_KEY (or OPENAI_API_KEY [+ SUMMARY_MODEL]), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveCaller } from "../_shared/rtk_auth.ts";
-import { handleSummary, type EventRow, type Provider, type SummaryBody, type TranscriptRow } from "./handler.ts";
+import { handleSummary, canRunSummary, type EventRow, type Provider, type SummaryBody, type TranscriptRow } from "./handler.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
@@ -116,11 +116,11 @@ Deno.serve(async (req: Request) => {
     return replayCache.get(key)!;
   };
   const reply = await handleSummary(body, {
-    canRun: async (key) => {
-      if (who.role.admin || who.academyAdmin) return true;
-      const { data } = await who.asUser.rpc("ea_class_is_host", { p_key: key });   /* as the caller: the class's own rule (0042) */
+    canRun: (key) => canRunSummary(key, { admin: who.role.admin, academyAdmin: who.academyAdmin }, async (classKey) => {
+      const { data, error } = await who.asUser.rpc("ea_class_is_host", { p_key: classKey });
+      if (error) throw new Error("Classroom authorization is unavailable.");
       return data === true;
-    },
+    }),
     loadTranscript: (key) => loadAllRows<TranscriptRow>((from, to) =>
       admin.from("ea_class_transcripts").select("id, at, speaker_name, text").eq("room_key", key).order("at").order("id").range(from, to)),
     loadEvents: async (key) => {

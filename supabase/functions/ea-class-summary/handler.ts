@@ -31,6 +31,13 @@ export type SummaryDeps = {
 };
 export type SummaryReply = { status: number; body: Record<string, unknown> };
 
+/** Room summaries always use the caller-scoped database host rule. Institution-managed
+ * rooms must not inherit Academy or OPIL administrator shortcuts. */
+export async function canRunSummary(key: string, roles: { admin: boolean; academyAdmin: boolean }, checkHost: (key: string) => Promise<boolean>): Promise<boolean> {
+  if (!key.startsWith("room:") && (roles.admin || roles.academyAdmin)) return true;
+  try { return await checkHost(key) === true; } catch { return false; }
+}
+
 export const ROOM_KEY_RX = /^(opil:\d{1,6}|room:[0-9a-f-]{36}|team:[0-9a-f-]{36})$/;
 export const TRANSCRIPT_BUDGET = 60000;   /* characters of transcript sent to the model (~15k tokens) */
 export const MAX_SUMMARY_LINES = 5;

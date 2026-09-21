@@ -8,7 +8,6 @@
    running and offers Rejoin and End. Only 'ended' (the explicit End, in Tools or on this card, two
    taps) stops the recording and takes the row off air. A guest's ended card keeps listening and offers
    the way back in when a class runs again. */
-const SLUG = 'ht';
 const V = new URL(import.meta.url).search;   /* our own ?v= — the HT build stamp from ht/build.mjs */
 /* the state poll: 20 s. The harness (tests/ht/harness) shortens it through window.__htRoomPollMs so the ended
    card's "live again" can be watched in seconds instead of minutes; nothing else reads that. */
@@ -21,7 +20,7 @@ await new Promise((res) => {
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
-const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, htLoginHref, rememberKey, recallKey, forgetKey, nextSessionLine, nextSessionWhen, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
+const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, rememberKey, recallKey, forgetKey, nextSessionLine, nextSessionWhen, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
   import('/opil/hub/live-rooms.js' + V),
@@ -32,6 +31,13 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 const mount = document.getElementById('rtkMount');
 const ctl = document.querySelector('.ht-room-ctl');
 if (!mount || !ctl || !window.BM_CONFIG) throw new Error('room block or config missing');
+const { classroomContext, classroomLogin, validateClassroomAccess } = await import('/ht/hub/classroom-context.js' + V);
+let classroom;
+try { classroom = classroomContext(location.pathname, location.search, !/^\/ht\/hub\/session\/?$/.test(location.pathname)); }
+catch (error) { ctl.innerHTML = '<div class="ht-room-card"><h3>Choose your session</h3><p>' + esc(error.message) + '</p><a href="/ht/hub/live/">Classrooms &amp; live sessions</a></div>'; throw error; }
+const SLUG = classroom.slug;
+const loginHref = () => classroomLogin(classroom, false, k);
+
 
 /* The invitation: ?k= from the link, else the one this device remembered. A guest who started here
    keeps it across the sign-in round trip even when /welcome/ lost bm_next (the code opened in
@@ -42,20 +48,29 @@ const store = {
   setItem: (n, v) => { try { localStorage.setItem(n, v); } catch (e) {} },
   removeItem: (n) => { try { localStorage.removeItem(n); } catch (e) {} },
 };
-const urlKey = roomKey(location.search);
-let k = urlKey || recallKey(store, Date.now());
+const urlKey = classroom.managed ? null : roomKey(location.search);
+let k = classroom.managed ? null : urlKey || recallKey(store, Date.now());
 let keyFromStore = !urlKey && !!k;   /* a remembered key the server may no longer know — see below */
 if (urlKey) rememberKey(store, urlKey, Date.now());
 const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
 const user = (await sb.auth.getSession()).data.session?.user || null;
 /* the header's Sign in must carry the key back through the email code and /welcome/ */
-const carryKey = () => document.querySelectorAll('.site-header a[href^="/login/"]').forEach((a) => a.setAttribute('href', htLoginHref(k)));
-if (k) carryKey();
+const carryKey = () => document.querySelectorAll('a[href^="/login/"]').forEach((a) => a.setAttribute('href', loginHref()));
+if (k || classroom.managed) carryKey();
 
 async function getState() {
+  let access = null;
+  if (classroom.managed) {
+    if (!(await sb.auth.getSession()).data.session?.user) return { signed_in: false, title: 'Scheduled classroom', host_name: 'Your instructor', is_live: false, can_join: false, is_host: false };
+    const result = await sb.rpc('ht_classroom_access', { p_slug: SLUG });
+    if (result.error || !result.data || result.data.managed !== true) throw new Error('Classroom access could not be verified. Please try again.');
+    access = result.data;
+    if (!validateClassroomAccess(access)) return { signed_in: true, title: 'Scheduled classroom', is_live: false, can_join: false, is_host: false };
+  }
   const { data, error } = await sb.rpc('ea_room_state', { p_key: k, p_slug: SLUG });
   if (error) throw error;
-  return data;
+  if (classroom.managed && (!data?.id || !validateClassroomAccess(access, data.id))) throw new Error('This classroom could not be verified.');
+  return classroom.managed ? { ...data, can_join: true, is_host: access.is_host === true } : data;
 }
 const token = async () => (await sb.auth.getSession()).data.session?.access_token || '';
 
@@ -66,9 +81,10 @@ const localInput = (iso) => { if (!iso) return ''; const d = new Date(iso); if (
    calendar (the .ics is a data: link, Google and Outlook open a prefilled event). Hidden while in the room. */
 function paintNext() {
   let el = document.querySelector('.ht-room-next');
+  if (classroom.managed) { if (el) el.remove(); return; }
   const n = nextSessionLine(state, Date.now());
   if (!n) { if (el) el.remove(); return; }
-  const l = calendarLinks({ title: n.title, startIso: n.iso, roomUrl: location.origin + '/ht/hub/live/' });
+  const l = calendarLinks({ title: n.title, startIso: n.iso, roomUrl: location.origin + classroom.roomPath });
   if (!el) { el = document.createElement('div'); el.className = 'ht-room-next'; }
   /* while the session runs the card's own headline ("Live now · Sign in to join") comes first; otherwise the line leads */
   if (state && state.is_live) ctl.parentElement.insertBefore(el, ctl.nextSibling); else ctl.parentElement.insertBefore(el, ctl);
@@ -93,7 +109,7 @@ const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air'
 function card(inner, after) { ctl.innerHTML = '<div class="ht-room-card">' + WM + inner + '</div>' + (after || ''); mount.innerHTML = ''; mount.classList.remove('r2host'); }
 function lastSession(st) {
   const u = iframeUrl(st && st.recording_url); if (!u) return '';
-  return '<div class="ht-room-last"><b>Last session</b><a class="btn ht-gold ht-room-last-page" href="/ht/hub/replay/">Chapters, summary and transcript &rarr;</a><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener" class="ht-room-last-tab">Open in a new tab</a></div>';
+  return '<div class="ht-room-last"><b>Last session</b><a class="btn ht-gold ht-room-last-page" href="' + esc(classroom.replayPath) + '">Chapters, summary and transcript &rarr;</a><div class="frame"><iframe src="' + esc(u) + '" title="Last session replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div><a href="' + esc(st.recording_url) + '" target="_blank" rel="noopener" class="ht-room-last-tab">Open in a new tab</a></div>';
 }
 const here = () => location.pathname + location.search;
 /* The ended card keeps listening (a poll every 20 s, the first look at 5 s because an End takes the row off
@@ -130,7 +146,7 @@ if (state && state.bad_link && keyFromStore) {
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
 const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null, when: nextSessionWhen(state, Date.now()), city_hint: 'Austin, TX' });   /* warmup_q + when: the waiting screen's question and its Date / time cells (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null, when: classroom.managed ? null : nextSessionWhen(state, Date.now()), city_hint: 'Austin, TX' });   /* warmup_q + when: the waiting screen's question and its Date / time cells (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
@@ -212,16 +228,16 @@ const host = {
     if (error || !data) throw new Error(error ? error.message : 'no room row');
     this.room = data; return data;
   },
-  link() { return location.origin + '/ht/hub/live/?k=' + this.room.link_key; },
+  link() { return location.origin + classroom.roomPath + (classroom.managed ? '' : '?k=' + this.room.link_key); },
   render() {
     const r = this.room;
     ctl.innerHTML = `<div class="ht-room-host">
   <div class="hd2"><h3>Your room</h3><span class="mono">Hosts only</span></div>
-  <div class="row"><label style="flex:1"><span>The link to send</span><input id="rmLink" readonly aria-label="Link to this room" value="${esc(this.link())}"></label><button type="button" class="pill" id="rmCopy" aria-live="polite">Copy link</button><button type="button" class="pill ghost" id="rmNew">New link</button></div>
-  <div class="row two"><label>Title <span class="saved" id="rmTitleSaved"></span><input id="rmTitle" maxlength="120" value="${esc(r.title)}"></label><label>Host name <span class="saved" id="rmHostSaved"></span><input id="rmHost" maxlength="80" value="${esc(r.host_name)}"></label><label>Max people (you included) <span class="saved" id="rmMaxSaved"></span><input id="rmMax" type="number" min="2" max="500" value="${esc(r.max_participants)}"></label></div>
-  <div class="row pair"><label>Warm-up question <span class="saved" id="rmWarmSaved"></span><input id="rmWarm" maxlength="200" placeholder="What do you hope to hear today?" value="${esc(r.warmup_q || '')}"></label><div class="row" style="gap:6px;margin:0;align-items:stretch"><label style="flex:1.2">Next session <span class="saved" id="rmNextSaved"></span><input id="rmNextTitle" maxlength="120" placeholder="Title" value="${esc(r.next_title || '')}"></label><label style="flex:1">When <span class="saved" id="rmNextAtSaved"></span><input id="rmNextAt" type="datetime-local" min="${esc(localInput(new Date().toISOString()))}" value="${esc(localInput(r.next_at))}"></label></div></div>
-  <p class="fine">People answer the warm-up while they wait. The next session shows above the room with Add to calendar, in your local time, and clears itself once the time has passed.</p>
-  ${this.admin ? `<label>Hosts — one email per line <span class="saved" id="rmHostsSaved"></span><textarea id="rmHosts" spellcheck="false">${esc((r.host_emails || []).join('\n'))}</textarea></label><div class="row"><button type="button" class="pill" id="rmHostsSave">Save hosts</button><p class="fine" style="margin:0">Anyone on this list who signs in with that email gets this card and can start a session.</p></div>` : ''}
+  <div class="row"><label style="flex:1"><span>The link to send</span><input id="rmLink" readonly aria-label="Link to this room" value="${esc(this.link())}"></label><button type="button" class="pill" id="rmCopy" aria-live="polite">Copy link</button>${classroom.managed ? '' : '<button type="button" class="pill ghost" id="rmNew">New link</button>'}</div>
+  ${classroom.managed ? `<p class="fine">${esc(r.title)} · ${esc(r.host_name)}. Manage the schedule and instructor in <a href="/ht/hub/live/?manage=1">Classrooms &amp; live sessions</a>. Access comes from campus and cohort membership; sharing this link does not grant access.</p>` : `<div class="row two"><label>Title <span class="saved" id="rmTitleSaved"></span><input id="rmTitle" maxlength="120" value="${esc(r.title)}"></label><label>Host name <span class="saved" id="rmHostSaved"></span><input id="rmHost" maxlength="80" value="${esc(r.host_name)}"></label><label>Max people (you included) <span class="saved" id="rmMaxSaved"></span><input id="rmMax" type="number" min="2" max="500" value="${esc(r.max_participants)}"></label></div>`}
+  <div class="row pair"><label>Warm-up question <span class="saved" id="rmWarmSaved"></span><input id="rmWarm" maxlength="200" placeholder="What do you hope to hear today?" value="${esc(r.warmup_q || '')}"></label>${classroom.managed ? '' : `<div class="row" style="gap:6px;margin:0;align-items:stretch"><label style="flex:1.2">Next session <span class="saved" id="rmNextSaved"></span><input id="rmNextTitle" maxlength="120" placeholder="Title" value="${esc(r.next_title || '')}"></label><label style="flex:1">When <span class="saved" id="rmNextAtSaved"></span><input id="rmNextAt" type="datetime-local" min="${esc(localInput(new Date().toISOString()))}" value="${esc(localInput(r.next_at))}"></label></div>`}</div>
+  <p class="fine">${classroom.managed ? 'People answer the warm-up while they wait. This room belongs to this scheduled session only.' : 'People answer the warm-up while they wait. The next session shows above the room with Add to calendar, in your local time, and clears itself once the time has passed.'}</p>
+  ${!classroom.managed && this.admin ? `<label>Hosts — one email per line <span class="saved" id="rmHostsSaved"></span><textarea id="rmHosts" spellcheck="false">${esc((r.host_emails || []).join('\n'))}</textarea></label><div class="row"><button type="button" class="pill" id="rmHostsSave">Save hosts</button><p class="fine" style="margin:0">Anyone on this list who signs in with that email gets this card and can start a session.</p></div>` : ''}
   <div class="ht-room-still" id="rmStill" hidden><b>${esc(ec.stillRunning)}</b><span>${esc(ec.stillRunningHint)}</span></div>
   <div class="row"><button type="button" class="btn ht-gold" id="rmStart">${START}</button><button type="button" class="pill" id="rmEnd" hidden title="${esc(ec.endHint)}. Two taps.">${esc(ec.endButton)}</button><span id="rmRec" hidden>Recording</span><span class="status" id="rmStatus"></span></div>
   <p class="note" id="rmNote">1. Copy the link and send it. It works before you start — people wait in the room. &nbsp;2. Start class, check your camera, press Enter Class. &nbsp;3. Leave only leaves — the session keeps running and you can come back. To end it for everyone, use Tools in the room or the End button here; the replay lands below to review and publish.</p>
@@ -244,7 +260,7 @@ const host = {
     });
     /* New link: two taps within 4 s — the old link stops working for everyone holding it */
     let armed = null;
-    e.neu.addEventListener('click', async () => {
+    e.neu?.addEventListener('click', async () => {
       if (!armed) { armed = setTimeout(() => { armed = null; e.neu.textContent = 'New link'; }, 4000); e.neu.textContent = 'Tap again to cut off the old link'; return; }
       clearTimeout(armed); armed = null; e.neu.disabled = true;
       try {
@@ -256,7 +272,7 @@ const host = {
       }
     });
     const saveField = (input, savedEl, col, parse) => {
-      input.addEventListener('change', async () => {
+      input?.addEventListener('change', async () => {
         const v = parse ? parse(input.value) : input.value.trim();
         if (v == null || v === '') { input.value = this.room[col]; return; }
         const { error } = await sb.from('ea_rooms').update({ [col]: v }).eq('id', this.room.id);
@@ -269,7 +285,7 @@ const host = {
     saveField(e.hostName, document.getElementById('rmHostSaved'), 'host_name');
     saveField(e.max, document.getElementById('rmMaxSaved'), 'max_participants', (s) => { const n = parseInt(s, 10); return Number.isInteger(n) && n >= 2 && n <= 500 ? n : null; });
     /* the three that may be cleared (0054): empty saves null; a bad date saves nothing and says so */
-    const saveNullable = (input, savedEl, col, toValue) => input.addEventListener('change', async () => {
+    const saveNullable = (input, savedEl, col, toValue) => input?.addEventListener('change', async () => {
       const v = toValue ? toValue(input.value) : (input.value.trim() || null);
       if (v === undefined) { if (!savedEl.textContent) savedEl.textContent = 'not saved'; return; }   /* the parser may have said why already */
       const { error } = await sb.from('ea_rooms').update({ [col]: v }).eq('id', this.room.id);
@@ -426,7 +442,7 @@ const host = {
       const d = new Date(r.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
       const mins = r.duration_s ? ' · ' + Math.max(1, Math.round(r.duration_s / 60)) + ' min' : (r.status === 'ready' || r.status === 'error' ? '' : ' · usually a few minutes');
       const acts = r.status === 'ready'
-        ? `<a class="pill ghost" href="/ht/hub/replay/">${r.published ? 'Open the replay page' : 'Review on the replay page'}</a><button type="button" class="pill" data-pub="${esc(r.id)}" data-on="${r.published ? '0' : '1'}">${r.published ? 'Unpublish' : 'Publish'}</button>`
+        ? `<a class="pill ghost" href="${esc(classroom.replayPath)}">${r.published ? 'Open the replay page' : 'Review on the replay page'}</a><button type="button" class="pill" data-pub="${esc(r.id)}" data-on="${r.published ? '0' : '1'}">${r.published ? 'Unpublish' : 'Publish'}</button>`
         : r.status === 'error' ? `<button type="button" class="pill" data-retry="${esc(r.id)}">Retry</button>` : '';
       return `<div class="ht-room-rep"><span><b>${esc(d)}</b> · ${esc(replayLabel(r))}${mins}</span><span class="acts">${acts}</span></div>`;
     }).join('') : '<p class="fine">No replays yet. Each session records itself and lands here to review.</p>';
@@ -436,7 +452,7 @@ const host = {
       const { error } = await sb.rpc('ea_room_publish_replay', { p_replay: b.getAttribute('data-pub'), p_publish: publishing });
       if (error) this.note('Could not change the replay — ' + error.message);
       /* Publish also writes the lesson summary the replay page shows (the function answers room keys); its Make summary retries */
-      else if (publishing) { try { sessionStorage.setItem('ht-summary-pending', String(Date.now())); } catch (x) {} try { fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ room_key: 'room:' + this.room.id }) }).catch(() => {}); } catch (x) {} }
+      else if (publishing) { try { sessionStorage.setItem(classroom.summaryStorageKey, String(Date.now())); } catch (x) {} try { fetch(window.BM_CONFIG.FUNCTIONS_BASE + '/ea-class-summary', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await token() }, body: JSON.stringify({ room_key: 'room:' + this.room.id }) }).catch(() => {}); } catch (x) {} }
       try { state = await getState(); } catch (x) {}
       e.last.innerHTML = lastSession(state);
       await this.loadReplays();
@@ -473,11 +489,12 @@ switch (branch) {
   case 'landing':
     if (urlKey) settleOnCard();   /* from the text link: the card, not the hero two screens above it */
     card(`<h3>${esc(state.host_name)}’s room</h3><p class="t">${esc(state.title)}</p>` + onAirLine(state) +
-         `<a class="btn ht-gold" href="${esc(htLoginHref(k))}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>Type the code and you’ll be brought straight back here.</p>`, lastSession(state)); break;
+         `<a class="btn ht-gold" href="${esc(loginHref())}">Sign in to join</a><p class="fine">Email, then the 6-digit code — no app to install.<br>Type the code and you’ll be brought straight back here.</p>`, lastSession(state)); break;
   case 'not_allowed':
     if (urlKey) settleOnCard();
     /* signed in with no key on this device (the code was opened in another browser, or they came
        to the page by hand): the link they were sent is the way in — say so, no dead-end button */
+    if (classroom.managed) { card('<h3>This session is not available to your account.</h3><p>Your campus membership and classroom roster determine access. Ask your instructor for help, or open your available sessions.</p><a class="btn ht-gold" href="/ht/hub/live/">Classrooms &amp; live sessions</a>'); break; }
     card('<h3>Almost in.</h3>' + onAirLine(state) +
          '<p>You’re signed in — now open the invitation link your host sent you (it ends in ?k=…). It will bring you straight into the room.</p>' +
          (state.is_live ? '<p>The session is running now — you’ll be in as soon as the link opens.</p>' : '') +
@@ -486,7 +503,7 @@ switch (branch) {
   case 'host_live':
     try {
       await host.load();
-      try { host.admin = (await sb.rpc('ea_is_admin')).data === true; } catch (e) { host.admin = false; }
+      try { host.admin = !classroom.managed && (await sb.rpc('ea_is_admin')).data === true; } catch (e) { host.admin = false; }
       host.render();
       if (branch === 'host_live') { host.note('The ' + words.thing + ' is running — this device is entering it. Leave only leaves; End the ' + words.thing + ' for everyone from Tools in the room or the button here.'); await host.reenter(); }
     } catch (e) { card('<h3>The host card could not load.</h3><p>' + esc(e.message || e) + '</p>'); }
