@@ -256,7 +256,7 @@ document.querySelector('#regTbl').addEventListener('click', async (ev) => {
   const r = (regs || []).find(x => x.id === b.dataset.approve); if (r) r.approved = true;
   b.closest('td').innerHTML = approvedCell(b.dataset.approve);
 });
-try { const { wire: wireMove } = await import('/opil/hub/admin/move-student.js?v=e994d3b7e0'); wireMove(sb, document.querySelector('#regTbl'), { esc, regs, teams }); } catch (e) { console.warn('[admin] move student', e); }
+try { const { wire: wireMove } = await import('/opil/hub/admin/move-student.js?v=a037fd783b'); wireMove(sb, document.querySelector('#regTbl'), { esc, regs, teams }); } catch (e) { console.warn('[admin] move student', e); }
 
 /* late registrants: one-time invite links. The token is the row's primary key (a 32-hex uuid);
    the link is /opil/register/?invite=<token>. The database burns it on the registrant's insert. */
