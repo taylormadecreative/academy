@@ -53,7 +53,7 @@ HT.spaces.president = {
       { name: 'Dr. Melva K. Wallace', role: '7th President and CEO', org: 'Space owner', gold: true, tag: 'Owner', tagCls: 'green' },
       { name: 'Chief of staff (sample)', role: 'Runs the town hall', org: 'Owns the run of show' },
       { name: 'Communications director (sample)', role: 'Approves scripts', org: 'Lane two starts here' },
-      { name: 'Ada', role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
+      { name: 'Ada', img: '/ht/img/ada-face.jpg', role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
     { type: 'cta', title: 'Join the town hall October 15 at noon.', text: 'Live from the auditorium, in the hub, with the replay the same afternoon.',
       primary: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Put it on your calendar', href: '/ht/hub/events/#year', style: 'ht-line' } }
   ]

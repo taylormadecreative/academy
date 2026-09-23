@@ -237,3 +237,21 @@
  .faculty-hero .campus-card-actions .campus-button{flex:1 1 100%;justify-content:center}
 }
 @media(prefers-reduced-motion:reduce){.faculty-requests a{transition:none}}
+
+/* Staff scope line: whose students these are */
+.campus-app .success-scope{display:flex;gap:8px;align-items:flex-start;max-width:70ch;margin:10px 0 18px;font-size:12px;color:var(--campus-muted)}
+.campus-app .success-scope svg{width:15px;height:15px;flex-shrink:0;margin-top:1px;color:var(--campus-maroon)}
+
+/* Faculty hero headline: Georgia like every other hero; counts are words, big stats stay Inter */
+.campus-app .faculty-hero h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.02em;max-width:16ch}
+.campus-app .faculty-hero h2 .faculty-num{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:400;letter-spacing:-.04em;font-variant-numeric:lining-nums tabular-nums}
+.faculty-section-facts dd .faculty-dd-note{display:block;font:500 11px/1.35 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0;color:var(--campus-muted)}
+
+/* Phone touch targets: every link and control on these pages is at least 44px tall */
+@media(max-width:760px){
+ .campus-app .success-chip{min-height:44px}
+ .campus-app .success-filter-field select,.campus-app .success-search-box input{min-height:44px}
+ .campus-app .success-privacy a,.campus-app .faculty-ada a,.campus-app .faculty-inline-link,.faculty-section-links a{display:inline-flex;align-items:center;min-height:44px}
+ .campus-app .success-privacy a,.campus-app .faculty-ada a{margin-top:2px}
+ .campus-app .faculty-inline-link{margin-top:4px}
+}

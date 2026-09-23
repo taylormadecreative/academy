@@ -148,29 +148,32 @@ function insights(ctx) {
   const funnelMax = SAMPLE.funnel[0][1];
   const persistRows = [['First-year', SAMPLE.byYear.fy], ['Sophomore', SAMPLE.byYear.so], ['Junior', SAMPLE.byYear.jr], ['Senior', SAMPLE.byYear.sr]];
   const weeks = SAMPLE.weeks.slice(0, SAMPLE.weeksShown);
+  const yearKey = { fy: 'First-year', so: 'Sophomore', jr: 'Junior', sr: 'Senior' }[yearFilter];
+  const campusWide = yearFilter === 'all' ? '' : ' is-campus-wide';
+  const campusNote = yearFilter === 'all' ? '' : `<p class="lead-campus-note">Campus-wide. The class-year filter applies to the measures above.</p>`;
   return `<div data-lead-insights>${sampleNote(ctx)}${yearFilterBar(ctx)}
   <section class="lead-kpis" aria-label="Key measures for ${yearLabel}" aria-live="polite">
     ${kpi('Students enrolled', num(s.enrolled), yearFilter === 'all' ? '3.1% vs. last fall' : `${Math.round((s.enrolled / 1142) * 100)}% of campus`, yearFilter === 'all' ? 'up' : 'flat', yearLabel)}
     ${kpi('Fall-to-spring persistence', s.persist + '%', `${pts(s.persist - s.persistLast)} vs. last year`, 'up', 'Projected from week-6 signals')}
-    ${kpi('Active in the Hub this week', s.active.at(-1) + '%', `${pts(s.active.at(-1) - s.active[0])} since week 1`, 'up', 'Signed in and did one thing')}
+    ${kpi('Active in the Hub this week', s.active.at(-1) + '%', `${pts(s.active.at(-1) - s.activeLast.at(-1))} vs. last year`, 'up', 'Signed in and did one thing')}
     ${kpi('Pathway completion', s.completion + '%', 'of students who started one', 'flat', 'Co-curricular pathways')}
   </section>
   <div class="lead-chart-grid">
     <section class="campus-panel lead-span-2"><div class="campus-section-head"><div><p class="campus-eyebrow">Engagement · ${yearLabel}</p><h2>Weekly active students</h2></div><p class="lead-legend"><span class="lead-key"></span>${SAMPLE.term}<span class="lead-key is-compare"></span>Fall 2025 · ${yearLabel.toLowerCase()}</p></div>
       ${trendLine(s.active, s.activeLast, weeks, { id: 'insights-active', width: 1100, height: 240, label: `Weekly active ${yearLabel.toLowerCase()}, ${s.active[0]}% in week 1 to ${s.active.at(-1)}% in week 6` })}
       ${table('Weekly active students', ['Week of', SAMPLE.term, 'Fall 2025'], weeks.map((w, i) => [w, s.active[i] + '%', s.activeLast[i] + '%']))}</section>
-    <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Persistence · all students</p><h2>Projected return in spring</h2></div></div>
-      <ul class="lead-bars lead-bars-compare">${persistRows.map(([l, r]) => `<li><span class="lead-bar-label">${l}</span><span class="lead-bar-track"><span class="lead-bar-fill" style="width:${r.persist}%"></span><span class="lead-bar-mark" style="left:${r.persistLast}%" title="Last year ${r.persistLast}%"></span></span><span class="lead-bar-value">${r.persist}%</span></li>`).join('')}</ul>
+    <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Persistence · by class year</p><h2>Projected return in spring</h2></div></div>
+      <ul class="lead-bars lead-bars-compare">${persistRows.map(([l, r]) => `<li${yearKey && yearKey !== l ? ' class="is-dim"' : ''}><span class="lead-bar-label">${l}</span><span class="lead-bar-track"><span class="lead-bar-fill" style="width:${r.persist}%"></span><span class="lead-bar-mark" style="left:${r.persistLast}%" title="Last year ${r.persistLast}%"></span></span><span class="lead-bar-value">${r.persist}%</span></li>`).join('')}</ul>
       <p class="lead-legend"><span class="lead-key"></span>This year<span class="lead-key is-mark"></span>Last year</p>
       <p class="campus-muted">First-year students carry the most risk, and the most room to move: every point is about three students.</p></section>
-    <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Admissions · entering class</p><h2>From inquiry to enrolled</h2></div><a href="${ctx.esc(ctx.href('/ht/hub/admissions/'))}">Admissions space</a></div>
-      ${bars(SAMPLE.funnel, { max: funnelMax })}<p class="campus-muted">${Math.round((SAMPLE.funnel[4][1] / SAMPLE.funnel[3][1]) * 100)}% of deposited students enrolled; the admitted-student community runs from deposit to move-in.</p></section>
-    <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Learning · all students</p><h2>Pathway completion</h2></div><a href="${ctx.esc(ctx.href('learn'))}">Pathways</a></div>
-      ${bars(SAMPLE.pathways, { max: 100, unit: '%', emphasis: (_, v) => v < 65 })}<p class="campus-muted">Financial Wellness trails the rest; its module three is where most students stop.</p></section>
-    <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Student support · all students</p><h2>${SAMPLE.support.month} requests this month</h2></div><a href="${ctx.esc(ctx.href('support'))}">Support queue</a></div>
-      ${bars(SAMPLE.support.byTopic)}<p class="campus-muted">Median first reply: <strong>${SAMPLE.support.medianReply}</strong>. Every request has a named owner.</p></section>
-    <section class="campus-panel lead-span-2"><div class="campus-section-head"><div><p class="campus-eyebrow">Campus life &amp; giving · all students</p><h2>What students showed up for</h2></div></div>
-      <div class="lead-mini-stats"><div><strong>${num(SAMPLE.checkins)}</strong><span>event check-ins this month</span></div><div><strong>$${num(SAMPLE.giving.raised)}</strong><span>given to student-work cohorts</span></div><div><strong>${SAMPLE.giving.donors}</strong><span>donors this fall</span></div></div></section>
+    <section class="campus-panel${campusWide}"><div class="campus-section-head"><div><p class="campus-eyebrow">Admissions · entering class</p><h2>From inquiry to enrolled</h2></div><a href="${ctx.esc(ctx.href('/ht/hub/admissions/'))}">Admissions space</a></div>
+      ${campusNote}${bars(SAMPLE.funnel, { max: funnelMax })}<p class="campus-muted">${Math.round((SAMPLE.funnel[4][1] / SAMPLE.funnel[3][1]) * 100)}% of deposited students enrolled; the admitted-student community runs from deposit to move-in.</p></section>
+    <section class="campus-panel${campusWide}"><div class="campus-section-head"><div><p class="campus-eyebrow">Learning · all students</p><h2>Pathway completion</h2></div><a href="${ctx.esc(ctx.href('learn'))}">Pathways</a></div>
+      ${campusNote}${bars(SAMPLE.pathways, { max: 100, unit: '%', emphasis: (_, v) => v < 65 })}<p class="campus-muted">Financial Wellness trails the rest; its module three is where most students stop.</p></section>
+    <section class="campus-panel${campusWide}"><div class="campus-section-head"><div><p class="campus-eyebrow">Student support · all students</p><h2>${SAMPLE.support.month} requests this month</h2></div><a href="${ctx.esc(ctx.href('support'))}">Support queue</a></div>
+      ${campusNote}${bars(SAMPLE.support.byTopic)}<p class="campus-muted">Median first reply: <strong>${SAMPLE.support.medianReply}</strong>. Every request has a named owner.</p></section>
+    <section class="campus-panel${campusWide} lead-span-2"><div class="campus-section-head"><div><p class="campus-eyebrow">Campus life &amp; giving · all students</p><h2>Where the campus showed up</h2></div></div>
+      ${campusNote}<div class="lead-mini-stats"><div><strong>${num(SAMPLE.checkins)}</strong><span>event check-ins this month</span></div><div><strong>$${num(SAMPLE.giving.raised)}</strong><span>given to student-work cohorts</span></div><div><strong>${SAMPLE.giving.donors}</strong><span>donors this fall</span></div></div></section>
   </div>
   <div class="lead-export"><button type="button" class="campus-button campus-button-secondary" data-lead-export>${ctx.icon('download')} Export this sample (CSV)</button></div>
   ${role(ctx) === 'leadership' ? '' : `<details class="lead-live-totals"><summary><span><p class="campus-eyebrow">Live records</p><strong>This demo’s workspace, right now</strong><span class="campus-muted">Counts of the records people create while trying the demo.</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary>${renderStaff('insights', ctx)}</details>`}</div>`;
@@ -191,10 +194,10 @@ export function renderLeadership(view, ctx) {
 }
 
 function csv(ctx) {
-  const s = slice(yearFilter), rows = [['Measure', 'Value', 'Note']];
-  rows.push(['Students enrolled', s.enrolled, 'Illustrative sample'], ['Fall-to-spring persistence (%)', s.persist, ''], ['Active this week (%)', s.active.at(-1), ''], ['Pathway completion (%)', s.completion, '']);
-  SAMPLE.funnel.forEach(([l, v]) => rows.push(['Admissions: ' + l, v, '']));
-  SAMPLE.support.byTopic.forEach(([l, v]) => rows.push(['Support requests: ' + l, v, '']));
+  const s = slice(yearFilter), label = YEARS.find(([k]) => k === yearFilter)[1], rows = [['Measure', 'Value', 'Note'], ['Class year filter', label, 'Illustrative sample, not Huston-Tillotson results']];
+  rows.push(['Students enrolled', s.enrolled, label], ['Fall-to-spring persistence (%)', s.persist, ''], ['Active this week (%)', s.active.at(-1), ''], ['Pathway completion (%)', s.completion, '']);
+  SAMPLE.funnel.forEach(([l, v]) => rows.push(['Admissions: ' + l, v, 'Campus-wide']));
+  SAMPLE.support.byTopic.forEach(([l, v]) => rows.push(['Support requests: ' + l, v, 'Campus-wide']));
   const body = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([body], { type: 'text/csv' }));

@@ -241,6 +241,20 @@ const ROSETTE = (() => {
   return pts.join(' ');
 })();
 
+/** A readable credential ID, derived deterministically from the stored UUID:
+ *  HT-CR-<completion year>-<4 digits>. The UUID stays the record of truth (title/data attribute). */
+export function credentialLabel(uuid, completedAt) {
+  const raw = String(uuid || '');
+  if (!raw) return '';
+  const hex = raw.replace(/[^0-9a-f]/gi, '');
+  const tail = parseInt(hex.slice(-8) || '0', 16);
+  let n = tail % 10000;
+  if (!n) { let h = 0; for (const ch of raw) h = (h * 31 + ch.charCodeAt(0)) >>> 0; n = (h % 9999) + 1; }
+  const year = new Date(completedAt || '').getUTCFullYear();
+  return `HT-CR-${Number.isFinite(year) ? year : 'REC'}-${String(n).padStart(4, '0')}`;
+}
+const credentialCode = (enrollment, esc) => `<code title="Record reference ${esc(enrollment.credential_id)}" data-credential-uuid="${esc(enrollment.credential_id)}">${esc(credentialLabel(enrollment.credential_id, enrollment.completed_at))}</code>`;
+
 function badgeSeal(state, glyph, share = 0) {
   const path = BADGE_GLYPHS[glyph] || BADGE_GLYPHS.star;
   const ring = 2 * Math.PI * 38, done = Math.max(0, Math.min(1, share));
@@ -292,10 +306,10 @@ function sampleBadgeCard(sample, ctx) {
 }
 
 function badgeShelf(ctx) {
-  const { state, icon } = ctx;
+  const { state, icon, esc, href } = ctx;
   const badges = learnerBadges(state);
   const earned = badges.filter((badge) => badge.earned).length;
-  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Financial Wellness and Digital Storytelling show what HT could offer next. They are not live pathways yet.</span></p></section>`;
+  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><a class="badge-link badge-live-link" href="${esc(href('live'))}">Find your classroom and recordings <span aria-hidden="true">→</span></a><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Financial Wellness and Digital Storytelling show what HT could offer next. They are not live pathways yet.</span></p></section>`;
 }
 
 function coCurricularRecord(ctx) {
@@ -304,7 +318,7 @@ function coCurricularRecord(ctx) {
   const name = state.member?.display_name || 'Campus learner';
   const next = learnerBadges(state).find((badge) => badge.state === 'progress') || learnerBadges(state).find((badge) => badge.state === 'available');
   const demo = state.mode === 'demo' ? '<p class="badge-record-demo">Illustrative demo record. Not an official university credential.</p>' : '';
-  const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID <code>${esc(enrollment.credential_id)}</code></span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or show in your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
+  const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID ${credentialCode(enrollment, esc)}</span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or show in your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
   return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">See career portfolio</a><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
 }
 
@@ -312,11 +326,11 @@ function learnView(ctx) {
   const { state, esc, href } = ctx;
   const courses = publishedCourses(state);
   const enrollments = own(state, 'enrollments');
-  return `${guestNotice(state)}<div class="campus-page-intro"><p>Build skills one clear step at a time. Complete activities, get instructor feedback, and keep a record of what you’ve learned.</p><a href="${esc(href('live'))}">Find your classroom & recordings <span aria-hidden="true">→</span></a></div><div class="badge-layout">${badgeShelf(ctx)}${coCurricularRecord(ctx)}</div>${courses.length ? `<div class="campus-stack">${courses.map((course) => {
+  return `${guestNotice(state)}<div class="badge-layout">${badgeShelf(ctx)}${coCurricularRecord(ctx)}</div>${courses.length ? `<div class="campus-stack">${courses.map((course) => {
     const enrollment = enrollments.find((item) => item.course_id === course.id);
     const progress = progressFor(state, course.id);
     const image = safeCampusUrl(course.image_url);
-    return `<section class="campus-panel campus-course" id="course-${esc(course.id)}"><div class="campus-course-heading">${image ? `<img class="campus-course-image" src="${esc(image)}" alt="" loading="lazy">` : ''}<div><p class="campus-eyebrow">${esc(course.category || 'Campus learning')} · ${progress.total} ${progress.total === 1 ? 'module' : 'modules'}</p><h2>${esc(course.title)}</h2><p>${esc(course.description)}</p></div>${!enrollment ? `<button type="button" class="campus-button" data-campus-action="enroll" data-course-id="${esc(course.id)}"${canAct(state) && progress.total ? '' : ' disabled'}>Enroll in pathway</button>` : `<span class="campus-label">${enrollment.completed_at ? 'Pathway complete' : 'You’re enrolled'}</span>`}</div>${enrollment ? courseProgress(course, ctx) : ''}${enrollment?.completed_at && enrollment.credential_id ? `<div class="campus-credential"><div><p class="campus-eyebrow">Learning accomplished</p><h3>Your completion record</h3><p>${esc(state.member?.display_name || 'Campus learner')} completed this pathway on ${esc(dateText(enrollment.completed_at, ctx))}.</p><p class="campus-muted">Credential ID: <code>${esc(enrollment.credential_id)}</code></p><p class="campus-muted">Issued by this Hub. Campus staff can confirm this record using the credential ID.</p></div><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="downloadCredential" data-course-id="${esc(course.id)}">Download record</button></div>` : ''}<div class="campus-modules">${progress.modules.length ? progress.modules.map((module, index) => moduleCard(module, index, progress, !!enrollment, ctx)).join('') : empty('A new pathway is taking shape', 'Modules will be available when the instructor publishes them.', ctx)}</div></section>`;
+    return `<section class="campus-panel campus-course" id="course-${esc(course.id)}"><div class="campus-course-heading">${image ? `<img class="campus-course-image" src="${esc(image)}" alt="" loading="lazy">` : ''}<div><p class="campus-eyebrow">${esc(course.category || 'Campus learning')} · ${progress.total} ${progress.total === 1 ? 'module' : 'modules'}</p><h2>${esc(course.title)}</h2><p>${esc(course.description)}</p></div>${!enrollment ? `<button type="button" class="campus-button" data-campus-action="enroll" data-course-id="${esc(course.id)}"${canAct(state) && progress.total ? '' : ' disabled'}>Enroll in pathway</button>` : `<span class="campus-label">${enrollment.completed_at ? 'Pathway complete' : 'You’re enrolled'}</span>`}</div>${enrollment ? courseProgress(course, ctx) : ''}${enrollment?.completed_at && enrollment.credential_id ? `<div class="campus-credential"><div><p class="campus-eyebrow">Learning accomplished</p><h3>Your completion record</h3><p>${esc(state.member?.display_name || 'Campus learner')} completed this pathway on ${esc(dateText(enrollment.completed_at, ctx))}.</p><p class="campus-muted">Credential ID: ${credentialCode(enrollment, esc)}</p><p class="campus-muted">Issued by this Hub. Campus staff can confirm this record using the credential ID.</p></div><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="downloadCredential" data-course-id="${esc(course.id)}">Download record</button></div>` : ''}<div class="campus-modules">${progress.modules.length ? progress.modules.map((module, index) => moduleCard(module, index, progress, !!enrollment, ctx)).join('') : empty('A new pathway is taking shape', 'Modules will be available when the instructor publishes them.', ctx)}</div></section>`;
   }).join('')}</div>` : empty('Your next learning opportunity is on its way', 'Published campus pathways will appear here. In the meantime, explore events or ask the learning support team for help.', ctx)}`;
 }
 
@@ -478,7 +492,7 @@ export function bindStudent(view, root, ctx) {
         const enrollment = own(ctx.state, 'enrollments').find((item) => item.course_id === course?.id && item.completed_at && item.credential_id);
         if (!course || !enrollment) throw new Error('A completion record is available after all pathway requirements are complete.');
         const demoLabel = ctx.state.mode === 'demo' ? 'ILLUSTRATIVE DEMO RECORD — NOT AN INSTITUTIONAL CREDENTIAL\n\n' : '';
-        const content = `${demoLabel}HT CAMPUS HUB · LEARNING COMPLETION RECORD\n\nLearner: ${ctx.state.member.display_name}\nPathway: ${course.title}\nCompleted: ${new Date(enrollment.completed_at).toISOString()}\nCredential ID: ${enrollment.credential_id}\n\nIssued by the HT Campus Hub. Campus staff can confirm the saved completion using this credential ID.\n`;
+        const content = `${demoLabel}HT CAMPUS HUB · LEARNING COMPLETION RECORD\n\nLearner: ${ctx.state.member.display_name}\nPathway: ${course.title}\nCompleted: ${new Date(enrollment.completed_at).toISOString()}\nCredential ID: ${credentialLabel(enrollment.credential_id, enrollment.completed_at)}\nRecord reference: ${enrollment.credential_id}\n\nIssued by the HT Campus Hub. Campus staff can confirm the saved completion using this credential ID.\n`;
         download(content, 'text/plain;charset=utf-8', 'ht-learning-completion.txt');
         ctx.notify('Your completion record has been downloaded.');
         return;

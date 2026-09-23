@@ -132,13 +132,21 @@ test('Ada answers "when is it due" from the published assignment dates, points, 
     { ...assignments[1], due_at: new Date(2026, 8, 20, 23, 59).toISOString() },
   ] });
   assert.equal(T.formatWhen(new Date(2026, 8, 25, 23, 59), new Date(2026, 0, 1)), 'Friday, Sep 25 at 11:59 PM');
-  for (const question of ['whats the due date', 'When is the brief due?', 'how many attempts do I get', 'Can I turn it in late?']) {
+  for (const question of ['whats the due date', 'When is the brief due?', 'how many attempts do I get']) {
     const answer = T.answerQuestion(question, dated);
     assert.equal(answer.kind, 'answer', question);
     assert.equal(answer.passages.length, 1, `${question}: only published work`);
     assert.equal(answer.passages[0].citation.id, 'brief');
     assert.match(answer.passages[0].text, /^Responsible AI project brief is due Friday, Sep 25 at 11:59 PM\. You can still turn it in until Saturday, Sep 26 at 11:59 PM\. After that, it closes\. It is worth 100 points, and you get 3 attempts\.$/, question);
     assert.doesNotMatch(JSON.stringify(answer), /SECRET/);
+  }
+  for (const question of ['Can I turn it in late?', "what's the late policy?", 'What if I miss the deadline?']) {
+    const answer = T.answerQuestion(question, dated);
+    assert.equal(answer.kind, 'answer', question);
+    assert.equal(answer.lead, 'Here is what happens after the due date:');
+    assert.equal(answer.passages.length, 1, question);
+    assert.equal(answer.passages[0].text, 'If you miss the due date for Responsible AI project brief, you can still turn it in until Saturday, Sep 26 at 11:59 PM. It will show as late. After that, it closes and you can\'t turn it in. If you need more time, ask your instructor about an extension.', question);
+    assert.doesNotMatch(answer.passages[0].text, /worth|attempts/, 'late answers do not repeat the full due-date answer');
   }
   assert.equal(T.answerQuestion('What time does the cafeteria open on Sunday?', dated).kind, 'none');
 });

@@ -98,7 +98,7 @@ try{
   await page.locator('.campus-academic-tabs').getByRole('link',{name:'Gradebook',exact:true}).click();await ready();
   await page.getByRole('link',{name:'39 / 40',exact:true}).click();await ready();form=formWith('score');
   assert.equal(await form.locator('[name="expected_revision"]').inputValue(),'3','Internal navigation must not silently rebase stale feedback');
-  await form.getByRole('button',{name:'Discard draft & load latest review',exact:true}).click();
+  await form.getByRole('button',{name:'Start over',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('form[data-academic-form="grade"] [name="expected_revision"]')?.value==='4');
   form=formWith('score');assert.equal(await form.locator('[name="feedback"]').inputValue(),'A newer review was published from another session.');
   await form.locator('[name="feedback"]').fill('I reviewed the current work and confirmed this result.');await form.locator('[name="status"]').selectOption('published');await form.locator('button[type="submit"]').click();
@@ -110,7 +110,7 @@ try{
   await command('saveAssignment',{...original,opens_at:past(180),due_at:past(120),closes_at:past(60)});
   await visit('student',{cohort,tab:'assignments',assignment:seeded});
   await page.getByText('Submissions are closed. Ask your instructor about an extension.',{exact:true}).waitFor();assert.equal(await formWith('body').count(),0);
-  await visit('staff',{cohort,tab:'assignments',assignment:seeded,student});let form=page.locator('form[data-academic-form="extension"]');
+  await visit('staff',{cohort,tab:'assignments',assignment:seeded,student});await page.locator('.campus-academic-extension summary').click();let form=page.locator('form[data-academic-form="extension"]');
   await form.locator('[name="due_at"]').fill(localTime(1440));await form.locator('[name="closes_at"]').fill(localTime(2880));await form.getByRole('button',{name:'Save extension',exact:true}).click();
   await page.waitForFunction(id=>JSON.parse(localStorage.getItem('ht-campus-demo-v2')).assignment_extensions.some(e=>e.assignment_id===id),seeded);
   await visit('student',{cohort,tab:'assignments',assignment:seeded});assert.equal(await formWith('body').count(),1);assert.ok(await page.getByText(/personal extension/).count());

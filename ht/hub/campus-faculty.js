@@ -14,6 +14,10 @@ const ms = (value) => { const t = new Date(value).getTime(); return Number.isFin
 const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'this student';
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const me = (ctx) => ctx.state?.user?.id || ctx.state?.member?.user_id || null;
+/* Small counts read as words in the serif headline (Georgia's numerals are old-style). Above
+   twenty the digits stay, set in Inter so they line up. */
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+export const countWords = (n) => (Number.isInteger(n) && n >= 0 && n <= 20 ? WORDS[n] : `<span class="faculty-num">${Number(n)}</span>`);
 const memberName = (ctx, id) => list(ctx.state.members).find((m) => m.user_id === id)?.display_name || 'A student';
 
 function sameDay(a, b) {
@@ -94,13 +98,13 @@ function hero(ctx, queue, alerts, sections) {
   const gradeHref = first
     ? href('courses', { cohort: first.assignment.cohort_id, tab: 'assignments', assignment: first.assignment.id })
     : href('courses', sections[0] ? { cohort: sections[0].id, tab: 'assignments' } : {});
-  const title = toGrade && toReach ? `Grade ${toGrade}, reach ${toReach}.`
-    : toGrade ? `Grade ${toGrade}, then teach.`
-    : toReach ? `Reach ${toReach} students today.`
+  const title = toGrade && toReach ? `Grade ${countWords(toGrade)}, reach ${countWords(toReach)}.`
+    : toGrade ? `Grade ${countWords(toGrade)}, then teach.`
+    : toReach ? `Reach ${countWords(toReach)} ${toReach === 1 ? 'student' : 'students'} today.`
     : 'You are all caught up.';
   const line = [
     first ? `${esc(who)} turned in the ${esc(first.assignment.title)} ${esc(sinceWords(first.attempt.submitted_at))}.` : 'No submissions are waiting on a grade.',
-    toReach ? `On the early-alert list, ${plural(toReach, 'student is', 'students are')} still waiting on a first touch.` : 'Every flagged student has heard from someone.'
+    toReach ? `On your early-alert list, ${plural(toReach, 'student is', 'students are')} still waiting on a first touch.` : 'Every student on your early-alert list has heard from someone.'
   ].join(' ');
   return `<section class="campus-hero faculty-hero" aria-labelledby="facultyHeroTitle">
     <div class="faculty-hero-copy">
@@ -132,7 +136,7 @@ function sectionCard(ctx, cohort) {
   return `<article class="faculty-section">
     <div class="faculty-section-head"><p class="campus-eyebrow">${esc(group || 'Section')}</p><h3>${esc(course)}</h3></div>
     <dl class="faculty-section-facts">
-      <div><dt>Students</dt><dd>${f.roster}</dd></div>
+      <div><dt>Students</dt><dd>${f.roster}<span class="faculty-dd-note">in this demo roster</span></dd></div>
       <div><dt>Assignments open</dt><dd>${f.open}</dd></div>
       <div class="faculty-section-next"><dt>Next class</dt><dd>${next}${f.next ? `<span>${esc(f.next.title)}</span>` : ''}</dd></div>
     </dl>
@@ -166,14 +170,14 @@ function requestsPanel(ctx, rows) {
 function alertsPanel(ctx, alerts) {
   const { esc, href } = ctx;
   const stat = (n, label) => `<div><dd>${n}</dd><dt>${label}</dt></div>`;
-  return `<section class="campus-panel faculty-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Early alerts</p><h2>${plural(alerts.flagged, 'student')} flagged</h2></div><a href="${esc(href('success'))}">Open caseload</a></div>
+  return `<section class="campus-panel faculty-panel faculty-alerts"><div class="campus-section-head"><div><p class="campus-eyebrow">Your early alerts</p><h2>${plural(alerts.flagged, 'student')} in your caseload</h2></div><a href="${esc(href('success'))}">Open my caseload</a></div>
     <dl class="faculty-alert-stats">${stat(alerts.waiting, 'Waiting on a first touch')}${stat(alerts.open, 'Contacted, still open')}${stat(alerts.resolved, 'Resolved')}</dl>
-    <p class="campus-muted faculty-alert-note">The same numbers as Student success. A short, kind nudge is usually enough.</p></section>`;
+    <p class="campus-muted faculty-alert-note">Only the students assigned to you, the same numbers as your Student success page. A short, kind nudge is usually enough.</p></section>`;
 }
 function adaNote(ctx, queue) {
   const { esc, href, icon } = ctx;
   const target = queue[0] ? href('courses', { cohort: queue[0].assignment.cohort_id, tab: 'assignments', assignment: queue[0].assignment.id }) : href('courses');
-  return `<section class="campus-panel faculty-ada">${icon('star')}<div><h2>Ada can help you grade</h2><p class="campus-muted">Ada, the course tutor, drafts feedback against your rubric. You read it, change what you want, and nothing reaches a student until you approve it.</p><a href="${esc(target)}">Try it on the next submission <span aria-hidden="true">→</span></a></div></section>`;
+  return `<section class="campus-panel faculty-ada">${icon('star')}<div><h2>Ada can help you grade</h2><p class="campus-muted">Ada, the Hub's AI guide, drafts feedback against your rubric. You read it, change what you want, and nothing reaches a student until you approve it.</p><a href="${esc(target)}">Try it on the next submission <span aria-hidden="true">→</span></a></div></section>`;
 }
 
 export function renderFaculty(view, ctx) {
@@ -181,7 +185,7 @@ export function renderFaculty(view, ctx) {
   const sections = mySections(ctx);
   const ids = sections.map((c) => c.id);
   const queue = gradingQueue(ctx.state, ids);
-  const alerts = caseloadSummary();
+  const alerts = caseloadSummary(ctx.state?.member?.display_name || '');
   const classes = todaysClasses(ctx, ids);
   const requests = waitingRequests(ctx);
   return `<div class="faculty-view">

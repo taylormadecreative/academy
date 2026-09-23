@@ -11,7 +11,9 @@ const REASONS = { A: 'Missed two or more assignments', S: 'No Hub sign-in in 10 
 const REASON_ORDER = ['A', 'S', 'G', 'C'];
 const YEARS = { 1: 'First-year', 2: 'Sophomore', 3: 'Junior', 4: 'Senior' };
 const OWNERS = { M: 'Morgan T.', E: 'Dr. Ellis P.', D: 'Dana K.' };
-const SECTIONS = ['AI Literacy · First-Year Scholars', 'Financial Wellness · Sophomore Cohort', 'Intro to Data · Business Majors', 'Career Ready · Junior Seminar', 'Digital Storytelling · Creative Lab'];
+/* Sample sections outside the interactive demo roster, so a flag never points at a class whose
+   real (demo) roster could not hold that student. */
+const SECTIONS = ['First-Year Seminar · Section 4', 'Financial Wellness · Sophomore Cohort', 'Intro to Data · Business Majors', 'Intro to Biology · Section 2', 'College Writing I · Section 7'];
 const OFFICES = [
   ['Tutoring & Writing Center', 'Free help with any class, drop-in or by appointment.'],
   ['Financial Aid', 'Questions about aid, bills, work-study, or emergency funds.'],
@@ -34,7 +36,7 @@ const ROWS = [
   ['DeShawn R.', 1, 'Business Administration', 'S', 'M', 0, 6, 'n', 0, ''],
   ['Maria G.', 1, 'Psychology', 'A', 'M', 0, 3, 'c', 1, 'S'],
   ['Jalen T.', 1, 'Kinesiology', 'G', 'M', 0, 9, 'r', 2, ''],
-  ['Imani B.', 1, 'Mass Communication', 'A', 'M', 4, 1, 'n', 0, ''],
+  ['Naomi B.', 1, 'Mass Communication', 'A', 'M', 4, 1, 'n', 0, ''],
   ['Marcus W.', 1, 'Computer Science', 'S', 'M', 2, 4, 'c', 1, ''],
   ['Destiny H.', 1, 'Criminal Justice', 'A', 'M', 0, 11, 'r', 1, 'C'],
   ['Andre L.', 1, 'Accounting', 'C', 'M', 2, 2, 'n', 0, ''],
@@ -144,6 +146,12 @@ function student(id) {
   return o ? { ...base, status: o.status, firstTouch: o.firstTouch, resolvedReason: o.resolvedReason, log: [...base.log, ...o.log] } : base;
 }
 function everyone() { return BASELINE.map((s) => student(s.id)); }
+/* Staff and admins see only the flags they own (the Security page promise: advisors see their
+   caseload only). The owner is the signed-in person's display name, set on every render. */
+let caseOwner = null;
+function setOwner(ctx) { caseOwner = ctx?.state?.member?.display_name || null; return caseOwner; }
+function mine() { return everyone().filter((s) => s.owner === caseOwner); }
+function isMine(id) { const base = BY_ID.get(id); return !!base && base.owner === caseOwner; }
 function override(id) {
   const s = student(id), all = loadStore().students;
   if (!all[id]) all[id] = { status: s.status, firstTouch: s.firstTouch, resolvedReason: s.resolvedReason, log: [] };
@@ -163,10 +171,12 @@ function totals(list = everyone()) {
   const oldest = waiting.reduce((m, s) => Math.max(m, daysSince(s.flaggedAt)), 0);
   return { flagged: list.length, waiting: waiting.length, contacted: contacted.length, open: contacted.length - resolved.length, resolved: resolved.length, median: median(contacted.map((s) => s.firstTouch).filter((n) => n != null)), oldest };
 }
-/** The same four numbers the Student success page shows, read from the same saved sample.
- *  Pass an owner's name for just their flags; leave it out for the whole caseload. */
-export function caseloadSummary(ownerName) {
-  const list = everyone().filter((s) => !ownerName || s.owner === ownerName);
+/** The same numbers the Student success page shows, read from the same saved sample.
+ *  Pass an owner's name for just their flags (an unknown or empty name gets none). Call it with
+ *  no argument for campus totals, which only the leadership pattern view shows. */
+export function caseloadSummary(...args) {
+  const ownerName = args[0];
+  const list = args.length ? everyone().filter((s) => !!ownerName && s.owner === ownerName) : everyone();
   const t = totals(list);
   return { flagged: t.flagged, waiting: t.waiting, open: t.open, resolved: t.resolved, median: t.median, oldest: t.oldest };
 }
@@ -210,7 +220,7 @@ function matches(s) {
 }
 const STATUS_RANK = { new: 0, contacted: 1, resolved: 2 };
 function filtered() {
-  return everyone().filter(matches).sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.flaggedAt - b.flaggedAt || a.name.localeCompare(b.name));
+  return mine().filter(matches).sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.flaggedAt - b.flaggedAt || a.name.localeCompare(b.name));
 }
 
 /* ---------- shared pieces ---------- */
@@ -237,7 +247,7 @@ function summaryStrip(t, label = 'Caseload summary') {
   </section>`;
 }
 function filterBar(ctx, list) {
-  const { esc, icon } = ctx, all = everyone();
+  const { esc, icon } = ctx, all = mine();
   const count = (k) => (k === 'all' ? all.length : all.filter((s) => s.status === k).length);
   return `<div class="success-filters" role="search" aria-label="Filter students">
     <div class="success-filter-group" role="group" aria-labelledby="successStatusLabel"><span class="success-filter-label" id="successStatusLabel">Status</span><div class="success-chips">${STATUS_FILTERS.map(([k, l]) => `<button type="button" class="lead-chip success-chip" data-success-status="${k}" data-sf="status-${k}" aria-pressed="${statusFilter === k}">${l} <span class="success-chip-count">${count(k)}</span></button>`).join('')}</div></div>
@@ -343,16 +353,16 @@ function detailPanel(ctx, s, actor) {
   </section>`;
 }
 function staffBody(ctx) {
-  const actor = ctx.state?.member?.display_name || 'Morgan T.';
-  const list = filtered();
-  if (!selectedId || !BY_ID.has(selectedId)) selectedId = list[0]?.id || null;
+  const actor = setOwner(ctx) || 'You';
+  const list = filtered(), caseload = mine();
+  if (!selectedId || !isMine(selectedId)) selectedId = list[0]?.id || null;
   const current = selectedId ? student(selectedId) : null;
   const label = STATUS_FILTERS.find(([k]) => k === statusFilter)[1];
-  return `${summaryStrip(totals())}
+  return `${summaryStrip(totals(caseload), 'Your caseload')}
     ${filterBar(ctx, list)}
     <div class="success-layout">
       <section class="campus-panel success-list-panel" aria-labelledby="successListTitle">
-        <div class="success-list-head"><h2 id="successListTitle">${statusFilter === 'all' ? 'All flagged students' : label}</h2><p class="campus-muted" aria-hidden="true">${list.length} of ${BASELINE.length} · oldest first</p></div>
+        <div class="success-list-head"><h2 id="successListTitle">${statusFilter === 'all' ? 'All flagged students' : label}</h2><p class="campus-muted" aria-hidden="true">${list.length} of ${caseload.length} · oldest first</p></div>
         ${list.length ? `<ul class="success-list">${list.map((s) => listRow(ctx, s)).join('')}</ul>` : emptyState(ctx)}
       </section>
       ${detailPanel(ctx, current, actor)}
@@ -364,8 +374,10 @@ function liveText() {
   return `Showing ${n} ${n === 1 ? 'student' : 'students'}${statusFilter === 'all' ? '' : `, ${label.toLowerCase()}`}.`;
 }
 function staffView(ctx) {
+  setOwner(ctx);
   return `<div class="success-view" data-success-root data-success-mode="caseload">
     <p class="lead-sample-note">${ctx.icon('users')}<span><strong>Sample caseload with fictional students.</strong> Early alerts come from Hub sign-ins, assignments, midterm grades, and attendance. Each flag has an owner and a clear next step.</span></p>
+    <p class="success-scope">${ctx.icon('shield')}<span>You see the students assigned to you. Other advisors see theirs; leadership sees totals only.</span></p>
     <p class="campus-sr-only" aria-live="polite" data-success-live>${liveText()}</p>
     <div data-success-body>${staffBody(ctx)}</div>
   </div>`;
@@ -465,7 +477,7 @@ export function bindSuccess(view, root, ctx) {
   liveCtx = ctx;
   const r = ctx.state?.member?.role;
   if (!['staff', 'admin'].includes(r) || !root.querySelector('[data-success-body]')) return () => {};
-  const actor = () => ctx.state?.member?.display_name || 'Morgan T.';
+  const actor = () => setOwner(ctx) || 'You';
   const closeComposer = (form) => { if (form) ctx.discardDraft?.(form); composer = null; };
 
   const click = (e) => {
@@ -474,6 +486,7 @@ export function bindSuccess(view, root, ctx) {
     if (t.dataset.successStatus) { statusFilter = t.dataset.successStatus; selectedId = null; closeComposer(root.querySelector('#successComposer')); paint(root, `status-${statusFilter}`); return; }
     if (t.hasAttribute('data-success-clear')) { statusFilter = 'all'; reasonFilter = 'all'; yearFilter = 'all'; query = ''; selectedId = null; paint(root, 'status-all'); return; }
     if (t.dataset.successOpen) {
+      if (!isMine(t.dataset.successOpen)) return;
       if (selectedId !== t.dataset.successOpen) closeComposer(root.querySelector('#successComposer'));
       selectedId = t.dataset.successOpen;
       if (narrow()) { paint(root, 'detail-name'); root.querySelector('.success-detail')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
@@ -491,6 +504,7 @@ export function bindSuccess(view, root, ctx) {
     }
     if (t.hasAttribute('data-success-cancel')) { const type = composer?.type; if (type === 'nudge') nudgeDrafts.delete(selectedId); closeComposer(t.closest('form')); paint(root, `action-${type || 'nudge'}`); return; }
     if (t.hasAttribute('data-success-reopen')) {
+      if (!isMine(selectedId)) return;
       const s = student(selectedId), o = override(selectedId);
       o.status = o.firstTouch == null ? 'new' : 'contacted'; o.resolvedReason = null;
       log(selectedId, 'reopen', `Reopened by ${actor()}`);
@@ -510,7 +524,7 @@ export function bindSuccess(view, root, ctx) {
     const form = e.target.closest('form[data-success-form]');
     if (!form || !root.contains(form)) return;
     e.preventDefault();
-    const id = form.dataset.student, s = student(id);
+    const id = form.dataset.student, s = isMine(id) ? student(id) : null;
     if (!s) return;
     const data = new FormData(form), type = form.dataset.successForm, me = actor();
     const text = (name) => String(data.get(name) || '').trim();

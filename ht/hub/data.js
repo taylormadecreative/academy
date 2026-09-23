@@ -25,7 +25,7 @@ HT.spaceArtwork = {
 HT.leadershipWalkthrough = [
   { key: 'success', title: 'Every student who needs a hand has an owner', detail: 'Early alerts come from sign-ins, missed work, midterm grades, and attendance. Advisors see names; you see the pattern.' },
   { key: 'insights', title: 'The whole campus on one page', detail: 'Enrollment, persistence, weekly activity, pathways, and support, filtered by class year. Sample figures.' },
-  { key: 'courses', role: 'student', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'overview' }, title: 'Ada tutors from the course itself', detail: 'You are now Jordan, a first-year student. Ask Ada a question: she answers only from this class’s lessons, and won’t write the assignment.' },
+  { key: 'courses', role: 'student', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'overview' }, hash: 'ada', title: 'Ada tutors from the course itself', detail: 'You are now Jordan, a first-year student. Ask Ada a question: she answers only from this class’s lessons, and won’t write the assignment.' },
   { key: 'courses', role: 'staff', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'assignments', assignment: 'd0000000-0000-4000-8000-000000000001' }, title: 'Grade in minutes, with a rubric', detail: 'You are now Morgan, the instructor. Open Imani’s brief, pick a level for each part, and let Ada draft the feedback you edit and publish.' },
   { key: 'learn', role: 'student', title: 'Credentials that travel', detail: 'Back as Jordan: finished pathways become badges and a printable record that feeds the career portfolio.' },
   { key: 'trust', title: 'Ready for your IT review', detail: 'What is built today, what we set up with your IT team, and who can see what.' },
@@ -40,7 +40,7 @@ HT.leadershipWalkthrough = [
   { key: 'advancement', title: 'Giving connects to the work it makes possible', detail: 'A sample cohort and its student work, ready for a thoughtful donor update.' },
   { key: 'outreach', title: 'Campus learning extends into the neighborhood', detail: 'Partners, families, and prospective students find public programs and a next step.' },
   { key: 'board', title: 'Governance has a clear working space', detail: 'The sample meeting agenda, materials, and attendance flow in a trustee space.' },
-  { key: 'live', title: 'Each cohort gets its own classroom', detail: 'Class sessions, materials, attendance, and replays together, with campus events easy to find.' }
+  { key: 'live', role: 'staff', title: 'Each cohort gets its own classroom', detail: 'You are Morgan again: your section’s sessions, materials, attendance, and replays in one place. Finish the tour from here.' }
 ];
 HT.pages = ['replay', 'calendar', 'session', 'legacy-live'];   /* pages outside the main tabs: replay belongs to Live, academic calendar to Events */
 

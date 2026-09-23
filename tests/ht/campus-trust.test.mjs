@@ -31,6 +31,12 @@ test('never names a hosting vendor or claims a certification', () => {
   assert.match(text, /We design to WCAG 2\.2 AA\. An outside review and a VPAT are planned before launch\./);
   assert.match(text, /HT’s campus accounts, using SAML or OIDC/);
   assert.match(text, /student questions are not used to train any AI model/);
+  assert.match(text, /Ada, the Hub’s AI guide, answers from the course’s materials/);
+  assert.doesNotMatch(text, /course tutor/i);
+  const chips = html.match(/<span class="trust-chip" data-status="(built|scoped)">/g) || [];
+  assert.ok(chips.length >= 17, 'every item and legend entry carries a chip');
+  assert.match(html, /data-status="built"><svg data-icon="check">/);
+  assert.match(html, /data-status="scoped"><svg data-icon="users">/);
   assert.ok(TRUST_QUESTIONS.length >= 6 && TRUST_QUESTIONS.length <= 8);
 });
 

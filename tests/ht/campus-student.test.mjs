@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const code = fs.readFileSync(new URL('../../ht/hub/campus-student.js', import.meta.url), 'utf8');
-const { renderStudent, bindStudent, safeCampusUrl, calendarForEvent } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const { renderStudent, bindStudent, safeCampusUrl, calendarForEvent, credentialLabel } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const start = new Date(Date.now() + 10 * 60_000).toISOString();
 const end = new Date(Date.now() + 60 * 60_000).toISOString();
@@ -12,6 +12,13 @@ const base = () => ({
   announcements: [], events: [], rsvps: [], attendance: [], courses: [], modules: [], enrollments: [], progress: [], submissions: [], requests: [], responses: [], posts: [], replies: [], likes: [], members: [], messages: [], notifications: [], settings: {},
 });
 const context = (state) => ({ state, esc, href: (view, params = {}) => `/ht/hub/${view === 'home' ? '' : `${view}/`}?${new URLSearchParams(params)}`, formatDate: (value) => new Date(value).toLocaleDateString('en-US'), formatTime: (value) => new Date(value).toLocaleTimeString('en-US'), icon: () => '' });
+
+test('credential IDs read as HT-CR-year-number, derived from the UUID', () => {
+  assert.equal(credentialLabel('c7000000-0000-4000-8000-000000000001', '2026-09-09T15:00:00Z'), 'HT-CR-2026-0001');
+  assert.equal(credentialLabel('c7000000-0000-4000-8000-000000000001', '2026-09-09T15:00:00Z'), credentialLabel('c7000000-0000-4000-8000-000000000001', '2026-09-09T15:00:00Z'));
+  assert.match(credentialLabel('9f0e1d2c-3b4a-4596-8877-66554433aa00', '2025-05-01T00:00:00Z'), /^HT-CR-2025-\d{4}$/);
+  assert.equal(credentialLabel('', '2026-01-01'), '');
+});
 
 test('web links reject script schemes, credentials, protocol-relative paths and controls', () => {
   for (const url of ['javascript:alert(1)', 'data:text/html,hi', '//host.example/a', '/\\host.example/a', 'https://person:password@example.com', 'https://example.com/\nBAD']) assert.equal(safeCampusUrl(url), '', url);
@@ -382,7 +389,10 @@ test('Today lists the published assignment due date and Learn shows the earned C
     assert.match(home, /\/ht\/img\/commencement\.jpg/);
     const learn = renderStudent('learn', context(state));
     assert.match(learn, /data-state="earned"[\s\S]*?Career Ready/);
-    assert.match(learn, /c7000000-0000-4000-8000-000000000001/);
+    assert.match(learn, /data-credential-uuid="c7000000-0000-4000-8000-000000000001"/);
+    assert.match(learn, />HT-CR-\d{4}-0001<\/code>/);
+    assert.doesNotMatch(learn, /<code[^>]*>c7000000/);
+    assert.doesNotMatch(learn, /campus-page-intro/);
     assert.match(learn, /See career portfolio/);
     assert.doesNotMatch(learn, /Add to my career portfolio/);
     assert.doesNotMatch(learn, /Available · Sample<\/p><h3>Career Ready/);

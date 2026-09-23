@@ -1,4 +1,4 @@
-/* Ada, the course tutor, and Ada-drafted rubric feedback.
+/* Ada, the Hub's AI guide: course help and Ada-drafted rubric feedback.
  * Fully offline and deterministic: Ada only reads this section's own course modules and
  * published assignment instructions. No network calls, no generated facts. */
 
@@ -153,8 +153,10 @@ const DETAIL_INTENT = /\b(how many (points|attempts|tries|chances)|worth|points 
 const GRADING_INTENT = /\b(grad(e|ed|es|ing)|scor(e|ed|es|ing)|rubric|marked|points? (for|on))\b/;
 const plural = (count, word) => `${count.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${word}${count === 1 ? '' : 's'}`;
 const intentText = question => String(question || '').toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ');
+const LATE_INTENT = /\b(late|lateness|after the (due date|deadline)|miss(ed)? the (due date|deadline)|past the (due date|deadline)|extensions?|more time)\b/;
 export function questionIntent(question) {
   const q = intentText(question);
+  if (LATE_INTENT.test(q)) return 'late';
   if (GRADING_INTENT.test(q) && !/\bdue\b/.test(q)) return 'grading';
   if (DUE_INTENT.test(q) || DETAIL_INTENT.test(q)) return 'due';
   return '';
@@ -178,6 +180,23 @@ function dueAnswer(question, corpus) {
     if (item.personal) parts.push('These dates include your personal extension.');
     const facts = [item.points ? `It is worth ${plural(item.points, 'point')}` : '', item.attempts ? `you get ${plural(item.attempts, 'attempt')}` : ''].filter(Boolean);
     if (facts.length) parts.push(`${facts.join(', and ')}.`);
+    return { text: parts.join(' '), citation: assignmentCitation(item) };
+  }) };
+}
+/** Late questions get the close date and what happens after the due date, not the whole due-date answer. */
+function lateAnswer(question, corpus) {
+  const chosen = assignmentsAsked(question, corpus?.facts || []).slice().sort(byDue).slice(0, 3);
+  if (!chosen.length) return null;
+  return { kind: 'answer', lead: 'Here is what happens after the due date:', passages: chosen.map(item => {
+    const due = formatWhen(item.due_at), closes = formatWhen(item.closes_at);
+    const parts = [];
+    if (!due && !closes) parts.push(`${item.title} has no due date or closing date yet, so it can't be late.`);
+    else if (!due) parts.push(`${item.title} has no due date, but it closes ${closes}. After that, you can't turn it in.`);
+    else if (!closes) parts.push(`${item.title} is due ${due}. It has no closing date, so you can still turn it in after that. It will show as late.`);
+    else if (Date.parse(item.closes_at) <= Date.parse(item.due_at)) parts.push(`${item.title} closes when it is due, ${due}. After that, you can't turn it in.`);
+    else parts.push(`If you miss the due date for ${item.title}, you can still turn it in until ${closes}. It will show as late. After that, it closes and you can't turn it in.`);
+    if (item.personal) parts.push('These dates include your personal extension.');
+    else parts.push('If you need more time, ask your instructor about an extension.');
     return { text: parts.join(' '), citation: assignmentCitation(item) };
   }) };
 }
@@ -213,7 +232,7 @@ export function answerQuestion(question, corpus) {
     return { kind: 'integrity', passages: [], pointer: source ? citationFor(source) : null };
   }
   const intent = questionIntent(text);
-  const direct = intent === 'grading' ? gradingAnswer(text, corpus) : intent === 'due' ? dueAnswer(text, corpus) : null;
+  const direct = intent === 'grading' ? gradingAnswer(text, corpus) : intent === 'due' ? dueAnswer(text, corpus) : intent === 'late' ? lateAnswer(text, corpus) : null;
   if (direct) return direct;
   const ranked = rankPassages(text, corpus);
   if (!ranked.length || ranked[0].score < MIN_SCORE || ranked[0].coverage < MIN_COVERAGE) return { kind: 'none', passages: [] };
@@ -299,8 +318,8 @@ export function showNewest(log, { page = false } = {}) {
 export function renderTutorPanel(h) {
   const turns = loadTurns(h.userId, h.cohortId);
   const id = `tutor-q-${String(h.cohortId).replace(/[^A-Za-z0-9_-]/g, '')}`;
-  return `<section class="campus-panel tutor-panel" data-tutor data-cohort-id="${h.esc(h.cohortId)}" aria-labelledby="${id}-title">
-<div class="tutor-head"><img class="tutor-face" src="/ht/img/ada-face.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"><div>${h.preview ? '<p class="campus-eyebrow">Student view preview</p>' : '<p class="campus-eyebrow">Course tutor</p>'}<h3 id="${id}-title">Ask Ada</h3><p class="campus-muted">${h.preview ? 'This is what your students see. Ada answers from this section’s materials.' : 'I answer from this course’s lessons and assignments.'}</p></div></div>
+  return `<section class="campus-panel tutor-panel" id="ada" data-tutor data-cohort-id="${h.esc(h.cohortId)}" aria-labelledby="${id}-title">
+<div class="tutor-head"><img class="tutor-face" src="/ht/img/ada-face.jpg" alt="" width="44" height="44" loading="lazy" decoding="async"><div>${h.preview ? '<p class="campus-eyebrow">Student view preview</p>' : '<p class="campus-eyebrow">Your AI guide for this course</p>'}<h3 id="${id}-title">Ask Ada</h3><p class="campus-muted">${h.preview ? 'This is what your students see. Ada answers from this section’s materials.' : 'I answer from this course’s lessons and assignments.'}</p></div></div>
 <div class="tutor-log" data-tutor-log role="log" aria-live="polite" aria-relevant="additions text">${renderTurns(h, turns)}</div>
 ${h.suggestions.length ? `<div class="tutor-suggest" aria-label="Suggested questions" role="group">${h.suggestions.map(q => `<button type="button" class="tutor-chip" data-tutor-suggest="${h.esc(q)}">${h.esc(q)}</button>`).join('')}</div>` : ''}
 <form class="tutor-form" data-tutor-form><label class="campus-sr-only" for="${id}">Ask Ada a question about this course</label><input id="${id}" name="question" type="text" maxlength="300" autocomplete="off" placeholder="Ask about this course…" enterkeyhint="send"><button class="campus-button" type="submit">Ask</button></form>

@@ -82,7 +82,9 @@ export async function mountCampus(view='home') {
   const role=state.member?.role,staffLike=['staff','admin','leadership'].includes(role);
   const moreLinks=[['events','calendar','Events'],['live','play','Classrooms'],...(staffLike?[['success','shield','Student success']]:[]),['trust','door','Security & integrations']];
   const more=`<details class="campus-nav-more"><summary${moreCurrent?' aria-current="page"':''}>${icon('grid')}<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">${moreLinks.map(args=>navLink(...args)).join('')}<a href="${href('/ht/hub/calendar/')}">${icon('calendar')}<span>Academic calendar</span></a><a class="campus-more-phone" href="${href('support')}">${icon('help')}<span>Get help</span></a><a class="campus-more-phone" href="${href('welcome')}">${icon('book')}<span>Hub guide</span></a></div></details>`;
-  const strip=`<nav class="campus-phone-strip" aria-label="More destinations">${[...moreLinks,['/ht/hub/calendar/','calendar','Calendar'],['support','help','Get help'],['welcome','book','Guide']].map(([v,i,l])=>`<a href="${href(v)}"${view===v?' aria-current="page"':''}>${icon(i)}<span>${l}</span></a>`).join('')}</nav>`;
+  // Phone: secondary destinations in one scrolling strip. Leaders get their workspace links here too.
+  const stripLinks=[['events','calendar','Events'],['live','play','Classrooms'],...(staffLike?[['success','shield','Student success'],['insights','chart','Insights'],['trust','door','Security & integrations']]:[])];
+  const strip=`<nav class="campus-phone-strip" aria-label="More destinations">${[...stripLinks,['/ht/hub/calendar/','calendar','Calendar'],['support','help','Get help'],['welcome','book','Guide']].map(([v,i,l])=>`<a href="${href(v)}"${view===v?' aria-current="page"':''}>${icon(i)}<span>${l}</span></a>`).join('')}</nav>`;
   return `<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">${links.map(args=>navLink(...args)).join('')}<div class="campus-nav-end">${more}</div></div></nav>${strip}`;
  }
  function courseRoute() {
@@ -139,7 +141,7 @@ export async function mountCampus(view='home') {
   if(!space||!visual)return '';
   const intro=space.blocks?.find(block=>block.type==='intro');
   const headline=space.headline||intro?.title||space.title;
-  return `<section class="campus-hero campus-space-feature"><div><p class="campus-eyebrow">${esc(space.office||space.title)}</p><h2>${esc(headline)}</h2><p>${esc(space.blurb||'A dedicated space for your campus community.')}</p></div><img src="${esc(visual.image)}" alt="${esc(visual.alt)}" loading="eager" decoding="async"></section>`;
+  return `<section class="campus-hero campus-space-feature"><div><p class="campus-eyebrow">${esc(space.office||space.title)}</p><h2>${esc(headline)}</h2><p>${esc(space.blurb||'A dedicated space for your campus community.')}</p></div><figure class="campus-hero-figure"><img src="${esc(visual.image)}" alt="${esc(visual.alt)}" loading="eager" decoding="async">${visual.image.includes('/img/r-')?'<figcaption class="campus-rendering-tag">Campus plan rendering</figcaption>':''}</figure></section>`;
  }
  function render() {
   const focused=document.activeElement,focusedForm=focused?.closest('form');
@@ -169,6 +171,7 @@ export async function mountCampus(view='home') {
    :view==='people'&&pageParams.get('new')==='1'?'Find a campus member to start a direct conversation.'
    :view==='support'&&pageParams.has('request')?'A private help request, its status, and replies from the campus team.'
    :view==='success'&&role==='student'?'Your advisor and the campus offices ready to help, in one place.'
+   :view==='success'&&role==='leadership'?'The pattern across campus, and whether every flag has an owner.'
    :view==='home'&&role==='leadership'?'How learning, student support, and campus life are moving this week.'
    :desc;
   const badge=role==='leadership'?'Leadership workspace':isStaff?'Faculty & staff workspace':role==='student'?'Student workspace':'Huston-Tillotson University';

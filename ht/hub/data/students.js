@@ -41,7 +41,7 @@ HT.spaces.students = {
         { no: '01', title: 'Spring Ready Week, from their side', date: 'Oct 12', status: 'Next' }, { no: '02', title: 'When someone is struggling', date: 'Oct 14', status: 'Upcoming' }, { no: '03', title: 'The hub, the codes, the calendar', date: 'Oct 15', status: 'Upcoming' }, { no: '04', title: 'Day-of rehearsal', date: 'Oct 19', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Seminar series with attendance', meta: 'Check-in code on screen', items: [
-      { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', foot: 'Check-in code on screen' },
+      { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/wallace-students.jpg', alt: 'Huston-Tillotson students around a seminar table', foot: 'Check-in code on screen' },
       { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', img: '/ht/img/commencement.jpg', alt: 'Dr. Melva K. Wallace with a graduate at Commencement', foot: 'Check-in code on screen' },
       { meta: 'Fall · the library', title: 'Study skills', text: 'Three sessions before midterms. The replay lands the same afternoon.', img: '/ht/img/student-laptop.jpg', alt: 'A student at a laptop', foot: 'Check-in code on screen' },
       { meta: 'Spring · civic engagement', title: 'Civic engagement', text: 'Voting, city council, and the service society\'s Saturdays.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'Check-in code on screen' } ] },
@@ -52,7 +52,7 @@ HT.spaces.students = {
       { who: 'Student orgs', when: 'Last week', text: 'The clubs fair is October 21 at 2:30 on the library lawn. Every org has a table and a channel.' } ] },
     { type: 'calendar', side: true, title: 'Coming up', meta: 'Sample', items: [
       { date: '2026-10-15', title: 'Fall town hall, live', where: 'The auditorium · noon', tag: 'Live room', tagCls: 'soft' }, { date: '2026-10-20', title: 'Spring Ready Week begins', where: 'Main entrance · 8:30 AM' },
-      { date: '2026-10-21', title: 'Clubs and organizations fair', where: 'The library lawn · 2:30 PM' }, { date: '2026-10-23', title: '152nd Charter Day Observance', where: 'HT\'s published calendar · Campus' },
+      { date: '2026-10-21', title: 'Clubs and organizations fair', where: 'The library lawn · 2:30 PM' }, { date: '2026-10-23', title: 'Charter Day Observance', where: 'HT\'s published calendar · Campus' },
       { date: '2026-10-24', title: 'Service Saturday', where: 'East Austin · 9:00 AM' }, { date: '2026-10-27', title: 'Emerging Leaders · Session 01', where: 'The library · 5:00 PM' }, { date: '2026-10-28', title: 'Wellness Wednesday', where: 'The chapel · 5:00 PM' } ] },
     { type: 'people', side: true, title: 'Student Affairs desk', meta: 'Sample roles', dm: false, items: [
       { name: 'Dean of Students (sample)', role: 'Student Affairs', org: 'Space owner', tag: 'Owner', tagCls: 'green' }, { name: 'Spring Ready Week lead (sample)', role: 'Spring Ready Week', org: 'Runs the schedule and the codes' },

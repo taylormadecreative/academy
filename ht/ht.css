@@ -502,3 +502,13 @@ body.ht.ht-space-page .player .poster button{border-radius:8px;display:inline-fl
 body.ht.ht-space-page .cta{border-radius:14px}
 body.ht.ht-space-page .cta h2{font-family:Georgia,"Times New Roman",serif;font-weight:400}
 body.ht .ag .tag{background:none;border:0;padding:0;border-radius:0;display:block}   /* the Academy .tag pill rule reaches this wrapper */
+/* people rows: a photo avatar (Ada) sits where the letter circle does */
+.av.av-img{object-fit:cover;background:var(--ht-sand);padding:0}
+/* a locked space (Board, for anyone not on the trustee list) */
+.ht-lock .bd{display:flex;gap:16px;align-items:flex-start;padding:22px}
+.ht-lock-ic{flex:0 0 auto;width:44px;height:44px;border-radius:12px;background:var(--ht-maroon);color:var(--ht-gold);display:inline-flex;align-items:center;justify-content:center}
+.ht-lock-ic svg{width:22px;height:22px}
+.ht-lock h2{font-size:20px;color:var(--ht-ink);margin-bottom:6px}
+.ht-lock p{font-size:15px;color:var(--ink-2);max-width:56ch}
+.ht-lock .ctas{margin-top:14px}
+@media(max-width:480px){.ht-lock .bd{flex-direction:column;padding:18px}}

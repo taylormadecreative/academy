@@ -16,7 +16,7 @@ HT.spaces.events = {
       ada: { text: 'Every date on this page comes from the University’s own published calendar, so the list is never out of step with what the Registrar has posted. It knows what today is, which means what is next is already at the top. Tap add to your calendar and the whole term goes to your phone.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
-      { meta: 'Friday, October 23, 2026', title: '152nd Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
+      { meta: 'Friday, October 23, 2026', title: 'Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
       { meta: 'Tuesday, January 19, 2027', title: 'Spring classes begin', text: 'Registration opens October 26 and the halls open January 14. All of it is on the published calendar, so it is already on this page and one tap from your phone.', href: '#year', img: '/ht/img/students-library.jpg', alt: 'Students in the library at Huston-Tillotson', foot: 'On the calendar →' },
       { meta: 'Nov 6–7, 2026', title: 'Donor Appreciation Weekend', text: 'Two days on the Hill for the people behind each gift. This one is a worked example of an Advancement event: the agenda, the rooms, the host line, and the check-in at the door.', href: '#weekend', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus plaza', badge: 'Sample', foot: 'Open the agenda →' } ] },
     { type: 'year', id: 'year', title: 'The 2026-2027 academic year', meta: 'Published by the University, live against today',
@@ -46,7 +46,7 @@ HT.spaces.events = {
       { d: '2026-10-13', t: 'Midterm grades entered', kind: 'deadline', term: 'fall' },
       { d: '2026-10-16', t: 'Final day to withdraw from a class with a W', kind: 'deadline', term: 'fall' },
       { d: '2026-10-19', t: 'Academic advising begins', kind: 'advising', term: 'fall' },
-      { d: '2026-10-23', t: '152nd Charter Day Observance', kind: 'ceremony', term: 'fall' },
+      { d: '2026-10-23', t: 'Charter Day Observance', kind: 'ceremony', term: 'fall' },
       { d: '2026-10-26', t: 'Regular registration for Spring 2027 starts', kind: 'registration', term: 'fall' },
       { d: '2026-11-13', t: 'Final day to withdraw from the University', kind: 'deadline', term: 'fall' },
       { d: '2026-11-20', t: 'Regular registration for Spring 2027 ends', kind: 'registration', term: 'fall' },

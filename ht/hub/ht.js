@@ -127,7 +127,8 @@
   };
   R.people = function (b) {
     var inner = b.items.map(function (p) {
-      return '<div class="person">' + h`<span class="av${p.gold ? ' g' : ''}">${p.init || initials(p.name)}</span><div><b>${p.name}</b><span>${adaLine([p.role, p.org].filter(Boolean).join(' · '))}</span>` + (p.tag ? chipHtml(p.tag, p.tagCls || 'soft') : '') + '</div>' +
+      var av = p.img ? h`<img class="av av-img" src="${p.img}" alt="" loading="lazy" decoding="async">` : h`<span class="av${p.gold ? ' g' : ''}">${p.init || initials(p.name)}</span>`;
+      return '<div class="person">' + av + h`<div><b>${p.name}</b><span>${adaLine([p.role, p.org].filter(Boolean).join(' · '))}</span>` + (p.tag ? chipHtml(p.tag, p.tagCls || 'soft') : '') + '</div>' +
         (b.dm ? '<div class="act"><button class="pill ghost" type="button" data-dm="' + esc(p.name) + '" aria-label="Message ' + esc(p.name) + '">Message</button></div>' : '') + '</div>';
     }).join('');
     return card(b, inner);
@@ -286,6 +287,11 @@
     return card({ id: b.id || 'install', title: b.title || 'The HT app', meta: b.meta || 'No app store needed' }, inner, 'sand');
   };
   R.html = function (b) { return card(b, b.html || ''); };
+  /* A locked space: what a signed-out or not-on-the-list visitor sees instead of restricted content. */
+  R.lock = function (b) {
+    return '<section class="hc rv ht-lock"' + (b.id ? h` id="${b.id}"` : '') + '><div class="bd"><span class="ht-lock-ic">' + icon('lock') + '</span><div>' +
+      h`<h2>${b.title || 'This space is private'}</h2><p>${b.text}</p>` + (b.cta ? '<div class="ctas">' + btn(b.cta) + '</div>' : '') + '</div></div></section>';
+  };
 
   /* ---------- page assembly ---------- */
   function tabsHtml(pageKey) {
@@ -299,7 +305,8 @@
       link('community','Community','users',pageKey === 'community') + link('messages','Messages','chat',pageKey === 'messages' || pageKey === 'people') + link('spaces','Campus','grid',pageKey === 'spaces' || (HT.order || []).indexOf(pageKey) !== -1);
     var more = '<details class="campus-nav-more"><summary' + (moreCurrent ? ' aria-current="page"' : '') + '>' + icon('grid') + '<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">' +
       link('events','Events','calendar',pageKey === 'events') + link('live','Classrooms','play',['live','legacy-live','session','replay'].indexOf(pageKey) !== -1) + (['staff','leadership'].indexOf(demoRole) !== -1 ? link('success','Student success','shield',pageKey === 'success') : '') + link('trust','Security & integrations','door',pageKey === 'trust') + link('calendar','Academic calendar','calendar',pageKey === 'calendar') + link('support','Get help','help',false).replace('<a ','<a class="campus-more-phone" ') + link('welcome','Hub guide','book',false).replace('<a ','<a class="campus-more-phone" ') + '</div></details>';
-    var stripItems = [['events','Events','calendar'],['live','Classrooms','play']].concat(['staff','leadership'].indexOf(demoRole) !== -1 ? [['success','Student success','shield']] : []).concat([['trust','Security & integrations','door'],['calendar','Calendar','calendar'],['support','Get help','help'],['welcome','Guide','book']]);
+    var leader = ['staff','leadership'].indexOf(demoRole) !== -1;
+    var stripItems = [['events','Events','calendar'],['live','Classrooms','play']].concat(leader ? [['success','Student success','shield'],['insights','Insights','chart'],['trust','Security & integrations','door']] : []).concat([['calendar','Calendar','calendar'],['support','Get help','help'],['welcome','Guide','book']]);
     var strip = '<nav class="campus-phone-strip" aria-label="More destinations">' + stripItems.map(function (it) { return link(it[0], it[1], it[2], pageKey === it[0]); }).join('') + '</nav>';
     return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + '</div></div></nav>' + strip;
   }
@@ -334,7 +341,7 @@
   }
   function tourHref(step) {
     var q = new URLSearchParams(Object.assign({ demo: step.role || 'leadership' }, step.query || {}, { tour: '1' }));
-    return HT.site.hub + step.key + '/?' + q.toString();
+    return HT.site.hub + step.key + '/?' + q.toString() + (step.hash ? '#' + step.hash : '');
   }
   function leadershipDemoRail(key) {
     var params = new URLSearchParams(location.search), demo = params.get('demo') || '';
@@ -373,10 +380,10 @@
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
     var pageTitle = space.title === 'Home' ? 'The HT Hub' : space.title;
     var roleNow = new URLSearchParams(location.search).get('demo');
-    var head = tabsHtml(key) + '<div class="campus-container ht-space-container">' + demoStrip(roleNow) + breadcrumbHtml(key, pageTitle) + '<header class="campus-page-head ht-space-page-head" aria-labelledby="htSpaceTitle"><div>' +
+    var head = tabsHtml(key) + '<div class="campus-container ht-space-container">' + demoStrip(roleNow) + leadershipDemoRail(key) + breadcrumbHtml(key, pageTitle) + '<header class="campus-page-head ht-space-page-head" aria-labelledby="htSpaceTitle"><div>' +
       h`<p class="campus-eyebrow">${space.office || space.kicker || 'Huston-Tillotson University'}</p><h1 id="htSpaceTitle">${pageTitle}</h1>` + (space.sub ? h`<p>${space.sub}</p>` : '') +
       '</div><div class="campus-head-actions">' + (demoStrip(roleNow) ? '' : '<span class="ht-space-stamp">' + esc(space.stamp || 'Preview · sample content') + '</span>') + (space.headCta ? btn(space.headCta) : '') + '</div></header>' +
-      '<main class="campus-main ht-space-main" id="htMain" tabindex="-1">' + firstVisitGuide(key, space) + leadershipDemoRail(key) + '<div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></main></div>' +
+      '<main class="campus-main ht-space-main" id="htMain" tabindex="-1">' + firstVisitGuide(key, space) + '<div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></main></div>' +
       '<nav class="campus-mobile-nav" aria-label="Mobile navigation">' +
       [['home','home','Today'],['courses','book','Learning'],['community','users','Community'],['messages','chat','Messages'],['spaces','grid','Campus']].map(function (item) {
         var current = item[0] === 'spaces' ? (HT.order || []).indexOf(key) !== -1 || key === 'spaces' : item[0] === 'courses' ? ['courses','learn'].indexOf(key) !== -1 : item[0] === 'community' ? key === 'community' : item[0] === 'messages' ? ['messages','people'].indexOf(key) !== -1 : item[0] === 'home' && key === 'home';
@@ -395,6 +402,7 @@
       staticDemoHeader(demoRole);
       document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
         var destination = new URL(a.getAttribute('href'), location.origin);
+        if (destination.searchParams.get('tour') === '1') return;   /* tour stops carry their own role */
         destination.searchParams.set('demo', demoRole);
         a.setAttribute('href', destination.pathname + destination.search + destination.hash);
       });
@@ -403,7 +411,7 @@
     wire(root, space);
     /* external links leave the hub in a new tab so the demo stays put */
     root.querySelectorAll('a[href^="http"]').forEach(function (a) { if (a.hostname !== location.hostname) { a.target = '_blank'; a.rel = 'noopener'; } });
-    document.title = (space.title === 'Home' ? 'The HT Hub' : space.title + ' · The HT Hub') + ' · Huston-Tillotson × Taylormade Academy';
+    document.title = (space.title === 'Home' ? 'HT Hub' : space.title + ' · HT Hub');
   }
 
   /* ---------- behaviors ---------- */

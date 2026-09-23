@@ -1,17 +1,24 @@
 /* The HT Hub — Board of Trustees space. Private portal, SAMPLE content. Loaded after /ht/hub/data.js. */
 window.HT = window.HT || {}; HT.spaces = HT.spaces || {};
-HT.spaces.board = {
+(function () {
+/* Student and staff demo roles see the Board space locked: the intro, the lock panel, and nothing restricted.
+   Leadership (and the plain preview with no ?demo=) sees the sample trustee view. */
+var locked = (function () { try { var d = new URLSearchParams(window.location.search).get('demo'); return !!d && d !== 'leadership'; } catch (e) { return false; } })();
+var space = {
   key: 'board', title: 'Board', office: 'Board of Trustees', icon: 'shield',
   blurb: 'A private portal for trustees: the packet, the agenda, and check-in.',
   sub: 'The packet, the agenda, and the room, for the people who govern the Hill. Restricted to trustees.',
-  stamp: 'Preview · restricted space, sample', headCta: { label: 'Fall meeting agenda', href: '#fall-meeting', style: 'ht' },
+  stamp: 'Preview · restricted space, sample', headCta: locked ? null : { label: 'Fall meeting agenda', href: '#fall-meeting', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Board of Trustees', title: 'The board packet, without the binder.',
       text: 'Restricted to trustees. Meeting materials open on the phone you already carry, with the agenda beside them. Check in at the door and the secretary sees who has arrived before the gavel. The campaign update comes straight from Advancement, the same page they run. Nothing here leaves this space.',
-      ctas: [{ label: 'Meeting materials', href: '#materials', style: 'ht' }, { label: 'The fall agenda', href: '#fall-meeting', style: 'ht-line' }],
+      ctas: locked ? [] : [{ label: 'Meeting materials', href: '#materials', style: 'ht' }, { label: 'The fall agenda', href: '#fall-meeting', style: 'ht-line' }],
       image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the Huston-Tillotson administrative building at dusk' },
-    { type: 'notice', tone: 'maroon', html: '<b>Restricted space.</b> This portal is for trustees. Materials open only for signed-in members on the board list kept by the board secretary. Everything on this page is sample content for a working session.' },
-    { type: 'materials', id: 'materials', title: 'Meeting materials', meta: 'Fall board meeting · October 16, 2026 · sample', items: [
+    { type: 'lock', id: 'locked', guestOnly: true, title: 'Trustees only',
+      text: 'This space is for trustees and the board secretary. Sign in with a trustee account to see the packet.',
+      cta: { label: 'Back to Today', href: '/ht/hub/', style: 'ht-line' } },
+    { type: 'notice', tone: 'maroon', trustees: true, html: '<b>Restricted space.</b> This portal is for trustees. Materials open only for signed-in members on the board list kept by the board secretary. Everything on this page is sample content for a working session. <b>Demo note:</b> in this demo, the Leadership view stands in for a trustee. Students and staff see this space locked.' },
+    { trustees: true, type: 'materials', id: 'materials', title: 'Meeting materials', meta: 'Fall board meeting · October 16, 2026 · sample', items: [
       { kind: 'PDF', title: 'Agenda, fall board meeting', sub: 'Posted by the board secretary · one page', restricted: true },
       { kind: 'DOC', title: 'Minutes, summer meeting', sub: 'For approval at call to order', restricted: true },
       { kind: 'DECK', title: "President's report", sub: 'Dr. Melva K. Wallace · fall 2026', restricted: true },
@@ -20,7 +27,7 @@ HT.spaces.board = {
       { kind: 'PDF', title: 'Facilities update', sub: 'Campus plan renderings and the fall walk-through', restricted: true },
       { kind: 'PDF', title: 'Audit summary', sub: 'For executive session', restricted: true },
       { kind: 'DOC', title: 'Strategic plan, draft three', sub: 'Comments open in this space until October 9', restricted: true } ] },
-    { type: 'agenda', id: 'fall-meeting', title: 'Fall board meeting', meta: 'Add it to your calendar in one tap',
+    { trustees: true, type: 'agenda', id: 'fall-meeting', title: 'Fall board meeting', meta: 'Add it to your calendar in one tap',
       event: { name: 'Fall board meeting', dates: 'Friday, October 16, 2026', place: 'The boardroom', note: 'Sample agenda' },
       days: [{ label: 'Friday, October 16', date: '2026-10-16', items: [
         { time: '9:00 AM', end: '9:10 AM', title: 'Call to order and approval of the minutes', who: 'Board chair (sample)' },
@@ -29,14 +36,14 @@ HT.spaces.board = {
         { time: '10:40 AM', end: '11:15 AM', title: 'Campaign update from Advancement', who: 'Linda Y. Jackson, Vice President for Institutional Advancement', tag: 'Advancement', tagCls: 'soft' },
         { time: '11:15 AM', end: '11:55 AM', title: 'Executive session', where: 'The boardroom, trustees only', tag: 'Closed', tagCls: 'soft' },
         { time: '11:55 AM', end: '12:00 PM', title: 'Adjourn', who: 'Board chair (sample)' } ] }] },
-    { type: 'checkin', id: 'checkin', title: 'Check in', meta: 'The code is on the screen at call to order', session: 'Fall board meeting', sub: 'October 16, 2026 · the boardroom', code: 'TRUST26', hint: 'Attendance is noted from check-ins. Sample code for this preview: TRUST26.' },
-    { type: 'split', id: 'phone', kicker: 'The portal', title: 'Everything a trustee needs, on the phone they already carry.',
+    { trustees: true, type: 'checkin', id: 'checkin', title: 'Check in', meta: 'The code is on the screen at call to order', session: 'Fall board meeting', sub: 'October 16, 2026 · the boardroom', code: 'TRUST26', hint: 'Attendance is noted from check-ins. Sample code for this preview: TRUST26.' },
+    { trustees: true, type: 'split', id: 'phone', kicker: 'The portal', title: 'Everything a trustee needs, on the phone they already carry.',
       text: 'No binder shipped a week early. No app to install. The packet, the agenda, and the room open from one link, and the board secretary sees who has checked in before the meeting starts.',
       bullets: ['Materials open in place, restricted to the board list', 'The agenda adds to a calendar in one tap and prints for the table', 'Check in at the door, attendance noted as you walk in', 'The campaign update is the same page Advancement runs, nothing re-typed'],
       image: '/ht/img/r-arena-entry.jpg', imageAlt: 'Rendering of a new Huston-Tillotson campus building entrance', side: 'right', cta: { label: 'Put it on your phone', href: '/ht/hub/#install', style: 'ht' } },
     { type: 'faq', id: 'faq', title: 'Questions trustees ask', meta: 'Sample answers', items: [
       { q: 'Is this space private?', a: 'Yes. The board space opens only for signed-in members on the board list kept by the board secretary. The rest of the hub is open to the campus. This preview shows sample content so you can see the shape of it.' },
-      { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees and trustees message the secretary directly. There is no open feed in this space, by design.' },
+      { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees message the secretary directly. There is no open feed in this space, by design.' },
       { q: 'Can I download the materials?', a: 'Materials marked Restricted open in place, on your phone or laptop, and are not sent as attachments. The agenda prints from this page for anyone who wants paper at the table.' } ] },
     { type: 'calendar', side: true, title: 'The meeting cycle', meta: 'Sample dates', items: [
       { date: '2026-10-16', title: 'Fall board meeting', where: 'The boardroom · 9:00 AM' },
@@ -51,10 +58,13 @@ HT.spaces.board = {
       { name: 'Chair, Academic Affairs Committee (sample)', role: 'Academic programs', org: 'Reports at every meeting' },
       { name: 'Chair, Facilities Committee (sample)', role: 'The campus plan', org: 'Owns the facilities update' },
       { name: 'Board secretary (sample)', role: 'Materials, minutes, check-in', org: 'Posts everything in this space' } ] },
-    { type: 'announcements', side: true, title: 'From the board secretary', meta: 'Sample', items: [
+    { trustees: true, type: 'announcements', side: true, title: 'From the board secretary', meta: 'Sample', items: [
       { who: 'Board secretary', when: 'This week', text: 'The fall packet is complete. Eight items. The Finance Committee packet was updated yesterday, please re-read pages four and five.' },
       { who: 'Board secretary', when: 'Last week', text: 'Comments on the strategic plan draft close October 9. Reply in the document or message me here.' },
       { who: 'Board secretary', when: 'Last week', text: 'Check-in is new this fall. Type the code from the screen at call to order and attendance is noted as you sit down.' } ] },
-    { type: 'cta', title: 'The fall meeting is Friday, October 16.', text: 'Read the packet on your phone, add the agenda to your calendar, and check in at the door.', primary: { label: 'Open the agenda', href: '#fall-meeting', style: 'ht-gold' }, secondary: { label: 'The Advancement report', href: '/ht/hub/advancement/', style: 'ht-line' } }
+    { trustees: true, type: 'cta', title: 'The fall meeting is Friday, October 16.', text: 'Read the packet on your phone, add the agenda to your calendar, and check in at the door.', primary: { label: 'Open the agenda', href: '#fall-meeting', style: 'ht-gold' }, secondary: { label: 'The Advancement report', href: '/ht/hub/advancement/', style: 'ht-line' } }
   ]
 };
+space.blocks = space.blocks.filter(function (b) { return locked ? !b.trustees : !b.guestOnly; });
+HT.spaces.board = space;
+})();

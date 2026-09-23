@@ -71,7 +71,7 @@ try {
    assert.equal(await tour.count(),1,`${step.key} (${step.role}) has one tour panel.`);
    assert.match(await tour.innerText(),new RegExp(`Stop\\s+${index+1}\\s+of\\s+${journey.length}`),`${step.key} shows its tour position.`);
    const next=await tour.locator('.campus-leadership-next').getAttribute('href');
-   if(index<journey.length-1)assert.equal(new URL(next,base).pathname+new URL(next,base).search,journey[index+1].href,`${step.key} links to the next stop.`);
+   if(index<journey.length-1){const u=new URL(next,base);assert.equal(u.pathname+u.search+u.hash,journey[index+1].href,`${step.key} links to the next stop.`);}
    assert.equal(await page.locator('.site-header .nav-cta a[href^="/login/"]').count(),0,`${step.key} does not offer sign-in inside the demo header.`);
    const selector=page.locator('#campusDemoRole');
    assert.equal(await selector.count(),1,`${step.key} keeps its demo role switcher.`);

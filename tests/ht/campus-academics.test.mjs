@@ -139,8 +139,10 @@ function render(state, query = '') {
   assert.match(html, /Private working feedback/);
   assert.doesNotMatch(html, /<textarea[^>]*>Submission text stays in history\./);
   assert.match(html, /data-academic-form="extension"/);
-  assert.match(html, /data-academic-discard-review>Discard draft &amp; load latest review/);
-  assert.match(html, /discards your unsaved score and feedback/);
+  assert.match(html, /data-academic-discard-review>Start over</);
+  assert.match(html, /clears your unsaved score and feedback/);
+  assert.match(html, /<details class="campus-academic-extension"><summary>Give an extension<\/summary>/);
+  assert.doesNotMatch(html, /revision \d|latest attempt \d|Discard draft/, 'grading copy has no developer wording');
   assert.match(html, /<details class="campus-academic-edit-details"><summary>Edit assignment details<\/summary>/);
   const preview = html.indexOf('campus-academic-submission-review');
   const gradeForm = html.indexOf('data-academic-form="grade"');

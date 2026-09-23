@@ -35,3 +35,17 @@
 }
 /* An open phone conversation gets the whole screen: the strip steps aside so Send stays above the tab bar */
 @media(max-width:760px){body.campus-app:has(.campus-messages-layout.is-thread) .campus-phone-strip{display:none}.campus-messages-layout.is-thread{height:calc(100dvh - 296px)!important}}
+/* Insights: panels the class-year filter doesn't reach say so, quietly */
+.lead-chart-grid .is-campus-wide{background:#fbf9f4}
+.lead-chart-grid .is-campus-wide .lead-bar-fill{background:#9c8e81}
+.lead-campus-note{display:inline-block;margin:10px 0 0!important;padding:3px 9px;border:1px solid var(--campus-line);border-radius:6px;font-size:11px!important;color:var(--campus-muted)}
+.lead-bars li.is-dim{opacity:.45}
+/* Door thumbnails are large enough to carry their rendering label */
+.lead-door{grid-template-columns:92px minmax(0,1fr) 18px}
+.lead-door-photo{width:92px;height:68px}
+.lead-door-photo img{width:92px!important;height:68px!important}
+.lead-door-photo .campus-rendering-tag{font-size:9px;padding:2px 5px}
+/* Phone: workspace links live in the strip, so the hero stays in the first screen */
+@media(max-width:760px){.campus-head-actions .campus-workspace-links{display:none!important}
+ .campus-leadership-tour nav a,.campus-breadcrumb a{display:inline-flex;align-items:center;min-height:44px}
+ .campus-section-head a,.campus-row a,.lead-trust-card a,.lead-table summary,.campus-bottom-note a{min-height:44px}}

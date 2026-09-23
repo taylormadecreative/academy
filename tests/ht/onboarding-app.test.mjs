@@ -44,7 +44,7 @@ try{
  await check('Guided visits record places explored, retain context, and closing removes the guide URL without losing coursework drafts',async()=>{
   await page.locator('.campus-onboarding-hero [data-onboarding-action="start"]').click();await ready();
   assert.deepEqual((await progress('student')).visited,['courses']);assert.equal(await page.locator('.campus-onboarding-context').count(),1);
-  await page.getByRole('link',{name:'Open course',exact:true}).click();await ready();await page.getByRole('link',{name:'View assignment',exact:true}).click();await ready();
+  await page.getByRole('link',{name:'Open course',exact:true}).click();await ready();await page.getByRole('link',{name:'Open assignment',exact:true}).click();await ready();
   const body=page.getByLabel('Your response',{exact:true});await body.fill('My unfinished assignment remains in place when I close the guide.');
   await page.getByRole('button',{name:'Close guide',exact:true}).click();await ready();assert.equal(await body.inputValue(),'My unfinished assignment remains in place when I close the guide.');
   assert.equal(new URL(page.url()).searchParams.has('guide'),false);assert.equal((await progress('student')).status,'dismissed');
