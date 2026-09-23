@@ -126,7 +126,7 @@ def header(active=""):
 <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mnav" onclick="var o=document.getElementById('mnav').classList.toggle('open');this.setAttribute('aria-expanded',o)"><span></span><span></span><span></span></button></div>
 </div></div><div class="mobile-nav" id="mnav">{mlinks}<a href="/login/">Sign in</a><a class="btn gold" href="/login/?mode=join">Join free</a></div></header>"""
 
-def footer():
+def footer(pop=True):
     socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">{t}</a>' for t, u in SOCIALS)
     cols = {
         "Explore": [("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
@@ -138,7 +138,7 @@ def footer():
             f'<a href="{u}"{" target=\"_blank\" rel=\"noopener\"" if u.startswith("http") else ""}>{t}</a>'
             for t, u in items)
         colhtml += f'<div class="foot-col"><h4>{h}</h4>{links}</div>'
-    return f"""<footer class="site-footer"><div class="wrap">
+    html = f"""<footer class="site-footer"><div class="wrap">
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px">{LOGO}</div><div class="mark">Taylormade Academy</div></div>
 <p>Learn the craft and build real things: graphic design, photography, video, and AI. By Nelson Taylor, Dallas-Fort Worth.</p>
@@ -200,6 +200,10 @@ def footer():
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script src="/js/config.js?v={ASSET_VER}"></script><script src="/js/site.js?v={ASSET_VER}"></script></body></html>"""
+    if not pop:
+        # a page selling ONE thing (a seat) never shows the free-ebook popup over its own form
+        html = re.sub(r'<div class="pop-back" id="popBack".*?(?=<div class="toast")', '', html, flags=re.S)
+    return html
 
 def render(path, html):
     out = ROOT / path.strip("/") / "index.html" if path != "/" else ROOT / "index.html"

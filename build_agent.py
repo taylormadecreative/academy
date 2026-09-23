@@ -220,7 +220,7 @@ def agent_page(head, header, footer, ver):
 </form>
 </dialog>
 <script src="/js/agent.js?v={ver}" defer></script>
-""" + footer()
+""" + footer(pop=False)
 
 
 def agent_thanks_page(head, header, footer, ver):
@@ -288,4 +288,4 @@ def agent_thanks_page(head, header, footer, ver):
   })();
 })();
 </script>
-""" + footer()
+""" + footer(pop=False)

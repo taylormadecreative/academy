@@ -19,13 +19,6 @@ TITLE = "AI 101: a free live class on prompts and AI words, by Taylormade Academ
 DESC = (f"{DATE_LONG}. Free, 45 minutes, live online. Learn how to ask AI for what you want, "
         "and what the AI words everyone uses actually mean. No experience needed.")
 
-_ICON_WORDS = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
-               '<path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/><path d="M9 7h6M9 11h4"/></svg>')
-_ICON_CHAT = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
-              '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/><path d="M8.5 11h7M8.5 14h4"/></svg>')
-_ICON_SHEET = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
-               '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg>')
-
 # A prompt, drawn: what you type goes in, the AI reads it, an answer comes out, and a clearer
 # ask brings a better answer back. Two drawings (wide + phone), same idea.
 _DIAGRAM = """<svg class="dg-h" viewBox="0 0 640 280" role="img" aria-labelledby="a1dt">
@@ -112,7 +105,7 @@ def ai101_page(head, header, footer, ver):
 <span class="kicker gold">Free live class</span>
 <h1 class="display-xl">AI 101.<br>Learn to <span class="u-gold">talk</span> to AI.</h1>
 <p class="lead">{DATE}. 45 minutes, live online, free. Learn how to ask AI for what you want, and what all the AI words mean. <b>No experience needed. If you can send a text, you can do this.</b></p>
-<div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" href="#learn">See what you learn <span class="arr">&rarr;</span></a></div>
+<div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn gold a1-jump" href="#top" data-scroll-form>Save my free seat <span class="arr">&rarr;</span></a><a class="btn ghost" href="#learn">See what you learn <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="ag-sheet">{_form("a1Form", "ai101-hero")}</div>
 <div class="ag-roster">
@@ -127,18 +120,17 @@ def ai101_page(head, header, footer, ver):
 <h2 class="ag-band-h" style="margin-top:12px">Three things, in plain English.</h2>
 <div class="ag-out">
 <div class="ag-out-lead">
-<div class="ic">{_ICON_CHAT}</div>
 <h3>How to write a prompt</h3>
 <p>A prompt is what you type to the AI. I show you a simple way to ask so the answer comes back right the first time, not the fifth. We try it together, live.</p>
 <div class="ag-out-mock" aria-hidden="true">
-<div class="ao-bar"><span class="ao-dot"></span><span class="ao-dot"></span><span class="ao-dot"></span><b>Before and after</b></div>
+<div class="ao-label">Before and after</div>
 <div class="ao-line"><span class="ao-tag">Before</span> Write a post about my bakery.</div>
-<div class="ao-line done"><span class="ao-tag">After</span> Write a short, warm Instagram post for my Dallas bakery. We just added peach cobbler. End with our Saturday hours.</div>
+<div class="ao-line done"><span class="ao-tag">After</span> You are a social media writer for a small family bakery. Write an Instagram caption for our new sweet potato pie. It's my grandmother's recipe, sold on Fridays only. Our customers are busy parents. Keep it under 60 words, warm, end with a question.</div>
 </div>
 </div>
 <div class="ag-out-rest">
-<div class="ag-out-item"><div class="ic">{_ICON_WORDS}</div><div><h3>The AI words, decoded</h3><p>Model, prompt, hallucination, agent. Each word in one plain sentence, so you can follow any AI conversation.</p></div></div>
-<div class="ag-out-item"><div class="ic">{_ICON_SHEET}</div><div><h3>A one-page cheat sheet</h3><p>The prompt steps and the words, on one page. It comes in your sign-up email, so you can keep it next to you.</p></div></div>
+<div class="ag-out-item"><div><h3>The AI words, decoded</h3><p>Model, prompt, hallucination, agent. Each word in one plain sentence, so you can follow any AI conversation.</p></div></div>
+<div class="ag-out-item"><div><h3>A one-page cheat sheet</h3><p>The prompt steps and the words, on one page. It comes in your sign-up email, so you can keep it next to you.</p></div></div>
 </div>
 </div></div></section>
 
@@ -191,14 +183,14 @@ def ai101_page(head, header, footer, ver):
 </div>
 </div></div></section>
 
-<section class="ag-close on-ink"><div class="wrap">
+<section class="ag-close a1-close on-ink"><div class="wrap">
 <h2>45 minutes. Free. Start here.</h2>
 <p class="lead">{DATE}, online. Save your seat and the link comes to your email.</p>
 {_form("a1Form2", "ai101-close", compact=True, on_ink=True)}
 </div></section>
 </main>
 <script src="/js/ai101.js?v={ver}" defer></script>
-""" + footer()
+""" + footer(pop=False)
 
 
 def ai101_replay_page(head, header, footer, ver):
@@ -211,13 +203,20 @@ def ai101_replay_page(head, header, footer, ver):
 <div class="a1-rp" id="rp" aria-live="polite"><p class="muted">Checking your account&hellip;</p></div>
 </div></section></main>
 <script type="module">
-import {{ iframeUrl }} from "/js/room-page.js?v={ver}";
-import {{ createClient }} from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {{}};
 const box = document.getElementById("rp");
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({{ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }}[c]));
-const card = (h, p, acts) => {{ box.innerHTML = '<div class="a1-rp-card"><h2>' + h + '</h2><p>' + p + '</p>' + (acts ? '<div class="a1-rp-acts">' + acts + '</div>' : '') + '</div>'; }};
+let settled = false;
+const card = (h, p, acts) => {{ settled = true; box.innerHTML = '<div class="a1-rp-card"><h2>' + h + '</h2><p>' + p + '</p>' + (acts ? '<div class="a1-rp-acts">' + acts + '</div>' : '') + '</div>'; }};
+const failCard = () => card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\\"textlink\\" href=\\"mailto:hello@taylormadecreative.net\\">hello@taylormadecreative.net</a>.", "");
+// a blocked or slow CDN must never leave "Checking your account" up forever
+setTimeout(() => {{ if (!settled) failCard(); }}, 8000);
 try {{
+  // loaded inside the try, so a failed load lands on the error card
+  const [{{ iframeUrl }}, {{ createClient }}] = await Promise.all([
+    import("/js/room-page.js?v={ver}"),
+    import("https://esm.sh/@supabase/supabase-js@2"),
+  ]);
   const sb = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY);
   const {{ data: {{ session }} }} = await sb.auth.getSession();
   if (!session) {{
@@ -240,13 +239,14 @@ try {{
       if (!url) {{
         card("The replay is on its way.", "It shows up here once it is ready, usually within a day of the class. Check back soon.", '<a class="btn ghost" href="/live/">Go to Live</a>');
       }} else {{
+        settled = true;
         box.innerHTML = '<div class="a1-rp-player"><iframe src="' + esc(url) + '" title="AI 101 replay" allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>' +
           '<p class="a1-rp-next">Ready for the next step? <a class="textlink" href="/agent/">Build Your First AI Agent, {AGENT_DAY}</a>.</p>';
       }}
     }}
   }}
 }} catch (e) {{
-  if (e !== "shown") card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\\"textlink\\" href=\\"mailto:hello@taylormadecreative.net\\">hello@taylormadecreative.net</a>.", "");
+  if (e !== "shown") failCard();
 }}
 </script>
-""" + footer()
+""" + footer(pop=False)

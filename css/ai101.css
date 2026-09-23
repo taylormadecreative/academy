@@ -27,3 +27,17 @@
 
 /* the "Free · 45 min" stamp sits over the photo, never under it (on a phone the photo overlaps it) */
 .ag-roster .ag-stamp{z-index:3;}
+
+/* ---------- design review 9/23 ---------- */
+/* plain label on the before/after box (no fake window dots) */
+.ag-out-mock .ao-label{font-family:var(--display);font-size:13px;font-weight:600;color:#dbe4f7;padding-bottom:11px;margin-bottom:11px;border-bottom:1px solid rgba(255,255,255,.1);}
+/* the phone jump button: on a wide screen the form is already beside the headline */
+.a1-jump{display:none;}
+/* the closing block, centered, so the right half is not empty navy */
+.a1-close .wrap{text-align:center;}
+.a1-close h2,.a1-close .lead{margin-inline:auto;}
+.a1-close .ag-form{margin-inline:auto;text-align:left;}
+@media(max-width:760px){
+  .a1-jump{display:inline-flex;}
+  .a1-form .ag-submit .fine{max-width:none;}
+}
