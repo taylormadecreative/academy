@@ -28,7 +28,7 @@
 <div class="ht-bar" id="htBar"><div class="wrap"><span><b>Preview</b> · sample content, built for Huston-Tillotson University</span></div></div>
 <header class="site-header campus-topbar"><div class="wrap"><div class="bar">
 <a class="brand" href="/ht/hub/" aria-label="HT Hub home"><img class="campus-university-logo" src="/ht/img/ht-wordmark-maroon.png" alt="Huston-Tillotson University" width="150" height="44" decoding="async"><span class="campus-brand-divider" aria-hidden="true"></span><span class="campus-brand-name"><b>HT Hub</b><small>with Taylormade Academy</small></span></a>
-<div class="nav-cta"><a class="navlink campus-header-guide" href="/ht/hub/welcome/">Guide</a><a class="navlink" href="/ht/hub/community/">Community</a><a class="navlink" href="/ht/hub/messages/">Messages</a><a class="btn primary sm" href="/login/?next=__NEXT__">Sign in</a></div>
+<div class="nav-cta"><a class="navlink campus-header-guide" href="/ht/hub/welcome/">Guide</a><a class="navlink campus-header-help" href="/ht/hub/support/">Get help</a><a class="btn primary sm" href="/login/?next=__NEXT__">Sign in</a></div>
 </div></div></header>
 <div id="htRoot"><div class="hub-wrap" style="padding-block:60px;color:var(--muted)">Loading the HT Hub&hellip;<noscript><br><br>The HT Hub needs JavaScript to open. Turn it on, or read <a href="/ht/" style="color:#660100;font-weight:700">the program page</a> instead.</noscript></div></div>
 <footer class="site-footer"><div class="wrap">

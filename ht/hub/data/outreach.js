@@ -9,7 +9,7 @@ HT.spaces.outreach = {
     { type: 'intro', kicker: 'Civic engagement & community outreach', title: 'The Hill has always belonged to the neighborhood.',
       text: 'A public education series anyone in East Austin can join. Partner programs with churches, neighborhood associations, and high schools. A summer bridge that brings tenth and eleventh graders onto campus before their first fall. The community joins the same live room the campus uses, with the same sign-in.',
       ctas: [{ label: 'The public series', href: '#series', style: 'ht' }, { label: 'Summer Bridge', href: '#bridge', style: 'ht-line' }],
-      image: '/ht/img/fall-convocation.jpg', imageAlt: 'Fall convocation at Huston-Tillotson',
+      image: '/ht/img/r-retail-street.jpg', imageAlt: 'Architectural rendering of a walkable campus retail street',
       ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
       { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },

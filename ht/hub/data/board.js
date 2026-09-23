@@ -9,7 +9,7 @@ HT.spaces.board = {
     { type: 'intro', kicker: 'Board of Trustees', title: 'The board packet, without the binder.',
       text: 'Restricted to trustees. Meeting materials open on the phone you already carry, with the agenda beside them. Check in at the door and the secretary sees who has arrived before the gavel. The campaign update comes straight from Advancement, the same page they run. Nothing here leaves this space.',
       ctas: [{ label: 'Meeting materials', href: '#materials', style: 'ht' }, { label: 'The fall agenda', href: '#fall-meeting', style: 'ht-line' }],
-      image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais at a Huston-Tillotson ceremony' },
+      image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the Huston-Tillotson administrative building at dusk' },
     { type: 'notice', tone: 'maroon', html: '<b>Restricted space.</b> This portal is for trustees. Materials open only for signed-in members on the board list kept by the board secretary. Everything on this page is sample content for a working session.' },
     { type: 'materials', id: 'materials', title: 'Meeting materials', meta: 'Fall board meeting · October 16, 2026 · sample', items: [
       { kind: 'PDF', title: 'Agenda, fall board meeting', sub: 'Posted by the board secretary · one page', restricted: true },

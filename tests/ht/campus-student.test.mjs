@@ -116,6 +116,31 @@ test('future and draft announcements stay out of Today', () => {
   assert.ok(!html.includes('Staff notice'));
 });
 
+test('Today prioritizes one course action, the next cohort class, and direct campus connections', () => {
+  const state = base(), courseId = 'course-1', cohortId = 'cohort-1';
+  state.courses = [{ id: courseId, title: 'AI Literacy', description: 'Build a thoughtful practice.', status: 'published' }];
+  state.enrollments = [{ course_id: courseId, user_id: 'learner' }];
+  state.modules = [{ id: 'module-1', course_id: courseId, title: 'First step', position: 1, body: 'Start here.' }];
+  state.cohorts = [{ id: cohortId, title: 'First-Year Scholars', course_id: courseId, status: 'active' }];
+  state.cohort_members = [{ cohort_id: cohortId, user_id: 'learner', active: true }];
+  state.class_sessions = [{ id: 'class-1', cohort_id: cohortId, title: 'Prompt Lab', status: 'scheduled', starts_at: start, ends_at: end }];
+  state.events = [{ id: 'event-1', title: 'Campus Studio', location: 'Innovation Lab', status: 'published', starts_at: start, ends_at: end }];
+  const html = renderStudent('home', context(state));
+  assert.match(html, /AI Literacy/);
+  assert.match(html, /Prompt Lab/);
+  assert.match(html, /Open classroom/);
+  assert.match(html, /href="\/ht\/hub\/courses\/\?cohort=cohort-1&amp;tab=overview"/);
+  assert.match(html, /href="\/ht\/hub\/messages\/\?"[^>]*>Open messages/);
+  assert.match(html, /href="\/ht\/hub\/community\/\?"/);
+  assert.doesNotMatch(html, /campus-stats|campus-classroom-shortcut|Your next steps|Keep your next step in sight/);
+});
+
+test('Today community fallback goes to Community when no published event is available', () => {
+  const html = renderStudent('home', context(base()));
+  assert.match(html, /href="\/ht\/hub\/community\/\?"[^>]*>Meet the community/);
+  assert.doesNotMatch(html, /href="\/ht\/hub\/messages\/\?"[^>]*>Meet the community/);
+});
+
 test('messages open the latest valid conversation and never expose unrelated conversations', () => {
   const state = base();
   state.members = [{ user_id: 'staff', display_name: 'Morgan T.', role: 'staff' }, { user_id: 'other', display_name: 'Cameron L.', role: 'student' }];

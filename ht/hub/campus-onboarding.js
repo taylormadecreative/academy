@@ -6,6 +6,19 @@ const icon = (ctx, name) => typeof ctx.icon === 'function' ? ctx.icon(name) : ''
 const officeKeys = ['advancement', 'president', 'showcase', 'students', 'career', 'alumni', 'admissions', 'outreach', 'board'];
 const searchQueries = new Map();
 const roleNames = { student: 'Student guide', staff: 'Staff guide', admin: 'Staff guide', leadership: 'Leadership guide' };
+const pageGuidance = {
+  home: { title: 'Today', steps: ['Start with the next course or campus update that matters to you.', 'Use Learning, Community, Messages, or Campus to continue.'] },
+  courses: { title: 'My courses', steps: ['Choose a course section to open its workspace.', 'Use Overview, Modules, Assignments, Grades, and People to find the right course task.'] },
+  learn: { title: 'Learning pathways', steps: ['Choose a pathway to see its readings and practice sessions.', 'Work through activities in order; pathway progress is separate from course assignments and grades.'] },
+  events: { title: 'Events', steps: ['Browse campus events and open one to check its date, time, and location.', 'RSVP when that option is available. Use the Academic calendar for published term dates.'] },
+  community: { title: 'Community', steps: ['Choose a channel to see its conversation.', 'Reply to a post or write an update. Community posts are visible to campus members.'] },
+  people: { title: 'Messages', steps: ['Choose a conversation from your inbox, or select New message to find someone.', 'Messages are private to the people in that conversation.'] },
+  spaces: { title: 'Around campus', steps: ['Search for an office, program, or service, then open its card.', 'Use Messages to contact someone or Get help when you are unsure where to go.'] },
+  support: { title: 'Get help', steps: ['Choose the kind of help you need and explain the question or issue.', 'Review the details before sending. Return here to follow replies and status.'] },
+  staff: { title: 'Staff workspace', steps: ['Choose Announcements, Events, Learning, or Review work for the campus task at hand.', 'Use My courses to teach a section, review submissions, and manage published grades.'] },
+  insights: { title: 'Campus insights', steps: ['Choose a date range or summary to understand activity over time.', 'Use these campus-level indicators for context; private student work and messages remain in their permitted workspaces.'] },
+  live: { title: 'Classrooms & live sessions', steps: ['Choose your cohort classroom for course sessions, materials, attendance, and replays.', 'Campus-wide events have their own listing. Classroom management appears only to assigned instructors and administrators.'] },
+};
 const fallbackProgress = role => ({ role, status: 'new', visited: [], activeStep: null, persistent: false });
 const progressFor = ctx => ctx.onboarding?.read(ctx.state) || fallbackProgress(getOnboardingRole(ctx.state));
 const stepHref = (ctx, step) => ctx.href(step.view, { guide: step.id });
@@ -72,7 +85,7 @@ function map(ctx) {
 function quickHelp(ctx, role) {
   const teacher = ['staff', 'admin'].includes(role);
   const hasVideo = typeof ctx.state.settings?.ada_video_url === 'string' && ctx.state.settings.ada_video_url.trim();
-  return `<aside class="campus-stack campus-onboarding-quickhelp"><section class="campus-panel"><h2>A few helpful things</h2><details open><summary>Where did the menu go?</summary><p>On a computer, the main navigation runs across the top. On a phone, Today, Learn, Community, Messages, and Campus stay at the bottom. Learn opens My courses. Use Campus for offices and resources, and return to Guide for all destinations.</p></details><details><summary>${teacher ? 'Where do I manage teaching?' : 'Why is a course missing?'}</summary><p>${teacher ? 'My courses contains the sections you teach. Open a section to create assignments or review submissions. Manage sections & enrollment in Classrooms controls the rosters and schedules available to your role.' : 'Your instructor adds you to a course section. Joining a learning pathway does not enroll you in a section. Check that you are signed in with your campus account, then contact your instructor if a course is missing.'}</p></details><details><summary>Courses or learning pathways?</summary><p>My courses holds section assignments and published grades. Learning pathways holds readings, practice, and completion activities. A course may link to a pathway; their progress records are separate.</p></details><details><summary>What can other people see?</summary><p>Community posts are visible in the campus feed. Direct messages are for the people in the conversation. Student submissions and grades stay within the permitted student and instructor views. Help requests have their own support access.</p></details><details><summary>How do I sign in?</summary><p>Use the account button at the top. An active campus membership opens your workspace; a section enrollment opens your course. The interactive demo uses sample accounts and keeps its changes in this browser.</p></details></section><section class="campus-panel campus-onboarding-ada"><p class="campus-eyebrow">Your campus welcome</p><h2>Meet Ada</h2><p>Ada is your HT campus ambassador. Start with your course, use Messages when you need to reach someone, and choose Get help whenever you need direction.</p><p>You can use this written guide without watching a video.</p>${hasVideo ? anchor(ctx, ctx.href('home'), 'Find Ada’s recorded welcome on Today') : '<p class="campus-muted">Ada’s recorded welcome will appear on Today when it is available.</p>'}</section></aside>`;
+  return `<aside class="campus-stack campus-onboarding-quickhelp"><section class="campus-panel"><h2>A few helpful things</h2><details open><summary>Where did the menu go?</summary><p>On a computer, Today, Learning, Community, Messages, and Campus run across the top. On a phone, those five stay at the bottom. Events, Classrooms, and the Academic calendar are under More in the top menu; Get help stays in the header. Campus opens offices and resources. Use this Guide to find every destination.</p></details><details><summary>${teacher ? 'Where do I manage teaching?' : 'Why is a course missing?'}</summary><p>${teacher ? 'My courses contains the sections you teach. Open a section to create assignments or review submissions. Manage sections & enrollment in Classrooms controls the rosters and schedules available to your role.' : 'Your instructor adds you to a course section. Joining a learning pathway does not enroll you in a section. Check that you are signed in with your campus account, then contact your instructor if a course is missing.'}</p></details><details><summary>Courses or learning pathways?</summary><p>My courses holds section assignments and published grades. Learning pathways holds readings, practice, and completion activities. A course may link to a pathway; their progress records are separate.</p></details><details><summary>What can other people see?</summary><p>Community posts are visible in the campus feed. Direct messages are for the people in the conversation. Student submissions and grades stay within the permitted student and instructor views. Help requests have their own support access.</p></details><details><summary>How do I sign in?</summary><p>Use the account button at the top. An active campus membership opens your workspace; a section enrollment opens your course. The interactive demo uses sample accounts and keeps its changes in this browser.</p></details></section><section class="campus-panel campus-onboarding-ada"><p class="campus-eyebrow">Your campus welcome</p><h2>Meet Ada</h2><p>Ada is your HT campus ambassador. Start with your course, use Messages when you need to reach someone, and choose Get help whenever you need direction.</p><p>You can use this written guide without watching a video.</p>${hasVideo ? anchor(ctx, ctx.href('home'), 'Find Ada’s recorded welcome on Today') : '<p class="campus-muted">Ada’s recorded welcome will be added when the recording is ready.</p>'}</section></aside>`;
 }
 export function renderOnboarding(view, ctx) {
   if (view !== 'welcome') return '';
@@ -86,11 +99,78 @@ function guidedStep(view, progress) {
   if (requested) return progress.steps.find(step => step.id === requested && step.view === view) || null;
   return progress.steps.find(step => step.id === progress.activeStep && step.view === view) || null;
 }
+function pageGuideKey(view, ctx) {
+  const state = ctx.state || {};
+  let scope = '';
+  try {
+    const params = new URL(globalThis.location?.href || 'https://ht.invalid/').searchParams;
+    if (view === 'courses' && params.has('cohort')) scope = `course-${params.get('tab') || 'overview'}${params.has('assignment') ? '-assignment' : ''}`;
+    else if (view === 'live' && params.has('manage')) scope = 'classroom-management';
+    else if (view === 'live' && params.has('cohort')) scope = 'cohort-classroom';
+    else if (view === 'people' && params.has('person')) scope = 'direct-conversation';
+    else if (view === 'people' && params.get('new') === '1') scope = 'new-message';
+    else if (view === 'support' && params.has('request')) scope = 'support-request';
+  } catch { /* Keep the first-visit help at its top-level route. */ }
+  const identity = [state.mode || 'guest', state.member?.role || 'guest', state.user?.id || 'anonymous', view, scope].filter(Boolean).join(':');
+  return `ht-hub-page-guide:v1:${encodeURIComponent(identity)}`;
+}
+function pageGuideSeen(key) {
+  try { return globalThis.localStorage?.getItem(key) === 'seen'; } catch { return false; }
+}
+function pageGuideTitle(view, ctx) {
+  let params;
+  try { params = new URL(globalThis.location?.href || 'https://ht.invalid/').searchParams; } catch { return pageGuidance[view]?.title || 'this page'; }
+  if (view === 'courses' && params.has('cohort')) {
+    if (params.has('assignment')) return 'Assignment';
+    return ({ overview: 'Course overview', modules: 'Modules', assignments: 'Assignments', grades: 'Grades', people: 'People' })[params.get('tab') || 'overview'] || 'Course overview';
+  }
+  if (view === 'people' && params.has('person')) return 'Conversation';
+  if (view === 'people' && params.get('new') === '1') return 'New message';
+  if (view === 'live' && params.has('manage')) return 'Classroom management';
+  if (view === 'live' && params.has('cohort')) return 'Cohort classroom';
+  if (view === 'support' && params.has('request')) return 'Support request';
+  return pageGuidance[view]?.title || 'this page';
+}
+function pageGuideTip(view, ctx) {
+  const role = ctx.state.member?.role;
+  let params = new URLSearchParams();
+  try { params = new URL(globalThis.location?.href || 'https://ht.invalid/').searchParams; } catch { /* Use the top-level page guidance. */ }
+  if (view === 'courses' && params.has('cohort')) {
+    const tab = params.get('tab') || 'overview', manage = ['staff', 'admin'].includes(role);
+    if (tab === 'assignments') return [manage ? 'Create a draft assignment or open one to review student attempts.' : 'Open an assignment to read its instructions and due dates, then submit your work there.', 'Published feedback and grades stay with this course section.'];
+    if (tab === 'grades') return [manage ? 'Choose a student and assignment to review work and manage the gradebook.' : 'Review your instructor’s published grades and feedback here.', manage ? 'Draft grades stay private until you publish them.' : 'Submitted work awaiting review is not counted as a published grade.'];
+    if (tab === 'modules') return ['Choose a module to open its connected learning materials.', 'Course assignments and pathway completion are tracked separately.'];
+    if (tab === 'people') return [manage ? 'Review the section roster and available instructor tools.' : 'Find your instructor and classmates in the section roster.', 'Use Messages to continue a private conversation when available.'];
+    return [manage ? 'Use the course tabs to prepare assignments, review work, and manage the roster.' : 'Start with this section overview, then use the tabs for modules, assignments, grades, and people.', 'Use the classroom link for scheduled sessions and recordings.'];
+  }
+  if (view === 'courses' && ['staff', 'admin'].includes(role)) return ['Choose a section you teach to open its workspace.', 'Use Assignments to prepare or review work, Grades to manage the gradebook, and People to check the roster.'];
+  if (view === 'live' && params.has('manage') && ['staff', 'admin'].includes(role)) return ['Use the tabs to manage classrooms, enrollment, or scheduled sessions.', 'Choose a classroom to work with its roster and schedule. Access follows your instructor assignment or campus role.'];
+  if (view === 'live' && params.has('manage')) return ['Classroom management is available only to authorized instructors and administrators.', 'Use your course workspace or ask campus support if you need access.'];
+  if (view === 'live' && params.has('cohort') && ['staff', 'admin'].includes(role)) return ['Use this cohort classroom to find scheduled sessions, shared materials, and available recordings.', 'Roster and management tools are available only for sections assigned to you.'];
+  if (view === 'live' && params.has('cohort')) return ['Use this cohort classroom to find scheduled sessions, shared materials, and available recordings.', 'Only the class tools available to your campus role will appear here.'];
+  if (view === 'live' && ['staff', 'admin'].includes(role)) return ['Choose a classroom to see its roster and scheduled sessions.', 'Teaching and roster controls are available only for sections assigned to you.'];
+  if (view === 'people' && params.has('person')) return ['This is a direct conversation. Read the history above, then write your reply in the message box.', 'Only the people in this conversation can see these messages.'];
+  if (view === 'people' && params.get('new') === '1') return ['Search the campus directory for the person you want to reach.', 'Choose Message beside their name to open a private conversation.'];
+  if (view === 'support' && params.has('request')) return ['Open the request to read its status and the campus team’s replies.', 'Use the reply box on the request to continue the private support conversation.'];
+  if (view === 'staff' && !['staff', 'admin'].includes(role)) return ['This workspace is for authorized campus staff.', 'Use My courses to continue learning, or ask campus support if you believe you need staff access.'];
+  if (view === 'insights' && !['staff', 'admin', 'leadership'].includes(role)) return ['Campus reporting is available to authorized staff and university leadership.', 'Use your courses or campus spaces for student services and learning resources.'];
+  return pageGuidance[view]?.steps || [];
+}
+export function renderPageOrientation(view, ctx) {
+  if (view === 'welcome' || view === 'unavailable' || ctx.state?.mode === 'unavailable' || !pageGuidance[view]) return '';
+  const progress = currentProgress(ctx);
+  if (guidedStep(view, progress) || (view === 'home' && progress.status === 'active')) return '';
+  const key = pageGuideKey(view, ctx), guidance = { ...pageGuidance[view], title: pageGuideTitle(view, ctx) }, tips = pageGuideTip(view, ctx);
+  let leadershipDemo = false;
+  try { leadershipDemo = new URL(globalThis.location?.href || 'https://ht.invalid/').searchParams.get('demo') === 'leadership'; } catch { /* Keep the normal first-visit guide if the URL is unavailable. */ }
+  const open = pageGuideSeen(key) || leadershipDemo ? '' : ' open';
+  return `<details class="campus-page-guide" data-campus-page-guide="${escape(ctx, key)}"${open}><summary><span><strong>First time here?</strong><span>See how to use ${escape(ctx, guidance.title)}</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><ol>${tips.map(tip => `<li>${escape(ctx, tip)}</li>`).join('')}</ol></div><div class="campus-page-guide-actions">${anchor(ctx, ctx.href('welcome'), 'Full site guide', 'campus-button campus-button-secondary campus-button-small')}<button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>`;
+}
 export function renderOnboardingPrompt(view, ctx) {
   if (view === 'welcome') return '';
   const progress = currentProgress(ctx);
   if (!progress.role || progress.status === 'dismissed' || progress.status === 'complete') return '';
-  if (progress.status === 'new') return `<section class="campus-onboarding-prompt" aria-label="Welcome to HT Hub"><div><strong>New here? Find your way around.</strong><p>A short ${progress.role === 'student' ? 'student' : progress.role === 'leadership' ? 'leadership' : 'staff'} guide connects you with your courses, people, and campus resources.</p></div><div class="campus-onboarding-actions">${anchor(ctx, ctx.href('welcome'), 'Start guide', 'campus-button campus-button-secondary campus-button-small', 'data-onboarding-action="start"')}${button('dismiss', 'Not now', 'campus-onboarding-text-button')}</div></section>`;
+  if (progress.status === 'new') return '';
   const step = guidedStep(view, progress);
   if (step) {
     const next = progress.steps.find(item => !progress.visited.includes(item.id) && item.id !== step.id);
@@ -102,6 +182,16 @@ export function bindOnboarding(view, root, ctx) {
   if (!root?.addEventListener) return () => {};
   const searchKey = `${ctx.state.mode || 'guest'}:${ctx.state.user?.id || ''}:${ctx.state.member?.role || ''}`;
   const click = event => {
+    const done = event.target.closest?.('[data-page-guide-done]');
+    if (done && root.contains(done) && (done.matches?.('[data-page-guide-done]') || Object.hasOwn(done.dataset || {}, 'pageGuideDone'))) {
+      const details = done.closest('[data-campus-page-guide]');
+      if (details) {
+        try { globalThis.localStorage?.setItem(details.dataset.campusPageGuide, 'seen'); } catch { /* The page guide remains usable without browser storage. */ }
+        details.open = false;
+        details.querySelector('summary')?.focus({ preventScroll: true });
+      }
+      return;
+    }
     const target = event.target.closest?.('[data-onboarding-action]');
     if (!target || !root.contains(target) || !getOnboardingRole(ctx.state)) return;
     const action = target.dataset.onboardingAction;
@@ -123,6 +213,11 @@ export function bindOnboarding(view, root, ctx) {
     Promise.resolve(ctx.refresh?.()).then(() => {
       if (view === 'welcome') root.querySelector('[data-onboarding-focus]')?.focus({ preventScroll: true });
     }).catch(() => ctx.notify?.('Your guide could not refresh. Please reload this page.', 'error'));
+  };
+  const toggle = event => {
+    const details = event.target;
+    if (!details?.matches?.('[data-campus-page-guide]') || !root.contains(details) || details.open) return;
+    try { globalThis.localStorage?.setItem(details.dataset.campusPageGuide, 'seen'); } catch { /* Keep navigation available if storage is blocked. */ }
   };
   const search = event => {
     if (!event.target.matches?.('[data-onboarding-search]')) return;
@@ -147,5 +242,6 @@ export function bindOnboarding(view, root, ctx) {
   }
   root.addEventListener('click', click);
   root.addEventListener('input', search);
-  return () => { root.removeEventListener('click', click); root.removeEventListener('input', search); };
+  root.addEventListener('toggle', toggle, true);
+  return () => { root.removeEventListener('click', click); root.removeEventListener('input', search); root.removeEventListener('toggle', toggle, true); };
 }

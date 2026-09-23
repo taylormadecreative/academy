@@ -25,6 +25,59 @@ async function visit(route='',role='student',target=page){await target.goto(`${b
 const subject=`Demo request ${Date.now()}`;
 const reply='Your career adviser can review the portfolio during office hours.';
 try {
+ await check('Primary navigation stays focused and secondary campus destinations are grouped under More',async()=>{
+  await visit('');
+  for(const label of ['Today','Learning','Community','Messages','Campus'])assert.equal(await page.locator('.campus-nav-inner').getByText(label,{exact:true}).count(),1,label);
+  const more=page.locator('.campus-nav-more');
+  assert.equal(await more.locator('summary').getAttribute('aria-current'),null);
+  await more.locator('summary').click();
+  for(const label of ['Events','Classrooms','Academic calendar'])assert.equal(await more.getByText(label,{exact:true}).count(),1,label);
+  assert.equal(new URL(await more.getByRole('link',{name:'Academic calendar'}).getAttribute('href'),base).pathname,'/ht/hub/calendar/');
+  await visit('events');
+  assert.equal(await page.locator('.campus-nav-more > summary').getAttribute('aria-current'),'page');
+ });
+ await check('Campus directory uses small icons; all thirteen destination pages show their own photography',async()=>{
+  await visit('spaces');
+  const directory=page.locator('.campus-spaces-directory');
+  assert.equal(await directory.locator('.campus-office-card').count(),13);
+  assert.equal(await directory.locator('.campus-office-card img').count(),0,'Photography belongs inside a destination, not on the directory cards.');
+  assert.equal(await directory.locator('.campus-office-icon svg').count(),13,'Every campus-space card has a small icon.');
+  const keys=await page.evaluate(()=>window.HT.order.slice());
+  for(const key of keys){
+   await visit(key);
+   const selector=['events','live','learn','community'].includes(key)?'.campus-space-feature img':'.intro .art img';
+   const image=page.locator(selector).first();
+   await image.waitFor({state:'visible'});
+   const loaded=await image.evaluate(node=>({src:node.getAttribute('src'),complete:node.complete,width:node.naturalWidth}));
+   assert.ok(loaded.src,`${key} has a destination image source.`);
+   assert.ok(loaded.complete&&loaded.width>0,`${key} destination image loads: ${JSON.stringify(loaded)}`);
+  }
+  await visit('spaces');
+ });
+ await check('Leadership demo connects all thirteen spaces and keeps the role selector available',async()=>{
+  await visit('spaces','leadership');
+  const journey=await page.evaluate(()=>window.HT.leadershipWalkthrough.map(step=>step.key));
+  assert.equal(journey.length,13);
+  for(let index=0;index<journey.length;index++){
+   const key=journey[index];
+   await visit(key,'leadership');
+   const tour=page.locator('.campus-leadership-tour');
+   assert.equal(await tour.count(),1,`${key} has one leadership walkthrough panel.`);
+   assert.match(await tour.innerText(),new RegExp(`Step\\s+${index+1}\\s+of\\s+13`),`${key} shows its walkthrough position.`);
+   const next=new URL(await tour.locator('.campus-leadership-next').getAttribute('href'),base);
+   assert.equal(next.pathname,`/ht/hub/${journey[(index+1)%journey.length]}/`);
+   assert.equal(next.searchParams.get('demo'),'leadership');
+   assert.equal(await page.locator('.site-header .nav-cta a[href^="/login/"]').count(),0,`${key} does not offer sign-in inside the demo header.`);
+   const selector=page.locator('#campusDemoRole, #htStaticDemoRole');
+   assert.equal(await selector.count(),1,`${key} keeps its demo role switcher.`);
+   assert.equal(await selector.evaluate(node=>node.value),'leadership');
+   assert.equal(await page.locator('.campus-page-guide').first().evaluate(node=>node.open),false,`${key} keeps the first-visit helper available but collapsed in the leadership walkthrough.`);
+   if(['events','live','learn','community'].includes(key))assert.equal(await page.locator('.campus-account').getAttribute('aria-label'),'Leadership preview, sample account',`${key} uses a neutral leadership demo identity.`);
+  }
+  await page.locator('#htStaticDemoRole').selectOption('staff');
+  await settled();
+  assert.equal(new URL(page.url()).searchParams.get('demo'),'staff','The static page role switcher preserves its route and changes the selected demo role.');
+ });
  await check('Student creates a support request in explicit demo mode',async()=>{
   await visit('support');
   await page.getByRole('combobox',{name:'Topic',exact:true}).selectOption('Career');

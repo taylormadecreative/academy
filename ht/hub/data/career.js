@@ -9,7 +9,7 @@ HT.spaces.career = {
     { type: 'intro', kicker: 'Career Services', title: 'Employers see the work, not just the resume.',
       text: 'Every student has a page with their projects on it. Employers search the directory by program and skill, the employer showcase brings them to campus, and the mock interview seminars replay the same afternoon. The desk reads resumes by appointment and answers the same day.',
       ctas: [{ label: 'Search the directory', href: '#directory', style: 'ht' }, { label: 'Employer showcase', href: '#employers', style: 'ht-line' }],
-      image: '/ht/img/r-student-center.jpg', imageAlt: 'Rendering of the student center',
+      image: '/ht/img/student-laptop.jpg', imageAlt: 'A Huston-Tillotson student working at a laptop in the library',
       ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on November 24. Want a mock interview slot on October 14?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'directory', id: 'directory', title: 'Student portfolio directory', meta: 'Sample · first names only', search: true, items: [
       { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2029', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },

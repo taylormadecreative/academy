@@ -9,7 +9,7 @@ HT.spaces.community = {
     { type: 'intro', kicker: 'The campus community', title: 'Every conversation on the Hill, in one place.',
       text: 'Channels for your class year, your org, and the offices you actually need. A feed where the library posts its hours and a sophomore posts a study group. Direct messages that reach a person, not a form. And a leaderboard, because the people who show up for each other should be seen doing it.',
       ctas: [{ label: 'Open The Hill', href: '#the-hill', style: 'ht' }, { label: 'Message someone', href: '#messages', style: 'ht-line' }],
-      image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students studying together in the library',
+      image: '/ht/img/wallace-students.jpg', imageAlt: 'Huston-Tillotson students and university leadership together',
       ada: { text: 'Hey. The Class of 2030 channel is the busiest one this week. The library is open late through midterm week, choir rehearsal moved to 6, and Career Services posted a campus job. Want me to open the Campus channel?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'stats', items: [{ n: '6', label: 'Channels open on The Hill (sample)' }, { n: '3', label: 'Study groups posted this week (sample)' }, { n: '1', label: 'Campus job posted by Career Services (sample)' }, { n: 'Same day', label: 'Replies from an office desk (sample)' }] },
     { type: 'feed', id: 'the-hill', title: 'The Hill', meta: 'Sample posts · pick a channel', channels: ['Campus', 'Class of 2027', 'Class of 2030', 'Faculty lounge', 'Student orgs', 'Alumni'], posts: [

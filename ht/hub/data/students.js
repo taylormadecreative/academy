@@ -9,7 +9,7 @@ HT.spaces.students = {
     { type: 'intro', kicker: 'Student Affairs', title: 'Every week on the Hill, in your pocket.',
       text: 'Spring Ready Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
       ctas: [{ label: 'Spring Ready Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus',
+      image: '/ht/img/athletics.jpg', imageAlt: 'Huston-Tillotson student athletes representing the university',
       ada: { text: 'Spring Ready Week starts October 20 at 8:30 with check-in at the main entrance: advising, aid, wellness, and the clubs fair, the three days before Charter Day. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'agenda', id: 'orientation', title: 'Spring Ready Week', meta: 'The three days before Charter Day · advising opens Oct 19, registration Oct 26 · sample schedule', event: { name: 'Spring Ready Week', dates: 'Tue Oct 20 to Thu Oct 22, 2026', place: 'Huston-Tillotson University', note: 'Sample schedule' }, days: [
       { label: 'Tuesday, October 20', date: '2026-10-20', items: [

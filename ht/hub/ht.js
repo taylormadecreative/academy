@@ -34,6 +34,8 @@
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
     cap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></svg>',
+    help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5.1.7c0 1.8-2.6 2.2-2.6 4.3M12 17.2h.01"/></svg>',
     check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5l3.5 3.5 7-8"/></svg>'
   };
   Object.keys(ICONS).forEach(function (k) { ICONS[k] = ICONS[k].replace('<svg', '<svg aria-hidden="true" focusable="false"'); });
@@ -251,27 +253,87 @@
   R.html = function (b) { return card(b, b.html || ''); };
 
   /* ---------- page assembly ---------- */
-  function tabsHtml(active) {
-    var menu = [['home','Today'],['learn','Learning'],['events','Events'],['community','Community'],['spaces','Campus'],['support','Get help'],['live','Classrooms']];
-    return menu.map(function(item){var k=item[0], on=k===active || (k==='spaces' && !menu.some(function(x){return x[0]===active;}));return '<a class="ht-tab'+(on?' on':'')+'"'+(on?' aria-current="page"':'')+' href="'+esc(HT.site.hub+(k==='home'?'':k+'/'))+'">'+esc(item[1])+'</a>';}).join('');
+  function tabsHtml(pageKey) {
+    var moreCurrent = ['events','calendar','live','legacy-live','session','replay'].indexOf(pageKey) !== -1;
+    function link(k, label, glyph, current) {
+      var href = HT.site.hub + (k === 'home' ? '' : k + '/');
+      return '<a href="' + esc(href) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(glyph) + '<span>' + esc(label) + '</span></a>';
+    }
+    var menu = link('home','Today','home',pageKey === 'home') + link('courses','Learning','book',pageKey === 'courses') +
+      link('community','Community','users',pageKey === 'community') + link('messages','Messages','chat',pageKey === 'messages' || pageKey === 'people') + link('spaces','Campus','grid',pageKey === 'spaces' || (HT.order || []).indexOf(pageKey) !== -1);
+    var more = '<details class="campus-nav-more"><summary' + (moreCurrent ? ' aria-current="page"' : '') + '>' + icon('grid') + '<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">' +
+      link('events','Events','calendar',pageKey === 'events') + link('live','Classrooms','play',['live','legacy-live','session','replay'].indexOf(pageKey) !== -1) + link('calendar','Academic calendar','calendar',pageKey === 'calendar') + '</div></details>';
+    return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + link('support','Get help','help',false) + '</div></div></nav>';
+  }
+  function breadcrumbHtml(key, title) {
+    var parent = key === 'calendar' ? ['events', 'Events'] : ['session','replay','legacy-live'].indexOf(key) !== -1 ? ['live', 'Classrooms'] : ['spaces', 'Around campus'];
+    var parentHref = HT.site.hub + parent[0] + '/';
+    return '<nav class="campus-breadcrumb" aria-label="Breadcrumb"><ol><li><a href="' + esc(parentHref) + '">' + esc(parent[1]) + '</a></li><li aria-current="page">' + esc(title) + '</li></ol></nav>';
+  }
+  function firstVisitGuide(key, space) {
+    var title = space.title === 'Home' ? 'The HT Hub' : space.title;
+    var demo = new URLSearchParams(location.search).get('demo') || 'campus';
+    var storageKey = 'ht-hub-page-guide:v1:' + encodeURIComponent(demo + ':preview:' + key);
+    var wasSeen = false;
+    try { wasSeen = localStorage.getItem(storageKey) === 'seen'; } catch (_) {}
+    var intro = (space.blocks || []).find(function (block) { return block.type === 'intro' && block.title; });
+    var instruction;
+    if (key === 'calendar') instruction = 'Choose “What’s next” or a term to narrow the dates, then add the dates you need to your calendar.';
+    else if (['session','replay'].indexOf(key) !== -1) instruction = 'Check the course and session details first, then use the controls to join the class or watch its recording.';
+    else if (key === 'legacy-live') instruction = 'Choose the campus session or cohort classroom you need. Its page brings the schedule, room, and available replay together.';
+    else if (space.headCta && space.headCta.label) instruction = 'For a quick first step, choose “' + space.headCta.label + '” above. The sections below contain the rest of this space’s resources.';
+    else instruction = 'Start with “' + (intro ? intro.title : title) + '” below, then use its links and the sections that follow to explore ' + (space.office || title) + '.';
+    var open = wasSeen || demo === 'leadership' ? '' : ' open';
+    return '<details class="campus-page-guide ht-page-guide" data-campus-page-guide="' + esc(storageKey) + '"' + open + '><summary><span><strong>First time here?</strong><span>See how to use ' + esc(title) + '</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><p>' + esc(instruction) + '</p></div><div class="campus-page-guide-actions"><a class="campus-button campus-button-secondary campus-button-small" href="' + esc(HT.site.hub + 'welcome/') + '">Full site guide</a><button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>';
+  }
+  function leadershipDemoRail(key) {
+    if (new URLSearchParams(location.search).get('demo') !== 'leadership') return '';
+    var journey = HT.leadershipWalkthrough || [];
+    var index = journey.findIndex(function (step) { return step.key === key; });
+    if (index < 0) return '';
+    var current = journey[index], previous = journey[index - 1], next = journey[index + 1];
+    function stepHref(step) { return HT.site.hub + step.key + '/?demo=leadership'; }
+    var forward = next
+      ? '<a class="campus-leadership-next" href="' + esc(stepHref(next)) + '">Next: ' + esc(next.key === 'live' ? 'Classrooms' : next.key === 'learn' ? 'Learning pathways' : next.key[0].toUpperCase() + next.key.slice(1)) + ' <span aria-hidden="true">→</span></a>'
+      : '<a class="campus-leadership-next" href="' + esc(stepHref(journey[0])) + '">Restart walkthrough <span aria-hidden="true">↺</span></a>';
+    return '<section class="campus-leadership-tour" aria-labelledby="campusLeadershipTourTitle"><div class="campus-leadership-tour-top"><p class="campus-eyebrow">Leadership walkthrough · sample journey</p><span>Step <b>' + (index + 1) + '</b> of ' + journey.length + '</span></div><div class="campus-leadership-tour-body"><div><h2 id="campusLeadershipTourTitle">' + esc(current.title) + '</h2><p>' + esc(current.detail) + '</p></div><nav aria-label="Leadership walkthrough navigation">' + (previous ? '<a class="campus-leadership-previous" href="' + esc(stepHref(previous)) + '">← Previous: ' + esc(previous.key === 'live' ? 'Classrooms' : previous.key === 'learn' ? 'Learning pathways' : previous.key[0].toUpperCase() + previous.key.slice(1)) + '</a>' : '<span class="campus-leadership-previous">Start of journey</span>') + forward + '<a class="campus-leadership-all" href="' + esc(HT.site.hub + 'spaces/?demo=leadership') + '">All 13 spaces</a></nav></div><progress value="' + (index + 1) + '" max="' + journey.length + '" aria-label="Leadership walkthrough progress"></progress></section>';
+  }
+  function staticDemoHeader(role) {
+    if (['student', 'staff', 'leadership'].indexOf(role) === -1) return;
+    var header = document.querySelector('.site-header .nav-cta');
+    if (!header) return;
+    var roles = [['student', 'Student'], ['staff', 'Staff'], ['leadership', 'Leadership']];
+    header.innerHTML = '<a class="navlink campus-header-guide" href="' + esc(HT.site.hub + 'welcome/?demo=' + role) + '">Guide</a><a class="navlink campus-header-help" href="' + esc(HT.site.hub + 'support/?demo=' + role) + '">Get help</a><span class="ht-static-demo-label">Interactive demo · sample data</span><label class="campus-sr-only" for="htStaticDemoRole">View demo as</label><select class="ht-static-demo-select" id="htStaticDemoRole" aria-label="View demo as">' + roles.map(function (item) { return '<option value="' + item[0] + '"' + (item[0] === role ? ' selected' : '') + '>' + item[1] + '</option>'; }).join('') + '</select>';
+    header.querySelector('#htStaticDemoRole').addEventListener('change', function (event) {
+      var url = new URL(location.href);
+      url.searchParams.set('demo', event.currentTarget.value);
+      location.assign(url.pathname + url.search + url.hash);
+    });
   }
   function render(key) {
     var space = key === 'home' ? HT.home : HT.spaces[key];
     var root = document.getElementById('htRoot'); if (!root || !space) return;
-    var tabKey = space.tab || key;   /* a page that is not a tab (the replay page) keeps its parent tab current */
-    var head = '<div class="ht-head"><div class="hub-wrap"><div>' +
-      '<div class="ht-lockup"><img src="/ht/img/ht-wordmark-maroon.png" alt="Huston-Tillotson University"><span class="x" aria-hidden="true">×</span><span class="tma"><img src="/assets/logo-nav.webp" alt="">Taylormade Academy</span></div>' +
-      h`<h1>${space.title === 'Home' ? 'The HT Hub' : space.title}</h1>` + (space.office ? h`<div class="kick" style="margin-top:8px">${space.office}</div>` : h`<div class="kick" style="margin-top:8px">${space.kicker || 'One campus, one hub'}</div>`) + (space.sub ? h`<p class="sub">${space.sub}</p>` : '') +
-      '</div><div class="side"><span class="mono">' + esc(space.stamp || 'Preview · sample content') + '</span>' + (space.headCta ? btn(space.headCta) : '') + '</div></div></div>' +
-      '<nav class="ht-tabs" aria-label="Spaces"><div class="hub-wrap">' + tabsHtml(tabKey) + '</div></nav>';
+    document.body.classList.add('ht-space-page');
     var main = [], side = [];
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
-    var body = '<main class="ht-main" id="htMain" tabindex="-1"><div class="hub-wrap"><div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></div></main>';
-    root.innerHTML = head + body;
+    var pageTitle = space.title === 'Home' ? 'The HT Hub' : space.title;
+    var head = tabsHtml(key) + '<div class="campus-container ht-space-container">' + breadcrumbHtml(key, pageTitle) + '<header class="campus-page-head ht-space-page-head" aria-labelledby="htSpaceTitle"><div>' +
+      h`<p class="campus-eyebrow">${space.office || space.kicker || 'Huston-Tillotson University'}</p><h1 id="htSpaceTitle">${pageTitle}</h1>` + (space.sub ? h`<p>${space.sub}</p>` : '') +
+      '</div><div class="campus-head-actions"><span class="ht-space-stamp">' + esc(space.stamp || 'Preview · sample content') + '</span>' + (space.headCta ? btn(space.headCta) : '') + '</div></header>' +
+      '<main class="campus-main ht-space-main" id="htMain" tabindex="-1">' + firstVisitGuide(key, space) + leadershipDemoRail(key) + '<div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></main></div>' +
+      '<nav class="campus-mobile-nav" aria-label="Mobile navigation">' +
+      [['home','home','Today'],['courses','book','Learn'],['community','users','Community'],['messages','chat','Messages'],['spaces','grid','Campus']].map(function (item) {
+        var current = item[0] === 'spaces' ? (HT.order || []).indexOf(key) !== -1 || key === 'spaces' : item[0] === 'courses' ? ['courses','learn'].indexOf(key) !== -1 : item[0] === 'community' ? key === 'community' : item[0] === 'messages' ? ['messages','people'].indexOf(key) !== -1 : item[0] === 'home' && key === 'home';
+        return '<a href="' + esc(HT.site.hub + (item[0] === 'home' ? '' : item[0] + '/')) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(item[1]) + '<span>' + esc(item[2]) + '</span></a>';
+      }).join('') + '</nav>';
+    root.innerHTML = head;
     /* Keep the chosen workspace when returning from a reference calendar or
        office preview, without creating or changing any demo records. */
     var demoRole = new URLSearchParams(location.search).get('demo');
     if (['student', 'staff', 'leadership'].indexOf(demoRole) !== -1) {
+      document.body.classList.add('ht-interactive-demo');
+      document.body.classList.toggle('ht-leadership-demo', demoRole === 'leadership');
+      staticDemoHeader(demoRole);
       document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
         var destination = new URL(a.getAttribute('href'), location.origin);
         destination.searchParams.set('demo', demoRole);
@@ -282,16 +344,27 @@
     wire(root, space);
     /* external links leave the hub in a new tab so the demo stays put */
     root.querySelectorAll('a[href^="http"]').forEach(function (a) { if (a.hostname !== location.hostname) { a.target = '_blank'; a.rel = 'noopener'; } });
-    /* keep the active tab in view without moving the keyboard tab order */
-    var on = root.querySelector('.ht-tab.on'), strip = root.querySelector('.ht-tabs .hub-wrap');
-    if (on && strip && strip.scrollWidth > strip.clientWidth) {
-      try { strip.scrollLeft = Math.max(0, on.offsetLeft - (strip.clientWidth - on.offsetWidth) / 2); } catch (e) {}
-    }
     document.title = (space.title === 'Home' ? 'The HT Hub' : space.title + ' · The HT Hub') + ' · Huston-Tillotson × Taylormade Academy';
   }
 
   /* ---------- behaviors ---------- */
   function wire(root, space) {
+    var pageGuideClick = function (event) {
+      var button = event.target.closest && event.target.closest('[data-page-guide-done]');
+      if (!button || !root.contains(button)) return;
+      var details = button.closest('[data-campus-page-guide]');
+      if (!details) return;
+      try { localStorage.setItem(details.getAttribute('data-campus-page-guide'), 'seen'); } catch (_) {}
+      details.open = false;
+      var summary = details.querySelector('summary'); if (summary) summary.focus({ preventScroll: true });
+    };
+    var pageGuideToggle = function (event) {
+      var details = event.target;
+      if (!details || !details.matches || !details.matches('[data-campus-page-guide]') || !root.contains(details) || details.open) return;
+      try { localStorage.setItem(details.getAttribute('data-campus-page-guide'), 'seen'); } catch (_) {}
+    };
+    root.addEventListener('click', pageGuideClick);
+    root.addEventListener('toggle', pageGuideToggle, true);
     /* reveals */
     var rv = root.querySelectorAll('.rv');
     if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: .08 }); rv.forEach(function (n) { io.observe(n); }); }
@@ -572,7 +645,7 @@
     }).catch(function () {});
   }
 
-  window.HTHub = { render: render, boot: boot, esc: esc, icon: icon };
+  window.HTHub = { render: render, boot: boot, esc: esc, icon: icon, leadershipDemoRail: leadershipDemoRail };
   document.addEventListener('DOMContentLoaded', function () {
     var k = document.body.getAttribute('data-space') || 'home';
     if (k === 'messages') k = 'people';

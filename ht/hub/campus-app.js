@@ -1,5 +1,5 @@
 const assetStamp = new URL(import.meta.url).search;
-const [{createCampusStore},{renderStudent,bindStudent},{renderStaff,bindStaff},{renderClassrooms,bindClassrooms},{renderAcademics,bindAcademics},{renderOnboarding,renderOnboardingPrompt,bindOnboarding},{createOnboardingProgress,onboardingSteps}] = await Promise.all([
+const [{createCampusStore},{renderStudent,bindStudent},{renderStaff,bindStaff},{renderClassrooms,bindClassrooms},{renderAcademics,bindAcademics},{renderOnboarding,renderOnboardingPrompt,renderPageOrientation,bindOnboarding},{createOnboardingProgress,onboardingSteps}] = await Promise.all([
  import('./campus-store.js'+assetStamp),import('./campus-student.js'+assetStamp),import('./campus-staff.js'+assetStamp),import('./campus-classrooms.js'+assetStamp),import('./campus-academics.js'+assetStamp),import('./campus-onboarding.js'+assetStamp),import('./campus-onboarding-progress.js'+assetStamp)
 ]);
 
@@ -24,7 +24,12 @@ const SHAPES = {
  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
  download:'<path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/>',
  pin:'<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/>',
- star:'<path d="m12 3 3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1Z"/>'
+ star:'<path d="m12 3 3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1Z"/>',
+ gift:'<rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M12 9H7.5a2.5 2.5 0 1 1 2.4-3.2L12 9Zm0 0h4.5a2.5 2.5 0 1 0-2.4-3.2L12 9Z"/>',
+ mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"/>',
+ door:'<path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M6 7h12m-4 7h.01"/>',
+ shield:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>'
 };
 export const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${SHAPES[name] || SHAPES.grid}</svg>`;
@@ -70,10 +75,38 @@ export async function mountCampus(view='home') {
  const ctx=()=>({state,api,onboarding,esc,icon,href,notify,refresh,run,restoreDrafts,discardDraft:form=>{if(form)drafts.delete(formKey(form));},formatDate:iso=>humanDate(iso,{month:'short',day:'numeric'}),formatTime:iso=>humanDate(iso,{hour:'numeric',minute:'2-digit'})});
  function unreadMessages(){return state.user?.id&&state.member?(state.messages||[]).filter(m=>m.recipient_id===state.user.id&&!m.read_at).length:0;}
  function messageBadge(){const count=unreadMessages();return count?`<span class="campus-message-count" aria-hidden="true">${count>99?'99+':count}</span>`:'';}
- function navLink(v,i,label){const unread=v==='people'?unreadMessages():0;return `<a href="${href(v)}" ${(view===v||v==='courses'&&view==='learn')?'aria-current="page"':''}${v==='people'?` data-campus-messages-link aria-label="Messages${unread?`, ${unread} unread`:''}"`:''}>${icon(i)}<span>${label}</span>${v==='people'?messageBadge():''}</a>`;}
+ function navLink(v,i,label){const unread=v==='people'?unreadMessages():0;return `<a href="${href(v)}" aria-label="${v==='people'?`Messages${unread?`, ${unread} unread`:''}`:label}" ${(view===v||v==='courses'&&view==='learn')?'aria-current="page"':''}${v==='people'?' data-campus-messages-link':''}>${icon(i)}<span>${label}</span>${v==='people'?messageBadge():''}</a>`;}
  function navigation() {
   const links=[['home','home','Today'],['courses','book','Learning'],['community','users','Community'],['people','chat','Messages'],['spaces','grid','Campus']];
-  return `<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">${links.map(args=>navLink(...args)).join('')}<div class="campus-nav-end">${[['events','calendar','Events'],['live','play','Classrooms'],['support','help','Get help']].map(args=>navLink(...args)).join('')}</div></div></nav>`;
+  const moreCurrent=['events','live'].includes(view);
+  const more=`<details class="campus-nav-more"><summary${moreCurrent?' aria-current="page"':''}>${icon('grid')}<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">${[['events','calendar','Events'],['live','play','Classrooms']].map(args=>navLink(...args)).join('')}<a href="${href('/ht/hub/calendar/')}">${icon('calendar')}<span>Academic calendar</span></a></div></details>`;
+  return `<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">${links.map(args=>navLink(...args)).join('')}<div class="campus-nav-end">${more}${navLink('support','help','Get help')}</div></div></nav>`;
+ }
+ function courseRoute() {
+  const params=new URLSearchParams(location.search),id=params.get('cohort');
+  return id?{params,cohort:(state.cohorts||[]).find(item=>item.id===id)||null}:null;
+ }
+ function currentPageName() {
+  if(view==='courses'){
+   const route=courseRoute();
+   if(route?.cohort){if(route.params.has('assignment'))return 'Assignment';return ({overview:'Overview',modules:'Modules',assignments:'Assignments',grades:'Grades',people:'People'})[route.params.get('tab')||'overview']||'Course overview';}
+  }
+  if(view==='people'){const params=new URLSearchParams(location.search);if(params.has('person'))return 'Conversation';if(params.get('new')==='1')return 'New message';}
+  if(view==='live'&&new URLSearchParams(location.search).has('manage'))return 'Classroom management';
+  if(view==='live'&&new URLSearchParams(location.search).has('cohort'))return 'Cohort classroom';
+  if(view==='support'&&new URLSearchParams(location.search).has('request'))return 'Support request';
+  return TITLES[view]||'Campus';
+ }
+ function breadcrumb() {
+  const crumbs=[{label:'Today',url:href('home')}],page=currentPageName();
+  if(view==='courses'){
+   const route=courseRoute();
+   if(route?.cohort){crumbs.push({label:'My courses',url:href('courses')});if(route.cohort.title)crumbs.push({label:route.cohort.title,url:href('courses',{cohort:route.cohort.id,tab:'overview'})});}
+  } else if(view==='people'&&page!=='Messages')crumbs.push({label:'Messages',url:href('people')});
+  else if(view==='live'&&page!=='Classrooms & live sessions')crumbs.push({label:'Classrooms',url:href('live')});
+  else if(view==='support'&&page!=='Get help')crumbs.push({label:'Get help',url:href('support')});
+  crumbs.push({label:page});
+  return `<nav class="campus-breadcrumb" aria-label="Breadcrumb"><ol>${crumbs.map((item,index)=>`<li${index===crumbs.length-1?' aria-current="page"':''}>${index===crumbs.length-1?esc(item.label):`<a href="${item.url}">${esc(item.label)}</a>`}</li>`).join('')}</ol></nav>`;
  }
  function modeLine() {
   if(state.mode==='demo')return `<div class="campus-demo"><div><strong>Interactive demo</strong><span>Sample people and records. Changes stay in this browser.</span></div><label for="campusDemoRole">View as</label><select id="campusDemoRole">${['student','staff','leadership'].map(r=>`<option value="${r}" ${demo===r?'selected':''}>${r==='leadership'?'Leadership':r[0].toUpperCase()+r.slice(1)}</option>`).join('')}</select></div>`;
@@ -87,7 +120,21 @@ export async function mountCampus(view='home') {
  }
  function officeDirectory() {
   const HT=window.HT||{};
-  return `<div class="campus-directory-top"><p class="campus-lede">Find your people, your next opportunity, and the right office.</p><div class="campus-search-field">${icon('search')}<label class="campus-sr-only" for="campusSearch">Search campus spaces</label><input id="campusSearch" type="search" placeholder="Find an office or campus resource"></div></div><div class="campus-shortcuts"><a href="${href('people')}">${icon('users')}<div><strong>Messages</strong><span>Open your inbox or find someone to talk to.</span></div>${icon('arrow')}</a><a href="${href('support')}">${icon('help')}<div><strong>Help from a real person</strong><span>Ask a question and follow its progress.</span></div>${icon('arrow')}</a></div><section class="campus-panel"><div class="campus-section-head"><h2>Campus spaces</h2><span class="campus-muted">Office previews</span></div><p class="campus-muted">These office pages contain labeled examples. Your personal learning, events, messages, and help requests live in the workspace above.</p><div class="campus-office-list">${(HT.order||[]).map(k=>{const s=HT.spaces[k];return `<a class="campus-office" data-office="${esc((s.title+' '+s.office+' '+s.blurb).toLowerCase())}" href="${href('/ht/hub/'+k+'/')}"><span class="campus-office-icon">${icon(s.icon)}</span><span><strong>${esc(s.title)}</strong><span>${esc(s.blurb)}</span></span>${icon('arrow')}</a>`;}).join('')}</div><p id="campusNoOffice" class="campus-empty" hidden>No spaces match. Try an office name, or ask for help.</p></section><section class="campus-install"><img src="/ht/img/icon-192.png" width="48" height="48" alt="HT Hub app icon"><div><h2>The Hill, in your pocket.</h2><p>On iPhone, open in Safari, tap Share, then Add to Home Screen. On Android, use your browser’s Install app or Add to Home screen option.</p></div></section>`;
+  const spaces=(HT.order||[]).map(k=>{
+   const s=HT.spaces?.[k];if(!s)return '';
+   const intro=s.blocks?.find(block=>block.type==='intro');
+   const headline=s.headline||intro?.title||s.blurb;
+   const haystack=(s.title+' '+s.office+' '+s.blurb+' '+headline).toLowerCase();
+   return `<a class="campus-office-card" data-office="${esc(haystack)}" href="${href('/ht/hub/'+k+'/')}"><span class="campus-office-icon">${icon(s.icon)}</span><span class="campus-office-card-copy"><strong>${esc(s.title)}</strong><span class="campus-office-headline">${esc(headline)}</span><span class="campus-office-description">${esc(s.blurb)}</span><span class="campus-office-open">Explore space <span aria-hidden="true">→</span></span></span></a>`;
+  }).join('');
+  return `<div class="campus-directory-top"><p class="campus-lede">Find your people, your next opportunity, and the right office.</p><div class="campus-search-field">${icon('search')}<label class="campus-sr-only" for="campusSearch">Search campus spaces</label><input id="campusSearch" type="search" placeholder="Find a space, service, or office"></div></div><div class="campus-shortcuts"><a href="${href('people')}">${icon('users')}<div><strong>Messages</strong><span>Open your inbox or find someone to talk to.</span></div>${icon('arrow')}</a><a href="${href('support')}">${icon('help')}<div><strong>Help from a real person</strong><span>Ask a question and follow its progress.</span></div>${icon('arrow')}</a></div><section class="campus-panel campus-spaces-directory"><div class="campus-section-head"><div><h2>Explore every campus space</h2><p class="campus-muted">One place for every office, program, and campus community.</p></div><span class="campus-space-count">${(HT.order||[]).length} spaces</span></div><div class="campus-office-list">${spaces}</div><p id="campusNoOffice" class="campus-empty" hidden>No spaces match. Try another search, or ask for help.</p></section><section class="campus-install"><img src="/ht/img/icon-192.png" width="48" height="48" alt="HT Hub app icon"><div><h2>The Hill, in your pocket.</h2><p>On iPhone, open in Safari, tap Share, then Add to Home Screen. On Android, use your browser’s Install app or Add to Home screen option.</p></div></section>`;
+ }
+ function campusSpaceFeature() {
+  const HT=window.HT||{},space=HT.spaces?.[view],visual=HT.spaceArtwork?.[view];
+  if(!space||!visual)return '';
+  const intro=space.blocks?.find(block=>block.type==='intro');
+  const headline=space.headline||intro?.title||space.title;
+  return `<section class="campus-hero campus-space-feature"><div><p class="campus-eyebrow">${esc(space.office||space.title)}</p><h2>${esc(headline)}</h2><p>${esc(space.blurb||'A dedicated space for your campus community.')}</p></div><img src="${esc(visual.image)}" alt="${esc(visual.alt)}" loading="eager" decoding="async"></section>`;
  }
  function render() {
   const focused=document.activeElement,focusedForm=focused?.closest('form');
@@ -102,9 +149,20 @@ export async function mountCampus(view='home') {
   const header=document.querySelector('.site-header .nav-cta');
   const brand=document.querySelector('.site-header .brand');if(brand)brand.href=href('home');
   const accountHref=state.mode==='demo'?href('home'):state.user?'/dashboard/':'/login/?next='+encodeURIComponent(location.pathname+location.search);
-  if(header)header.innerHTML=`<a class="campus-header-guide" href="${href('welcome')}"${view==='welcome'?' aria-current="page"':''}>Guide</a><a class="campus-header-help" href="${href('support')}">Get help</a>${notificationPanel()}<a class="campus-account ${state.user?'':'btn primary sm'}" href="${accountHref}" aria-label="${esc(state.member?state.member.display_name+(state.mode==='demo'?', sample account':', Academy account'):'Sign in')}">${state.member?`<span class="campus-avatar">${esc(state.member.display_name.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join(''))}</span><span>${esc(state.member.display_name)}</span>`:'Sign in'}</a>`;
-  const title=view==='home'?(state.member?`Good ${new Date().getHours()<12?'morning':new Date().getHours()<17?'afternoon':'evening'}, ${state.member.display_name.split(' ')[0]}.`:'Your day on the Hill.'):TITLES[view]||'The HT Hub';
-  const desc={home:'A little direction. A world of possibility.',welcome:'A clear next step, wherever you are on campus.',courses:'Your lessons, assignments, and grades. One place to keep moving.',learn:'Build your skills. Make something that matters.',events:'Find your next connection on the Hill.',community:'The conversations that keep us connected.',people:'Stay connected to your people on campus.',spaces:'One campus. The right door for every question.',support:'You don’t have to figure it out alone.',staff:'Keep your campus informed and your students moving.',insights:'See participation, learning, and the work ahead.',live:'Your classroom. Your cohort. Everything you need to keep learning.'}[view]||'';
+  const accountName=demo==='leadership'?'Leadership preview':state.member?.display_name;
+  if(header)header.innerHTML=`<a class="campus-header-guide" href="${href('welcome')}"${view==='welcome'?' aria-current="page"':''}>Guide</a><a class="campus-header-help" href="${href('support')}">Get help</a>${notificationPanel()}<a class="campus-account ${state.user?'':'btn primary sm'}" href="${accountHref}" aria-label="${esc(state.member?accountName+(state.mode==='demo'?', sample account':', Academy account'):'Sign in')}">${state.member?`<span class="campus-avatar">${esc(demo==='leadership'?'LP':state.member.display_name.split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join(''))}</span><span>${esc(accountName)}</span>`:'Sign in'}</a>`;
+  const title=view==='home'?(demo==='leadership'?'Campus overview':state.member?`Good ${new Date().getHours()<12?'morning':new Date().getHours()<17?'afternoon':'evening'}, ${state.member.display_name.split(' ')[0]}.`:'Your day on the Hill.'):currentPageName();
+  const route=courseRoute();
+  const desc={home:'Start with your next course, message, or campus update.',welcome:'Use the guide to find a task or jump to any campus space.',courses:'Open a course to find its lessons, assignments, feedback, and grades.',learn:'Choose a pathway to build skills through readings and practice.',events:'Browse campus gatherings, review details, and RSVP when available.',community:'Choose a channel to read, reply, and share with campus.',people:'Find a campus member or continue a private conversation.',spaces:'Search campus offices and services, then open the right space.',support:'Ask a question and follow your request through to a reply.',staff:'Choose a staff tool, or open a course section you teach.',insights:'Review campus participation and learning summaries available to your role.',live:'Choose your cohort classroom or find a campus-wide live event.'}[view]||'';
+  const pageParams=new URLSearchParams(location.search);
+  const contextualDesc=view==='courses'&&route?.cohort?(route.params.has('assignment')?'Read the assignment instructions, due dates, submission history, and instructor feedback.':({overview:'Course details and the next task for this section.',modules:'Open course learning materials and follow modules in order.',assignments:'Read assignment instructions, submit work, and follow published feedback.',grades:'Review published grades and feedback, or manage the section gradebook.',people:'Find your instructor and class roster.'}[route.params.get('tab')||'overview']||desc))
+   :view==='live'&&pageParams.has('manage')?'Manage classrooms, enrollment, and scheduled sessions available to your role.'
+   :view==='live'&&pageParams.has('cohort')?'Find your cohort’s scheduled sessions, shared materials, and recordings.'
+   :view==='people'&&pageParams.has('person')?'A private conversation between you and another campus member.'
+   :view==='people'&&pageParams.get('new')==='1'?'Find a campus member to start a direct conversation.'
+   :view==='support'&&pageParams.has('request')?'A private help request, its status, and replies from the campus team.'
+   :view==='home'&&demo==='leadership'?'See how learning, communication, events, and student support connect across campus.'
+   :desc;
   const badge=state.mode==='demo'?'Demo workspace':role==='leadership'?'Leadership workspace':isStaff?'Staff workspace':'Huston-Tillotson University';
   let content='';
   if(view==='welcome')content=renderOnboarding(view,ctx());
@@ -115,10 +173,11 @@ export async function mountCampus(view='home') {
   else if(['staff','support','insights'].includes(view))content=renderStaff(view,ctx());
   else content=renderStudent(view,ctx());
   if(state.mode!=='unavailable'&&['courses','learn'].includes(view))content=`<nav class="campus-academic-learning-switch" aria-label="Learning destinations"><a href="${href('courses')}"${view==='courses'?' aria-current="page"':''}>My courses</a><a href="${href('learn')}"${view==='learn'?' aria-current="page"':''}>Learning pathways</a></nav>${content}`;
+  if(state.mode!=='unavailable'&&['events','live','learn','community'].includes(view))content=`${campusSpaceFeature()}${content}`;
   if(state.mode!=='unavailable'&&view==='staff')content=`<div class="campus-academic-home-link"><div><strong>Teach your courses</strong><p>Create assignments, review submissions, and publish grades for your sections.</p></div><a class="campus-button campus-button-secondary" href="${href('courses')}">Open instructor courses</a></div>${content}`;
-  if(view!=='welcome')content=renderOnboardingPrompt(view,ctx())+content;
-  root.innerHTML=`${navigation()}<div class="campus-container">${modeLine()}<div class="campus-page-head"><div><p class="campus-eyebrow">${esc(badge)}</p><h1>${esc(title)}</h1><p>${esc(desc)}</p></div><div class="campus-head-actions"><time datetime="${new Date().toISOString()}">${humanDate(new Date(),{weekday:'long',month:'long',day:'numeric'})}</time>${isLeader?`<div class="campus-workspace-links">${isStaff?`<a href="${href('staff')}" ${view==='staff'?'aria-current="page"':''}>${icon('briefcase')} Staff</a>`:''}<a href="${href('insights')}" ${view==='insights'?'aria-current="page"':''}>${icon('chart')} Insights</a></div>`:''}</div></div><main id="htMain" class="campus-main" tabindex="-1">${content}</main><div class="campus-bottom-note"><span>Where every soul finds its strength.</span><a href="${href('welcome')}">Find your way ${icon('arrow')}</a></div></div><nav class="campus-mobile-nav" aria-label="Mobile navigation">${[['home','home','Today'],['courses','book','Learn'],['community','users','Community'],['people','chat','Messages'],['spaces','grid','Campus']].map(args=>navLink(...args)).join('')}</nav>`;
-  document.title=`${TITLES[view]||'Campus'} · HT Hub`;
+  const pageOrientation=renderPageOrientation(view,ctx());
+  root.innerHTML=`${navigation()}<div class="campus-container">${modeLine()}${window.HTHub?.leadershipDemoRail?.(view)||''}${breadcrumb()}<div class="campus-page-head"><div><p class="campus-eyebrow">${esc(badge)}</p><h1>${esc(title)}</h1>${contextualDesc?`<p>${esc(contextualDesc)}</p>`:''}</div><div class="campus-head-actions"><time datetime="${new Date().toISOString()}">${humanDate(new Date(),{weekday:'long',month:'long',day:'numeric'})}</time>${isLeader?`<div class="campus-workspace-links">${isStaff?`<a href="${href('staff')}" ${view==='staff'?'aria-current="page"':''}>${icon('briefcase')} Staff</a>`:''}<a href="${href('insights')}" ${view==='insights'?'aria-current="page"':''}>${icon('chart')} Insights</a></div>`:''}</div></div><main id="htMain" class="campus-main" tabindex="-1">${renderOnboardingPrompt(view,ctx())}${pageOrientation}${content}</main><div class="campus-bottom-note"><span>Where every soul finds its strength.</span><a href="${href('welcome')}">Find your way ${icon('arrow')}</a></div></div><nav class="campus-mobile-nav" aria-label="Mobile navigation">${[['home','home','Today'],['courses','book','Learn'],['community','users','Community'],['people','chat','Messages'],['spaces','grid','Campus']].map(args=>navLink(...args)).join('')}</nav>`;
+  document.title=`${title} · HT Hub`;
   const roleSelect=document.getElementById('campusDemoRole');
   roleSelect?.addEventListener('change',()=>{const u=new URL(location.href);u.searchParams.set('demo',roleSelect.value);location.assign(u.pathname+u.search);});
   root.querySelector('[data-reload]')?.addEventListener('click',refresh);

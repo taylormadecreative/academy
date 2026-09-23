@@ -1,45 +1,42 @@
-# Taylormade Academy — Design System (v4 "Varsity Modern")
+# HT Hub — Design System
 
-The bar: it should read like a multi-million-dollar product site — Apple-calm,
-confident, warm. Big type, generous air, one accent, buttery micro-interactions.
+The interface should feel calm, welcoming, capable, and rooted in Huston-Tillotson. It must make complex campus work understandable without feeling like an administration portal. Use the university's maroon and gold with warm paper surfaces; preserve the “HT Hub with Taylormade Academy” co-brand in this proposal build.
 
-## Palette (locked to the crest — do not swap hues)
-- Paper `#fcfdff` page, `#ffffff` cards, `#f6f8fc` soft panels
-- Ink navy `#0a1733` headings, `#33415b` body, `#64748b` muted
-- Crest navy `#04123a` — full-bleed anchor bands (drenched sections)
-- Royal blue `#0b40e0` — THE accent. Buttons, links, active states. ≤10% of any light section.
-- Gold `#fdc921` — signature only: kicker dash, one highlighted word (`.u-gold`),
-  membership badge, tiny details on navy. Never large fills on white.
-- Hairline `#e4e9f1`. No pure #000/#fff feel: everything navy-tinted.
+## Palette
 
-## Type
-- Display: Space Grotesk 600/700, tracking −.03em. Hero clamp(42px→84px),
-  section clamp(30px→52px). Headlines are the design; let them be big and calm.
-- Body/UI: Inter 400–700, 16–17px, line-height 1.6, 65ch cap.
-- Eyebrow/kicker: 12.5px caps + 18px gold dash. Mono only for tiny footer sigils.
+- Maroon `#660100`: primary action, active navigation, links, and selected state.
+- Gold `#FFCC00`: restrained emphasis and small highlights; avoid large gold panels.
+- Warm paper `#fbfaf7`: page background; white or cream for reading surfaces.
+- Ink `#27231f`: headings and primary text; muted brown-gray for secondary text.
+- Soft borders `#e6e0d7`: separators and control outlines.
 
-## Shape + depth
-- Radius: 12 (small) / 18 (cards) / 24 (panels) / pill 980px (buttons, chips).
-- Borders 1px hairline. Shadows are diffusion, navy-tinted, never harsh:
-  `0 20px 40px -18px rgba(4,18,58,.18)` cards, larger for floating panels.
-- Cards only where elevation means something; sections separate by space + bands.
+Maroon should lead without turning every surface into a brand block. Use color to show priority, focus, status, and interaction. Meet WCAG AA contrast for text and controls. Preserve a visible keyboard focus ring.
 
-## Motion (emil rules)
-- `--ease-out: cubic-bezier(.23,1,.32,1)`; UI transitions 150–250ms; nothing over 500ms.
-- Buttons: scale(.97) on :active, 160ms. Hover lifts ≤3px.
-- Reveals: opacity + 14px rise, staggered 60ms via `[data-stag]`. Reduced-motion honored.
-- Never animate layout properties; transform/opacity only.
+## Type and layout
 
-## Section rhythm (brand pages)
-white hero → navy drenched showcase → white pricing → soft ebooks → white receipts
-→ navy CTA. Padding clamp(72px→128px). Inner copy blocks use `.narrow` (≤820px)
-even when the shell is wide.
+- Use the existing Georgia display face for warm, editorial headlines and Inter for navigation, controls, and body copy.
+- Keep body text comfortably readable and set a sensible line length. Use short labels and direct verbs.
+- Give major sections space to breathe. Avoid dense dashboards, repeated course summaries, vanity counters, and rows of interchangeable cards.
+- Use a clear hierarchy: page title, one primary next action, next class or event, then community, announcements, and support.
+- On phones, keep Today, Learning, Community, Messages, and Campus in the fixed bottom navigation. Explain that Events and Classrooms are under More in the top navigation, while Get help remains in the header.
 
-## Signature element
-"Inside the Academy" — a hand-built, honest mock of the real platform UI (feed
-post, DM, dashboard chips, ebook reader) floating in a navy band with layered
-depth. It is the product shot; it sells the membership.
+## Components and interaction
 
-## Never
-Rainbow icon rows, three-equal-card feature grids, gradient text, side-stripe
-borders, glassmorphism decor, fake numbers, em dashes in copy, emoji in UI.
+- Reserve filled maroon buttons for the main action. Use quiet outlined or text treatments for secondary actions.
+- Use cards where content is grouped or interactive; use space and hairline dividers elsewhere.
+- Keep touch targets at least 44px high on mobile. Make every navigation action available by keyboard, with a strong focus indicator and clear active state.
+- Use status labels and text in addition to color. Announce asynchronous changes through the existing live status region.
+- Respect reduced-motion settings. Motion should clarify a state change and stay brief.
+- Keep empty states useful: say what will appear, explain why it is empty when needed, and provide a relevant next step.
+
+## Demo integrity
+
+Keep the interactive-demo disclosure visible: people and records are illustrative, and edits stay in the browser. Never style sample figures to look like verified campus outcomes. A class rehearsal must not imply that microphone, camera, attendance, or recording services are connected. Only show Ada's recorded welcome when a valid video is configured; the written Guide remains complete without it.
+
+## Avoid
+
+- Generic blue SaaS styling that conflicts with the HT identity.
+- Dense KPI grids that make sample numbers look like proof.
+- Repeating the same course, progress, or call to action in several dashboard panels.
+- Hidden destinations without a visible, labeled route.
+- Decorative gradients, excessive shadows, fake alerts, or unsupported “premium” claims.

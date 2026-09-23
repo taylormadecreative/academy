@@ -70,6 +70,28 @@ function fixtures(now) {
  s._session_joins=[];
  return upgradeAcademics(s,now);
 }
+/** Keep only the built-in illustrative schedule usable after an old demo snapshot has aged. */
+export function repairDemoSchedule(s,now=Date.now()) {
+ const fixtureEvents=new Set([IDS.event,'30000000-0000-4000-8000-000000000002']);
+ const fixtureSessions=new Set([1,2,3,4].map(n=>`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`));
+ const futureEvent=s.events.some(event=>fixtureEvents.has(event.id)&&event.status==='published'&&new Date(event.ends_at||event.starts_at).getTime()>=now);
+ const futureSession=s.class_sessions.some(session=>fixtureSessions.has(session.id)&&session.status==='scheduled'&&new Date(session.ends_at||session.starts_at).getTime()>=now);
+ let changed=false;
+ if(!futureEvent){
+  for(const [id,start,end] of [[IDS.event,120,180],['30000000-0000-4000-8000-000000000002',1440,1500]]){
+   const event=s.events.find(item=>item.id===id&&item.status==='published');
+   if(event){event.starts_at=new Date(now+start*60000).toISOString();event.ends_at=new Date(now+end*60000).toISOString();changed=true;}
+  }
+ }
+ if(!futureSession){
+  for(const [n,start,end] of [[1,30,90],[2,30,90],[3,1470,1530],[4,120,180]]){
+   const id=`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+   const session=s.class_sessions.find(item=>item.id===id&&item.status==='scheduled'&&!item.is_live);
+   if(session){session.starts_at=new Date(now+start*60000).toISOString();session.ends_at=new Date(now+end*60000).toISOString();changed=true;}
+  }
+ }
+ return changed;
+}
 const demoActive=(s,id)=>s.members.some(m=>m.user_id===id&&m.active!==false);
 const demoManager=(s,u,r,c)=>!!c&&demoActive(s,u)&&(r==='admin'||r==='staff'&&c.instructor_id===u);
 const demoCohortVisible=(s,u,r,c)=>demoManager(s,u,r,c)||!!c&&demoActive(s,u)&&['student','staff'].includes(r)&&c.status==='active'&&s.cohort_members.some(m=>m.cohort_id===c.id&&m.user_id===u&&m.active);
@@ -228,7 +250,7 @@ export function createCampusStore(options={}) {
  let storage=options.storage;try{storage??=win?.localStorage;}catch{/* memory demo remains usable */}
  let data=null,client=options.client||null,clientPromise=null,destroyed=false,timer=null,authSubscription=null,current=empty(),authEpoch=0,observedUserId,watchingAuth=false;
  const listeners=new Set();const emit=(event={reason:'refresh'})=>{if(!destroyed)listeners.forEach(fn=>fn(event));};
- const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&BASE_COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());const upgrade=!saved||data._academics_version!==1;upgradeAcademics(data,now());if(upgrade)try{storage?.setItem(DEMO_KEY,JSON.stringify(data));}catch{/* in-memory demonstration */}return data;};
+ const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&BASE_COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());const upgrade=!saved||data._academics_version!==1;upgradeAcademics(data,now());const repaired=repairDemoSchedule(data,now());if(upgrade||repaired)try{storage?.setItem(DEMO_KEY,JSON.stringify(data));}catch{/* in-memory demonstration */}return data;};
  const watchAuth=sb=>{if(watchingAuth)return;watchingAuth=true;authSubscription=sb.auth.onAuthStateChange?.((event,session)=>{
   const user_id=session?.user?.id||null;
   const identityChanged=event==='SIGNED_OUT'||(observedUserId!==undefined&&user_id!==observedUserId);

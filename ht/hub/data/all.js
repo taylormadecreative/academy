@@ -76,7 +76,7 @@ HT.spaces.events = {
     { type: 'intro', kicker: 'Huston-Tillotson · the academic year', title: 'The whole year, and it knows what today is.',
       text: 'Huston-Tillotson publishes the academic year as a PDF. This page carries the same dates and keeps them live: what has already happened steps back, today lights up, and whatever comes next sits at the top of the list. Filter to a term, send any stretch of it to your phone in one tap, or print it. Advancement’s own events sit alongside, with the agenda, the rooms, a line to your host, and the check-in at the door.',
       ctas: [{ label: 'See what’s next', href: '#year', style: 'ht' }, { label: 'Donor Appreciation Weekend', href: '#weekend', style: 'ht-line' }],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus in Austin',
+      image: '/ht/img/commencement.jpg', imageAlt: 'Two Huston-Tillotson graduates celebrating commencement',
       ada: { text: 'Every date on this page comes from the University’s own published calendar, so the list is never out of step with what the Registrar has posted. It knows what today is, which means what is next is already at the top. Tap add to your calendar and the whole term goes to your phone.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
@@ -224,6 +224,8 @@ HT.spaces.events = {
 window.HT = window.HT || {}; HT.spaces = HT.spaces || {};
 HT.spaces.live = {
   key: 'live', title: 'Classrooms', office: 'Learning together', icon: 'play',
+  headline: 'A classroom for each cohort. A live room for the whole campus.',
+  image: '/ht/img/student-laptop.jpg', imageAlt: 'A Huston-Tillotson student working at a laptop in the library',
   blurb: 'Your cohorts, scheduled classes, session recordings and campus live events.',
   sub: 'Your classroom. Your cohort. Everything you need to keep learning.',
   stamp: 'Classrooms & live sessions', blocks: []
@@ -299,7 +301,7 @@ HT.spaces.community = {
     { type: 'intro', kicker: 'The campus community', title: 'Every conversation on the Hill, in one place.',
       text: 'Channels for your class year, your org, and the offices you actually need. A feed where the library posts its hours and a sophomore posts a study group. Direct messages that reach a person, not a form. And a leaderboard, because the people who show up for each other should be seen doing it.',
       ctas: [{ label: 'Open The Hill', href: '#the-hill', style: 'ht' }, { label: 'Message someone', href: '#messages', style: 'ht-line' }],
-      image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students studying together in the library',
+      image: '/ht/img/wallace-students.jpg', imageAlt: 'Huston-Tillotson students and university leadership together',
       ada: { text: 'Hey. The Class of 2030 channel is the busiest one this week. The library is open late through midterm week, choir rehearsal moved to 6, and Career Services posted a campus job. Want me to open the Campus channel?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'stats', items: [{ n: '6', label: 'Channels open on The Hill (sample)' }, { n: '3', label: 'Study groups posted this week (sample)' }, { n: '1', label: 'Campus job posted by Career Services (sample)' }, { n: 'Same day', label: 'Replies from an office desk (sample)' }] },
     { type: 'feed', id: 'the-hill', title: 'The Hill', meta: 'Sample posts · pick a channel', channels: ['Campus', 'Class of 2027', 'Class of 2030', 'Faculty lounge', 'Student orgs', 'Alumni'], posts: [
@@ -401,7 +403,7 @@ HT.spaces.students = {
     { type: 'intro', kicker: 'Student Affairs', title: 'Every week on the Hill, in your pocket.',
       text: 'Spring Ready Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
       ctas: [{ label: 'Spring Ready Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
-      image: '/ht/img/campus-hero.jpg', imageAlt: 'The Huston-Tillotson campus',
+      image: '/ht/img/athletics.jpg', imageAlt: 'Huston-Tillotson student athletes representing the university',
       ada: { text: 'Spring Ready Week starts October 20 at 8:30 with check-in at the main entrance: advising, aid, wellness, and the clubs fair, the three days before Charter Day. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'agenda', id: 'orientation', title: 'Spring Ready Week', meta: 'The three days before Charter Day · advising opens Oct 19, registration Oct 26 · sample schedule', event: { name: 'Spring Ready Week', dates: 'Tue Oct 20 to Thu Oct 22, 2026', place: 'Huston-Tillotson University', note: 'Sample schedule' }, days: [
       { label: 'Tuesday, October 20', date: '2026-10-20', items: [
@@ -464,7 +466,7 @@ HT.spaces.career = {
     { type: 'intro', kicker: 'Career Services', title: 'Employers see the work, not just the resume.',
       text: 'Every student has a page with their projects on it. Employers search the directory by program and skill, the employer showcase brings them to campus, and the mock interview seminars replay the same afternoon. The desk reads resumes by appointment and answers the same day.',
       ctas: [{ label: 'Search the directory', href: '#directory', style: 'ht' }, { label: 'Employer showcase', href: '#employers', style: 'ht-line' }],
-      image: '/ht/img/r-student-center.jpg', imageAlt: 'Rendering of the student center',
+      image: '/ht/img/student-laptop.jpg', imageAlt: 'A Huston-Tillotson student working at a laptop in the library',
       ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on November 24. Want a mock interview slot on October 14?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'directory', id: 'directory', title: 'Student portfolio directory', meta: 'Sample · first names only', search: true, items: [
       { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2029', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },
@@ -591,7 +593,7 @@ HT.spaces.admissions = {
     { type: 'intro', kicker: 'Admissions & enrollment', title: 'Admitted on a Tuesday. On the Hill by Wednesday night.',
       text: 'The day a student is admitted, they join a community of the people they will walk in with. Housing questions get answered by a person. Admitted Student Night streams live. Parents get their own channel. By move-in, the campus is already familiar.',
       ctas: [{ label: 'The admitted community', href: '#admitted', style: 'ht' }, { label: 'Yield events', href: '#yield', style: 'ht-line' }],
-      image: '/ht/img/r-student-center.jpg', imageAlt: 'Rendering of the student center',
+      image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students meeting in the library',
       ada: { text: 'Congratulations, and welcome. Two hundred and twelve of your classmates are already in the Admitted 2031 channel. Admitted Student Night is live in March. Want me to save the date?', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'feed', id: 'admitted', title: 'Admitted students, Class of 2031', meta: 'Sample posts · a person answers', channels: ['Admitted 2031', 'Housing', 'Financial aid Q&A', 'Parents'], posts: [
       { who: 'Admissions', chan: 'Admitted 2031', when: 'This week', text: 'Admitted Student Night is March 4 at 6, live in the hub. Current students take your questions after the President. Add it to your calendar below.', likes: 64 },
@@ -646,7 +648,7 @@ HT.spaces.outreach = {
     { type: 'intro', kicker: 'Civic engagement & community outreach', title: 'The Hill has always belonged to the neighborhood.',
       text: 'A public education series anyone in East Austin can join. Partner programs with churches, neighborhood associations, and high schools. A summer bridge that brings tenth and eleventh graders onto campus before their first fall. The community joins the same live room the campus uses, with the same sign-in.',
       ctas: [{ label: 'The public series', href: '#series', style: 'ht' }, { label: 'Summer Bridge', href: '#bridge', style: 'ht-line' }],
-      image: '/ht/img/fall-convocation.jpg', imageAlt: 'Fall convocation at Huston-Tillotson',
+      image: '/ht/img/r-retail-street.jpg', imageAlt: 'Architectural rendering of a walkable campus retail street',
       ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
       { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
@@ -695,7 +697,7 @@ HT.spaces.board = {
     { type: 'intro', kicker: 'Board of Trustees', title: 'The board packet, without the binder.',
       text: 'Restricted to trustees. Meeting materials open on the phone you already carry, with the agenda beside them. Check in at the door and the secretary sees who has arrived before the gavel. The campaign update comes straight from Advancement, the same page they run. Nothing here leaves this space.',
       ctas: [{ label: 'Meeting materials', href: '#materials', style: 'ht' }, { label: 'The fall agenda', href: '#fall-meeting', style: 'ht-line' }],
-      image: '/ht/img/cover-dais.jpg', imageAlt: 'The dais at a Huston-Tillotson ceremony' },
+      image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the Huston-Tillotson administrative building at dusk' },
     { type: 'notice', tone: 'maroon', html: '<b>Restricted space.</b> This portal is for trustees. Materials open only for signed-in members on the board list kept by the board secretary. Everything on this page is sample content for a working session.' },
     { type: 'materials', id: 'materials', title: 'Meeting materials', meta: 'Fall board meeting · October 16, 2026 · sample', items: [
       { kind: 'PDF', title: 'Agenda, fall board meeting', sub: 'Posted by the board secretary · one page', restricted: true },

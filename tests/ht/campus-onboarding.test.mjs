@@ -6,7 +6,7 @@ const progressSource = fs.readFileSync(new URL('../../ht/hub/campus-onboarding-p
 const progressURL = asModule(progressSource);
 const source = fs.readFileSync(new URL('../../ht/hub/campus-onboarding.js', import.meta.url), 'utf8').replace("new URL(import.meta.url).search", "''").replace("import('./campus-onboarding-progress.js' + assetStamp)", `import('${progressURL}')`);
 const { createOnboardingProgress, onboardingSteps } = await import(progressURL);
-const { renderOnboarding, renderOnboardingPrompt, bindOnboarding, onboardingDestinations } = await import(asModule(source));
+const { renderOnboarding, renderOnboardingPrompt, renderPageOrientation, bindOnboarding, onboardingDestinations } = await import(asModule(source));
 const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 let nextIdentity = 0;
 function context(role = 'student', mode = 'demo') {
@@ -92,7 +92,7 @@ test('site map contains all primary destinations and allowlisted office previews
 
 test('Ada orientation always has a readable guide and only links to Today for an available recording', () => {
   const ctx = context(); let html = renderOnboarding('welcome', ctx);
-  assert.match(html, /use this written guide without watching a video/); assert.match(html, /recorded welcome will appear/);
+  assert.match(html, /use this written guide without watching a video/); assert.match(html, /recorded welcome will be added/);
   assert.doesNotMatch(html, /<video|<iframe|autoplay|Find Ada’s recorded/);
   ctx.state.settings.ada_video_url = 'https://video.example/welcome.mp4';
   html = renderOnboarding('welcome', ctx);
@@ -111,14 +111,98 @@ test('active progress resumes the next unexplored destination and completion is 
   assert.match(html, /You know your way around/); assert.match(html, /Restart guide/); assert.match(html, /Go to Today/);
 });
 
-test('first-use prompt is optional, while dismissed or completed guides never automatically prompt', () => {
+test('per-page help replaces the generic banner, while dismissed or completed full-site guides never auto-prompt', () => {
   const ctx = context();
-  assert.match(renderOnboardingPrompt('courses', ctx), /Start guide/); assert.match(renderOnboardingPrompt('home', ctx), /Not now/);
+  assert.equal(renderOnboardingPrompt('courses', ctx), ''); assert.equal(renderOnboardingPrompt('home', ctx), '');
+  assert.match(renderPageOrientation('courses', ctx), /Full site guide/);
   assert.equal(renderOnboardingPrompt('welcome', ctx), '');
   ctx.onboarding.dismiss(ctx.state);
   assert.equal(renderOnboardingPrompt('home', ctx), ''); assert.equal(renderOnboardingPrompt('courses', ctx), '');
   ctx.onboarding.restart(ctx.state); for (const step of onboardingSteps('student')) ctx.onboarding.visit(ctx.state, step.id); ctx.onboarding.complete(ctx.state);
   assert.equal(renderOnboardingPrompt('home', ctx), '');
+});
+
+test('every primary Hub destination has a concise first-visit explanation and a route back to the full guide', () => {
+  const ctx = context();
+  const views = ['home', 'courses', 'learn', 'events', 'community', 'people', 'spaces', 'support', 'staff', 'insights', 'live'];
+  for (const view of views) {
+    const html = renderPageOrientation(view, ctx);
+    assert.match(html, /class="campus-page-guide"/, view);
+    assert.match(html, /First time here\?/, view);
+    assert.match(html, /Full site guide/, view);
+    assert.match(html, /data-campus-page-guide=/, view);
+  }
+  assert.equal(renderPageOrientation('welcome', ctx), '');
+  assert.equal(renderPageOrientation('unavailable', ctx), '');
+  assert.match(renderPageOrientation('community', ctx), /Community posts are visible to campus members/);
+  assert.match(renderPageOrientation('people', ctx), /private to the people in that conversation/);
+  assert.match(renderPageOrientation('live', ctx), /cohort classroom/);
+});
+
+test('page guidance changes for staff, course sections, and assigned classroom tools', () => {
+  const staff = context('staff');
+  assert.match(renderPageOrientation('courses', staff), /section you teach/);
+  assert.match(renderPageOrientation('courses', staff), /gradebook/i);
+  assert.match(renderPageOrientation('live', staff), /sections assigned to you/);
+  assert.match(renderPageOrientation('staff', staff), /Announcements, Events, Learning, or Review work/);
+  const leadership = context('leadership');
+  assert.match(renderPageOrientation('insights', leadership), /private student work and messages remain/);
+});
+
+test('page guides open once per view and offer a non-destructive Got it dismissal', () => {
+  const ctx = context(), previous = globalThis.localStorage, values = new Map();
+  globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+  try {
+    const html = renderPageOrientation('community', ctx);
+    const key = `ht-hub-page-guide:v1:${encodeURIComponent(`demo:student:${ctx.state.user.id}:community`)}`;
+    assert.match(html, /<details class="campus-page-guide"[^>]* open>/);
+    values.set(key, 'seen');
+    assert.doesNotMatch(renderPageOrientation('community', ctx), /<details class="campus-page-guide"[^>]* open>/);
+    assert.match(renderPageOrientation('community', ctx), /data-page-guide-done>Got it/);
+  } finally { if (previous === undefined) delete globalThis.localStorage; else globalThis.localStorage = previous; }
+});
+
+test('Got it stores only this page guide and leaves the whole-site guide available', () => {
+  const ctx = context(), previous = globalThis.localStorage, values = new Map(), root = fakeRoot();
+  globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
+  const key = `ht-hub-page-guide:v1:${encodeURIComponent(`demo:student:${ctx.state.user.id}:community`)}`;
+  const summary = { focused: false, focus() { this.focused = true; } };
+  const details = { open: true, dataset: { campusPageGuide: key }, querySelector: () => summary };
+  details.matches = selector => selector === '[data-campus-page-guide]';
+  const done = { dataset: { pageGuideDone: '' }, matches: selector => selector === '[data-page-guide-done]', closest: selector => selector === '[data-campus-page-guide]' ? details : null };
+  root.nodes.add(done); root.nodes.add(details);
+  const previousLocation = globalThis.location;
+  globalThis.location = { href: 'https://ht.invalid/ht/hub/community/?demo=student' };
+  try {
+    bindOnboarding('community', root, ctx);
+    root.listeners.get('click')({ target: { closest: selector => selector === '[data-page-guide-done]' ? done : null } });
+    assert.equal(values.get(key), 'seen'); assert.equal(details.open, false); assert.equal(summary.focused, true);
+    assert.equal(ctx.onboarding.read(ctx.state).status, 'new');
+    assert.match(renderPageOrientation('community', ctx), /Full site guide/);
+  } finally { if (previous === undefined) delete globalThis.localStorage; else globalThis.localStorage = previous; if (previousLocation === undefined) delete globalThis.location; else globalThis.location = previousLocation; }
+});
+
+test('guided destinations show their tour instruction instead of duplicate page help', () => {
+  const ctx = context(); ctx.onboarding.start(ctx.state); ctx.onboarding.visit(ctx.state, 'courses');
+  const html = at('https://ht.invalid/ht/hub/courses/?guide=courses', () => renderPageOrientation('courses', ctx));
+  assert.equal(html, '');
+});
+
+test('deep course tabs and message threads name the page the visitor is actually viewing', () => {
+  const ctx = context();
+  let html = at('https://ht.invalid/ht/hub/courses/?cohort=section&tab=assignments', () => renderPageOrientation('courses', ctx));
+  assert.match(html, /See how to use Assignments/); assert.match(html, /due dates, then submit your work/);
+  html = at('https://ht.invalid/ht/hub/messages/?person=member', () => renderPageOrientation('people', ctx));
+  assert.match(html, /See how to use Conversation/); assert.match(html, /write your reply in the message box/);
+  html = at('https://ht.invalid/ht/hub/live/?cohort=section', () => renderPageOrientation('live', ctx));
+  assert.match(html, /See how to use Cohort classroom/);
+  html = at('https://ht.invalid/ht/hub/messages/?new=1', () => renderPageOrientation('people', ctx));
+  assert.match(html, /See how to use New message/); assert.match(html, /Search the campus directory/);
+  html = at('https://ht.invalid/ht/hub/support/?request=request-id', () => renderPageOrientation('support', ctx));
+  assert.match(html, /See how to use Support request/); assert.match(html, /campus team’s replies/);
+  const staff = context('staff');
+  html = at('https://ht.invalid/ht/hub/live/?manage=1&cohort=section', () => renderPageOrientation('live', staff));
+  assert.match(html, /See how to use Classroom management/); assert.match(html, /manage classrooms, enrollment, or scheduled sessions/);
 });
 
 test('contextual guide validates requested step and route; persisted current step supports inner course navigation', () => {
