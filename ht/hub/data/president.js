@@ -17,7 +17,7 @@ HT.spaces.president = {
       { title: 'Opening Convocation address', date: 'Sep 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
       { title: 'A welcome to the Class of 2030', date: 'Aug 2026', len: '11:40', poster: '/ht/img/campus-hero.jpg', tag: 'Sample' },
       { title: 'Commencement address', date: 'May 2026', len: '24:05', poster: '/ht/img/commencement.jpg', tag: 'Sample' },
-      { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', poster: '/ht/img/students-library.jpg', tag: 'Sample' } ] },
+      { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', tile: { icon: 'mic', label: 'Town hall' }, tag: 'Sample' } ] },
     { type: 'timeline', id: 'calendar', title: 'The President\'s year', meta: 'Sample calendar · 2026 to 2027', items: [
       { when: 'Sep 10', title: 'President\'s Opening Convocation', text: 'The year opened together. The address is on the replay shelf above.', done: true },
       { when: 'Oct 8', title: 'President\'s Fall Briefing for donors', text: 'A briefing for the people behind each gift, in the live room. Sample event.' },
@@ -30,7 +30,7 @@ HT.spaces.president = {
     { type: 'split', id: 'message', kicker: 'The President\'s message', meta: 'Two lanes', title: 'Two lanes for the President\'s message. Both end in her voice.',
       text: 'Some weeks there is time to write. Most weeks there is not. So the message has two ways in, and the office picks the one that fits the week.',
       bullets: ['Lane one: she records on her phone, anywhere, in one take. Her office gets a finished cut back, captioned and framed for the hub, the same day.', 'Lane two: her office approves a script first. The message is produced from the approved words and lands for her sign-off before anyone else sees it.', 'Either way, the President speaks for herself. Ada carries the campus announcements.', 'Every message lands in this space and, when it is for a donor, on that donor\'s own page.'],
-      image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the administration building at dusk', side: 'right',
+      side: 'right',
       cta: { label: 'See how a donor page carries it', href: '/ht/hub/advancement/#pages', style: 'ht' } },
     { type: 'chat', id: 'room', title: 'The town hall room', meta: 'Open now · questions read October 15', room: 'townhall', seed: [
       { who: 'Ada, the Hub’s AI guide', text: 'Welcome to the town hall room. Leave your question here before noon on October 15 and the office pulls it into the run of show.', when: 'Sample · last week' },
@@ -53,7 +53,7 @@ HT.spaces.president = {
       { name: 'Dr. Melva K. Wallace', role: '7th President and CEO', org: 'Space owner', gold: true, tag: 'Owner', tagCls: 'green' },
       { name: 'Chief of staff (sample)', role: 'Runs the town hall', org: 'Owns the run of show' },
       { name: 'Communications director (sample)', role: 'Approves scripts', org: 'Lane two starts here' },
-      { name: 'Ada', img: '/ht/img/ada-face.jpg', role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
+      { name: 'Ada', init: 'A', gold: true, role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
     { type: 'cta', title: 'Join the town hall October 15 at noon.', text: 'Live from the auditorium, in the hub, with the replay the same afternoon.',
       primary: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Put it on your calendar', href: '/ht/hub/events/#year', style: 'ht-line' } }
   ]

@@ -76,7 +76,7 @@ function trendLine(values, compare, labels, { id, unit = '%', height = 180, widt
   const ticks = labels.map((l, i) => (i % 2 === 0 ? `<text x="${x(i)}" y="${h - 6}" text-anchor="middle" class="lead-axis">${l}</text>` : '')).join('');
   const last = values.length - 1;
   const points = values.map((v, i) => ({ label: labels[i], value: v, compare: compare ? compare[i] : null }));
-  return `<figure class="lead-chart" data-lead-chart="${id}" data-points='${JSON.stringify(points).replace(/'/g, '&#39;')}' data-unit="${unit}">
+  return `<figure class="lead-chart" style="--lead-scale:${(w / 560).toFixed(3)}" data-lead-chart="${id}" data-points='${JSON.stringify(points).replace(/'/g, '&#39;')}' data-unit="${unit}">
     <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${grid}${ticks}
       ${compare ? `<path d="${path(compare)}" class="lead-line-compare"/>` : ''}
       <path d="${path(values)}" class="lead-line"/>
@@ -160,7 +160,7 @@ function insights(ctx) {
   </section>
   <div class="lead-chart-grid">
     <section class="campus-panel lead-span-2"><div class="campus-section-head"><div><p class="campus-eyebrow">Engagement · ${yearLabel}</p><h2>Weekly active students</h2></div><p class="lead-legend"><span class="lead-key"></span>${SAMPLE.term}<span class="lead-key is-compare"></span>Fall 2025 · ${yearLabel.toLowerCase()}</p></div>
-      ${trendLine(s.active, s.activeLast, weeks, { id: 'insights-active', width: 1100, height: 240, label: `Weekly active ${yearLabel.toLowerCase()}, ${s.active[0]}% in week 1 to ${s.active.at(-1)}% in week 6` })}
+      ${trendLine(s.active, s.activeLast, weeks, { id: 'insights-active', width: (globalThis.innerWidth || 1440) < 760 ? 560 : 1100, height: (globalThis.innerWidth || 1440) < 760 ? 220 : 240, label: `Weekly active ${yearLabel.toLowerCase()}, ${s.active[0]}% in week 1 to ${s.active.at(-1)}% in week 6` })}
       ${table('Weekly active students', ['Week of', SAMPLE.term, 'Fall 2025'], weeks.map((w, i) => [w, s.active[i] + '%', s.activeLast[i] + '%']))}</section>
     <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Persistence · by class year</p><h2>Projected return in spring</h2></div></div>
       <ul class="lead-bars lead-bars-compare">${persistRows.map(([l, r]) => `<li${yearKey && yearKey !== l ? ' class="is-dim"' : ''}><span class="lead-bar-label">${l}</span><span class="lead-bar-track"><span class="lead-bar-fill" style="width:${r.persist}%"></span><span class="lead-bar-mark" style="left:${r.persistLast}%" title="Last year ${r.persistLast}%"></span></span><span class="lead-bar-value">${r.persist}%</span></li>`).join('')}</ul>

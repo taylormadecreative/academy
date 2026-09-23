@@ -52,7 +52,11 @@
 /* Phone tap targets: every control at least 44px tall */
 @media(max-width:760px){
  .campus-phone-strip a{min-height:44px}
- body.ht :is(.campus-app,.ht-space-page) :is(button,select,summary,.pill,.btn,.campus-button,.campus-button-small){min-height:44px}
+ body.ht:is(.campus-app,.ht-space-page) :is(button,select,summary,.pill,.btn,.campus-button,.campus-button-small,.campus-quiz label,label:has(>input[type=radio]),label:has(>input[type=checkbox])){min-height:44px}
+ body.ht:is(.campus-app,.ht-space-page) :is(summary,.pill){display:flex;align-items:center}
  .ht-space-page .campus-demo select,.campus-demo select{min-height:44px}
  .lead-door-photo .campus-rendering-tag{font-size:8px;padding:1px 4px}
 }
+
+/* Phone charts: axis labels scale with each chart's own width so a wide chart stays legible */
+@media(max-width:760px){.lead-chart .lead-axis{font-size:calc(17px * var(--lead-scale,1))}.lead-chart .lead-direct{font-size:calc(19px * var(--lead-scale,1))}.lead-chart .lead-line{stroke-width:calc(3.5px * var(--lead-scale,1))}}

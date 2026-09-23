@@ -19,7 +19,7 @@ HT.spaces.president = {
       { title: 'Opening Convocation address', date: 'Sep 2026', len: '38:12', poster: '/ht/img/fall-convocation.jpg', tag: 'Sample' },
       { title: 'A welcome to the Class of 2030', date: 'Aug 2026', len: '11:40', poster: '/ht/img/campus-hero.jpg', tag: 'Sample' },
       { title: 'Commencement address', date: 'May 2026', len: '24:05', poster: '/ht/img/commencement.jpg', tag: 'Sample' },
-      { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', poster: '/ht/img/students-library.jpg', tag: 'Sample' } ] },
+      { title: 'Spring town hall', date: 'Spring 2026', len: '56:30', tile: { icon: 'mic', label: 'Town hall' }, tag: 'Sample' } ] },
     { type: 'timeline', id: 'calendar', title: 'The President\'s year', meta: 'Sample calendar · 2026 to 2027', items: [
       { when: 'Sep 10', title: 'President\'s Opening Convocation', text: 'The year opened together. The address is on the replay shelf above.', done: true },
       { when: 'Oct 8', title: 'President\'s Fall Briefing for donors', text: 'A briefing for the people behind each gift, in the live room. Sample event.' },
@@ -32,7 +32,7 @@ HT.spaces.president = {
     { type: 'split', id: 'message', kicker: 'The President\'s message', meta: 'Two lanes', title: 'Two lanes for the President\'s message. Both end in her voice.',
       text: 'Some weeks there is time to write. Most weeks there is not. So the message has two ways in, and the office picks the one that fits the week.',
       bullets: ['Lane one: she records on her phone, anywhere, in one take. Her office gets a finished cut back, captioned and framed for the hub, the same day.', 'Lane two: her office approves a script first. The message is produced from the approved words and lands for her sign-off before anyone else sees it.', 'Either way, the President speaks for herself. Ada carries the campus announcements.', 'Every message lands in this space and, when it is for a donor, on that donor\'s own page.'],
-      image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the administration building at dusk', side: 'right',
+      side: 'right',
       cta: { label: 'See how a donor page carries it', href: '/ht/hub/advancement/#pages', style: 'ht' } },
     { type: 'chat', id: 'room', title: 'The town hall room', meta: 'Open now · questions read October 15', room: 'townhall', seed: [
       { who: 'Ada, the Hub’s AI guide', text: 'Welcome to the town hall room. Leave your question here before noon on October 15 and the office pulls it into the run of show.', when: 'Sample · last week' },
@@ -55,7 +55,7 @@ HT.spaces.president = {
       { name: 'Dr. Melva K. Wallace', role: '7th President and CEO', org: 'Space owner', gold: true, tag: 'Owner', tagCls: 'green' },
       { name: 'Chief of staff (sample)', role: 'Runs the town hall', org: 'Owns the run of show' },
       { name: 'Communications director (sample)', role: 'Approves scripts', org: 'Lane two starts here' },
-      { name: 'Ada', img: '/ht/img/ada-face.jpg', role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
+      { name: 'Ada', init: 'A', gold: true, role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
     { type: 'cta', title: 'Join the town hall October 15 at noon.', text: 'Live from the auditorium, in the hub, with the replay the same afternoon.',
       primary: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Put it on your calendar', href: '/ht/hub/events/#year', style: 'ht-line' } }
   ]
@@ -360,16 +360,16 @@ HT.spaces.showcase = {
       image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop',
       ada: { text: 'These six sample projects show what a track produces. Work from a funded cohort appears here and on that donor\'s page as the track runs. The research showcase call for entries opens January 19.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'projects', title: 'Projects from the tracks', meta: 'With permission · first names only', items: [
-      { meta: 'AI Literacy · Daniel O., Business', title: 'A booking assistant for a barbershop', text: 'A small automation that answers the shop\'s messages and books the chair. Built in Session 06.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street', badge: 'With permission · sample' },
-      { meta: 'AI Literacy · Maribel A., Biology', title: 'A study guide that writes itself', text: 'Lecture notes in, a weekly quiz out. She shares it with her lab section.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'With permission · sample' },
-      { meta: 'AI Literacy · Jalen W., Communication', title: 'A week of content for the choir', text: 'The gospel choir\'s channel, planned a month ahead in the choir\'s own voice.', img: '/ht/img/r-admin-dusk.jpg', alt: 'Rendering of a campus building at dusk', badge: 'With permission · sample' },
-      { meta: 'Financial Literacy · Jasmine C., Biology', title: 'The first-paycheck plan', text: 'A one-page budget she will actually use, built in Session 04 and shared with her cohort.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'With permission · sample' },
-      { meta: 'Entrepreneurship · Marcus T., Business', title: 'A tutoring service for East Austin', text: 'Ten interviews, a one-page model, and a price. Pitch night is March 1.', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus village plaza', badge: 'With permission · sample' },
-      { meta: 'AI Literacy · Aaliyah R., Kinesiology', title: 'A portfolio page in an evening', text: 'Her internship page, written once and kept current from her phone.', img: '/ht/img/r-student-center.jpg', alt: 'Rendering of the student center', badge: 'With permission · sample' } ] },
+      { meta: 'AI Literacy · Daniel O., Business', title: 'A booking assistant for a barbershop', text: 'A small automation that answers the shop\'s messages and books the chair. Built in Session 06.', tile: { icon: 'chat', label: 'Automation' }, badge: 'With permission · sample' },
+      { meta: 'AI Literacy · Maribel A., Biology', title: 'A study guide that writes itself', text: 'Lecture notes in, a weekly quiz out. She shares it with her lab section.', tile: { icon: 'book', label: 'Study tool' }, badge: 'With permission · sample' },
+      { meta: 'AI Literacy · Jalen W., Communication', title: 'A week of content for the choir', text: 'The gospel choir\'s channel, planned a month ahead in the choir\'s own voice.', tile: { icon: 'mic', label: 'Media' }, badge: 'With permission · sample' },
+      { meta: 'Financial Literacy · Jasmine C., Biology', title: 'The first-paycheck plan', text: 'A one-page budget she will actually use, built in Session 04 and shared with her cohort.', tile: { icon: 'coin', label: 'Personal finance' }, badge: 'With permission · sample' },
+      { meta: 'Entrepreneurship · Marcus T., Business', title: 'A tutoring service for East Austin', text: 'Ten interviews, a one-page model, and a price. Pitch night is March 1.', tile: { icon: 'briefcase', label: 'Small business' }, badge: 'With permission · sample' },
+      { meta: 'AI Literacy · Aaliyah R., Kinesiology', title: 'A portfolio page in an evening', text: 'Her internship page, written once and kept current from her phone.', tile: { icon: 'laptop', label: 'Web' }, badge: 'With permission · sample' } ] },
     { type: 'cards', id: 'research', title: 'Undergraduate research showcase, Spring 2027', meta: 'Posters · faculty mentors · sample', items: [
-      { meta: 'Poster 01 · Biology', title: 'Water quality along the creek', text: 'Kiana M. and Devon C. · mentored by a biology faculty member', img: '/ht/img/r-land-aerial.jpg', alt: 'Aerial rendering of the campus', badge: 'Sample' },
-      { meta: 'Poster 02 · Sociology', title: 'Who stays in East Austin', text: 'Priscilla O. · mentored by a sociology faculty member', img: '/ht/img/r-admin-dusk.jpg', alt: 'Rendering of a campus building at dusk', badge: 'Sample' },
-      { meta: 'Poster 03 · Computer Science', title: 'A campus map that reads out loud', text: 'Tre J. and Simone A. · mentored by a computer science faculty member', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'Sample' } ] },
+      { meta: 'Poster 01 · Biology', title: 'Water quality along the creek', text: 'Kiana M. and Devon C. · mentored by a biology faculty member', tile: { icon: 'drop', label: 'Environment' }, badge: 'Sample' },
+      { meta: 'Poster 02 · Sociology', title: 'Who stays in East Austin', text: 'Priscilla O. · mentored by a sociology faculty member', tile: { icon: 'chart', label: 'Sociology · data' } },
+      { meta: 'Poster 03 · Computer Science', title: 'A campus map that reads out loud', text: 'Tre J. and Simone A. · mentored by a computer science faculty member', tile: { icon: 'code', label: 'Software' }, badge: 'Sample' } ] },
     { type: 'table', id: 'judging', title: 'Judges\' scoring', meta: 'Sample · entries are anonymous to judges · out of 10 each', cols: ['Entry', 'Clarity', 'Impact', 'Craft', 'Total'], rows: [
       ['Entry 01 · AI Literacy', '9', '8', '9', '26'], ['Entry 02 · AI Literacy', '8', '9', '8', '25'], ['Entry 03 · AI Literacy', '9', '7', '8', '24'], ['Entry 04 · Entrepreneurship', '8', '9', '7', '24'], ['Entry 05 · AI Literacy', '7', '7', '9', '23'] ] },
     { type: 'people', title: 'The judges', meta: 'Sample roles', dm: false, items: [
@@ -435,10 +435,10 @@ HT.spaces.students = {
         { no: '01', title: 'Spring Ready Week, from their side', date: 'Oct 12', status: 'Next' }, { no: '02', title: 'When someone is struggling', date: 'Oct 14', status: 'Upcoming' }, { no: '03', title: 'The hub, the codes, the calendar', date: 'Oct 15', status: 'Upcoming' }, { no: '04', title: 'Day-of rehearsal', date: 'Oct 19', status: 'Upcoming' } ],
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Seminar series with attendance', meta: 'Check-in code on screen', items: [
-      { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/wallace-students.jpg', alt: 'Huston-Tillotson students around a seminar table', foot: 'Check-in code on screen' },
-      { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', img: '/ht/img/commencement.jpg', alt: 'Dr. Melva K. Wallace with a graduate at Commencement', foot: 'Check-in code on screen' },
-      { meta: 'Fall · the library', title: 'Study skills', text: 'Three sessions before midterms. The replay lands the same afternoon.', img: '/ht/img/student-laptop.jpg', alt: 'A student at a laptop', foot: 'Check-in code on screen' },
-      { meta: 'Spring · civic engagement', title: 'Civic engagement', text: 'Voting, city council, and the service society\'s Saturdays.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'Check-in code on screen' } ] },
+      { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/wallace-students.jpg', alt: 'Huston-Tillotson students and staff around a seminar table', foot: 'Check-in code on screen' },
+      { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', tile: { icon: 'coin', label: 'Financial aid' }, foot: 'Check-in code on screen' },
+      { meta: 'Fall · the library', title: 'Study skills', text: 'Three sessions before midterms. The replay lands the same afternoon.', img: '/ht/img/student-laptop.jpg', alt: 'A student studying at a laptop in the library', foot: 'Check-in code on screen' },
+      { meta: 'Spring · civic engagement', title: 'Civic engagement', text: 'Voting, city council, and the service society\'s Saturdays.', tile: { icon: 'hands', label: 'Civic engagement' }, foot: 'Check-in code on screen' } ] },
     { type: 'cta', title: 'Everything on the Hill, one sign-in.', text: 'Your orgs, your seminars, your first week, and the campus channel, all in the same place as the live room.', primary: { label: 'Open the Community', href: '/ht/hub/community/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Student Affairs desk', meta: 'Sample', items: [
       { who: 'Student Affairs', when: 'This week', text: 'Spring Ready Week codes are shown on the screen at each session. One tap marks you present.' },
@@ -480,19 +480,19 @@ HT.spaces.career = {
       { name: 'Kiana M.', program: 'Biology', year: 'Class of 2028', skills: ['Field sampling', 'Reports', 'Photography'], tag: 'Open to internships', tagCls: 'green' },
       { name: 'Devon C.', program: 'Education', year: 'Class of 2027', skills: ['Tutoring', 'Lesson planning', 'Public speaking'], tag: 'Open to internships', tagCls: 'green' } ] },
     { type: 'cards', id: 'employers', title: 'Employer showcase', meta: 'Sample employers · never a real name here', items: [
-      { meta: 'Technology · Austin', title: 'An Austin technology employer (sample)', text: 'Two summer internships in support and one in design. They read the directory first.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'Sample', foot: 'Posting in the hub' },
-      { meta: 'Health · Central Texas', title: 'A regional health system (sample)', text: 'Patient-care assistant roles for nursing and kinesiology students, with a spring session on campus.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Posting in the hub' },
-      { meta: 'Public sector · Austin', title: 'A city department (sample)', text: 'Paid fellowships in community programs. They ask for the Showcase link, not a resume.', img: '/ht/img/r-admin-dusk.jpg', alt: 'Rendering of a campus building at dusk', badge: 'Sample', foot: 'Posting in the hub' },
-      { meta: 'Founders · alumni', title: 'Alumni-owned businesses (sample)', text: 'Part-time roles at businesses alumni run, posted in the Alumni channel first.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street', badge: 'Sample', foot: 'Posting in the hub' } ] },
+      { meta: 'Technology · Austin', title: 'An Austin technology employer (sample)', text: 'Two summer internships in support and one in design. They read the directory first.', tile: { icon: 'laptop', label: 'Technology' }, badge: 'Sample', foot: 'Posting in the hub' },
+      { meta: 'Health · Central Texas', title: 'A regional health system (sample)', text: 'Patient-care assistant roles for nursing and kinesiology students, with a spring session on campus.', tile: { icon: 'heart', label: 'Health' }, badge: 'Sample', foot: 'Posting in the hub' },
+      { meta: 'Public sector · Austin', title: 'A city department (sample)', text: 'Paid fellowships in community programs. They ask for the Showcase link, not a resume.', tile: { icon: 'building', label: 'Public sector' }, badge: 'Sample', foot: 'Posting in the hub' },
+      { meta: 'Founders · alumni', title: 'Alumni-owned businesses (sample)', text: 'Part-time roles at businesses alumni run, posted in the Alumni channel first.', tile: { icon: 'briefcase', label: 'Alumni founders' }, badge: 'Sample', foot: 'Posting in the hub' } ] },
     { type: 'replays', title: 'Career seminar replays', meta: 'Sample recordings · captioned', items: [
-      { title: 'The first interview, rehearsed', date: 'Sep 2026', len: '36:20', poster: '/ht/img/fall-convocation.jpg', tag: 'Career Services' },
-      { title: 'Your resume, read out loud', date: 'Aug 2026', len: '28:45', poster: '/ht/img/students-library.jpg', tag: 'Career Services' },
-      { title: 'Negotiating the first offer', date: 'Apr 2026', len: '41:10', poster: '/ht/img/campus-hero.jpg', tag: 'Alumni panel' },
-      { title: 'Building a business in Austin', date: 'Mar 2026', len: '58:47', poster: '/ht/img/r-retail-street.jpg', tag: 'Guest lecture' } ] },
+      { title: 'The first interview, rehearsed', date: 'Sep 2026', len: '36:20', tile: { icon: 'users', label: 'Interviews' }, tag: 'Career Services' },
+      { title: 'Your resume, read out loud', date: 'Aug 2026', len: '28:45', tile: { icon: 'file', label: 'Resumes' }, tag: 'Career Services' },
+      { title: 'Negotiating the first offer', date: 'Apr 2026', len: '41:10', tile: { icon: 'coin', label: 'Offers' }, tag: 'Alumni panel' },
+      { title: 'Building a business in Austin', date: 'Mar 2026', len: '58:47', tile: { icon: 'briefcase', label: 'Founders' }, tag: 'Guest lecture' } ] },
     { type: 'split', kicker: 'Why a directory', title: 'The work, searchable.',
       text: 'An employer types "Python" or "patient care" and finds a student with a project to show, not a line on a resume. Students choose what appears and can close the tag with one tap.',
       bullets: ['Search by program, skill, or class year', 'Every entry links to the student\'s Showcase work', '"Open to internships" is the student\'s own switch'],
-      image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop', side: 'right', cta: { label: 'See the Showcase', href: '/ht/hub/showcase/', style: 'ht' } },
+      image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students together in the campus library', side: 'right', cta: { label: 'See the Showcase', href: '/ht/hub/showcase/', style: 'ht' } },
     { type: 'faq', title: 'What students ask', items: [
       { q: 'Who can see my page?', a: 'Employers Career Services has approved, faculty, and you. Turn the internship tag on or off any time.' },
       { q: 'Does the desk read resumes?', a: 'Yes, by appointment, with a same-day answer. Book it from the calendar.' },
@@ -533,9 +533,9 @@ HT.spaces.alumni = {
       { meta: 'Houston · 121 members', title: 'Houston chapter', text: 'A welcome table for new graduates moving to the city, and a mentor circle that meets before work.', href: '#channels', badge: 'Sample', foot: 'Open the chapter channel →' },
       { meta: 'Everywhere else · 460 members', title: 'Alumni everywhere', text: 'No chapter in your city yet? This is your channel. When five of you land in one place, Alumni Relations helps you start one.', href: '#channels', badge: 'Sample', foot: 'Open the chapter channel →' } ] },
     { type: 'cards', id: 'homecoming', title: 'Homecoming 2027', meta: 'February 2027 · dates announced by HT', items: [
-      { meta: 'Reunion classes', title: 'The classes of 1977, 1997, 2002, 2017, and 2022', text: 'Milestone years get their own channel, their own table at brunch, and a class photo on the steps. Class agents post the plan here first.', href: '#channels', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation at Huston-Tillotson', badge: 'Sample', foot: 'Join your class channel →' },
+      { meta: 'Reunion classes', title: 'The classes of 1977, 1997, 2002, 2017, and 2022', text: 'Milestone years get their own channel, their own table at brunch, and a class photo on the steps. Class agents post the plan here first.', href: '#channels', tile: { icon: 'users', label: 'Reunion classes' }, badge: 'Sample', foot: 'Join your class channel →' },
       { meta: 'Saturday morning', title: 'The alumni brunch', text: 'The President speaks, the reunion classes stand, and the Alumni Relations desk is right there to update your address. Add it to your calendar from the Events space.', href: '/ht/hub/events/', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Open the weekend agenda →' },
-      { meta: 'Saturday night into Sunday', title: 'The step show and game weekend', text: 'The step show on Saturday night, then game weekend on campus. Check in at the door so your chapter gets credit for showing up.', href: '/ht/hub/events/', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus village plaza', badge: 'Sample', foot: 'Open the weekend agenda →' } ] },
+      { meta: 'Saturday night into Sunday', title: 'The step show and game weekend', text: 'The step show on Saturday night, then game weekend on campus. Check in at the door so your chapter gets credit for showing up.', href: '/ht/hub/events/', tile: { icon: 'star', label: 'Step show' }, badge: 'Sample', foot: 'Open the weekend agenda →' } ] },
     { type: 'directory', id: 'mentors', title: 'Mentors', meta: 'Sample alumni · first name and last initial only', search: true, items: [
       { name: "Renee W. '09", program: 'Business Administration', year: 'Class of 2009', skills: ['Small business', 'Bookkeeping', 'Hiring'], tag: 'Taking mentees', tagCls: 'green' },
       { name: "Marcus T. '14", program: 'Computer Science', year: 'Class of 2014', skills: ['Software', 'Interviews', 'Portfolio review'], tag: 'Taking mentees', tagCls: 'green' },
@@ -608,7 +608,7 @@ HT.spaces.admissions = {
       { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
       { date: '2027-03-23', title: 'First-generation family night', where: 'The auditorium and live · 6:00 PM' }, { date: '2027-03-25', title: 'Housing tour, live from the halls', where: 'Live room · 5:30 PM' },
       { date: '2027-04-08', title: 'Parent session', where: 'Live room · 6:30 PM' }, { date: '2027-05-01', title: 'Decision Day', where: 'The Admitted 2031 channel' } ] },
-    { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/r-student-center.jpg',
+    { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/fall-convocation.jpg',
       now: { title: 'Admitted Student Night, live', who: 'Admissions team with current students', when: 'March 2027' } },
     { type: 'steps', title: 'From admitted to move-in', meta: 'Four steps, one place', items: [
       { em: 'Step one', h: 'Admitted', p: 'The letter arrives with one link. The student joins the Admitted 2031 channel the same day.' },
@@ -651,14 +651,14 @@ HT.spaces.outreach = {
       image: '/ht/img/r-retail-street.jpg', imageAlt: 'Architectural rendering of a walkable campus retail street',
       ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
-      { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
-      { meta: 'Mondays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', tile: { icon: 'laptop', label: 'Small business' }, badge: 'Sample', foot: 'Free · open to the neighborhood' },
+      { meta: 'Mondays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', tile: { icon: 'coin', label: 'Family finance' }, badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Feb 2027 · one evening', title: 'A history of the Hill', text: 'Roots that reach to 1875, and the 1952 union of Samuel Huston College and Tillotson College. Told by faculty, with the archives.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Free · open to the neighborhood' },
-      { meta: 'Apr 2027 · one evening', title: 'A health and wellness evening', text: 'Screenings, a panel of alumni in health careers, and the questions people do not ask their doctor.', img: '/ht/img/commencement.jpg', alt: 'Commencement on the Hill', badge: 'Sample', foot: 'Free · open to the neighborhood' } ] },
+      { meta: 'Apr 2027 · one evening', title: 'A health and wellness evening', text: 'Screenings, a panel of alumni in health careers, and the questions people do not ask their doctor.', tile: { icon: 'heart', label: 'Health' }, badge: 'Sample', foot: 'Free · open to the neighborhood' } ] },
     { type: 'cards', title: 'Partner programs', meta: 'Sample · no real organization named here', items: [
-      { meta: 'Churches', title: 'A church partner program (sample)', text: 'A monthly evening on campus for a partner congregation: a speaker, a meal, and a student host.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', badge: 'Sample', foot: 'A channel per partner' },
-      { meta: 'Neighborhood', title: 'A neighborhood association series (sample)', text: 'Quarterly sessions on the campus plan, the construction, and what it means for the block.', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus village plaza', badge: 'Sample', foot: 'A channel per partner' },
-      { meta: 'High schools', title: 'A high-school partnership (sample)', text: 'Campus visits, a mentor from the Hill, and a seat in Summer Bridge for juniors who want it.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'A channel per partner' } ] },
+      { meta: 'Churches', title: 'A church partner program (sample)', text: 'A monthly evening on campus for a partner congregation: a speaker, a meal, and a student host.', tile: { icon: 'hands', label: 'Faith partners' }, badge: 'Sample', foot: 'A channel per partner' },
+      { meta: 'Neighborhood', title: 'A neighborhood association series (sample)', text: 'Quarterly sessions on the campus plan, the construction, and what it means for the block.', img: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of the campus village plaza in the campus plan', badge: 'Sample', foot: 'A channel per partner' },
+      { meta: 'High schools', title: 'A high-school partnership (sample)', text: 'Campus visits, a mentor from the Hill, and a seat in Summer Bridge for juniors who want it.', tile: { icon: 'cap', label: 'High schools' }, badge: 'Sample', foot: 'A channel per partner' } ] },
     { type: 'tracks', id: 'bridge', title: 'Summer Bridge 2027', meta: 'Tenth and eleventh graders · on campus · sample', items: [
       { title: 'Summer Bridge', text: 'Six mornings on the Hill before their first fall. A mentor, a lab, a class, and a certificate from HT.', tag: 'Summer 2027', sessions: [
         { no: '01', title: 'Welcome to the Hill', date: 'June', status: 'Summer 2027' }, { no: '02', title: 'A morning in the lab', date: 'June', status: 'Summer 2027' }, { no: '03', title: 'A college class, for real', date: 'June', status: 'Summer 2027' },
@@ -728,7 +728,7 @@ var space = {
     { trustees: true, type: 'split', id: 'phone', kicker: 'The portal', title: 'Everything a trustee needs, on the phone they already carry.',
       text: 'No binder shipped a week early. No app to install. The packet, the agenda, and the room open from one link, and the board secretary sees who has checked in before the meeting starts.',
       bullets: ['Materials open in place, restricted to the board list', 'The agenda adds to a calendar in one tap and prints for the table', 'Check in at the door, attendance noted as you walk in', 'The campaign update is the same page Advancement runs, nothing re-typed'],
-      image: '/ht/img/r-arena-entry.jpg', imageAlt: 'Rendering of a new Huston-Tillotson campus building entrance', side: 'right', cta: { label: 'Put it on your phone', href: '/ht/hub/#install', style: 'ht' } },
+      image: '/ht/img/shot-hub-phone.jpg', imageAlt: 'The HT Hub open on a phone', side: 'right', cta: { label: 'Put it on your phone', href: '/ht/hub/#install', style: 'ht' } },
     { type: 'faq', id: 'faq', title: 'Questions trustees ask', meta: 'Sample answers', items: [
       { q: 'Is this space private?', a: 'Yes. The board space opens only for signed-in members on the board list kept by the board secretary. The rest of the hub is open to the campus. This preview shows sample content so you can see the shape of it.' },
       { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees message the secretary directly. There is no open feed in this space, by design.' },

@@ -24,7 +24,7 @@ HT.spaces.admissions = {
       { date: '2027-03-04', title: 'Admitted Student Night', where: 'Live room · 6:00 PM', tag: 'Live room', tagCls: 'soft' }, { date: '2027-03-09', title: 'Financial aid night', where: 'Live room · 6:30 PM' },
       { date: '2027-03-23', title: 'First-generation family night', where: 'The auditorium and live · 6:00 PM' }, { date: '2027-03-25', title: 'Housing tour, live from the halls', where: 'Live room · 5:30 PM' },
       { date: '2027-04-08', title: 'Parent session', where: 'Live room · 6:30 PM' }, { date: '2027-05-01', title: 'Decision Day', where: 'The Admitted 2031 channel' } ] },
-    { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/r-student-center.jpg',
+    { type: 'player', cardTitle: 'Admitted Student Night', meta: 'Live in March · replay the same night', title: 'Admitted Student Night', live: false, poster: '/ht/img/fall-convocation.jpg',
       now: { title: 'Admitted Student Night, live', who: 'Admissions team with current students', when: 'March 2027' } },
     { type: 'steps', title: 'From admitted to move-in', meta: 'Four steps, one place', items: [
       { em: 'Step one', h: 'Admitted', p: 'The letter arrives with one link. The student joins the Admitted 2031 channel the same day.' },

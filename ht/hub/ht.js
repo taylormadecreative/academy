@@ -40,6 +40,15 @@
     file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6.5A1.5 1.5 0 005 4.5v15A1.5 1.5 0 006.5 21h11a1.5 1.5 0 001.5-1.5V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
     slides: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></svg>',
     heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-8.6-8.6C2.2 8.2 4.2 5 7.4 5c2 0 3.5 1.1 4.6 2.6C13.1 6.1 14.6 5 16.6 5c3.2 0 5.2 3.2 4 6.4C19 15.7 12 20 12 20z"/></svg>',
+    code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg>',
+    laptop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
+    drop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.4 6 11a6 6 0 01-12 0c0-4.6 6-11 6-11z"/><path d="M9 14.5a3 3 0 003 3"/></svg>',
+    leaf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19l8-8"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+    coin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2c-.5-.8-1.5-1.2-2.8-1.2-1.7 0-2.8.8-2.8 2s1.1 1.7 2.8 2 2.8.8 2.8 2-1.1 2-2.8 2c-1.3 0-2.4-.5-2.9-1.3M12 6.5V8M12 16v1.5"/></svg>',
+    map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
+    building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5l8-3 8 3v16"/><path d="M2 21h20M9 21v-5h6v5M8 9h.01M12 9h.01M16 9h.01M8 12.5h.01M12 12.5h.01M16 12.5h.01"/></svg>',
     check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5l3.5 3.5 7-8"/></svg>'
   };
   Object.keys(ICONS).forEach(function (k) { ICONS[k] = ICONS[k].replace('<svg', '<svg aria-hidden="true" focusable="false"'); });
@@ -78,6 +87,23 @@
   /* /ht/img/r-*.jpg are renderings of the campus plan, not photographs of buildings that stand today. */
   function isRendering(src) { return /\/img\/r-/.test(String(src || '')); }
   function renderingCap(src) { return isRendering(src) ? '<figcaption class="ht-render-cap">Campus plan rendering</figcaption>' : ''; }
+  /* One use of any photograph per page. render() builds a page in one synchronous pass, so the set
+     lives for that pass and clears on the next microtask; a second use of the same photo falls back
+     to a type tile (cards, replays) or to no picture (splits). */
+  var USED = null;
+  function firstUse(src) {
+    if (!src) return false;
+    if (!USED) { USED = {}; Promise.resolve().then(function () { USED = null; }); }
+    if (USED[src]) return false;
+    USED[src] = 1; return true;
+  }
+  /* A designed type tile for work that has no photograph of its own: paper, a hairline, a line icon
+     for the topic, and the category label. */
+  function tileHtml(t, fallbackLabel, cls) {
+    t = t || {};
+    var label = t.label || String(fallbackLabel || '').split(' · ')[0];
+    return '<div class="' + (cls || 'img') + ' ht-tile" aria-hidden="true"><span class="ht-tile-ic">' + icon(t.icon || 'star') + '</span>' + (label ? h`<span class="ht-tile-l">${label}</span>` : '') + '</div>';
+  }
   function artHtml(src, alt, eager) {
     return (isRendering(src) ? '<figure class="art">' : '<div class="art">') + h`<img src="${src}" alt="${alt || ''}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">` + renderingCap(src) + (isRendering(src) ? '</figure>' : '</div>');
   }
@@ -90,7 +116,7 @@
       art = h`<div class="art"><video muted loop playsinline ${still ? '' : 'autoplay'} preload="none" poster="${b.poster || ''}" aria-label="${b.imageAlt || 'A short looping portrait'}"><source src="${b.video}" type="video/mp4"></video>` +
         '<button type="button" class="pill ghost" data-vtoggle aria-pressed="' + (!still) + '" style="position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.92)">' + (still ? 'Play' : 'Pause') + '</button></div>';
     }
-    else if (b.image) art = artHtml(b.image, b.imageAlt, true);
+    else if (b.image) { firstUse(b.image); art = artHtml(b.image, b.imageAlt, true); }
     var ada = b.ada ? '<div class="ada" style="margin-top:18px">' + h`<img src="${HT.site.adaPoster}" alt="${ADA_ALT}"><div><b>Ada says</b><p>${b.ada.text}</p>` + (b.ada.when ? h`<div class="w">${adaLine(b.ada.when)}</div>` : '') + '</div></div>' : '';
     return '<section class="intro rv' + (art ? '' : ' plain') + '"' + (b.id ? h` id="${b.id}"` : '') + '><div>' +
       (b.kicker ? h`<div class="k">${b.kicker}</div>` : '') + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') +
@@ -101,7 +127,7 @@
   R.cards = function (b) {
     var inner = '<div class="cards">' + b.items.map(function (c) {
       var tag = c.href ? 'a' : 'div';
-      return '<' + tag + ' class="card"' + (c.href ? h` href="${c.href}"` : '') + '>' + (c.img ? h`<div class="img"><img src="${c.img}" alt="${c.href ? '' : (c.alt || '')}" loading="lazy" decoding="async">` + renderingCap(c.img) + '</div>' : '') +
+      return '<' + tag + ' class="card"' + (c.href ? h` href="${c.href}"` : '') + '>' + ((c.img && firstUse(c.img)) ? h`<div class="img"><img src="${c.img}" alt="${c.href ? '' : (c.alt || '')}" loading="lazy" decoding="async">` + renderingCap(c.img) + '</div>' : (c.tile || c.img) ? tileHtml(c.tile, c.meta) : '') +
         '<div class="cb">' + (c.meta ? h`<div class="meta">${c.meta}</div>` : '') + h`<h3>${c.title}</h3>` + (c.text ? h`<p>${c.text}</p>` : '') +
         (c.badge ? chipHtml(c.badge, c.badgeCls || 'sample') : '') + (c.foot ? h`<div class="foot">${c.foot}</div>` : '') + '</div></' + tag + '>';
     }).join('') + '</div>';
@@ -163,7 +189,7 @@
       return '<div class="track"><div class="th"><div>' + h`<h3>${t.title}</h3>` + (t.text ? h`<p>${t.text}</p>` : '') + '</div>' + (t.tag ? chipHtml(t.tag, t.tagCls || '') : '') + '</div>' +
         '<div class="prog" aria-hidden="true"><i data-w="' + pct + '"></i></div>' + h`<div class="pm"><span>${done} of ${total} sessions</span><span>${pct}%</span></div>` +
         (t.sessions || []).map(function (s) { return '<div class="sess">' + h`<span class="no${s.done ? ' done' : ''}">${s.no}</span><div><b>${s.title}</b>` + (s.date ? h`<span>${s.date}</span>` : '') + '</div><span class="st">' + (s.done ? chipHtml('Done', 'green') : (s.status ? chipHtml(s.status, 'soft') : '')) + '</span></div>'; }).join('') +
-        (t.cert ? '<div class="cert"><span class="seal"><img src="/ht/img/ht-monogram-gold.png" alt=""></span><div>' + h`<b>${t.cert.title || 'Certificate of completion'}</b><span>${t.cert.text || ''}</span>` + '</div>' + chipHtml(t.cert.status || 'Sample', t.cert.cls || 'sample') + '</div>' : '') + '</div>';
+        (t.cert ? '<div class="cert"><span class="seal" aria-hidden="true"></span><div>' + h`<b>${t.cert.title || 'Certificate of completion'}</b><span>${t.cert.text || ''}</span>` + '</div>' + chipHtml(t.cert.status || 'Sample', t.cert.cls || 'sample') + '</div>' : '') + '</div>';
     }).join('');
     return card(b, inner);
   };
@@ -197,14 +223,14 @@
     return card(b, inner);
   };
   R.replays = function (b) {
-    var inner = '<div class="reps">' + b.items.map(function (r) { return '<button type="button" class="rep" data-replay="' + esc(r.title) + '">' + h`<img src="${r.poster}" alt="" loading="lazy" decoding="async">` + (isRendering(r.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + (r.len ? h`<span class="len">${r.len}</span>` : '') + '<div class="cap">' + h`<b>${r.title}</b><span>${[r.date, r.tag].filter(Boolean).join(' · ')}</span>` + '</div></button>'; }).join('') + '</div>';
+    var inner = '<div class="reps">' + b.items.map(function (r) { return '<button type="button" class="rep" data-replay="' + esc(r.title) + '">' + ((r.poster && firstUse(r.poster)) ? h`<img src="${r.poster}" alt="" loading="lazy" decoding="async">` + (isRendering(r.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') : tileHtml(r.tile, r.tag, 'rep-tile')) + (r.len ? h`<span class="len">${r.len}</span>` : '') + '<div class="cap">' + h`<b>${r.title}</b><span>${[r.date, r.tag].filter(Boolean).join(' · ')}</span>` + '</div></button>'; }).join('') + '</div>';
     return card(b, inner);
   };
   R.player = function (b) {
     var now = b.now ? '<div class="nowbar">' + (b.live ? '<span class="flag">Live</span>' : chipHtml('Test picture · sample', 'soft')) + h`<b>${b.now.title}</b>` + (b.now.who ? h`<span>${b.now.who}</span>` : '') + (b.now.when ? h`<span>${b.now.when}</span>` : '') + '</div>' : '';
     var inner = '<div class="player" data-player data-stream="' + esc(b.stream || '/ht/img/hero-flyover.mp4') + '">' +
       '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="flag">Live</span>' : '') + '</div>' +
-      '<div class="poster" style="background-image:url(' + esc(b.poster || '/ht/img/hero-flyover-poster.jpg') + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '">' + smallIcon('play') + ' Watch</button>' + (isRendering(b.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + '</div>' +
+      '<div class="poster" style="background-image:url(' + esc((firstUse(b.poster || '/ht/img/hero-flyover-poster.jpg'), b.poster || '/ht/img/hero-flyover-poster.jpg')) + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '">' + smallIcon('play') + ' Watch</button>' + (isRendering(b.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + '</div>' +
       '<img class="wm" src="/assets/logo-nav.webp" alt=""></div>' + now;
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
   };
@@ -270,7 +296,7 @@
   R.split = function (b) {
     var inner = '<div class="split' + (b.side === 'left' ? ' r' : '') + '"><div>' + (b.kicker ? h`<div class="k" style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ht-maroon);margin-bottom:8px">${b.kicker}</div>` : '') + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') +
       (b.bullets && b.bullets.length ? '<ul>' + b.bullets.map(function (x) { return '<li>' + smallIcon('check') + h`<span>${x}</span></li>`; }).join('') + '</ul>' : '') + (b.cta ? '<div style="margin-top:16px">' + btn(b.cta) + '</div>' : '') + '</div>' +
-      (b.image ? artHtml(b.image, b.imageAlt) : '') + '</div>';
+      ((b.image && firstUse(b.image)) ? artHtml(b.image, b.imageAlt) : '') + '</div>';
     return card({ id: b.id, meta: b.meta }, inner);
   };
   R.steps = function (b) { return card(b, '<div class="steps">' + b.items.map(function (s) { return h`<div class="step"><em>${s.em}</em><h3>${s.h}</h3><p>${s.p}</p></div>`; }).join('') + '</div>'); };
