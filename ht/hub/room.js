@@ -74,7 +74,20 @@ async function getState() {
   const { data, error } = await sb.rpc('ea_room_state', { p_key: k, p_slug: SLUG });
   if (error) throw error;
   if (classroom.managed && (!data?.id || !validateClassroomAccess(access, data.id))) throw new Error('This classroom could not be verified.');
-  return classroom.managed ? { ...data, can_join: true, is_host: access.is_host === true } : data;
+  if (!classroom.managed) return data;
+  /* the scheduled session's own times, so the join screen's Date / time cells read the real class (RLS: members of this session only) */
+  let when = null;
+  try { const s = await sb.from('ht_class_sessions').select('starts_at,ends_at').eq('room_id', data.id).maybeSingle(); if (s.data) when = s.data; } catch (e) {}
+  return { ...data, can_join: true, is_host: access.is_host === true, session_times: when };
+}
+/* Date / time cells for a scheduled session: "Today" or "Wed, Sep 23", and "12:30 PM – 1:30 PM" (Austin time) */
+function managedWhen(times, nowMs) {
+  if (!times || !times.starts_at) return null;
+  const tz = 'America/Chicago', start = new Date(times.starts_at), end = times.ends_at ? new Date(times.ends_at) : null;
+  const t = (d) => d.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
+  const dayKey = (d) => d.toLocaleDateString('en-CA', { timeZone: tz });
+  const today = dayKey(start) === dayKey(new Date(nowMs));
+  return { day: today ? 'Today' : start.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }), time: t(start) + (end ? ' – ' + t(end) : ''), startsAt: t(start), today };
 }
 const token = async () => (await sb.auth.getSession()).data.session?.access_token || '';
 
@@ -150,7 +163,7 @@ if (state && state.bad_link && keyFromStore) {
 const branch = roomBranch(state);
 const words = htWords(state && state.host_name);
 const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
-const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null, when: classroom.managed ? null : nextSessionWhen(state, Date.now()), city_hint: 'Austin, TX' });   /* warmup_q + when: the waiting screen's question and its Date / time cells (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
+const target = () => ({ kind: 'room', slug: SLUG, id: state.id, title: state.title, host_name: state.host_name, key: k, words, tokens: HT_TOKENS, logo: LOGO, mark: MARK, warmup_q: state.warmup_q || null, when: classroom.managed ? managedWhen(state.session_times, Date.now()) : nextSessionWhen(state, Date.now()), city_hint: 'Austin, TX' });   /* warmup_q + when: the waiting screen's question and its Date / time cells (0054) */   /* key: the guest's ?k=, or the one this device remembered — the room module sends it in the join body */
 
 let r2 = null;            /* the mounted room, when there is one */
 let poll = null;          /* the guest's 20 s state check */
