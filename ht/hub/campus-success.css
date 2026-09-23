@@ -84,10 +84,15 @@
 .success-radios legend{width:100%;margin-bottom:8px;font-size:12px;font-weight:600;padding:0}
 .success-radios label{display:inline-flex;align-items:center;gap:7px;min-height:32px;font-size:13px;cursor:pointer}
 .success-radios input{accent-color:var(--campus-maroon);width:16px;height:16px}
-.success-history{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--campus-line);display:grid;gap:12px}
-.success-history li{position:relative;display:grid;gap:2px;font-size:13px;min-width:0;overflow-wrap:anywhere}
-.success-history li::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:3px;background:var(--campus-surface);border:2px solid #cbb9a6}
-.success-history li:first-child::before{border-color:var(--campus-maroon)}
+/* Timeline: one neutral rule, a small line icon per event type sitting on it. */
+.success-history{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.success-history li:not(:last-child)::after{content:"";position:absolute;left:10px;top:24px;bottom:-12px;width:1px;background:var(--campus-line)}
+.success-history li{position:relative;display:grid;gap:2px;padding-left:32px;font-size:13px;min-width:0;overflow-wrap:anywhere;border-radius:6px;scroll-margin:96px 0}
+.success-history-mark{position:absolute;left:0;top:-1px;display:grid;place-items:center;width:21px;height:21px;background:var(--campus-surface);color:var(--campus-muted)}
+.success-history-mark svg{width:14px;height:14px}
+.success-history li:first-child .success-history-mark{color:var(--campus-maroon)}
+.success-history li:focus{outline:none}
+.success-history li:focus-visible{outline:2px solid var(--campus-maroon);outline-offset:4px}
 .success-history time{font-size:11px;color:var(--campus-muted)}
 .success-foot{display:flex;justify-content:space-between;align-items:center;gap:12px 18px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--campus-line)}
 .success-foot p{max-width:70ch}
@@ -149,7 +154,7 @@
 
 /* Scoped resets: .campus-app ul/p rules outrank single classes */
 .campus-app :is(.success-list,.success-signals,.success-owner-list,.success-help-list){padding:0}
-.campus-app .success-history{padding:0 0 0 14px}
+.campus-app .success-history{padding:0}
 .campus-app .success-view .lead-bars{padding:0}
 .campus-app .success-note{margin-top:14px}
 .campus-app .success-team>.campus-muted{margin-top:2px}

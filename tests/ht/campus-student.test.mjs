@@ -142,6 +142,24 @@ test('Today prioritizes one course action, the next cohort class, and direct cam
   assert.doesNotMatch(html, /campus-stats|campus-classroom-shortcut|Your next steps|Keep your next step in sight/);
 });
 
+test('Today labels the next class Today or Tomorrow, and a date after that', () => {
+  const at = (days, hour) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(hour, 45, 0, 0); return d.toISOString(); };
+  const render = (days) => {
+    const state = base(), courseId = 'course-1', cohortId = 'cohort-1';
+    state.courses = [{ id: courseId, title: 'AI Literacy', status: 'published' }];
+    state.enrollments = [{ course_id: courseId, user_id: 'learner' }];
+    state.cohorts = [{ id: cohortId, title: 'First-Year Scholars', course_id: courseId, status: 'active' }];
+    state.cohort_members = [{ cohort_id: cohortId, user_id: 'learner', active: true }];
+    state.class_sessions = [{ id: 'class-1', cohort_id: cohortId, title: 'Prompt Lab', status: 'scheduled', starts_at: at(days, 23), ends_at: at(days, 23).replace(/T23:45/, 'T23:59') }];
+    return { html: renderStudent('home', context(state)), when: at(days, 23) };
+  };
+  const today = render(0), tomorrow = render(1), later = render(4);
+  assert.match(today.html, /<p>Today · /);
+  assert.match(tomorrow.html, /<p>Tomorrow · /);
+  assert.match(later.html, new RegExp(`<p>${new Date(later.when).toLocaleDateString('en-US').replace(/\//g, '\\/')} · `));
+  assert.match(today.html, /src="\/ht\/img\/student-laptop\.jpg" alt=""/);
+});
+
 test('Today community fallback goes to Community when no published event is available', () => {
   const html = renderStudent('home', context(base()));
   assert.match(html, /href="\/ht\/hub\/community\/\?"[^>]*>Meet the community/);
@@ -386,7 +404,8 @@ test('Today lists the published assignment due date and Learn shows the earned C
     assert.match(home, /tab=assignments&amp;assignment=d0000000-0000-4000-8000-000000000001/);
     assert.match(home, /AI Literacy · First-Year Scholars/);
     assert.match(home, /Course: AI Literacy: From Curiosity to Practice/);
-    assert.match(home, /\/ht\/img\/commencement\.jpg/);
+    assert.match(home, /\/ht\/img\/student-laptop\.jpg/);
+    assert.doesNotMatch(home, /commencement\.jpg/);
     const learn = renderStudent('learn', context(state));
     assert.match(learn, /data-state="earned"[\s\S]*?Career Ready/);
     assert.match(learn, /data-credential-uuid="c7000000-0000-4000-8000-000000000001"/);
@@ -394,6 +413,8 @@ test('Today lists the published assignment due date and Learn shows the earned C
     assert.doesNotMatch(learn, /<code[^>]*>c7000000/);
     assert.doesNotMatch(learn, /campus-page-intro/);
     assert.match(learn, /See career portfolio/);
+    assert.match(learn, /<section class="campus-panel badge-shelf" id="badges"/);
+    assert.match(learn, /<img class="badge-record-wordmark" src="\/ht\/img\/ht-wordmark-maroon\.png" alt="Huston-Tillotson University"/);
     assert.doesNotMatch(learn, /Add to my career portfolio/);
     assert.doesNotMatch(learn, /Available · Sample<\/p><h3>Career Ready/);
   } finally { student.destroy(); }

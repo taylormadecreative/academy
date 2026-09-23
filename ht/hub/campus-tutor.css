@@ -40,6 +40,7 @@
 .rubric>.campus-muted{margin-bottom:14px}
 .campus-app fieldset.rubric-criterion{margin:0 0 16px;padding:0;border:0;border-radius:0}
 .rubric-criterion>legend{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;padding:0;margin-bottom:8px;font-size:13px;font-weight:600}
+.rubric-detail{margin:-4px 0 8px;font-size:12px;color:var(--campus-muted)}
 .rubric-max{font-size:11px;font-weight:500;color:var(--campus-muted);white-space:nowrap}
 .rubric-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .rubric-level{position:relative;display:grid;align-content:start;gap:5px;min-width:0;padding:11px 12px;border:1px solid var(--campus-line);border-radius:12px;background:var(--campus-surface);cursor:pointer;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease}
@@ -114,3 +115,7 @@
 .campus-academic-published{display:grid;gap:2px;margin:0 0 16px;padding:10px 14px;border:1px solid #e3d8c6;border-left:3px solid var(--campus-green);border-radius:10px;background:var(--campus-paper);font-size:13px;line-height:1.5}
 .campus-academic-published span{color:var(--campus-muted);font-size:12px;font-variant-numeric:tabular-nums}
 .campus-app form .campus-academic-published{margin:0 0 16px!important}
+/* Instructor assignment header: the due date and "Edit assignment details" read as one block. */
+.campus-academic-assignment-meta>p{margin:0}
+.campus-academic-assignment-meta>.campus-academic-edit-details{margin-top:2px}
+.campus-academic-assignment-meta>.campus-academic-edit-details>summary{padding:8px 0}

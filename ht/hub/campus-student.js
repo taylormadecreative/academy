@@ -116,6 +116,15 @@ function dateText(value, ctx, withTime = false) {
   return `${ctx.formatDate(value)}${withTime ? ` · ${ctx.formatTime(value)}` : ''}`;
 }
 
+/** "Today · 10:45 AM" / "Tomorrow · 9:00 AM" for the next two local days, a date otherwise. */
+function relativeDateText(value, ctx, now = Date.now()) {
+  if (!Number.isFinite(time(value))) return 'Date to be announced';
+  const day = (stamp) => { const d = new Date(stamp); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+  const diff = Math.round((day(time(value)) - day(now)) / 86_400_000);
+  const label = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : ctx.formatDate(value);
+  return `${label} · ${ctx.formatTime(value)}`;
+}
+
 function textBlock(value, ctx) {
   return String(value || '').split(/\n\s*\n/).filter(Boolean).map((paragraph) => `<p class="campus-body-text">${ctx.esc(paragraph)}</p>`).join('');
 }
@@ -193,7 +202,7 @@ function homeView(ctx) {
     ? `<a class="campus-row campus-calendar-row today-agenda-due" href="${esc(dueLink(item))}"><span class="campus-event-date">${esc(ctx.formatDate(item.due_at))}</span><span><strong>${esc(item.title)}</strong><span class="campus-muted"><b class="today-due-word">Due</b> ${esc(ctx.formatTime(item.due_at))} · ${esc(sectionName(item.cohort_id))}</span></span></a>`
     : `<a class="campus-row campus-calendar-row" href="${esc(href('events'))}#event-${esc(item.id)}"><span class="campus-event-date">${esc(ctx.formatDate(item.starts_at))}</span><span><strong>${esc(item.title)}</strong><span class="campus-muted">${esc(ctx.formatTime(item.starts_at))} · ${esc(item.location || item.office || 'Campus')}${reservations.some((rsvp) => rsvp.event_id === item.id) ? ' · Going' : ''}</span></span></a>`;
   return `${guestNotice(state)}
-    <section class="campus-hero campus-today-hero${glance ? ' has-glance' : ''}"><div class="campus-hero-copy"><p class="campus-eyebrow">${current ? 'Your learning, ready when you are' : 'Your day on the Hill'}</p><h2>${esc(currentSection?.title || current?.title || 'Find your next opportunity.')}</h2>${currentSection ? `<p class="today-course-name">Course: ${esc(current.title)}</p>` : ''}<p>${current ? 'Continue your course, check feedback, or see what is happening across campus.' : 'Learning, campus life, and the people who can help, together in one place.'}</p><div class="campus-card-actions"><a class="campus-button" href="${esc(courseLink)}">${current ? 'Open your course' : 'Explore learning'}</a><a class="campus-button campus-button-secondary" href="${esc(href('messages'))}">Open messages</a></div></div>${glance}<div class="campus-hero-aside"><img class="campus-hero-aside-photo" src="/ht/img/commencement.jpg" alt="" loading="eager" decoding="async"><p class="campus-eyebrow">${nextLabel}</p>${nextTitle ? `<h3>${esc(nextTitle)}</h3><p>${esc(dateText(nextTime, ctx, true))}</p><p>${esc(nextSession ? (nextSession.status === 'live' ? 'Your cohort classroom' : 'Cohort classroom · join when it begins') : nextEvent.location || nextEvent.office || 'Campus event')}</p><a href="${esc(nextLink)}">${nextSession ? 'Open classroom' : 'View event'} <span aria-hidden="true">→</span></a>` : `<h3>Good things happen together.</h3><p>Find your people, ask a question, or join a campus conversation.</p><a href="${esc(href('community'))}">Meet the community <span aria-hidden="true">→</span></a>`}</div></section>
+    <section class="campus-hero campus-today-hero${glance ? ' has-glance' : ''}"><div class="campus-hero-copy"><p class="campus-eyebrow">${current ? 'Your learning, ready when you are' : 'Your day on the Hill'}</p><h2>${esc(currentSection?.title || current?.title || 'Find your next opportunity.')}</h2>${currentSection ? `<p class="today-course-name">Course: ${esc(current.title)}</p>` : ''}<p>${current ? 'Continue your course, check feedback, or see what is happening across campus.' : 'Learning, campus life, and the people who can help, together in one place.'}</p><div class="campus-card-actions"><a class="campus-button" href="${esc(courseLink)}">${current ? 'Open your course' : 'Explore learning'}</a><a class="campus-button campus-button-secondary" href="${esc(href('messages'))}">Open messages</a></div></div>${glance}<div class="campus-hero-aside"><img class="campus-hero-aside-photo" src="/ht/img/student-laptop.jpg" alt="" loading="eager" decoding="async"><p class="campus-eyebrow">${nextLabel}</p>${nextTitle ? `<h3>${esc(nextTitle)}</h3><p>${esc(relativeDateText(nextTime, ctx))}</p><p>${esc(nextSession ? (nextSession.status === 'live' ? 'Your cohort classroom' : 'Cohort classroom · join when it begins') : nextEvent.location || nextEvent.office || 'Campus event')}</p><a href="${esc(nextLink)}">${nextSession ? 'Open classroom' : 'View event'} <span aria-hidden="true">→</span></a>` : `<h3>Good things happen together.</h3><p>Find your people, ask a question, or join a campus conversation.</p><a href="${esc(href('community'))}">Meet the community <span aria-hidden="true">→</span></a>`}</div></section>
     <div class="campus-grid campus-grid-main campus-today-grid"><div class="campus-stack">${connectionPreview(ctx)}${announcementList(ctx)}</div><aside class="campus-stack"><section class="campus-panel campus-today-agenda"><div class="campus-section-head"><div><p class="campus-eyebrow">Your week</p><h2>Coming up</h2></div><a href="${esc(href('events'))}">All events</a></div>${agenda.length ? `<div class="campus-list">${agenda.map(agendaRow).join('')}</div>` : empty('Nothing scheduled yet', 'Assignment due dates and published campus events will show up here.', ctx)}</section>${adaCard(ctx)}<section class="campus-panel campus-support-card campus-today-help"><p class="campus-eyebrow">Need a hand?</p><h2>We can point you in the right direction.</h2><a class="campus-button campus-button-secondary" href="${esc(href('support'))}">Get campus help</a></section></aside></div>`;
 }
 
@@ -309,7 +318,7 @@ function badgeShelf(ctx) {
   const { state, icon, esc, href } = ctx;
   const badges = learnerBadges(state);
   const earned = badges.filter((badge) => badge.earned).length;
-  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><a class="badge-link badge-live-link" href="${esc(href('live'))}">Find your classroom and recordings <span aria-hidden="true">→</span></a><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Financial Wellness and Digital Storytelling show what HT could offer next. They are not live pathways yet.</span></p></section>`;
+  return `<section class="campus-panel badge-shelf" id="badges" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><a class="badge-link badge-live-link" href="${esc(href('live'))}">Find your classroom and recordings <span aria-hidden="true">→</span></a><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Financial Wellness and Digital Storytelling show what HT could offer next. They are not live pathways yet.</span></p></section>`;
 }
 
 function coCurricularRecord(ctx) {
@@ -319,7 +328,7 @@ function coCurricularRecord(ctx) {
   const next = learnerBadges(state).find((badge) => badge.state === 'progress') || learnerBadges(state).find((badge) => badge.state === 'available');
   const demo = state.mode === 'demo' ? '<p class="badge-record-demo">Illustrative demo record. Not an official university credential.</p>' : '';
   const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID ${credentialCode(enrollment, esc)}</span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or show in your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
-  return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">See career portfolio</a><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
+  return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><img class="badge-record-wordmark" src="/ht/img/ht-wordmark-maroon.png" alt="Huston-Tillotson University" width="220" height="33" decoding="async"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">See career portfolio</a><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
 }
 
 function learnView(ctx) {
@@ -443,6 +452,9 @@ async function runWithButton(button, callback) {
 export function bindStudent(view, root, ctx) {
   const messageView = ['people', 'messages'].includes(view);
   let disposed = false, readFrame = null;
+  if (view === 'learn' && globalThis.location?.hash === '#badges') {
+    globalThis.requestAnimationFrame?.(() => { if (!disposed) root.querySelector('#badges')?.scrollIntoView({ block: 'start' }); });
+  }
   const ui = communicationState(ctx);
   const navigateMessages = async (anchor) => {
     const next = new URL(anchor.href, globalThis.location.href);
@@ -498,10 +510,19 @@ export function bindStudent(view, root, ctx) {
         return;
       }
       if (action === 'printRecord') {
-        const body = globalThis.document?.body;
-        if (!body || typeof globalThis.print !== 'function') return;
-        body.classList.add('badge-print-mode');
-        const done = () => { body.classList.remove('badge-print-mode'); globalThis.removeEventListener('afterprint', done); };
+        const doc = globalThis.document, record = button.closest('.badge-record');
+        if (!doc?.body || !record || typeof globalThis.print !== 'function') return;
+        const kept = [];
+        for (let node = record.parentElement; node && node !== doc.documentElement; node = node.parentElement) { node.classList.add('badge-print-keep'); kept.push(node); }
+        doc.documentElement.classList.add('badge-print-mode');
+        let finished = false;
+        const done = () => {
+          if (finished) return;
+          finished = true;
+          doc.documentElement.classList.remove('badge-print-mode');
+          kept.forEach((node) => node.classList.remove('badge-print-keep'));
+          globalThis.removeEventListener('afterprint', done);
+        };
         globalThis.addEventListener('afterprint', done);
         globalThis.print();
         setTimeout(done, 1000);

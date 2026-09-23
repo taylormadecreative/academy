@@ -104,6 +104,22 @@ try{
   await form.locator('[name="feedback"]').fill('I reviewed the current work and confirmed this result.');await form.locator('[name="status"]').selectOption('published');await form.locator('button[type="submit"]').click();
   await page.waitForFunction(id=>JSON.parse(localStorage.getItem('ht-campus-demo-v2')).assignment_grades.filter(g=>g.assignment_id===id).length===5,assignment);
  });
+ await check('Editing a published grade keeps it published; switching to draft warns first',async()=>{
+  await visit('staff',{cohort,tab:'assignments',assignment,student});
+  const form=formWith('score'),submit=form.locator('button[data-grade-submit]'),warning=form.locator('[data-grade-unpublish-warning]');
+  assert.equal(await form.locator('[name="status"]').inputValue(),'published','the control starts on the published revision');
+  assert.match(await submit.innerText(),/^Update .+ grade$/);assert.equal(await warning.isVisible(),false);
+  await form.locator('[name="status"]').selectOption('draft');
+  assert.equal(await submit.innerText(),'Save draft');assert.equal(await warning.isVisible(),true);assert.match(await warning.innerText(),/will stop seeing this grade until you publish again\./);
+  await form.locator('[name="status"]').selectOption('published');assert.equal(await warning.isVisible(),false);
+  const before=(await data()).assignment_grades.filter(g=>g.assignment_id===assignment&&g.user_id===student).length;
+  await form.locator('[name="feedback"]').fill('Your comparison is clear and your sources are relevant. Updated: cite the date you checked each source.');
+  await submit.click();
+  await page.waitForFunction(({id,n})=>JSON.parse(localStorage.getItem('ht-campus-demo-v2')).assignment_grades.filter(g=>g.assignment_id===id).length>n,{id:assignment,n:before});
+  const latest=(await data()).assignment_grades.filter(g=>g.assignment_id===assignment&&g.user_id===student).sort((a,b)=>b.revision-a.revision)[0];
+  assert.equal(latest.status,'published');assert.match(latest.feedback,/Updated: cite the date/);
+  await visit('student',{cohort,tab:'grades'});assert.ok(await page.getByText(/Updated: cite the date/).count(),'the student still sees the edited grade');
+ });
  await check('Personal extensions reopen closed work and clearing restores the original deadline',async()=>{
   const original=(await data()).assignments.find(a=>a.id===seeded);
   const past=n=>new Date(Date.now()-n*60000).toISOString();

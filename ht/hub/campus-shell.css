@@ -49,3 +49,10 @@
 @media(max-width:760px){.campus-head-actions .campus-workspace-links{display:none!important}
  .campus-leadership-tour nav a,.campus-breadcrumb a{display:inline-flex;align-items:center;min-height:44px}
  .campus-section-head a,.campus-row a,.lead-trust-card a,.lead-table summary,.campus-bottom-note a{min-height:44px}}
+/* Phone tap targets: every control at least 44px tall */
+@media(max-width:760px){
+ .campus-phone-strip a{min-height:44px}
+ body.ht :is(.campus-app,.ht-space-page) :is(button,select,summary,.pill,.btn,.campus-button,.campus-button-small){min-height:44px}
+ .ht-space-page .campus-demo select,.campus-demo select{min-height:44px}
+ .lead-door-photo .campus-rendering-tag{font-size:8px;padding:1px 4px}
+}

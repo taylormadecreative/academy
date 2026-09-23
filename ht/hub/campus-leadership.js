@@ -115,16 +115,16 @@ function home(ctx) {
   const tour = first && window.HTTour ? window.HTTour.href(first) : href('spaces');
   const doors = DOORS.map(([key, label, line]) => {
     const art = HT.spaceArtwork?.[key];
-    return `<a class="lead-door" href="${esc(href(`/ht/hub/${key}/`))}">${art ? `<span class="lead-door-photo"><img src="${esc(art.image)}" alt="" decoding="async">${art.image.includes('/img/r-') ? '<span class="campus-rendering-tag">Rendering</span>' : ''}</span>` : ''}<span><strong>${label}</strong><span>${line}</span></span>${icon('arrow')}</a>`;
+    return `<a class="lead-door" href="${esc(href(`/ht/hub/${key}/`))}">${art ? `<span class="lead-door-photo"><img src="${esc(art.image.replace('/ht/img/','/ht/img/thumb/'))}" alt="" decoding="async">${art.image.includes('/img/r-') ? '<span class="campus-rendering-tag">Plan</span>' : ''}</span>` : ''}<span><strong>${label}</strong><span>${line}</span></span>${icon('arrow')}</a>`;
   }).join('');
   const events = upcoming(ctx);
   return `<section class="campus-hero lead-hero"><div class="lead-hero-copy"><p class="campus-eyebrow">This week on the Hill</p><h2>Every student, every class, one view.</h2><p>Enrollment, persistence, learning, and the students who need a hand, with a clear next step for each. The guided tour shows it the way an advisor, a student, an instructor, and your IT team will.</p><div class="campus-card-actions"><a class="campus-button lead-button-gold" href="${esc(tour)}">Take the guided tour · ${stops} stops</a><a class="campus-button campus-button-secondary" href="${esc(href('insights'))}">Open campus insights</a></div></div><img class="lead-hero-photo" src="/ht/img/wallace-students.jpg" alt="Dr. Melva K. Wallace with Huston-Tillotson students" loading="eager" decoding="async"></section>
   ${sampleNote(ctx)}
   <section class="lead-kpis" aria-label="Campus pulse">
-    ${kpi('Students enrolled', num(s.enrolled), '3.1% vs. last fall', 'up', `${SAMPLE.term}`)}
+    ${kpi('Students enrolled', num(s.enrolled), '3.1% vs. last year', 'up', `${SAMPLE.term}`)}
     ${kpi('Fall-to-spring persistence', s.persist + '%', `${pts(s.persist - s.persistLast)} vs. last year`, 'up', 'Projected from week-6 signals')}
     ${kpi('Active in the Hub this week', s.active.at(-1) + '%', `${pts(s.active.at(-1) - s.activeLast.at(-1))} vs. last year`, 'up', 'Signed in and did one thing')}
-    ${kpi('Students flagged for outreach', s.flagged, '9 fewer than last week', 'down', `${SAMPLE.alerts.contacted} contacted · ${SAMPLE.alerts.resolved} resolved`)}
+    ${kpi('Students flagged for outreach', s.flagged, '9 fewer vs. last week', 'down', `${SAMPLE.alerts.contacted} contacted · ${SAMPLE.alerts.resolved} resolved`)}
   </section>
   <div class="campus-grid campus-grid-main lead-home-grid"><div class="campus-stack">
     <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Needs your attention</p><h2>${s.flagged} students may need a hand</h2></div><a href="${esc(href('success'))}">Open Student success</a></div>
@@ -153,7 +153,7 @@ function insights(ctx) {
   const campusNote = yearFilter === 'all' ? '' : `<p class="lead-campus-note">Campus-wide. The class-year filter applies to the measures above.</p>`;
   return `<div data-lead-insights>${sampleNote(ctx)}${yearFilterBar(ctx)}
   <section class="lead-kpis" aria-label="Key measures for ${yearLabel}" aria-live="polite">
-    ${kpi('Students enrolled', num(s.enrolled), yearFilter === 'all' ? '3.1% vs. last fall' : `${Math.round((s.enrolled / 1142) * 100)}% of campus`, yearFilter === 'all' ? 'up' : 'flat', yearLabel)}
+    ${kpi('Students enrolled', num(s.enrolled), yearFilter === 'all' ? '3.1% vs. last year' : `${Math.round((s.enrolled / 1142) * 100)}% of campus`, yearFilter === 'all' ? 'up' : 'flat', yearLabel)}
     ${kpi('Fall-to-spring persistence', s.persist + '%', `${pts(s.persist - s.persistLast)} vs. last year`, 'up', 'Projected from week-6 signals')}
     ${kpi('Active in the Hub this week', s.active.at(-1) + '%', `${pts(s.active.at(-1) - s.activeLast.at(-1))} vs. last year`, 'up', 'Signed in and did one thing')}
     ${kpi('Pathway completion', s.completion + '%', 'of students who started one', 'flat', 'Co-curricular pathways')}

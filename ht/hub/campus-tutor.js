@@ -8,6 +8,8 @@ export const TUTOR_MAX_TURNS = 20;
 const MIN_SCORE = 1.2;
 /** At least this share of the question's own words must appear in the material. */
 const MIN_COVERAGE = 0.4;
+const MAX_PASSAGES = 2;
+const RELATIVE_SCORE = 0.6;
 
 const STOPWORDS = new Set(('a about above after again all also am an and any are as at be because been before being below between both but by can could did do does doing done down during each few for from further get gets go goes going got had has have having he her here hers him his how i if in into is it its itself just me more most my myself no nor not now of off on once only or other our ours out over own please same she should so some such than that the their theirs them then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself tell explain mean means need needs know want wants thing things something someone kind way ways really much many one lot use used using make makes making help ada time times include includes put').split(/\s+/));
 /** Common subject words match almost everything, so they can support an answer but never carry one alone. */
@@ -217,7 +219,7 @@ function gradingAnswer(question, corpus) {
 }
 
 /**
- * Ada's answer. kind: 'answer' (1–3 cited passages), 'none' (not in the materials),
+ * Ada's answer. kind: 'answer' (1–2 cited passages), 'none' (not in the materials),
  * 'integrity' (declines to do the work; points to the right module), or 'empty'.
  */
 export function answerQuestion(question, corpus) {
@@ -238,8 +240,12 @@ export function answerQuestion(question, corpus) {
   if (!ranked.length || ranked[0].score < MIN_SCORE || ranked[0].coverage < MIN_COVERAGE) return { kind: 'none', passages: [] };
   const top = ranked[0].score, chosen = [], seen = new Set();
   for (const item of ranked) {
-    if (chosen.length >= 3 || item.score < top * 0.5) break;
+    // At most two passages, and only ones close to the best match: a weak third source reads as off-topic.
+    if (chosen.length >= MAX_PASSAGES || item.score < top * RELATIVE_SCORE) break;
     if (item.coverage < MIN_COVERAGE) continue;
+    // A second source must match as much of the question as the best passage does; a partial
+    // match elsewhere (e.g. only "clear") is a different topic that happens to share a word.
+    if (item.passage.source !== ranked[0].passage.source && item.coverage < ranked[0].coverage) continue;
     const key = `${item.passage.source.id}:${item.passage.paragraph}:${item.passage.index}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -390,7 +396,7 @@ export const RUBRIC_LEVELS = [
 export const RUBRIC_CRITERIA = [
   { id: 'purpose', name: 'Purpose & audience', levels: { exemplary: 'Clear purpose. Names exactly who it helps and why.', proficient: 'Purpose is clear. Audience is named but general.', developing: 'Purpose or audience is unclear or missing a detail.', beginning: 'Purpose and audience are not stated yet.' } },
   { id: 'prompt', name: 'Prompt clarity', levels: { exemplary: 'Prompt names task, audience, context, and a good result.', proficient: 'Prompt is clear but misses one part.', developing: 'Prompt is vague or missing key limits.', beginning: 'No usable prompt yet.' } },
-  { id: 'verify', name: 'Evidence of verification', levels: { exemplary: 'Shows what was checked and the source used.', proficient: 'Names a result to check; the source is thin.', developing: 'Mentions checking without a source or steps.', beginning: 'No sign the result was checked.' } },
+  { id: 'verify', name: 'Evidence of verification', detail: 'Your evaluation — what you checked and how.', levels: { exemplary: 'Shows what was checked and the source used.', proficient: 'Names a result to check; the source is thin.', developing: 'Mentions checking without a source or steps.', beginning: 'No sign the result was checked.' } },
   { id: 'reflect', name: 'Reflection & limits', levels: { exemplary: 'Honest reflection. A real limit and how it was handled.', proficient: 'Names a limit; says little about the fix.', developing: 'Reflection is brief or general.', beginning: 'No reflection or limitation yet.' } },
 ];
 const round = value => Math.round(value * 100) / 100;
@@ -470,7 +476,7 @@ export function draftFeedback(rubric, levels, studentName) {
 export function renderRubric(h, rubric) {
   if (!rubric) return '';
   const levels = h.levels || {}, { total, picked } = rubricTotal(rubric, levels), fmt = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
-  return `<fieldset class="rubric" data-rubric data-attempt-id="${h.esc(h.attemptId)}"><legend class="rubric-legend">Rubric · ${fmt(rubric.possible)} points</legend><p class="campus-muted">Pick a level for each part. The score fills in for you, and you can still change it.</p>${rubric.criteria.map(criterion => `<fieldset class="rubric-criterion"><legend><span>${h.esc(criterion.name)}</span><span class="rubric-max">${fmt(rubric.each)} points</span></legend><div class="rubric-levels">${criterion.levels.map(level => `<label class="rubric-level"><input type="radio" name="rubric_${criterion.id}" value="${level.id}" data-rubric-criterion="${criterion.id}" data-points="${level.points}"${levels[criterion.id] === level.id ? ' checked' : ''}><span class="rubric-level-top"><span class="rubric-level-name">${level.name}</span><span class="rubric-level-points">${fmt(level.points)}</span></span><span class="rubric-level-text">${h.esc(level.text)}</span></label>`).join('')}</div></fieldset>`).join('')}<div class="rubric-total"><span>Rubric total</span><output data-rubric-total aria-live="polite">${picked ? `${fmt(total)} / ${fmt(rubric.possible)}` : `— / ${fmt(rubric.possible)}`}</output></div></fieldset>`;
+  return `<fieldset class="rubric" data-rubric data-attempt-id="${h.esc(h.attemptId)}"><legend class="rubric-legend">Rubric · ${fmt(rubric.possible)} points</legend><p class="campus-muted">Pick a level for each part. The score fills in for you, and you can still change it.</p>${rubric.criteria.map(criterion => `<fieldset class="rubric-criterion"><legend><span>${h.esc(criterion.name)}</span><span class="rubric-max">${fmt(rubric.each)} points</span></legend>${criterion.detail ? `<p class="rubric-detail">${h.esc(criterion.detail)}</p>` : ''}<div class="rubric-levels">${criterion.levels.map(level => `<label class="rubric-level"><input type="radio" name="rubric_${criterion.id}" value="${level.id}" data-rubric-criterion="${criterion.id}" data-points="${level.points}"${levels[criterion.id] === level.id ? ' checked' : ''}><span class="rubric-level-top"><span class="rubric-level-name">${level.name}</span><span class="rubric-level-points">${fmt(level.points)}</span></span><span class="rubric-level-text">${h.esc(level.text)}</span></label>`).join('')}</div></fieldset>`).join('')}<div class="rubric-total"><span>Rubric total</span><output data-rubric-total aria-live="polite">${picked ? `${fmt(total)} / ${fmt(rubric.possible)}` : `— / ${fmt(rubric.possible)}`}</output></div></fieldset>`;
 }
 export function renderDraftButton() {
   return `<div class="rubric-draft"><button type="button" class="campus-button campus-button-secondary campus-button-small" data-rubric-draft><img class="rubric-draft-face" src="/ht/img/ada-face.jpg" alt="" width="20" height="20" loading="lazy" decoding="async">Draft feedback with Ada</button><p class="campus-muted">Ada drafts, you decide. Nothing is sent until you publish.</p><p class="rubric-draft-status" data-rubric-status role="status"></p></div>`;

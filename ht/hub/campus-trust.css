@@ -165,13 +165,17 @@ body.ht .badge-lead{margin:-2px 0 18px;font-size:12px;max-width:66ch}
 @media(max-width:560px){.badge-grid{grid-template-columns:1fr}}
 @media(max-width:420px){.badge-record-list li{flex-direction:column;gap:4px}}
 
-/* Print only the co-curricular record when the learner presses "Print record". */
+/* Print only the co-curricular record when the learner presses "Print record".
+   The button marks each ancestor of the record .badge-print-keep; every other
+   branch is removed from layout so the record prints once, on one page. */
+.badge-record-wordmark{display:none}
 @media print{
-  body.badge-print-mode *{visibility:hidden!important}
-  body.badge-print-mode .badge-record,body.badge-print-mode .badge-record *{visibility:visible!important}
-  body.badge-print-mode .badge-record{position:fixed;left:0;top:0;width:100%;border:0;padding:24px;background:#fff}
-  body.badge-print-mode :is(.badge-record-actions,.badge-record .campus-button){display:none!important}
-  body.badge-print-mode .badge-record h2{font-size:28px}
+  html.badge-print-mode :is(body,.badge-print-keep)>:not(.badge-print-keep,.badge-record){display:none!important}
+  html.badge-print-mode,html.badge-print-mode :is(body,.badge-print-keep){display:block!important;position:static!important;margin:0!important;padding:0!important;border:0!important;width:auto!important;max-width:none!important;min-height:0!important;height:auto!important;overflow:visible!important;background:#fff!important;box-shadow:none!important;transform:none!important}
+  html.badge-print-mode .badge-record{position:static!important;display:block!important;width:auto;max-width:none;margin:0;border:0;padding:0;background:#fff;box-shadow:none;break-inside:avoid}
+  html.badge-print-mode .badge-record-wordmark{display:block;width:220px;height:auto;margin:0 0 20px}
+  html.badge-print-mode :is(.badge-record-actions,.badge-record .campus-button){display:none!important}
+  html.badge-print-mode .badge-record h2{font-size:28px}
 }
 .campus-app :is(.badge-grid,.badge-record-list,.trust-group ul,.trust-hero-facts){padding-left:0}
 

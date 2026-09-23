@@ -31,13 +31,18 @@ test('sentences never split inside a quoted example', () => {
 test('Ada answers from course modules with citations to the right module', () => {
   const accurate = T.answerQuestion('How do I check if an AI answer is accurate?', corpus);
   assert.equal(accurate.kind, 'answer');
-  assert.ok(accurate.passages.length >= 1 && accurate.passages.length <= 3);
+  assert.ok(accurate.passages.length >= 1 && accurate.passages.length <= 2);
   assert.equal(accurate.passages[0].citation.kind, 'module');
   assert.equal(accurate.passages[0].citation.number, 1);
   assert.match(accurate.passages[0].citation.label, /^From Module 1 · /);
   const prompt = T.answerQuestion('What makes a clear prompt?', corpus);
   assert.equal(prompt.passages[0].citation.number, 2);
   assert.match(prompt.passages[0].text, /useful prompt explains the task/);
+  assert.deepEqual(prompt.passages.map(item => item.citation.number), [2], 'a passage that only shares the word "clear" is not cited');
+  for (const question of ['How do I check if an AI answer is accurate?', 'What goes in the project brief?', 'What should my reflection include?', 'How do I verify a claim?']) {
+    const answer = T.answerQuestion(question, corpus);
+    if (answer.kind === 'answer') assert.ok(answer.passages.length <= 2, `${question}: at most two passages`);
+  }
   const brief = T.answerQuestion('What goes in the project brief?', corpus);
   assert.equal(brief.kind, 'answer');
   assert.ok(brief.passages.some(item => item.citation.kind === 'assignment' && item.citation.id === 'brief'));
@@ -166,4 +171,14 @@ test('Ada leads grading questions with the rubric, not a policy sentence', () =>
 test('source chips show the full module title', () => {
   const answer = T.answerQuestion('How do I check if an AI answer is accurate?', corpus);
   assert.equal(answer.passages[0].citation.label, 'From Module 1 · Understand what AI can—and cannot—do');
+});
+
+test('the verification criterion connects to the module\'s "evaluation" wording', () => {
+  const rubric = T.rubricFor({ title: 'Responsible AI project brief', points_possible: 100 });
+  const verify = rubric.criteria.find(criterion => criterion.id === 'verify');
+  assert.equal(verify.name, 'Evidence of verification');
+  assert.match(verify.detail, /evaluation/i); assert.match(verify.detail, /what you checked and how/i);
+  const html = T.renderRubric({ esc: value => String(value), attemptId: 'a1', levels: {} }, rubric);
+  assert.match(html, /<span>Evidence of verification<\/span><span class="rubric-max">25 points<\/span><\/legend><p class="rubric-detail">Your evaluation — what you checked and how\.<\/p>/);
+  assert.equal((html.match(/rubric-detail/g) || []).length, 1, 'only criteria with a descriptor show one');
 });

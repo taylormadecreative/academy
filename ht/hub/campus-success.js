@@ -3,14 +3,14 @@
  *  pattern only, never a name. Students see their own success team, never a flag.
  *  Every student here is a fictional SAMPLE; changes are kept in this browser only. */
 
-const STORE_KEY = 'ht-hub-success-demo-v1';
+const STORE_KEY = 'ht-hub-success-demo-v2';
 const DAY = 86400000;
 const CHAR_LIMIT = 600;
 
 const REASONS = { A: 'Missed two or more assignments', S: 'No Hub sign-in in 10 days', G: 'Grade below C at midterm', C: 'Missed three classes' };
 const REASON_ORDER = ['A', 'S', 'G', 'C'];
 const YEARS = { 1: 'First-year', 2: 'Sophomore', 3: 'Junior', 4: 'Senior' };
-const OWNERS = { M: 'Morgan T.', E: 'Dr. Ellis P.', D: 'Dana K.' };
+const OWNERS = { M: 'Morgan T.', E: 'Dr. Ellis P.', D: 'Dana K.', R: 'Ms. Reed' };
 /* Sample sections outside the interactive demo roster, so a flag never points at a class whose
    real (demo) roster could not hold that student. */
 const SECTIONS = ['First-Year Seminar · Section 4', 'Financial Wellness · Sophomore Cohort', 'Intro to Data · Business Majors', 'Intro to Biology · Section 2', 'College Writing I · Section 7'];
@@ -27,6 +27,8 @@ const STATUS = {
   contacted: { label: 'Contacted', icon: 'chat' },
   resolved: { label: 'Resolved', icon: 'check' }
 };
+/* One line icon per history event, on a neutral timeline rule. */
+const HISTORY_ICONS = { flag: 'bell', nudge: 'chat', refer: 'door', note: 'book', resolve: 'check', reopen: 'arrow' };
 const STATUS_FILTERS = [['new', 'Needs first touch'], ['contacted', 'Contacted'], ['resolved', 'Resolved'], ['all', 'All']];
 
 /* Sample roster: fictional names. 38 flagged students.
@@ -39,35 +41,35 @@ const ROWS = [
   ['Naomi B.', 1, 'Mass Communication', 'A', 'M', 4, 1, 'n', 0, ''],
   ['Marcus W.', 1, 'Computer Science', 'S', 'M', 2, 4, 'c', 1, ''],
   ['Destiny H.', 1, 'Criminal Justice', 'A', 'M', 0, 11, 'r', 1, 'C'],
-  ['Andre L.', 1, 'Accounting', 'C', 'M', 2, 2, 'n', 0, ''],
-  ['Nia C.', 1, 'Education', 'A', 'M', 0, 5, 'c', 2, ''],
-  ['Isaiah P.', 1, 'Music', 'S', 'M', 4, 8, 'r', 3, ''],
-  ['Keisha D.', 1, 'Social Work', 'G', 'M', 0, 1, 'n', 0, 'A'],
-  ['Carlos V.', 1, 'Computer Science', 'A', 'M', 2, 7, 'c', 1, ''],
-  ['Brianna J.', 1, 'Biology', 'S', 'M', 0, 0, 'n', 0, ''],
-  ['Tyrell S.', 1, 'Business Administration', 'A', 'M', 0, 10, 'r', 2, ''],
-  ['Ximena R.', 1, 'Psychology', 'S', 'M', 0, 3, 'n', 0, ''],
-  ['Malik A.', 1, 'Kinesiology', 'A', 'M', 0, 6, 'c', 3, ''],
-  ['Jasmine O.', 1, 'English', 'G', 'M', 4, 12, 'r', 1, ''],
+  ['Andre L.', 1, 'Accounting', 'C', 'R', 2, 2, 'n', 0, ''],
+  ['Nia C.', 1, 'Education', 'A', 'R', 0, 5, 'c', 2, ''],
+  ['Isaiah P.', 1, 'Music', 'S', 'R', 4, 8, 'r', 3, ''],
+  ['Keisha D.', 1, 'Social Work', 'G', 'R', 0, 1, 'n', 0, 'A'],
+  ['Carlos V.', 1, 'Computer Science', 'A', 'R', 2, 7, 'c', 1, ''],
+  ['Brianna J.', 1, 'Biology', 'S', 'R', 0, 0, 'n', 0, ''],
+  ['Tyrell S.', 1, 'Business Administration', 'A', 'R', 0, 10, 'r', 2, ''],
+  ['Ximena R.', 1, 'Psychology', 'S', 'R', 0, 3, 'n', 0, ''],
+  ['Malik A.', 1, 'Kinesiology', 'A', 'R', 0, 6, 'c', 3, ''],
+  ['Jasmine O.', 1, 'English', 'G', 'R', 4, 12, 'r', 1, ''],
   ['Darius K.', 2, 'Business Administration', 'A', 'D', 1, 4, 'n', 0, ''],
   ['Amara N.', 2, 'Chemistry', 'S', 'D', 1, 7, 'c', 2, ''],
-  ['Elijah F.', 2, 'Computer Science', 'A', 'M', 2, 9, 'r', 1, ''],
+  ['Elijah F.', 2, 'Computer Science', 'A', 'D', 2, 9, 'r', 1, ''],
   ['Sofia M.', 2, 'Psychology', 'G', 'D', 1, 2, 'n', 0, 'S'],
   ['Trevon B.', 2, 'Kinesiology', 'A', 'D', 1, 5, 'c', 1, ''],
-  ['Kiara E.', 2, 'Mass Communication', 'S', 'M', 4, 1, 'n', 0, ''],
+  ['Kiara E.', 2, 'Mass Communication', 'S', 'D', 4, 1, 'n', 0, ''],
   ['Omari H.', 2, 'Accounting', 'C', 'D', 1, 8, 'r', 2, ''],
-  ['Zoe L.', 2, 'Biology', 'A', 'M', 1, 3, 'c', 1, ''],
-  ['Xavier G.', 2, 'Criminal Justice', 'S', 'M', 2, 5, 'n', 0, ''],
+  ['Zoe L.', 2, 'Biology', 'A', 'D', 1, 3, 'c', 1, ''],
+  ['Xavier G.', 2, 'Criminal Justice', 'S', 'D', 2, 5, 'n', 0, ''],
   ['Tiana W.', 3, 'Political Science', 'A', 'E', 3, 2, 'n', 0, ''],
   ['Luis A.', 3, 'Computer Science', 'G', 'E', 2, 10, 'r', 1, ''],
   ['Ebony S.', 3, 'Education', 'S', 'E', 3, 6, 'c', 2, ''],
-  ['Micah D.', 3, 'Business Administration', 'A', 'M', 2, 4, 'n', 0, 'C'],
+  ['Micah D.', 3, 'Business Administration', 'A', 'E', 2, 4, 'n', 0, 'C'],
   ['Priya S.', 3, 'Biology', 'C', 'E', 3, 9, 'r', 3, ''],
-  ['Devon C.', 3, 'Music', 'A', 'M', 4, 3, 'c', 1, ''],
+  ['Devon C.', 3, 'Music', 'A', 'E', 4, 3, 'c', 1, ''],
   ['Aisha K.', 4, 'Psychology', 'S', 'E', 3, 1, 'n', 0, ''],
-  ['Mateo R.', 4, 'Kinesiology', 'A', 'M', 3, 7, 'c', 1, ''],
+  ['Mateo R.', 4, 'Kinesiology', 'A', 'E', 3, 7, 'c', 1, ''],
   ['Janae P.', 4, 'Mass Communication', 'G', 'E', 3, 11, 'r', 2, ''],
-  ['Quincy T.', 4, 'Accounting', 'S', 'M', 2, 5, 'c', 4, ''],
+  ['Quincy T.', 4, 'Accounting', 'S', 'E', 2, 5, 'c', 4, ''],
   ['Leah O.', 4, 'English', 'G', 'E', 3, 8, 'c', 2, ''],
   ['Rashad J.', 4, 'Computer Science', 'C', 'D', 2, 6, 'r', 1, '']
 ];
@@ -349,7 +351,7 @@ function detailPanel(ctx, s, actor) {
     </div>
     ${composerForm(ctx, s, actor)}
     <h3 class="success-subhead">History</h3>
-    <ol class="success-history">${history.map((e) => `<li data-kind="${esc(e.kind)}"><time datetime="${esc(e.at)}">${esc(formatDate(e.at))} · ${esc(formatTime(e.at))}</time><span>${esc(e.text)}</span>${e.detail ? `<span class="success-history-detail">${esc(e.detail)}</span>` : ''}</li>`).join('')}</ol>
+    <ol class="success-history" aria-label="History, newest first">${history.map((e, i) => `<li data-kind="${esc(e.kind)}"${i === 0 ? ' tabindex="-1" data-sf="history-latest"' : ''}><span class="success-history-mark" aria-hidden="true">${icon(HISTORY_ICONS[e.kind] || 'book')}</span><time datetime="${esc(e.at)}">${esc(formatDate(e.at))} · ${esc(formatTime(e.at))}</time><span>${esc(e.text)}</span>${e.detail ? `<span class="success-history-detail">${esc(e.detail)}</span>` : ''}</li>`).join('')}</ol>
   </section>`;
 }
 function staffBody(ctx) {
@@ -471,6 +473,14 @@ function touch(id) {
   const o = override(id), s = student(id);
   if (o.status === 'new') { o.status = 'contacted'; o.firstTouch = Math.max(0, (Date.now() - s.flaggedAt) / DAY); }
 }
+/* After an action, bring the new history entry to the middle of the screen so the app's
+   bottom toast never sits on top of it. Focus already moved there (no scroll) in paint(). */
+function revealLatest(root) {
+  const item = root.querySelector('[data-sf="history-latest"]');
+  if (!item) return;
+  const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  item.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+}
 function narrow() { return window.matchMedia?.('(max-width: 900px)').matches; }
 
 export function bindSuccess(view, root, ctx) {
@@ -508,7 +518,7 @@ export function bindSuccess(view, root, ctx) {
       const s = student(selectedId), o = override(selectedId);
       o.status = o.firstTouch == null ? 'new' : 'contacted'; o.resolvedReason = null;
       log(selectedId, 'reopen', `Reopened by ${actor()}`);
-      saveStore(); paint(root, 'action-resolve'); ctx.notify(`${s.name} is open again.`);
+      saveStore(); paint(root, 'history-latest'); revealLatest(root); ctx.notify(`${s.name} is open again.`);
       return;
     }
     if (t.hasAttribute('data-success-reset')) {
@@ -532,27 +542,27 @@ export function bindSuccess(view, root, ctx) {
       const message = text('message').slice(0, CHAR_LIMIT);
       if (!message) { ctx.notify('Write a short message before sending.', 'error'); form.querySelector('textarea')?.focus(); return; }
       touch(id); log(id, 'nudge', `Nudge sent by ${me}`, `"${message.length > 160 ? message.slice(0, 157) + '...' : message}"`);
-      nudgeDrafts.delete(id); closeComposer(form); saveStore(); paint(root, 'action-nudge');
+      nudgeDrafts.delete(id); closeComposer(form); saveStore(); paint(root, 'history-latest'); revealLatest(root);
       ctx.notify(`${endSentence(`Nudge sent to ${s.name}`)} It will appear in their Hub messages.`);
     } else if (type === 'refer') {
       const office = text('office');
       if (!OFFICES.some(([o]) => o === office)) { ctx.notify('Choose an office for the referral.', 'error'); form.querySelector('select')?.focus(); return; }
       const note = text('note').slice(0, 400);
       touch(id); log(id, 'refer', `Referred to ${office} by ${me}`, note);
-      closeComposer(form); saveStore(); paint(root, 'action-refer');
+      closeComposer(form); saveStore(); paint(root, 'history-latest'); revealLatest(root);
       ctx.notify(endSentence(`Referral sent to ${office} for ${s.name}`));
     } else if (type === 'note') {
       const note = text('note').slice(0, 500);
       if (!note) { ctx.notify('Write a note before saving.', 'error'); form.querySelector('textarea')?.focus(); return; }
       override(id); log(id, 'note', `Note from ${me}`, note);
-      closeComposer(form); saveStore(); paint(root, 'action-note');
+      closeComposer(form); saveStore(); paint(root, 'history-latest'); revealLatest(root);
       ctx.notify(`Note added to ${s.name}'s history.`);
     } else if (type === 'resolve') {
       const reason = RESOLVE_REASONS.includes(text('reason')) ? text('reason') : 'Other';
       const note = text('note').slice(0, 400);
       touch(id); const o = override(id); o.status = 'resolved'; o.resolvedReason = reason;
       log(id, 'resolve', `Marked resolved (${reason}) by ${me}`, note);
-      closeComposer(form); saveStore(); paint(root, 'action-reopen');
+      closeComposer(form); saveStore(); paint(root, 'history-latest'); revealLatest(root);
       ctx.notify(`${s.name} marked resolved.`);
     }
   };

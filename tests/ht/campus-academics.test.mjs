@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const source = fs.readFileSync(new URL('../../ht/hub/campus-academics.js', import.meta.url), 'utf8');
-const { renderAcademics, bindAcademics, parseAcademicLocation, canViewAcademicSection, canManageAcademicSection, academicGradeSummary } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const { renderAcademics, bindAcademics, parseAcademicLocation, canViewAcademicSection, canManageAcademicSection, academicGradeSummary, gradeSubmitLabel } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const iso = offset => new Date(Date.now() + offset).toISOString();
 const day = 86_400_000;
@@ -153,6 +153,36 @@ function render(state, query = '') {
   assert.match(render(state, 'cohort=section&tab=assignments&new=1'), /<section class="campus-panel campus-academic-editor"><h3>New assignment<\/h3>/);
   const foreign = render(state, 'cohort=section&tab=assignments&assignment=work&student=unrelated');
   assert.match(foreign, /That student’s record is not available/); assert.doesNotMatch(foreign, /data-academic-form="grade"/);
+});
+
+ test('editing a published grade keeps it published and the button says what it will do', () => {
+  const state = stateFor('teacher', 'staff');
+  state.assignment_attempts = [{ id: 'attempt', assignment_id: 'work', user_id: 'learner', attempt_no: 1, body: 'Work', submitted_at: iso(-1000) }];
+  const grade = status => ({ id: `grade-${status}`, assignment_id: 'work', user_id: 'learner', attempt_id: 'attempt', score: 90, disposition: 'graded', status, feedback: 'Solid work.', revision: 2, created_at: iso(-500), published_at: status === 'published' ? iso(-500) : null });
+  const query = 'cohort=section&tab=assignments&assignment=work&student=learner';
+  const visibility = html => html.match(/<span>Grade visibility<\/span><select name="status" >([\s\S]*?)<\/select>/)?.[1] || '';
+  const submit = html => html.match(/<button class="campus-button" type="submit" data-grade-submit[^>]*>([^<]*)<\/button>/);
+  state.assignment_grades = [grade('published')];
+  let html = render(state, query);
+  assert.match(visibility(html), /<option value="published" selected>/, 'a published grade stays published by default');
+  assert.doesNotMatch(visibility(html), /<option value="draft" selected>/);
+  assert.equal(submit(html)?.[1], 'Update Jordan’s grade');
+  assert.match(submit(html)[0], /data-was-published/);
+  assert.match(html, /<p class="campus-member-notice campus-academic-unpublish" data-grade-unpublish-warning hidden>Jordan will stop seeing this grade until you publish again\.<\/p>/);
+  state.assignment_grades = [grade('draft')];
+  html = render(state, query);
+  assert.match(visibility(html), /<option value="draft" selected>/);
+  assert.equal(submit(html)?.[1], 'Save draft');
+  assert.doesNotMatch(submit(html)[0], /data-was-published/);
+  assert.match(submit(html)[0], /data-label-publish="Publish to Jordan"/);
+  state.assignment_grades = [];
+  html = render(state, query);
+  assert.match(visibility(html), /<option value="draft" selected>/, 'a first review starts as a private draft');
+  assert.equal(submit(html)?.[1], 'Save draft');
+  assert.equal(gradeSubmitLabel('Imani', 'published', false), 'Publish to Imani');
+  assert.equal(gradeSubmitLabel('Imani', 'published', true), 'Update Imani’s grade');
+  assert.equal(gradeSubmitLabel('Imani', 'draft', true), 'Save draft');
+  assert.equal(gradeSubmitLabel('Chris', 'published', true), 'Update Chris’ grade');
 });
 
  test('teacher can read archived history but archived sections and inactive students expose no grading forms', () => {
