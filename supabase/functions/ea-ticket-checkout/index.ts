@@ -97,6 +97,18 @@ Deno.serve(async (req: Request) => {
     if (eErr || !ev) { console.error("event lookup", eErr?.message); return json({ error: "server_error" }, 500); }
     if (ev.status !== "on_sale") return json({ error: "not_on_sale" }, 400);
 
+    // ---- a free seat: one per email, one seat per sign-up -------------------------------
+    // Signing up twice (a second tab, a friend retyping) must not mint a second seat or a
+    // second founder notice. The answer says "you already have one" and nothing else: no
+    // codes back to whoever typed an address.
+    const free = tier.price_cents === 0;
+    if (free) {
+      const { data: have, error: hvErr } = await sb.from("ea_tickets").select("id")
+        .eq("event_id", ev.id).eq("status", "valid").eq("holder_email", email).limit(1);
+      if (hvErr) { console.error("free seat lookup", hvErr.message); return json({ error: "server_error" }, 500); }
+      if (have && have.length) return json({ done: true, existing: true });
+    }
+
     // ---- waitlist early access ----------------------------------------------------
     let signupId: string | null = null;
     if (early && UUID_RX.test(early)) {
@@ -109,7 +121,7 @@ Deno.serve(async (req: Request) => {
     // ---- hold the seat(s), atomically -------------------------------------------------
     // One statement: lock the tier, recount what is taken, insert the pending order.
     const { data: held, error: hErr } = await sb.rpc("ea_hold_seats", {
-      p_tier_id: tier.id, p_email: email, p_full_name: name, p_qty: qty, p_signup_id: signupId,
+      p_tier_id: tier.id, p_email: email, p_full_name: name, p_qty: free ? 1 : qty, p_signup_id: signupId,
     });
     if (hErr) { console.error("ea_hold_seats", hErr.message); return json({ error: "server_error" }, 500); }
     const hold = (held ?? {}) as { error?: string; available?: number; order?: HeldOrder };
@@ -128,6 +140,9 @@ Deno.serve(async (req: Request) => {
     if (order.amount_cents === 0) {
       try {
         const tickets = await fulfillOrder(sb, order.id);
+        // The free class needs no code (the room lets any signed-in account in through the link),
+        // so a $0 seat on an 'ai101' date answers without one.
+        if (ev.workshop_slug === "ai101") return json({ done: true, order_id: order.id });
         return json({ done: true, order_id: order.id, codes: tickets.map((t) => t.code) });
       } catch (e) {
         await releaseSeat();

@@ -8,9 +8,9 @@ one place: the three constants below. Change it there and rebuild. Never edit
 agent/index.html by hand; the next build_site.py run overwrites it.
 """
 
-DAY = "October 3"
-DATE = "Saturday, October 3, 7 to 9 PM CT"
-DATE_LONG = "Saturday, October 3, 2026, 7 to 9 PM CT"
+DAY = "October 17"
+DATE = "Saturday, October 17, 7 to 9 PM CT"
+DATE_LONG = "Saturday, October 17, 2026, 7 to 9 PM CT"
 
 TITLE = "Build Your First AI Agent: a one-night online workshop by Taylormade Academy"
 DESC = (f"{DATE_LONG}, live online on the Taylormade Academy player. "
@@ -86,7 +86,7 @@ def _form(form_id, source, compact=False, on_ink=False):
     return f"""<div class="ag-form{' on-paper' if on_ink else ''}">
 <div class="ag-live">
 <div class="ag-form-h">Put your name on the list</div>
-<p class="ag-form-p">The list gets the first rate for {DAY}, through a personal link, before the public sale opens.</p>
+<p class="ag-form-p">The list gets the lowest rate for {DAY}, through a personal link in your email.</p>
 <form id="{form_id}" data-source="{source}" novalidate>
 <div class="ag-fields">{fields}</div>
 <div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -182,7 +182,7 @@ def agent_page(head, header, footer, ver):
 <div class="letter" style="margin-top:22px">
 <p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
 <p>The thing I hear most before a workshop is not "what is AI". It is "I think I'm too old to learn this". Then the same person describes the job they want handled, every rule and every exception, in thirty seconds. That description is the whole thing you type in. This is my answer: one night, online, one agent, built by you, doing a job you are tired of doing.</p>
-<p>If that is what you have been waiting for, put your name down. The list gets the first rate before anyone else.</p>
+<p>If that is what you have been waiting for, put your name down. The list gets the lowest rate, through a link only they receive.</p>
 <a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Put my name down <span class="arr">&rarr;</span></a>
 </div>
 </div>
@@ -198,7 +198,7 @@ def agent_page(head, header, footer, ver):
 </div></div></section>
 
 <section class="ag-close on-ink"><div class="wrap">
-<h2>The first rate goes to the list.</h2>
+<h2>The lowest rate goes to the list.</h2>
 <p class="lead">{DAY}, online. The list hears first, with a personal link to the lowest rate.</p>
 {_form("wlForm2", "agent-close", compact=True, on_ink=True)}
 </div></section>

@@ -1,0 +1,29 @@
+/* /ai101/ — AI 101, the free class. Everything shared (sheet, roster, band, steps, FAQ, close)
+   comes from css/agent.css; this file only adds the word list and the replay page. */
+
+/* ---------- the words ---------- */
+.a1-words{padding-block:clamp(56px,7vw,104px);background:var(--bg-soft);}
+.a1-words h2{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.03em;max-width:18ch;}
+.a1-words .lead{max-width:52ch;}
+.a1-wordlist{margin:clamp(24px,3vw,40px) 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(28px,5vw,72px);}
+.a1-word{padding:18px 0;border-top:1px solid var(--hair);display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:16px;align-items:baseline;}
+.a1-word dt{font-family:var(--display);font-weight:700;font-size:clamp(18px,1.7vw,21px);letter-spacing:-.015em;color:var(--ink);}
+.a1-word dd{margin:0;font-size:15.5px;line-height:1.6;color:var(--ink-2);max-width:44ch;}
+@media(max-width:760px){
+  .a1-wordlist{grid-template-columns:minmax(0,1fr);}
+  .a1-word{grid-template-columns:minmax(0,1fr);gap:4px;}
+}
+
+/* ---------- replay (members only) ---------- */
+.a1-replay{padding-block:clamp(40px,6vw,90px);}
+.a1-rp{margin-top:clamp(20px,2.6vw,32px);}
+.a1-rp-card{max-width:640px;background:#fff;border:1px solid var(--hair);border-radius:24px;box-shadow:var(--shadow-card);padding:clamp(22px,3vw,36px);}
+.a1-rp-card h2{font-size:clamp(24px,2.8vw,32px);letter-spacing:-.025em;}
+.a1-rp-card p{margin-top:10px;font-size:15.5px;line-height:1.62;color:var(--ink-2);max-width:52ch;}
+.a1-rp-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
+.a1-rp-player{position:relative;aspect-ratio:16/9;background:#04123a;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-card);}
+.a1-rp-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.a1-rp-next{margin-top:16px;font-size:15.5px;color:var(--ink-2);}
+
+/* the "Free · 45 min" stamp sits over the photo, never under it (on a phone the photo overlaps it) */
+.ag-roster .ag-stamp{z-index:3;}

@@ -13,7 +13,7 @@ def _asset_ver():
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
-                "css/agent.css", "js/agent.js", "js/founder.js",
+                "css/agent.css", "js/agent.js", "css/ai101.css", "js/ai101.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
                 "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js"):
@@ -44,7 +44,7 @@ PWA_TAGS = (
     f'<script src="/js/meta-pixel.js?v={ASSET_VER}" defer></script>'
 )
 
-NAV = [("Workshop", "/agent/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Free class", "/ai101/"), ("Workshop", "/agent/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -952,7 +952,7 @@ def not_found():
 <a class="btn ghost" href="/store/">Browse the store</a></div>
 </div></section></main>""" + footer()
 
-SITEMAP_PATHS = ["/", "/agent/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
+SITEMAP_PATHS = ["/", "/ai101/", "/agent/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
                  "/live/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
@@ -1049,6 +1049,9 @@ if __name__ == "__main__":
     from build_agent import agent_page, agent_thanks_page
     render("/agent/", agent_page(head, header, footer, ASSET_VER))
     render("/agent/thanks/", agent_thanks_page(head, header, footer, ASSET_VER))
+    from build_ai101 import ai101_page, ai101_replay_page
+    render("/ai101/", ai101_page(head, header, footer, ASSET_VER))
+    render("/ai101/replay/", ai101_replay_page(head, header, footer, ASSET_VER))
     # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.

@@ -80,7 +80,7 @@
       (pos ? '<div class="n">' + esc(pos) + '<small>on the list</small></div>' : '') +
       '<h3>' + esc(first) + ', ' + (d.existing ? 'you were already on the list.' : 'you are on the list.') + '</h3>' +
       '<p>' + (d.existing ? 'Your place and your early-bird link have not changed. ' : 'A confirmation just went to <b>' + esc(email) + '</b>. ') +
-      'When the date is set you hear first, with a personal link that opens the waitlist rate before the public sale.</p>' +
+      'You get a personal link to the lowest rate, the waitlist rate, by email.</p>' +
       '<a class="btn gold" href="/login/?mode=join">Join the Academy free while you wait <span class="arr">&rarr;</span></a>';
     box.classList.add('is-done');
     try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
@@ -108,7 +108,10 @@
     rest('ea_events_public?select=*&order=starts_at.asc'),
     rest('ea_tiers_public?select=*&order=sort.asc,price_cents.asc')
   ]).then(function (res) {
-    var events = res[0] || [], tiers = res[1] || [];
+    // ea_events_public carries every workshop (the free AI 101 lives on /ai101/); this page sells the agent night only.
+    var events = (res[0] || []).filter(function (e) { return e.workshop_slug === 'build-your-first-ai-agent'; });
+    var ids = events.map(function (e) { return e.id; });
+    var tiers = (res[1] || []).filter(function (t) { return ids.indexOf(t.event_id) !== -1; });
     renderDates(events);
     renderSeats(events, tiers);
   });

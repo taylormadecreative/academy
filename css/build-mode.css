@@ -351,6 +351,14 @@ p{max-width:68ch;}
   .mk-body{grid-template-columns:170px 1fr;}
   .plat-fl.vid{right:2%;}
 }
+/* six nav links + Sign in + Join free + cart only fit on one line above ~1140px; tighten them on
+   small laptops and tablets in landscape so the cart never pushes the page sideways */
+@media(min-width:921px) and (max-width:1140px){
+  .navlink{padding:9px 8px;font-size:13.5px;}
+  .nav{gap:0;}
+  .nav-cta{gap:6px;}
+}
+@media(min-width:921px) and (max-width:980px){ .navlink{padding:9px 6px;} }
 @media(max-width:920px){
   .nav{display:none;}
   .nav-cta .navlink{display:none;}
