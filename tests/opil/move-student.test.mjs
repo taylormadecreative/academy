@@ -2,7 +2,7 @@
 // (the RPC itself, ea_opil_move_student in 0055, was exercised on a real Postgres via PGlite)
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { teamKey, teamChoices, resultLine } from '../../opil/hub/admin/move-student.js';
+import { teamKey, teamChoices, resultLine, errorLine } from '../../opil/hub/admin/move-student.js';
 
 test('teamKey mirrors ea_opil_team_key: case, punctuation, a leading "Team " never split a team', () => {
   assert.equal(teamKey('Team KIMT'), 'kimt');
@@ -29,4 +29,11 @@ test('resultLine says what happened in plain words', () => {
     /Old stays on the list because it has chat, locker work or scores on it\.$/);
   assert.equal(resultLine({ to: 'X', unchanged: true }, 'Sam'), 'Sam is already on X. Nothing changed.');
   assert.equal(resultLine(null, 'x'), '');
+});
+
+test('errorLine: the RPC own refusals pass through, anything else is plain words', () => {
+  assert.equal(errorLine({ message: 'approve this student first, then move them' }), 'Could not move: approve this student first, then move them. Nothing changed.');
+  assert.equal(errorLine({ message: 'permission denied for function ea_opil_move_student' }), 'Could not move: the connection dropped or something went wrong, so try again. Nothing changed.');
+  assert.equal(errorLine(new TypeError('Failed to fetch')), 'Could not move: the connection dropped or something went wrong, so try again. Nothing changed.');
+  assert.equal(errorLine(undefined), 'Could not move: the connection dropped or something went wrong, so try again. Nothing changed.');
 });

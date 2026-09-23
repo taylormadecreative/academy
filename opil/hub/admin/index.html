@@ -184,7 +184,7 @@ document.getElementById('stats').innerHTML = [
 
 /* registrations table */
 /* an approved row can be moved to another team (Move → move-student.js, migration 0055) */
-const approvedCell = (id) => `<span style="color:var(--emerald);font-weight:600;white-space:nowrap">✓ approved</span> <button class="pillbtn" data-move="${id}" title="Move this student to another team" style="padding:4px 10px;font-size:11px;margin-left:6px">Move</button>`;
+const approvedCell = (id) => `<span style="color:var(--emerald);font-weight:600;white-space:nowrap">✓ approved</span> <button class="pillbtn" data-move="${id}" aria-expanded="false" aria-label="Move ${esc((regs || []).find(x => x.id === id)?.full_name || 'this student')} to another team" style="padding:6px 12px;font-size:11.5px;min-height:28px;margin-left:6px">Move</button>`;
 function regRow(r){
   const named = ((r.members || []).length || 0);
   const status = r.approved
