@@ -87,7 +87,7 @@ function managedWhen(times, nowMs) {
   const t = (d) => d.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
   const dayKey = (d) => d.toLocaleDateString('en-CA', { timeZone: tz });
   const today = dayKey(start) === dayKey(new Date(nowMs));
-  return { day: today ? 'Today' : start.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }), time: t(start) + (end ? ' – ' + t(end) : ''), startsAt: t(start), today };
+  return { day: start.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }), time: t(start) + (end ? ' – ' + t(end) : ''), startsAt: t(start), today };
 }
 const token = async () => (await sb.auth.getSession()).data.session?.access_token || '';
 
