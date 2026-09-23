@@ -178,6 +178,15 @@ function staffContent(ctx) {
   const panel={announcements:announcementPanel,events:eventPanel,learning:learningPanel,reviews:reviewPanel,settings:settingsPanel}[ui.tab] || announcementPanel;
   return `<div class="campus-staff-tabs" role="tablist" aria-label="Staff workspace">${sections.map(([key,label]) => `<button type="button" id="campus-tab-${key}" role="tab" aria-selected="${ui.tab===key}" aria-controls="campus-staff-panel" tabindex="${ui.tab===key?'0':'-1'}" class="campus-tab" data-action="staff-tab" data-tab="${key}">${label}</button>`).join('')}</div><div id="campus-staff-panel" role="tabpanel" aria-labelledby="campus-tab-${ui.tab}" class="campus-staff-panel">${panel(ctx,ui)}</div>`;
 }
+// A link such as /ht/hub/support/?topic=Technology&subject=Security%20packet%20request
+// opens the new-request form already filled in. Unknown topics fall back to Learning;
+// every value is escaped where it is rendered.
+function requestPrefill() {
+  let params;
+  try { params = new URLSearchParams(globalThis.location?.search || ''); } catch { params = new URLSearchParams(); }
+  const topic = params.get('topic') || '';
+  return {topic: requestCategories.includes(topic) ? topic : 'Learning', subject: String(params.get('subject') || '').trim().slice(0, 160)};
+}
 function supportContent(ctx) {
   const ui=memory(ctx); const isStaff=staff(ctx);
   const requests=list(ctx.state.requests).filter(item => isStaff || item.user_id===uid(ctx));
@@ -194,7 +203,7 @@ function supportContent(ctx) {
     <div class="campus-support-thread" aria-label="Request replies">${responses.map(item => `<article class="campus-support-message"><h3>${e(ctx,displayName(ctx,item.author_id))}</h3><p class="campus-muted">${time(ctx,item.created_at)}</p><p class="campus-preserve-lines">${e(ctx,item.body)}</p></article>`).join('') || '<p class="campus-muted">No replies yet.</p>'}</div>
     ${isStaff ? `<form data-form="request-status" class="campus-form"><input type="hidden" name="id" value="${e(ctx,current.id)}"><div class="campus-grid">${select(ctx,'Status','status',requestStatuses,current.status)}${select(ctx,'Staff owner','assigned_to',[['','Unassigned'],...owners.map(person => [person.user_id,person.display_name])],current.assigned_to || '')}</div>${actions('Update request')}</form>`:''}
     ${current.status!=='resolved' || isStaff ? `<form data-form="request-reply" class="campus-form"><input type="hidden" name="request_id" value="${e(ctx,current.id)}">${textarea(ctx,'Reply','body','','required maxlength="10000"')}${actions('Send reply')}</form>`:'<p class="campus-muted">This request is resolved. Start a new request if you need more help.</p>'}` : `${heading(ctx,'How can we help?','Choose a topic and the campus support team can follow up here.')}
-    <form data-form="request-new" class="campus-form">${select(ctx,'Topic','category',requestCategories.map(category => [category,category]),'Learning')}${field(ctx,'Subject','subject','','required maxlength="160"')}${textarea(ctx,'What do you need help with?','body','','required maxlength="10000"')}${actions('Send request')}</form>`}
+    <form data-form="request-new" class="campus-form">${select(ctx,'Topic','category',requestCategories.map(category => [category,category]),requestPrefill().topic)}${field(ctx,'Subject','subject',requestPrefill().subject,'required maxlength="160"')}${textarea(ctx,'What do you need help with?','body','','required maxlength="10000"')}${actions('Send request')}</form>`}
   </section></div>`;
 }
 function insightsContent(ctx) {

@@ -4,13 +4,13 @@ HT.spaces.students = {
   key: 'students', title: 'Students', office: 'Student Affairs', icon: 'users',
   blurb: 'Spring Ready Week in your pocket, student orgs with their own channels, leadership programs, and seminars with attendance.',
   sub: 'The first week, the orgs, the leadership programs, and the seminar series, with a check-in code at the door of each.',
-  stamp: 'Preview · sample content', headCta: { label: 'Spring Ready Week', href: '#orientation', style: 'ht-gold' },
+  stamp: 'Preview · sample content', headCta: { label: 'Spring Ready Week', href: '#orientation', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Student Affairs', title: 'Every week on the Hill, in your pocket.',
       text: 'Spring Ready Week with the schedule in your pocket and a code at every door. Student organizations with their own channels. Leadership programs with a certificate from HT at the end, next on the roadmap. Seminar series that count attendance by one tap. All of it under the same sign-in as the rest of the Hill.',
       ctas: [{ label: 'Spring Ready Week', href: '#orientation', style: 'ht' }, { label: 'Student organizations', href: '#orgs', style: 'ht-line' }],
-      image: '/ht/img/athletics.jpg', imageAlt: 'Huston-Tillotson student athletes representing the university',
-      ada: { text: 'Spring Ready Week starts October 20 at 8:30 with check-in at the main entrance: advising, aid, wellness, and the clubs fair, the three days before Charter Day. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
+      image: '/ht/img/students-library.jpg', imageAlt: 'Five Huston-Tillotson students in HT shirts in the campus library',
+      ada: { text: 'Spring Ready Week starts October 20 at 8:30 with check-in at the main entrance: advising, aid, wellness, and the clubs fair, the three days before Charter Day. Your code is on the screen when you walk in. Want the three days on your calendar?', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'agenda', id: 'orientation', title: 'Spring Ready Week', meta: 'The three days before Charter Day · advising opens Oct 19, registration Oct 26 · sample schedule', event: { name: 'Spring Ready Week', dates: 'Tue Oct 20 to Thu Oct 22, 2026', place: 'Huston-Tillotson University', note: 'Sample schedule' }, days: [
       { label: 'Tuesday, October 20', date: '2026-10-20', items: [
         { time: '8:30 AM', title: 'Check-in and welcome bags', where: 'Main entrance', who: 'Student Affairs', tag: 'Code on screen', tagCls: 'green' }, { time: '10:00 AM', title: 'Opening the week', where: 'The auditorium', who: 'Dean of Students (sample)' },
@@ -42,7 +42,7 @@ HT.spaces.students = {
         cert: { title: 'Certificate of completion, issued by HT', text: 'Next on the roadmap: lands on the student\'s page when the program ends', status: 'Next', cls: 'soft' } } ] },
     { type: 'cards', title: 'Seminar series with attendance', meta: 'Check-in code on screen', items: [
       { meta: 'Monthly · counseling and health', title: 'Wellness Wednesdays', text: 'Sleep, stress, and the semester. Attendance counts toward the wellness certificate.', img: '/ht/img/fall-convocation.jpg', alt: 'Fall convocation', foot: 'Check-in code on screen' },
-      { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', foot: 'Check-in code on screen' },
+      { meta: 'Fall · Financial aid', title: 'Financial wellness', text: 'Four evenings on aid, budgets, and the letter that comes in March.', img: '/ht/img/commencement.jpg', alt: 'Dr. Melva K. Wallace with a graduate at Commencement', foot: 'Check-in code on screen' },
       { meta: 'Fall · the library', title: 'Study skills', text: 'Three sessions before midterms. The replay lands the same afternoon.', img: '/ht/img/student-laptop.jpg', alt: 'A student at a laptop', foot: 'Check-in code on screen' },
       { meta: 'Spring · civic engagement', title: 'Civic engagement', text: 'Voting, city council, and the service society\'s Saturdays.', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'Check-in code on screen' } ] },
     { type: 'cta', title: 'Everything on the Hill, one sign-in.', text: 'Your orgs, your seminars, your first week, and the campus channel, all in the same place as the live room.', primary: { label: 'Open the Community', href: '/ht/hub/community/', style: 'ht-gold' }, secondary: { label: 'The live room', href: '/ht/hub/live/', style: 'ht-line' } },

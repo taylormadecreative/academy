@@ -4,13 +4,13 @@ HT.spaces.admissions = {
   key: 'admissions', title: 'Admissions', office: 'Admissions & enrollment', icon: 'door',
   blurb: 'An admitted-student community before move-in, yield events live, and a space for parents.',
   sub: 'From the acceptance letter to move-in weekend: a community for admitted students, yield events live in the hub, and a space parents can open too.',
-  stamp: 'Preview · sample content', headCta: { label: 'Admitted 2031', href: '#admitted', style: 'ht-gold' },
+  stamp: 'Preview · sample content', headCta: { label: 'Admitted 2031', href: '#admitted', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Admissions & enrollment', title: 'Admitted on a Tuesday. On the Hill by Wednesday night.',
       text: 'The day a student is admitted, they join a community of the people they will walk in with. Housing questions get answered by a person. Admitted Student Night streams live. Parents get their own channel. By move-in, the campus is already familiar.',
       ctas: [{ label: 'The admitted community', href: '#admitted', style: 'ht' }, { label: 'Yield events', href: '#yield', style: 'ht-line' }],
       image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students meeting in the library',
-      ada: { text: 'Congratulations, and welcome. Two hundred and twelve of your classmates are already in the Admitted 2031 channel. Admitted Student Night is live in March. Want me to save the date?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Congratulations, and welcome. Two hundred and twelve of your classmates are already in the Admitted 2031 channel. Admitted Student Night is live in March. Want me to save the date?', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'feed', id: 'admitted', title: 'Admitted students, Class of 2031', meta: 'Sample posts · a person answers', channels: ['Admitted 2031', 'Housing', 'Financial aid Q&A', 'Parents'], posts: [
       { who: 'Admissions', chan: 'Admitted 2031', when: 'This week', text: 'Admitted Student Night is March 4 at 6, live in the hub. Current students take your questions after the President. Add it to your calendar below.', likes: 64 },
       { who: 'Nia B.', chan: 'Admitted 2031', when: 'This week', text: 'Just got my letter. From Houston, thinking biology. Who else is coming from Houston?', likes: 38 },

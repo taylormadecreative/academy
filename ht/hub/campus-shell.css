@@ -1,0 +1,37 @@
+/* HT Hub shell refinements (A+ review round 2): phone layout, captions, tour, alignment. Loaded after campus.css. */
+/* Renderings of the future campus are labeled as renderings */
+.campus-office-photo,.lead-door-photo,.campus-hero-figure{position:relative}
+.campus-hero-figure{margin:0;min-width:0}
+.campus-hero-figure img{display:block}
+.campus-rendering-tag{position:absolute;left:8px;bottom:8px;padding:3px 8px;border-radius:6px;background:rgba(41,28,20,.72);color:#fffefa;font:600 10px/1.3 Inter,-apple-system,sans-serif;letter-spacing:.02em;pointer-events:none}
+.lead-door-photo{display:block;width:64px;height:52px;border-radius:8px;overflow:hidden}
+.lead-door-photo .campus-rendering-tag{left:3px;bottom:3px;padding:1px 4px;font-size:8px;border-radius:4px}
+/* Campus directory: "Explore space" sits on the card's baseline */
+.campus-office-card-copy{height:100%}
+.campus-office-card-copy .campus-office-open{margin-top:auto;padding-top:6px;width:100%}
+/* Tour rail */
+.campus-leadership-role{display:inline-block;margin-left:8px;padding:2px 8px;border:1px solid #d9cbb7;border-radius:6px;color:var(--campus-ink);font-weight:600;letter-spacing:.04em}
+/* Phone: secondary destinations as a scrolling strip; the desktop nav row gives way */
+.campus-phone-strip{display:none}
+@media(max-width:760px){
+ .campus-app .campus-nav,.ht-space-page .campus-nav{display:none}
+ .campus-phone-strip{display:flex;gap:8px;overflow-x:auto;padding:10px 18px;background:var(--campus-surface);border-bottom:1px solid var(--campus-line);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .campus-phone-strip::-webkit-scrollbar{display:none}
+ .campus-phone-strip a{display:inline-flex;flex:0 0 auto;align-items:center;gap:6px;min-height:36px;padding:6px 12px;border:1px solid var(--campus-line);border-radius:999px;background:var(--campus-paper);color:var(--campus-ink)!important;font-size:12px;font-weight:500;text-decoration:none!important;white-space:nowrap}
+ .campus-phone-strip a svg{width:15px;height:15px;color:var(--campus-maroon)}
+ .campus-phone-strip a[aria-current=page]{background:var(--campus-maroon);border-color:var(--campus-maroon);color:#fffefa!important}
+ .campus-phone-strip a[aria-current=page] svg{color:#fffefa}
+ .campus-demo{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px}
+ .campus-demo>div{grid-column:1;grid-row:1}
+ .campus-demo label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+ .campus-demo select{grid-column:2;grid-row:1;width:auto!important;min-width:0!important;max-width:none!important;font-size:12px}
+ .campus-page-head{flex-direction:column;align-items:flex-start!important;gap:12px}
+ .campus-head-actions{align-items:flex-start!important;text-align:left;width:100%}
+ .campus-head-actions time{white-space:nowrap}
+ .campus-workspace-links{display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center!important;justify-content:flex-start!important;gap:8px!important;margin:0!important}
+ .campus-workspace-links a{margin:0!important}
+ .campus-workspace-links a{white-space:nowrap}
+ .campus-section-head a,.campus-row a,.lead-trust-card a{display:inline-flex;align-items:center;min-height:28px}
+}
+/* An open phone conversation gets the whole screen: the strip steps aside so Send stays above the tab bar */
+@media(max-width:760px){body.campus-app:has(.campus-messages-layout.is-thread) .campus-phone-strip{display:none}.campus-messages-layout.is-thread{height:calc(100dvh - 296px)!important}}

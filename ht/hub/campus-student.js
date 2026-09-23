@@ -154,6 +154,11 @@ function adaCard(ctx) {
   return `<section class="campus-panel campus-ada"><div class="campus-section-head"><div><p class="campus-eyebrow">Your campus welcome</p><h2>A message from Ada</h2></div><span class="campus-label">Recorded welcome</span></div><video class="campus-video" controls playsinline preload="metadata" src="${esc(url)}"${poster ? ` poster="${esc(poster)}"` : ''} aria-label="Ada campus welcome"${transcript ? ' aria-describedby="campus-ada-transcript"' : ''}>Your browser does not support this video. <a href="${esc(url)}">Open the welcome video</a>.</video>${transcript ? `<details id="campus-ada-transcript" class="campus-transcript"><summary>Read the transcript</summary>${textBlock(transcript, ctx)}</details>` : ''}</section>`;
 }
 
+function dueAssignments(state, cohorts) {
+  const submitted = new Set(own(state, 'assignment_attempts').map((attempt) => attempt.assignment_id));
+  return rows(state, 'assignments').filter((item) => item.status === 'published' && time(item.due_at) > Date.now() && cohorts.some((cohort) => cohort.id === item.cohort_id) && !submitted.has(item.id)).sort((a, b) => time(a.due_at) - time(b.due_at));
+}
+
 function homeView(ctx) {
   const { state, esc, href } = ctx;
   const enrollments = own(state, 'enrollments');
@@ -167,16 +172,29 @@ function homeView(ctx) {
   const visibleSessions = rows(state, 'class_sessions').filter((session) => ['scheduled', 'live'].includes(session.status) && (!session.cohort_id || myCohorts.some((cohort) => cohort.id === session.cohort_id)) && (session.status === 'live' || time(session.ends_at) >= Date.now())).sort(dateOrder);
   const nextSession = visibleSessions[0];
   const nextEvent = reservedEvents[0] || upcoming[0];
-  const next = nextSession || nextEvent;
   const section = recommended && myCohorts.find((cohort) => cohort.course_id === recommended.id);
   const courseLink = section ? href('courses', { cohort: section.id, tab: 'overview' }) : recommended ? `${href('learn')}#course-${encodeURIComponent(recommended.id)}` : href('learn');
   const nextLink = nextSession ? href('live') : href('events');
   const nextLabel = nextSession ? (nextSession.status === 'live' ? 'Class in progress' : 'Next class') : nextEvent ? (time(nextEvent.starts_at) <= Date.now() && time(nextEvent.ends_at) >= Date.now() ? 'Happening now' : 'Coming up') : 'Find your people';
   const nextTitle = nextSession?.title || nextEvent?.title;
   const nextTime = nextSession?.starts_at || nextEvent?.starts_at;
+  const due = canAct(state) ? dueAssignments(state, myCohorts) : [];
+  const sectionName = (id) => myCohorts.find((cohort) => cohort.id === id)?.title || 'Your course';
+  const dueLink = (item) => href('courses', { cohort: item.cohort_id, tab: 'assignments', assignment: item.id });
+  const currentSection = current && myCohorts.find((cohort) => cohort.course_id === current.id);
+  const progress = current ? progressFor(state, current.id) : null;
+  const firstDue = due[0];
+  const glance = current ? `<div class="today-glance"><p class="campus-eyebrow">At a glance</p><div class="today-glance-row"><span class="today-glance-label">Your progress</span><p class="today-figure"><span>${progress.complete}</span> of ${progress.total} ${progress.total === 1 ? 'module' : 'modules'} done</p><progress class="today-glance-bar" value="${progress.complete}" max="${progress.total || 1}" aria-label="${esc(current.title)}: ${progress.complete} of ${progress.total} modules complete">${progress.percent}%</progress></div><div class="today-glance-row"><span class="today-glance-label">Due soon</span>${firstDue ? `<a class="today-due-link" href="${esc(dueLink(firstDue))}"><strong>${esc(firstDue.title)}</strong><span>Due ${esc(dateText(firstDue.due_at, ctx, true))}${due.length > 1 ? ` · ${due.length - 1} more` : ''}</span></a>` : '<p class="today-glance-quiet">Nothing due right now. Nice work.</p>'}</div></div>` : '';
+  const agenda = [
+    ...due.map((item) => ({ kind: 'due', at: item.due_at, item })),
+    ...upcoming.map((item) => ({ kind: 'event', at: item.starts_at, item }))
+  ].sort((a, b) => (time(a.at) || 0) - (time(b.at) || 0)).slice(0, 4);
+  const agendaRow = ({ kind, item }) => kind === 'due'
+    ? `<a class="campus-row campus-calendar-row today-agenda-due" href="${esc(dueLink(item))}"><span class="campus-event-date">${esc(ctx.formatDate(item.due_at))}</span><span><strong>${esc(item.title)}</strong><span class="campus-muted"><b class="today-due-word">Due</b> ${esc(ctx.formatTime(item.due_at))} · ${esc(sectionName(item.cohort_id))}</span></span></a>`
+    : `<a class="campus-row campus-calendar-row" href="${esc(href('events'))}#event-${esc(item.id)}"><span class="campus-event-date">${esc(ctx.formatDate(item.starts_at))}</span><span><strong>${esc(item.title)}</strong><span class="campus-muted">${esc(ctx.formatTime(item.starts_at))} · ${esc(item.location || item.office || 'Campus')}${reservations.some((rsvp) => rsvp.event_id === item.id) ? ' · Going' : ''}</span></span></a>`;
   return `${guestNotice(state)}
-    <section class="campus-hero campus-today-hero"><div class="campus-hero-copy"><p class="campus-eyebrow">${current ? 'Your learning, ready when you are' : 'Your day on the Hill'}</p><h2>${esc(current?.title || 'Find your next opportunity.')}</h2><p>${current ? 'Continue your course, check feedback, or see what is happening across campus.' : 'Learning, campus life, and the people who can help, together in one place.'}</p>${current ? courseProgress(current, ctx, true) : ''}<div class="campus-card-actions"><a class="campus-button" href="${esc(courseLink)}">${current ? 'Open your course' : 'Explore learning'}</a><a class="campus-button campus-button-secondary" href="${esc(href('messages'))}">Open messages</a></div></div><div class="campus-hero-aside"><img class="campus-hero-aside-photo" src="/ht/img/students-library.jpg" alt="" loading="eager" decoding="async"><p class="campus-eyebrow">${nextLabel}</p>${nextTitle ? `<h3>${esc(nextTitle)}</h3><p>${esc(dateText(nextTime, ctx, true))}</p><p>${esc(nextSession ? (nextSession.status === 'live' ? 'Your cohort classroom' : 'Cohort classroom · join when it begins') : nextEvent.location || nextEvent.office || 'Campus event')}</p><a href="${esc(nextLink)}">${nextSession ? 'Open classroom' : 'View event'} <span aria-hidden="true">→</span></a>` : `<h3>Good things happen together.</h3><p>Find your people, ask a question, or join a campus conversation.</p><a href="${esc(href('community'))}">Meet the community <span aria-hidden="true">→</span></a>`}</div></section>
-    <div class="campus-grid campus-grid-main campus-today-grid"><div class="campus-stack">${connectionPreview(ctx)}${announcementList(ctx)}</div><aside class="campus-stack"><section class="campus-panel campus-today-agenda"><div class="campus-section-head"><div><p class="campus-eyebrow">Your week</p><h2>Coming up</h2></div><a href="${esc(href('events'))}">All events</a></div>${upcoming.length ? `<div class="campus-list">${upcoming.slice(0, 3).map((event) => `<a class="campus-row campus-calendar-row" href="${esc(href('events'))}#event-${esc(event.id)}"><span class="campus-event-date">${esc(ctx.formatDate(event.starts_at))}</span><span><strong>${esc(event.title)}</strong><span class="campus-muted">${esc(ctx.formatTime(event.starts_at))} · ${esc(event.location || event.office || 'Campus')}${reservations.some((item) => item.event_id === event.id) ? ' · Going' : ''}</span></span></a>`).join('')}</div>` : empty('Nothing scheduled yet', 'Published campus events will show up here.', ctx)}</section>${adaCard(ctx)}<section class="campus-panel campus-support-card campus-today-help"><p class="campus-eyebrow">Need a hand?</p><h2>We can point you in the right direction.</h2><a class="campus-button campus-button-secondary" href="${esc(href('support'))}">Get campus help</a></section></aside></div>`;
+    <section class="campus-hero campus-today-hero${glance ? ' has-glance' : ''}"><div class="campus-hero-copy"><p class="campus-eyebrow">${current ? 'Your learning, ready when you are' : 'Your day on the Hill'}</p><h2>${esc(currentSection?.title || current?.title || 'Find your next opportunity.')}</h2>${currentSection ? `<p class="today-course-name">Course: ${esc(current.title)}</p>` : ''}<p>${current ? 'Continue your course, check feedback, or see what is happening across campus.' : 'Learning, campus life, and the people who can help, together in one place.'}</p><div class="campus-card-actions"><a class="campus-button" href="${esc(courseLink)}">${current ? 'Open your course' : 'Explore learning'}</a><a class="campus-button campus-button-secondary" href="${esc(href('messages'))}">Open messages</a></div></div>${glance}<div class="campus-hero-aside"><img class="campus-hero-aside-photo" src="/ht/img/commencement.jpg" alt="" loading="eager" decoding="async"><p class="campus-eyebrow">${nextLabel}</p>${nextTitle ? `<h3>${esc(nextTitle)}</h3><p>${esc(dateText(nextTime, ctx, true))}</p><p>${esc(nextSession ? (nextSession.status === 'live' ? 'Your cohort classroom' : 'Cohort classroom · join when it begins') : nextEvent.location || nextEvent.office || 'Campus event')}</p><a href="${esc(nextLink)}">${nextSession ? 'Open classroom' : 'View event'} <span aria-hidden="true">→</span></a>` : `<h3>Good things happen together.</h3><p>Find your people, ask a question, or join a campus conversation.</p><a href="${esc(href('community'))}">Meet the community <span aria-hidden="true">→</span></a>`}</div></section>
+    <div class="campus-grid campus-grid-main campus-today-grid"><div class="campus-stack">${connectionPreview(ctx)}${announcementList(ctx)}</div><aside class="campus-stack"><section class="campus-panel campus-today-agenda"><div class="campus-section-head"><div><p class="campus-eyebrow">Your week</p><h2>Coming up</h2></div><a href="${esc(href('events'))}">All events</a></div>${agenda.length ? `<div class="campus-list">${agenda.map(agendaRow).join('')}</div>` : empty('Nothing scheduled yet', 'Assignment due dates and published campus events will show up here.', ctx)}</section>${adaCard(ctx)}<section class="campus-panel campus-support-card campus-today-help"><p class="campus-eyebrow">Need a hand?</p><h2>We can point you in the right direction.</h2><a class="campus-button campus-button-secondary" href="${esc(href('support'))}">Get campus help</a></section></aside></div>`;
 }
 
 function submissionFeedback(module, ctx) {
@@ -214,8 +232,8 @@ const BADGE_GLYPHS = {
 };
 /* Sample pathways, clearly labeled as samples. They are never shown as earned. */
 const SAMPLE_BADGES = [
-  { name: 'Career Ready', glyph: 'briefcase', need: 'Finish a résumé review, a mock interview, and one employer event.' },
-  { name: 'Financial Wellness', glyph: 'coin', need: 'Complete the budgeting workshop and one meeting with a financial aid counselor.' }
+  { name: 'Financial Wellness', glyph: 'coin', need: 'Complete the budgeting workshop and one meeting with a financial aid counselor.' },
+  { name: 'Digital Storytelling', glyph: 'star', need: 'Plan a short story about campus life, record it, and share it with your class.' }
 ];
 const ROSETTE = (() => {
   const pts = [];
@@ -232,8 +250,11 @@ function badgeSeal(state, glyph, share = 0) {
 }
 
 function badgeName(course) {
-  return String(course.badge_name || course.category || course.title || 'Pathway');
+  const short = String(course.title || '').split(':')[0].trim();
+  return String(course.badge_name || short || course.category || 'Pathway');
 }
+
+const badgeGlyph = (course) => /career/i.test(`${course.category || ''} ${course.title || ''}`) ? 'briefcase' : 'book';
 
 function learnerBadges(state) {
   const enrollments = own(state, 'enrollments');
@@ -262,7 +283,7 @@ function badgeCard(badge, ctx) {
     status = 'Available';
     meta = `<p class="badge-meta">Finish all ${progress.total} ${progress.total === 1 ? 'module' : 'modules'} of this pathway.</p><a class="badge-link" href="${esc(href('learn'))}#course-${esc(course.id)}">See the pathway <span aria-hidden="true">→</span></a>`;
   }
-  return `<li class="badge-card" data-state="${badge.state}">${badgeSeal(badge.state, 'book', progress.total ? progress.complete / progress.total : 0)}<div class="badge-card-copy"><p class="badge-status" data-state="${badge.state}">${status}</p><h3>${esc(name)}</h3><p class="badge-issuer">${esc(BADGE_ISSUER)}</p>${meta}</div></li>`;
+  return `<li class="badge-card" data-state="${badge.state}">${badgeSeal(badge.state, badgeGlyph(course), progress.total ? progress.complete / progress.total : 0)}<div class="badge-card-copy"><p class="badge-status" data-state="${badge.state}">${status}</p><h3>${esc(name)}</h3><p class="badge-issuer">${esc(BADGE_ISSUER)}</p>${meta}</div></li>`;
 }
 
 function sampleBadgeCard(sample, ctx) {
@@ -274,7 +295,7 @@ function badgeShelf(ctx) {
   const { state, icon } = ctx;
   const badges = learnerBadges(state);
   const earned = badges.filter((badge) => badge.earned).length;
-  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Career Ready and Financial Wellness show what HT could offer next. They are not live pathways yet.</span></p></section>`;
+  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Financial Wellness and Digital Storytelling show what HT could offer next. They are not live pathways yet.</span></p></section>`;
 }
 
 function coCurricularRecord(ctx) {
@@ -283,8 +304,8 @@ function coCurricularRecord(ctx) {
   const name = state.member?.display_name || 'Campus learner';
   const next = learnerBadges(state).find((badge) => badge.state === 'progress') || learnerBadges(state).find((badge) => badge.state === 'available');
   const demo = state.mode === 'demo' ? '<p class="badge-record-demo">Illustrative demo record. Not an official university credential.</p>' : '';
-  const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID <code>${esc(enrollment.credential_id)}</code></span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or add to your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
-  return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">Add to my career portfolio</a><button type="button" class="campus-button campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
+  const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID <code>${esc(enrollment.credential_id)}</code></span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or show in your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
+  return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">See career portfolio</a><button type="button" class="campus-button campus-button-secondary campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
 }
 
 function learnView(ctx) {

@@ -4,13 +4,13 @@ HT.spaces.alumni = {
   key: 'alumni', title: 'Alumni', office: 'Alumni Relations', icon: 'globe',
   blurb: 'Chapter channels, Homecoming 2027, mentors taking mentees, and learning that keeps going.',
   sub: 'Your chapter, your class year, and the students coming up behind you, in one place that already knows your name.',
-  stamp: 'Preview · sample alumni', headCta: { label: 'Find a mentor', href: '#mentors', style: 'ht-gold' },
+  stamp: 'Preview · sample alumni', headCta: { label: 'Find a mentor', href: '#mentors', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Alumni Relations', title: 'The Hill, wherever you landed.',
       text: 'A chapter hub for the city you live in now. Reunion and Homecoming 2027 with the agenda in your pocket. A mentor list where a sophomore can find you by program and skill. And a learning track that keeps your HT education going long after the cap and gown. One sign-in, the same one the campus uses.',
       ctas: [{ label: 'Open your chapter', href: '#chapters', style: 'ht' }, { label: 'Homecoming 2027', href: '#homecoming', style: 'ht-line' }],
       image: '/ht/img/commencement.jpg', imageAlt: 'Commencement on the Hill at Huston-Tillotson University',
-      ada: { text: 'Welcome back. The Austin chapter meets October 20, two mentors in your field are taking mentees this fall, and Homecoming 2027 is on your calendar. Want me to open the chapter channel?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Welcome back. The Austin chapter meets October 20, two mentors in your field are taking mentees this fall, and Homecoming 2027 is on your calendar. Want me to open the chapter channel?', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'stats', items: [{ n: '4', label: 'Chapter channels open (sample)' }, { n: 'Feb 2027', label: 'Homecoming, dates announced by HT' }, { n: '5', label: 'Mentors taking mentees this fall (sample)' }, { n: '4', label: 'Sessions in the fall alumni track' }] },
     { type: 'cards', id: 'chapters', title: 'Chapters', meta: 'Member counts are sample', items: [
       { meta: 'Austin · 312 members', title: 'Austin chapter', text: 'The home chapter. Monthly meetups near campus, a volunteer bench for Orientation Week, and first word on Homecoming.', href: '#channels', badge: 'Sample', foot: 'Open the chapter channel →' },

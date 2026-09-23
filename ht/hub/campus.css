@@ -518,3 +518,7 @@ body.ht-space-page{--display:Georgia,"Times New Roman",serif}
 /* Figures: Georgia only has old-style numerals (its 0 reads as an "o"), so every big number uses Inter's lining, tabular figures */
 body.ht .lead-kpi strong,body.ht .lead-mini-stats strong,body.ht .lead-giving h2,body.ht .success-signals strong,body.ht .success-big strong,body.ht .rubric-level-points,body.ht .rubric-total output{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-weight:300!important;letter-spacing:-.045em!important;font-variant-numeric:lining-nums tabular-nums}
 body.ht .lead-giving h2{font-weight:400!important;letter-spacing:-.035em!important}
+/* ---- space pages: one visual system ---- */
+/* The side column had 318px, so "Messages and scripts" and "The office" wrapped every three words.
+   Wide screens give it room; labels now sit under the text instead of beside it (ht/ht.css). */
+@media(min-width:1200px){.ht-space-page .ht-grid{grid-template-columns:minmax(0,1fr) 372px;gap:28px}}

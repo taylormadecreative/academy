@@ -4,13 +4,13 @@ HT.spaces.career = {
   key: 'career', title: 'Career', office: 'Career Services', icon: 'briefcase',
   blurb: 'A portfolio directory employers can search, the employer showcase, and mock interviews with replays.',
   sub: 'The work, not just the resume. A directory employers can search, seminars that replay, and the desk that reads your resume by appointment.',
-  stamp: 'Preview · sample directory', headCta: { label: 'The directory', href: '#directory', style: 'ht-gold' },
+  stamp: 'Preview · sample directory', headCta: { label: 'The directory', href: '#directory', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Career Services', title: 'Employers see the work, not just the resume.',
       text: 'Every student has a page with their projects on it. Employers search the directory by program and skill, the employer showcase brings them to campus, and the mock interview seminars replay the same afternoon. The desk reads resumes by appointment and answers the same day.',
       ctas: [{ label: 'Search the directory', href: '#directory', style: 'ht' }, { label: 'Employer showcase', href: '#employers', style: 'ht-line' }],
       image: '/ht/img/student-laptop.jpg', imageAlt: 'A Huston-Tillotson student working at a laptop in the library',
-      ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on November 24. Want a mock interview slot on October 14?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Three sample internship postings are up from employers who came to last spring\'s showcase. Your portfolio page opens in AI Literacy Session 07 on November 24. Want a mock interview slot on October 14?', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'directory', id: 'directory', title: 'Student portfolio directory', meta: 'Sample · first names only', search: true, items: [
       { name: 'Daniel O.', program: 'Business Administration', year: 'Class of 2029', skills: ['Automation', 'Customer service', 'Bookkeeping'], tag: 'Open to internships', tagCls: 'green' },
       { name: 'Maribel A.', program: 'Biology', year: 'Class of 2029', skills: ['Lab methods', 'Data entry', 'Tutoring'], tag: 'Open to internships', tagCls: 'green' },

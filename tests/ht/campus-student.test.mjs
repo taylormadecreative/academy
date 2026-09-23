@@ -344,14 +344,16 @@ test('student rendering follows the actual store through knowledge checks, revie
   const staff = createCampusStore({ demoRole: 'staff', storage });
   try {
     let state = await student.load();
-    const modules = state.modules.slice().sort((a, b) => a.position - b.position);
+    const aiCourse = '20000000-0000-4000-8000-000000000001';
+    const aiSection = (html) => html.slice(html.indexOf(`id="course-${aiCourse}"`)).split('<section class="campus-panel campus-course"')[0];
+    const modules = state.modules.filter((item) => item.course_id === aiCourse).sort((a, b) => a.position - b.position);
     for (const module of modules.filter((item) => item.question)) await student.command('completeModule', { module_id: module.id, answer_index: module.answer_index });
     state = await student.load();
     assert.match(renderStudent('learn', context(state)), /2 of 3 modules complete/);
     await student.command('submitWork', { module_id: modules[2].id, body: 'My project outlines a useful prompt, checks the result, and explains what I learned.' });
     state = await student.load();
     assert.match(renderStudent('learn', context(state)), /Awaiting instructor review/);
-    assert.doesNotMatch(renderStudent('learn', context(state)), /Download record/);
+    assert.doesNotMatch(aiSection(renderStudent('learn', context(state))), /Download record/);
     const staffState = await staff.load();
     const submission = staffState.submissions.find((item) => item.user_id === state.user.id);
     await staff.command('reviewWork', { id: submission.id, status: 'approved', feedback: 'Your reflection explains how you checked and improved the result.' });
@@ -362,4 +364,27 @@ test('student rendering follows the actual store through knowledge checks, revie
     assert.match(html, /Your reflection explains how you checked and improved the result/);
     assert.match(html, /Download record/);
   } finally { student.destroy(); staff.destroy(); }
+});
+
+test('Today lists the published assignment due date and Learn shows the earned Career Ready badge', async () => {
+  const storeSource = fs.readFileSync(new URL('../../ht/hub/campus-store.js', import.meta.url), 'utf8');
+  const { createCampusStore } = await import(`data:text/javascript;base64,${Buffer.from(storeSource).toString('base64')}`);
+  const saved = new Map();
+  const student = createCampusStore({ demoRole: 'student', storage: { getItem: (key) => saved.get(key) || null, setItem: (key, value) => saved.set(key, value) } });
+  try {
+    const state = await student.load();
+    const home = renderStudent('home', context(state));
+    assert.match(home, /Responsible AI project brief/);
+    assert.match(home, />Due</);
+    assert.match(home, /tab=assignments&amp;assignment=d0000000-0000-4000-8000-000000000001/);
+    assert.match(home, /AI Literacy · First-Year Scholars/);
+    assert.match(home, /Course: AI Literacy: From Curiosity to Practice/);
+    assert.match(home, /\/ht\/img\/commencement\.jpg/);
+    const learn = renderStudent('learn', context(state));
+    assert.match(learn, /data-state="earned"[\s\S]*?Career Ready/);
+    assert.match(learn, /c7000000-0000-4000-8000-000000000001/);
+    assert.match(learn, /See career portfolio/);
+    assert.doesNotMatch(learn, /Add to my career portfolio/);
+    assert.doesNotMatch(learn, /Available · Sample<\/p><h3>Career Ready/);
+  } finally { student.destroy(); }
 });

@@ -13,7 +13,7 @@ export const TRUST_GROUPS = [
   { title: 'Sign-in & identity', icon: 'door', items: [
     ['built', 'Sign in with a one-time email code', 'No passwords to store, reuse, or leak. Each code works one time.'],
     ['built', 'Encrypted in transit', 'Every page and every request uses HTTPS.'],
-    ['scoped', 'Campus single sign-on', 'Sign in with HT accounts through Microsoft Entra ID or Google Workspace, using SAML or OIDC.']
+    ['scoped', 'Campus single sign-on', 'Sign in with HT’s campus accounts, using SAML or OIDC.']
   ] },
   { title: 'Student records & privacy', icon: 'shield', items: [
     ['built', 'Access rules live in the database, for every table', 'Students see their own records. Instructors see only the sections they teach. Leadership sees campus totals, never one student’s grades.'],
@@ -27,7 +27,7 @@ export const TRUST_GROUPS = [
   ] },
   { title: 'Accessibility', icon: 'users', items: [
     ['built', 'Keyboard and contrast checks on every page', 'Every page works with a keyboard. Text contrast is checked in automated tests.'],
-    ['scoped', 'Formal accessibility audit and VPAT', 'Built to WCAG 2.2 AA. An outside review and a VPAT are completed before launch.']
+    ['scoped', 'Outside accessibility review and VPAT', 'We design to WCAG 2.2 AA. An outside review and a VPAT are planned before launch.']
   ] },
   { title: 'Data ownership', icon: 'download', items: [
     ['built', 'Reports export as CSV', 'Campus-wide totals download as a spreadsheet file your team can open anywhere.'],
@@ -49,12 +49,12 @@ export const ACCESS = [
 ];
 
 export const TRUST_QUESTIONS = [
-  ['Where is student data stored?', 'In a managed Postgres database. The access rules live inside the database itself, so every page and every export follows the same rules. All traffic is encrypted in transit. Hosting region, backups, and recovery details are in the security packet, and we review them with your team.'],
+  ['Where is student data stored?', 'In a managed database. The access rules live inside the database itself, so every page and every export follows the same rules. All traffic is encrypted in transit. Hosting region, backups, and recovery details are in the security packet, and we review them with your team.'],
   ['Who owns the data?', 'HT owns its data. That includes student records, coursework, messages, and recordings. The Hub keeps them only to run the Hub for HT, and your agreement will say so in writing.'],
   ['What about FERPA?', 'We do not claim a certification or audit we have not completed. The Hub is built to support your FERPA obligations: students see only their own records, staff see only what their role needs, and HT decides who has access.'],
   ['Does AI train on student data?', 'No. Ada, the course tutor, answers from the course’s materials; student questions are not used to train any AI model.'],
   ['How are live class recordings handled?', 'Recordings stay private until a staff member publishes them. Once published, they appear for the class they belong to. HT’s retention schedule will set how long they are kept.'],
-  ['How do people sign in?', 'Today, with a one-time code sent to a campus email address, so there are no passwords to leak. Campus single sign-on through Microsoft Entra ID or Google Workspace is scoped with your IT team before launch.'],
+  ['How do people sign in?', 'Today, with a one-time code sent to a campus email address, so there are no passwords to leak. Campus single sign-on with HT’s campus accounts, using SAML or OIDC, is scoped with your IT team before launch.'],
   ['Can we turn off a feature?', 'Yes. Tell us which features to leave off for your campus, such as community channels or the course tutor, and we set that before launch.'],
   ['What happens when the contract ends?', 'HT gets a full export of its data. Then the data is deleted on a date HT chooses. Export and deletion on request are scoped with your IT team, so the steps are agreed in writing before launch.']
 ];
@@ -111,7 +111,7 @@ const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 export function renderTrust(view, ctx) {
   const { esc, href, icon } = ctx;
   const c = counts();
-  const packet = href('support');
+  const packet = href('support', { topic: 'Technology', subject: 'Security packet request' });
   return `<div class="trust-page">
     <section class="campus-hero trust-hero">
       <div class="trust-hero-copy">

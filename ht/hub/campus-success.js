@@ -72,6 +72,10 @@ const ROWS = [
 const LOW_GRADES = ['D', 'F', 'D+', 'C-'];
 const OK_GRADES = ['B-', 'C+', 'B', 'C'];
 
+/* "No Hub sign-in" keeps its capital H: only the first letter drops to lowercase. */
+function lowerFirst(text) { return text.charAt(0).toLowerCase() + text.slice(1); }
+/* Ends a sentence after a name without doubling the period ("DeShawn R." not "DeShawn R.."). */
+function endSentence(text) { return /[.!?]$/.test(text) ? text : `${text}.`; }
 function buildBaseline() {
   const now = Date.now();
   const today = new Date(now); today.setHours(0, 0, 0, 0);
@@ -80,13 +84,15 @@ function buildBaseline() {
     const n = i + 1, id = `s${String(n).padStart(2, '0')}`;
     const owner = OWNERS[ownerKey], section = SECTIONS[sectionIndex];
     const flaggedAt = clamp(today.getTime() - days * DAY + (8 * 60 + (n * 37) % 240) * 60000);
+    /* A "no sign-in" flag fires the day the gap reaches 10 days, so the gap at the flag is
+       exactly 10 (11 when it is only a second signal). The page adds the days since the flag. */
     const signals = {
-      signIn: reason === 'S' ? 10 + (n % 5) : second === 'S' ? 11 : (n % 4) + 1,
+      signIn: reason === 'S' ? 10 : second === 'S' ? 11 : (n % 4) + 1,
       missing: reason === 'A' ? 2 + (n % 3) : second === 'A' ? 2 : n % 5 === 0 ? 1 : 0,
       grade: reason === 'G' ? LOW_GRADES[n % 4] : OK_GRADES[n % 4],
       classes: reason === 'C' ? 3 + (n % 2) : second === 'C' ? 3 : n % 3 === 0 ? 1 : 0
     };
-    const log = [{ at: new Date(flaggedAt).toISOString(), kind: 'flag', text: `Flagged by the Hub from ${section}: ${REASONS[reason].toLowerCase()}.` }];
+    const log = [{ at: new Date(flaggedAt).toISOString(), kind: 'flag', text: `Flagged by the Hub from ${section}: ${lowerFirst(REASONS[reason])}.` }];
     let status = 'new', firstTouch = null, resolvedReason = null;
     if (code !== 'n') {
       status = 'contacted'; firstTouch = delay;
@@ -157,6 +163,13 @@ function totals(list = everyone()) {
   const oldest = waiting.reduce((m, s) => Math.max(m, daysSince(s.flaggedAt)), 0);
   return { flagged: list.length, waiting: waiting.length, contacted: contacted.length, open: contacted.length - resolved.length, resolved: resolved.length, median: median(contacted.map((s) => s.firstTouch).filter((n) => n != null)), oldest };
 }
+/** The same four numbers the Student success page shows, read from the same saved sample.
+ *  Pass an owner's name for just their flags; leave it out for the whole caseload. */
+export function caseloadSummary(ownerName) {
+  const list = everyone().filter((s) => !ownerName || s.owner === ownerName);
+  const t = totals(list);
+  return { flagged: t.flagged, waiting: t.waiting, open: t.open, resolved: t.resolved, median: t.median, oldest: t.oldest };
+}
 function daysSince(t) {
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const then = new Date(t); then.setHours(0, 0, 0, 0);
@@ -214,12 +227,13 @@ function barList(rows, max) {
 }
 
 /* ---------- staff and admin: the caseload ---------- */
-function summaryStrip(t) {
-  return `<section class="lead-kpis success-kpis" aria-label="Caseload summary">
-    ${kpi('Waiting on first touch', t.waiting, t.waiting ? `Oldest flag: ${ago(t.oldest)}` : 'Everyone has been reached')}
-    ${kpi('Contacted', t.contacted, `${t.open} still open`)}
-    ${kpi('Resolved', t.resolved, `${pct(t.resolved, t.flagged)}% of ${t.flagged} flags`)}
-    ${kpi('Median days to first contact', oneDecimal(t.median), 'Goal: 2 days or less')}
+/* Three counts that add up to every flag, then the speed measure. */
+function summaryStrip(t, label = 'Caseload summary') {
+  return `<section class="lead-kpis success-kpis" aria-label="${label}">
+    ${kpi('Waiting on first touch', t.waiting, t.waiting ? `Of ${t.flagged} flagged · oldest ${ago(t.oldest)}` : `Of ${t.flagged} flagged · everyone reached`)}
+    ${kpi('Contacted, still open', t.open, `Of ${t.flagged} flagged · reached, not done yet`)}
+    ${kpi('Resolved', t.resolved, `Of ${t.flagged} flagged · ${pct(t.resolved, t.flagged)}%`)}
+    ${kpi('Median days to first touch', oneDecimal(t.median), 'Goal: 2 days or less')}
   </section>`;
 }
 function filterBar(ctx, list) {
@@ -249,8 +263,15 @@ function emptyState(ctx) {
   }
   return `<div class="campus-empty success-empty">${ctx.icon('search')}<h3>No students match these filters.</h3><p>Try a different status, reason, or class year, or clear the search.</p><button type="button" class="campus-button campus-button-secondary campus-button-small" data-success-clear data-sf="empty-clear">Clear filters</button></div>`;
 }
+/* Signals as of today. While a student is still open, a sign-in gap keeps growing by one each
+   day after the flag. Once resolved, the card shows what the Hub saw on the day of the flag. */
+function signalsNow(s) {
+  const g = { ...s.signals };
+  if (s.status !== 'resolved' && (s.reason === 'S' || s.second === 'S')) g.signIn += daysSince(s.flaggedAt);
+  return g;
+}
 function signalRows(ctx, s) {
-  const g = s.signals, hit = triggered(s);
+  const g = signalsNow(s), hit = triggered({ ...s, signals: g });
   const rows = [
     ['S', 'Days since Hub sign-in', String(g.signIn)],
     ['A', 'Missing assignments', String(g.missing)],
@@ -299,7 +320,7 @@ function detailPanel(ctx, s, actor) {
   const history = [...s.log].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const hidden = !matches(s) ? `<p class="success-moved">${icon('arrow')}<span>${esc(firstName(s.name))} is now in <strong>${STATUS[s.status].label}</strong>, so this name no longer shows in the ${esc(STATUS_FILTERS.find(([k]) => k === statusFilter)[1])} list.</span></p>` : '';
   return `<section class="campus-panel success-detail" aria-labelledby="successDetailName">
-    <div class="success-detail-head"><div><p class="campus-eyebrow">Sample student</p><h2 id="successDetailName" tabindex="-1" data-sf="detail-name">${esc(s.name)}</h2><p class="campus-muted">${esc(YEARS[s.year])} · ${esc(s.major)}</p></div>${statusLabel(ctx, s.status)}</div>
+    <div class="success-detail-head"><div><p class="campus-eyebrow">Early alert</p><h2 id="successDetailName" tabindex="-1" data-sf="detail-name">${esc(s.name)}</h2><p class="campus-muted">${esc(YEARS[s.year])} · ${esc(s.major)}</p></div>${statusLabel(ctx, s.status)}</div>
     ${hidden}
     <dl class="success-facts">
       <div><dt>Owner</dt><dd>${esc(s.owner)}</dd></div>
@@ -307,7 +328,7 @@ function detailPanel(ctx, s, actor) {
       <div><dt>From</dt><dd>${esc(s.section)}</dd></div>
       ${s.status === 'resolved' ? `<div><dt>Resolved</dt><dd>${esc(s.resolvedReason || 'Other')}</dd></div>` : ''}
     </dl>
-    <h3 class="success-subhead">What the Hub noticed</h3>
+    <h3 class="success-subhead">${s.status === 'resolved' ? 'What the Hub noticed on the day of the flag' : 'What the Hub notices today'}</h3>
     ${signalRows(ctx, s)}
     <h3 class="success-subhead">Next step</h3>
     <div class="success-actions">
@@ -336,7 +357,7 @@ function staffBody(ctx) {
       </section>
       ${detailPanel(ctx, current, actor)}
     </div>
-    <div class="success-foot"><p class="campus-muted">Sample students, fictional names, not university records. Nudges, referrals, and notes are kept only in this browser.</p><button type="button" class="campus-button campus-button-secondary campus-button-small" data-success-reset data-sf="reset">Reset sample</button></div>`;
+    <div class="success-foot"><p class="campus-muted">Not university records. Nudges, referrals, and notes you add are kept only in this browser.</p><button type="button" class="campus-button campus-button-secondary campus-button-small" data-success-reset data-sf="reset">Reset sample</button></div>`;
 }
 function liveText() {
   const n = filtered().length, label = STATUS_FILTERS.find(([k]) => k === statusFilter)[1];
@@ -344,7 +365,7 @@ function liveText() {
 }
 function staffView(ctx) {
   return `<div class="success-view" data-success-root data-success-mode="caseload">
-    <p class="lead-sample-note">${ctx.icon('users')}<span><strong>Sample students — fictional names, not university records.</strong> Early alerts come from Hub sign-ins, assignments, midterm grades, and attendance. Each flag has an owner and a clear next step.</span></p>
+    <p class="lead-sample-note">${ctx.icon('users')}<span><strong>Sample caseload with fictional students.</strong> Early alerts come from Hub sign-ins, assignments, midterm grades, and attendance. Each flag has an owner and a clear next step.</span></p>
     <p class="campus-sr-only" aria-live="polite" data-success-live>${liveText()}</p>
     <div data-success-body>${staffBody(ctx)}</div>
   </div>`;
@@ -358,19 +379,14 @@ function leadershipView(ctx) {
   const owners = Object.values(OWNERS).map((o) => { const mine = all.filter((s) => s.owner === o); return [o, mine.length, mine.filter((s) => s.status === 'new').length]; });
   const owned = all.filter((s) => s.owner).length;
   return `<div class="success-view" data-success-root data-success-mode="pattern">
-    <p class="lead-sample-note">${icon('shield')}<span><strong>Sample pattern — fictional students, not university records.</strong> Advisors see the names. You see the pattern, and whether every flag has an owner.</span></p>
-    <section class="lead-kpis success-kpis" aria-label="Early alerts this term">
-      ${kpi('Students flagged', t.flagged, 'Fall 2026 · week 6')}
-      ${kpi('Contacted', t.contacted, `${pct(t.contacted, t.flagged)}% of flags · ${t.open} still open`)}
-      ${kpi('Resolved', t.resolved, `${pct(t.resolved, t.flagged)}% of flags`)}
-      ${kpi('Median days to first contact', oneDecimal(t.median), 'Goal: 2 days or less')}
-    </section>
+    <p class="lead-sample-note">${icon('shield')}<span><strong>Sample pattern with fictional students.</strong> ${t.flagged} early alerts this term, Fall 2026 · week 6. Advisors see the names. You see the pattern, and whether every flag has an owner.</span></p>
+    ${summaryStrip(t, 'Early alerts this term')}
     <div class="campus-grid campus-grid-main">
       <div class="campus-stack">
         <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Why students were flagged</p><h2>First signal, by reason</h2></div></div>
           ${barList(byReason)}<p class="campus-muted success-note">Missed work is the most common first sign. It is also the easiest to fix when someone reaches out in the first few days.</p></section>
         <section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Where the need is</p><h2>Flags by class year</h2></div></div>
-          ${barList(byYear)}<p class="campus-muted success-note">First-year students hold ${byYear[0][1]} of ${t.flagged} flags. That matches the campus pattern: the first fall is when a hand matters most.</p></section>
+          ${barList(byYear)}<p class="campus-muted success-note">In this sample, first-year students hold ${byYear[0][1]} of ${t.flagged} flags. The first fall is often when a hand matters most.</p></section>
       </div>
       <aside class="campus-stack">
         <section class="campus-panel success-owners"><p class="campus-eyebrow">Owner coverage</p>
@@ -380,6 +396,7 @@ function leadershipView(ctx) {
         <section class="campus-panel success-privacy">${icon('shield')}<div><h2>What stays private</h2><p class="campus-muted">Student names, grades, and notes stay with the advisor who owns the flag. This page shows only counts, so you can ask the right question without seeing a single record.</p><a href="${esc(href('insights'))}">Open campus insights <span aria-hidden="true">→</span></a></div></section>
       </aside>
     </div>
+    <p class="campus-muted success-footnote">Counts come from the sample caseload above, not university records.</p>
   </div>`;
 }
 
@@ -502,14 +519,14 @@ export function bindSuccess(view, root, ctx) {
       if (!message) { ctx.notify('Write a short message before sending.', 'error'); form.querySelector('textarea')?.focus(); return; }
       touch(id); log(id, 'nudge', `Nudge sent by ${me}`, `"${message.length > 160 ? message.slice(0, 157) + '...' : message}"`);
       nudgeDrafts.delete(id); closeComposer(form); saveStore(); paint(root, 'action-nudge');
-      ctx.notify(`Nudge sent to ${s.name}. It will appear in their Hub messages.`);
+      ctx.notify(`${endSentence(`Nudge sent to ${s.name}`)} It will appear in their Hub messages.`);
     } else if (type === 'refer') {
       const office = text('office');
       if (!OFFICES.some(([o]) => o === office)) { ctx.notify('Choose an office for the referral.', 'error'); form.querySelector('select')?.focus(); return; }
       const note = text('note').slice(0, 400);
       touch(id); log(id, 'refer', `Referred to ${office} by ${me}`, note);
       closeComposer(form); saveStore(); paint(root, 'action-refer');
-      ctx.notify(`Referral sent to ${office} for ${s.name}.`);
+      ctx.notify(endSentence(`Referral sent to ${office} for ${s.name}`));
     } else if (type === 'note') {
       const note = text('note').slice(0, 500);
       if (!note) { ctx.notify('Write a note before saving.', 'error'); form.querySelector('textarea')?.focus(); return; }

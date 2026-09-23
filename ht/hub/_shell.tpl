@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="/ht/hub/campus-success.css?v=__V__">
 <link rel="stylesheet" href="/ht/hub/campus-trust.css?v=__V__">
 <link rel="stylesheet" href="/ht/hub/campus-tutor.css?v=__V__">
+<link rel="stylesheet" href="/ht/hub/campus-shell.css?v=__V__">
 <script>document.documentElement.classList.add('js')</script>
 <script src="/js/pwa.js?v=__V__" defer></script>
 </head><body class="ht" data-space="__KEY__">

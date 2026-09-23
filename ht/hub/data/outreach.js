@@ -4,13 +4,13 @@ HT.spaces.outreach = {
   key: 'outreach', title: 'Outreach', office: 'Civic engagement & community outreach', icon: 'globe',
   blurb: 'A public education series, church and neighborhood partner programs, and a summer bridge for high schoolers.',
   sub: 'The Hill has always belonged to East Austin. A public education series, partner programs, and a summer bridge, on the same platform the campus uses.',
-  stamp: 'Preview · sample content', headCta: { label: 'The public series', href: '#series', style: 'ht-gold' },
+  stamp: 'Preview · sample content', headCta: { label: 'The public series', href: '#series', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Civic engagement & community outreach', title: 'The Hill has always belonged to the neighborhood.',
       text: 'A public education series anyone in East Austin can join. Partner programs with churches, neighborhood associations, and high schools. A summer bridge that brings tenth and eleventh graders onto campus before their first fall. The community joins the same live room the campus uses, with the same sign-in.',
       ctas: [{ label: 'The public series', href: '#series', style: 'ht' }, { label: 'Summer Bridge', href: '#bridge', style: 'ht-line' }],
       image: '/ht/img/r-retail-street.jpg', imageAlt: 'Architectural rendering of a walkable campus retail street',
-      ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'The first evening of AI for small business owners is Monday, October 12, at 6:30, in the auditorium and live. The code at the door is on the screen when you walk in.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'series', title: 'Public education series', meta: 'Free · open to the community · sample', items: [
       { meta: 'Mondays, October 12 to November 2 · 6:30 PM', title: 'AI for small business owners', text: 'Four evenings. Bring the task you are tired of doing and leave with it handed to a machine.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street at dusk', badge: 'Sample', foot: 'Free · open to the neighborhood' },
       { meta: 'Mondays in November · 6:30 PM', title: 'Financial wellness for families', text: 'Budgets, credit, and the college letter, for parents and grandparents.', img: '/ht/img/students-library.jpg', alt: 'Students in the library', badge: 'Sample', foot: 'Free · open to the neighborhood' },

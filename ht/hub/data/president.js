@@ -4,13 +4,13 @@ HT.spaces.president = {
   key: 'president', title: 'President', office: 'Office of the President', icon: 'mic',
   blurb: 'The fall town hall live, past addresses on replay, and the President\'s calendar for the year.',
   sub: 'Town halls, addresses, and the calendar for the year, from the Office of the President.',
-  stamp: 'Preview · sample content', headCta: { label: 'Watch the town hall', href: '#townhall', style: 'ht-gold' },
+  stamp: 'Preview · sample content', headCta: { label: 'Watch the town hall', href: '#townhall', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Office of the President', title: 'The President, in her own words. Live, and on replay.',
       text: 'The fall town hall streams here on October 15 at noon, from the auditorium, with the room\'s questions and the hub\'s in one line. Every address stays on the shelf after. The year\'s calendar sits below it, from convocation to commencement.',
       ctas: [{ label: 'Watch the town hall', href: '#townhall', style: 'ht' }, { label: 'The year at a glance', href: '#calendar', style: 'ht-line' }],
       image: '/ht/img/wallace-students.jpg', imageAlt: 'Dr. Melva K. Wallace with Huston-Tillotson students on campus',
-      ada: { text: 'The town hall is October 15 at noon. If you can\'t be in the auditorium, this page is the room. Questions you leave in the chat get read after the ones from the floor.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'The town hall is October 15 at noon. If you can\'t be in the auditorium, this page is the room. Questions you leave in the chat get read after the ones from the floor.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'player', id: 'townhall', cardTitle: 'The fall town hall', meta: 'Live from the auditorium · replay the same afternoon', title: 'Office of the President', live: false, poster: '/ht/img/cover-dais.jpg',
       now: { title: 'Fall Town Hall, live from the auditorium', who: 'Dr. Melva K. Wallace, 7th President and CEO', when: 'Thursday, October 15 · 12:00 PM CT' } },
     { type: 'replays', id: 'replays', title: 'Past addresses', meta: 'Sample recordings', items: [
@@ -33,7 +33,7 @@ HT.spaces.president = {
       image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the administration building at dusk', side: 'right',
       cta: { label: 'See how a donor page carries it', href: '/ht/hub/advancement/#pages', style: 'ht' } },
     { type: 'chat', id: 'room', title: 'The town hall room', meta: 'Open now · questions read October 15', room: 'townhall', seed: [
-      { who: 'Ada · HT student ambassador', text: 'Welcome to the town hall room. Leave your question here before noon on October 15 and the office pulls it into the run of show.', when: 'Sample · last week' },
+      { who: 'Ada, the Hub’s AI guide', text: 'Welcome to the town hall room. Leave your question here before noon on October 15 and the office pulls it into the run of show.', when: 'Sample · last week' },
       { who: 'Jasmine R. · junior (sample)', text: 'Will the campus plan come up? I want to hear about the new student center.', when: 'Last week' },
       { who: 'Faculty · Business (sample)', text: 'Asking about the faculty development series and whether those sessions get recorded.', when: 'Last week' },
       { who: 'Marcus T. · first-year (sample)', text: 'First town hall for me. Do we ask here or stand up in the room?', when: 'Last week' },
@@ -53,7 +53,7 @@ HT.spaces.president = {
       { name: 'Dr. Melva K. Wallace', role: '7th President and CEO', org: 'Space owner', gold: true, tag: 'Owner', tagCls: 'green' },
       { name: 'Chief of staff (sample)', role: 'Runs the town hall', org: 'Owns the run of show' },
       { name: 'Communications director (sample)', role: 'Approves scripts', org: 'Lane two starts here' },
-      { name: 'Ada', role: 'HT student ambassador', org: 'Reads the announcements', tag: 'Ambassador', tagCls: 'soft' } ] },
+      { name: 'Ada', role: 'The Hub’s AI guide', org: 'Reads the announcements · sample' } ] },
     { type: 'cta', title: 'Join the town hall October 15 at noon.', text: 'Live from the auditorium, in the hub, with the replay the same afternoon.',
       primary: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' }, secondary: { label: 'Put it on your calendar', href: '/ht/hub/events/#year', style: 'ht-line' } }
   ]

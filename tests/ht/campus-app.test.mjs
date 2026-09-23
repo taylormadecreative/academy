@@ -57,29 +57,31 @@ try {
   }
   await visit('spaces');
  });
- await check('Leadership demo connects all thirteen spaces and keeps the role selector available',async()=>{
+ await check('The guided tour walks every stop in order across roles and keeps the role selector available',async()=>{
   await visit('spaces','leadership');
-  const journey=await page.evaluate(()=>window.HT.leadershipWalkthrough.map(step=>step.key));
-  assert.equal(journey.length,13);
+  const journey=await page.evaluate(()=>window.HT.leadershipWalkthrough.map(step=>({key:step.key,role:step.role||'leadership',href:window.HTTour.href(step)})));
+  assert.ok(journey.length>=18,'tour covers the new work and all spaces');
+  for(const key of await page.evaluate(()=>window.HT.order.slice()))assert.ok(journey.some(step=>step.key===key),`${key} is on the tour`);
+  for(const key of ['success','insights','trust'])assert.ok(journey.some(step=>step.key===key),`${key} is on the tour`);
+  assert.ok(journey.some(step=>step.key==='courses'&&step.role==='staff'),'grading stop views as the instructor');
   for(let index=0;index<journey.length;index++){
-   const key=journey[index];
-   await visit(key,'leadership');
+   const step=journey[index];
+   await page.goto(new URL(step.href,base).href,{waitUntil:'domcontentloaded'});await settled();
    const tour=page.locator('.campus-leadership-tour');
-   assert.equal(await tour.count(),1,`${key} has one leadership walkthrough panel.`);
-   assert.match(await tour.innerText(),new RegExp(`Step\\s+${index+1}\\s+of\\s+13`),`${key} shows its walkthrough position.`);
-   const next=new URL(await tour.locator('.campus-leadership-next').getAttribute('href'),base);
-   assert.equal(next.pathname,`/ht/hub/${journey[(index+1)%journey.length]}/`);
-   assert.equal(next.searchParams.get('demo'),'leadership');
-   assert.equal(await page.locator('.site-header .nav-cta a[href^="/login/"]').count(),0,`${key} does not offer sign-in inside the demo header.`);
-   const selector=page.locator('#campusDemoRole, #htStaticDemoRole');
-   assert.equal(await selector.count(),1,`${key} keeps its demo role switcher.`);
-   assert.equal(await selector.evaluate(node=>node.value),'leadership');
-   assert.equal(await page.locator('.campus-page-guide').first().evaluate(node=>node.open),false,`${key} keeps the first-visit helper available but collapsed in the leadership walkthrough.`);
-   if(['events','live','learn','community'].includes(key))assert.equal(await page.locator('.campus-account').getAttribute('aria-label'),'Avery W., sample account',`${key} shows the leadership persona.`);
+   assert.equal(await tour.count(),1,`${step.key} (${step.role}) has one tour panel.`);
+   assert.match(await tour.innerText(),new RegExp(`Stop\\s+${index+1}\\s+of\\s+${journey.length}`),`${step.key} shows its tour position.`);
+   const next=await tour.locator('.campus-leadership-next').getAttribute('href');
+   if(index<journey.length-1)assert.equal(new URL(next,base).pathname+new URL(next,base).search,journey[index+1].href,`${step.key} links to the next stop.`);
+   assert.equal(await page.locator('.site-header .nav-cta a[href^="/login/"]').count(),0,`${step.key} does not offer sign-in inside the demo header.`);
+   const selector=page.locator('#campusDemoRole');
+   assert.equal(await selector.count(),1,`${step.key} keeps its demo role switcher.`);
+   assert.equal(await selector.evaluate(node=>node.value),step.role);
+   if(step.role==='leadership')assert.equal(await page.locator('.campus-account').getAttribute('aria-label'),'Avery W., sample account',`${step.key} shows the leadership persona.`);
   }
+  await visit('president','leadership');
   await page.locator('#campusDemoRole').selectOption('staff');
   await settled();
-  assert.equal(new URL(page.url()).searchParams.get('demo'),'staff','The static page role switcher preserves its route and changes the selected demo role.');
+  assert.equal(new URL(page.url()).searchParams.get('demo'),'staff','The role switcher preserves its route and changes the selected demo role.');
  });
  await check('Student creates a support request in explicit demo mode',async()=>{
   await visit('support');
@@ -138,10 +140,13 @@ try {
   assert.equal(await page.getByRole('button',{name:'Export CSV',exact:true}).count(),0);
   assert.equal(await page.locator('.campus-workspace-links').count(),0);
   await visit('insights','leadership');
-  assert.equal(await page.locator('.campus-metric').count(),9);
+  assert.equal(await page.locator('.campus-metric').count(),0,'Leadership sees the campus-scale sample, not the demo record counts.');
+  assert.equal(await page.locator('.lead-kpi').count(),4);
   assert.equal(await page.locator('.campus-workspace-links a').count(),2,'Student success, Insights');
   assert.equal(await page.getByText(subject,{exact:true}).count(),0);
+  await visit('insights','staff');
   await page.locator('.lead-live-totals summary').click();
+  assert.equal(await page.locator('.campus-metric').count(),9);
   await page.getByRole('heading',{name:'Sample campus overview',exact:true}).waitFor();
   await page.screenshot({path:path.join(output,'leadership-insights-desktop.png'),fullPage:true});
   await visit('staff','leadership');

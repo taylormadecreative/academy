@@ -48,7 +48,7 @@ const hash = createHash('sha1')
 /* the class plugins the room loads for HT under the same ?v= (spec 2026-09-17 §2.5), and the replay page's stylesheet */
 for (const n of ['presence', 'reactions', 'warmup', 'roster', 'help', 'chapters', 'board', 'resources', 'small-groups']) hash.update(stampIn(path.join(ROOT, '..', 'js', 'rtk-' + n + '.js')));
 for (const n of ['reactions', 'warmup', 'roster', 'board', 'help', 'chapters']) hash.update(stampIn(path.join(ROOT, '..', 'css', 'rtk-' + n + '.css')));
-for (const n of ['app.js','store.js','student.js','staff.js','classrooms.js','academics.js','onboarding.js','onboarding-progress.js','demo.js','leadership.js','success.js','trust.js','tutor.js','css','success.css','trust.css','tutor.css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
+for (const n of ['app.js','store.js','student.js','staff.js','classrooms.js','academics.js','onboarding.js','onboarding-progress.js','demo.js','leadership.js','success.js','trust.js','tutor.js','faculty.js','css','success.css','trust.css','tutor.css','shell.css']) hash.update(stampIn(path.join(HUB, 'campus' + (n === 'css' ? '.' : '-') + n)));
 const V = hash.digest('hex').slice(0, 8);
 const esc = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 function shell(key, title, desc, dir) {

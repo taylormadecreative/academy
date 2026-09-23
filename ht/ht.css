@@ -450,3 +450,55 @@ button.rep:hover{border-color:#d9bfae}
 .ht-replay .rp-tline mark,.ht-replay mark{background:var(--ht-gold);color:var(--ht-mahogany)}
 /* a Live flag on the dark player chrome (the town hall's block when it goes on air) reads in gold */
 .player .flag,.nowbar .flag,.hc.dark .flag{color:var(--ht-gold);border-bottom-color:currentColor}
+
+/* ---- Space pages: one visual system with the app (renderer: chipHtml, btn, artHtml in ht/hub/ht.js) ----
+   Status is a small uppercase text label with an optional line icon, the way the Trust page and the badge
+   states read. No filled pills, no colored dots, maroon 8px buttons, and renderings say they are renderings. */
+body.ht .chip.lbl{display:inline-flex;align-items:center;gap:5px;background:none;border:0;border-radius:0;padding:0;margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;line-height:1.35;color:var(--campus-muted,#74675e);white-space:nowrap}
+body.ht .chip.lbl[data-tone="strong"]{color:var(--ht-maroon)}
+body.ht .chip.lbl>span{display:inline;font-size:inherit;color:inherit;margin:0;letter-spacing:inherit;line-height:inherit}
+body.ht .chip.lbl svg{flex:0 0 auto;width:13px;height:13px}
+body.ht .hc.dark .chip.lbl,body.ht .nowbar .chip.lbl{color:#e9d3c8}
+/* the label sits under the words it describes, so a narrow column keeps its line length */
+body.ht .person>div .chip.lbl,body.ht .mat>div .chip.lbl{margin-top:5px}
+body.ht .person>div{min-width:0;flex:1 1 auto}
+/* materials: a line icon in a quiet tile instead of PLAY / DOC / PDF chips */
+body.ht .mat{align-items:flex-start}
+body.ht .mat .k{width:34px;height:34px;border-radius:8px;background:var(--campus-surface,#fffefa);border:1px solid var(--campus-line,#e7e0d7);color:var(--ht-maroon)}
+body.ht .mat .k svg{width:17px;height:17px}
+body.ht .mat>div{min-width:0;flex:1 1 auto}
+body.ht .mat a.lnk{align-self:center}
+/* announcements: no bullet at all, the hairline between items is enough */
+body.ht .ann{display:block}
+/* bullets: a maroon line check, not a gold square */
+body.ht .split li{padding-left:22px}
+body.ht .split li::before{content:none}
+body.ht .split li>svg{position:absolute;left:0;top:4px;color:var(--ht-maroon)}
+/* timeline nodes are quiet rings; the Done label carries the state */
+body.ht .tli::before{background:#fff;border:1.5px solid #cfc3b6;box-shadow:none;width:11px;height:11px;left:-21px}
+body.ht .tli.done::before{background:#fff;border-color:#cfc3b6}
+/* likes: a line heart and a count */
+body.ht .post .acts button{display:inline-flex;align-items:center;gap:5px}
+body.ht .post .acts .ic{display:inline-flex}
+/* check-in confirmation in HT maroon, not an off-palette green */
+body.ht .ci .ok{color:var(--ht-maroon)}
+body.ht .ci .ok i{background:none;border:1px solid var(--campus-line,#e7e0d7)}
+/* campus plan renderings carry a visible caption */
+body.ht figure.art{margin:0;position:relative}
+body.ht .card .img{position:relative}
+.ht-render-cap{position:absolute;left:10px;bottom:10px;z-index:3;display:inline-block;background:rgba(255,254,250,.94);color:var(--campus-ink,#291c14);font:600 11px/1.2 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.01em;padding:5px 8px;border-radius:6px;pointer-events:none}
+.rep .ht-render-cap{left:8px;bottom:auto;top:8px}
+/* buttons and controls: the app's 8px radius, maroon primary */
+body.ht.ht-space-page .btn{border-radius:8px;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:600;box-shadow:none}
+body.ht.ht-space-page .btn.ht-line{border-width:1px;border-color:#d9cec1}
+body.ht.ht-space-page .cta .btn.ht-line{border-color:rgba(255,255,255,.55)}
+body.ht.ht-space-page .pill{border-radius:8px;background:var(--campus-surface,#fffefa);border:1px solid #d9cec1;color:var(--ht-maroon);font-weight:600}
+body.ht.ht-space-page .pill.ghost{color:var(--campus-ink,#291c14)}
+body.ht.ht-space-page .pill.on{background:var(--ht-maroon);border-color:var(--ht-maroon);color:#fff}
+body.ht.ht-space-page .intro .art .pill{background:rgba(255,255,255,.94)}
+body.ht.ht-space-page .search input,body.ht.ht-space-page .composer input,body.ht.ht-space-page .chat input{border-radius:8px;border-width:1px;border-color:#cdbfb1}
+body.ht.ht-space-page .chat button{border-radius:8px;font-weight:600}
+body.ht.ht-space-page .player .poster button{border-radius:8px;display:inline-flex;align-items:center;gap:8px;font-weight:700}
+body.ht.ht-space-page .cta{border-radius:14px}
+body.ht.ht-space-page .cta h2{font-family:Georgia,"Times New Roman",serif;font-weight:400}
+body.ht .ag .tag{background:none;border:0;padding:0;border-radius:0;display:block}   /* the Academy .tag pill rule reaches this wrapper */

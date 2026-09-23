@@ -36,6 +36,10 @@
     cap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>',
     grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></svg>',
     help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 0 1 5.1.7c0 1.8-2.6 2.2-2.6 4.3M12 17.2h.01"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 018 0v3.5"/></svg>',
+    file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6.5A1.5 1.5 0 005 4.5v15A1.5 1.5 0 006.5 21h11a1.5 1.5 0 001.5-1.5V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+    slides: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-8.6-8.6C2.2 8.2 4.2 5 7.4 5c2 0 3.5 1.1 4.6 2.6C13.1 6.1 14.6 5 16.6 5c3.2 0 5.2 3.2 4 6.4C19 15.7 12 20 12 20z"/></svg>',
     check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8.5l3.5 3.5 7-8"/></svg>'
   };
   Object.keys(ICONS).forEach(function (k) { ICONS[k] = ICONS[k].replace('<svg', '<svg aria-hidden="true" focusable="false"'); });
@@ -46,8 +50,37 @@
     var head = (b.title || b.meta) ? '<div class="hd">' + (b.title ? h`<h2>${b.title}</h2>` : '<span></span>') + (b.meta ? h`<span class="m">${b.meta}</span>` : '') + '</div>' : '';
     return '<section class="hc rv ' + (cls || '') + '"' + (b.id ? h` id="${b.id}"` : '') + '>' + head + '<div class="bd">' + inner + '</div></section>';
   }
-  function chipHtml(t, cls) { return t ? h`<span class="chip ${cls || ''}">${t}</span>` : ''; }
-  function btn(c) { if (!c) return ''; return h`<a class="btn ${c.style || 'ht'}" href="${c.href}">${c.label}</a>`; }
+  /* One status language with the app pages (the Trust page's chips, the badge states): a small uppercase
+     text label, maroon when it says something good or current, muted ink otherwise, with a line icon when
+     one helps. No filled pills, no colored dots. The old cls values ('green', 'soft', 'sample', 'nextup')
+     still arrive from the data files; they only pick the tone now. */
+  function smallIcon(n) { return icon(n).replace('<svg', '<svg width="13" height="13"'); }
+  function labelIcon(t) {
+    return /^(restricted|closed)$/i.test(t) ? 'lock' : /^(done|owner|host|taking mentees|open to internships|replies same day)$/i.test(t) ? 'check' : /^live|replay/i.test(t) ? 'play' : '';
+  }
+  function chipHtml(t, cls) {
+    if (!t) return '';
+    var tone = (cls === 'green' || cls === 'nextup' || /^(restricted|closed)$/i.test(t)) ? 'strong' : 'quiet';
+    var ic = labelIcon(String(t));
+    return '<span class="chip lbl" data-tone="' + tone + '">' + (ic ? smallIcon(ic) : '') + h`<span>${t}</span></span>`;
+  }
+  /* Primary actions are the app's maroon button. Gold stays only as the single accent inside a maroon
+     banner (R.cta passes gold:true for its primary), the way the app's leadership hero does it. */
+  function btn(c, gold) {
+    if (!c) return '';
+    var style = c.style || 'ht';
+    if (style === 'ht-gold' && !gold) style = 'ht';
+    return h`<a class="btn ${style}" href="${c.href}">${c.label}</a>`;
+  }
+  /* Ada is one character everywhere: the Hub's AI guide. Older data lines still say "student ambassador". */
+  var ADA_ALT = 'Ada, the Hub\u2019s AI guide';
+  function adaLine(s) { return String(s || '').replace(/Ada · HT student ambassador · sample line/g, 'Ada, the Hub\u2019s AI guide · sample').replace(/Ada · HT student ambassador/g, 'Ada, the Hub\u2019s AI guide'); }
+  /* /ht/img/r-*.jpg are renderings of the campus plan, not photographs of buildings that stand today. */
+  function isRendering(src) { return /\/img\/r-/.test(String(src || '')); }
+  function renderingCap(src) { return isRendering(src) ? '<figcaption class="ht-render-cap">Campus plan rendering</figcaption>' : ''; }
+  function artHtml(src, alt, eager) {
+    return (isRendering(src) ? '<figure class="art">' : '<div class="art">') + h`<img src="${src}" alt="${alt || ''}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">` + renderingCap(src) + (isRendering(src) ? '</figure>' : '</div>');
+  }
 
   var R = {};
   R.intro = function (b) {
@@ -57,18 +90,18 @@
       art = h`<div class="art"><video muted loop playsinline ${still ? '' : 'autoplay'} preload="none" poster="${b.poster || ''}" aria-label="${b.imageAlt || 'A short looping portrait'}"><source src="${b.video}" type="video/mp4"></video>` +
         '<button type="button" class="pill ghost" data-vtoggle aria-pressed="' + (!still) + '" style="position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.92)">' + (still ? 'Play' : 'Pause') + '</button></div>';
     }
-    else if (b.image) art = h`<div class="art"><img src="${b.image}" alt="${b.imageAlt || ''}" loading="eager" decoding="async"></div>`;
-    var ada = b.ada ? '<div class="ada" style="margin-top:18px">' + h`<img src="${HT.site.adaPoster}" alt="Ada, the HT student ambassador"><div><b>Ada says</b><p>${b.ada.text}</p>` + (b.ada.when ? h`<div class="w">${b.ada.when}</div>` : '') + '</div></div>' : '';
+    else if (b.image) art = artHtml(b.image, b.imageAlt, true);
+    var ada = b.ada ? '<div class="ada" style="margin-top:18px">' + h`<img src="${HT.site.adaPoster}" alt="${ADA_ALT}"><div><b>Ada says</b><p>${b.ada.text}</p>` + (b.ada.when ? h`<div class="w">${adaLine(b.ada.when)}</div>` : '') + '</div></div>' : '';
     return '<section class="intro rv' + (art ? '' : ' plain') + '"' + (b.id ? h` id="${b.id}"` : '') + '><div>' +
       (b.kicker ? h`<div class="k">${b.kicker}</div>` : '') + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') +
       (b.ctas && b.ctas.length ? '<div class="ctas">' + b.ctas.map(btn).join('') + '</div>' : '') + ada + '</div>' + art + '</section>';
   };
-  R.ada = function (b) { return '<section class="ada rv"' + (b.id ? h` id="${b.id}"` : '') + '>' + h`<img src="${HT.site.adaPoster}" alt="Ada, the HT student ambassador"><div><b>${b.label || 'Ada says'}</b><p>${b.text}</p>` + (b.when ? h`<div class="w">${b.when}</div>` : '') + '</div></section>'; };
+  R.ada = function (b) { return '<section class="ada rv"' + (b.id ? h` id="${b.id}"` : '') + '>' + h`<img src="${HT.site.adaPoster}" alt="${ADA_ALT}"><div><b>${b.label || 'Ada says'}</b><p>${b.text}</p>` + (b.when ? h`<div class="w">${adaLine(b.when)}</div>` : '') + '</div></section>'; };
   R.stats = function (b) { return '<section class="stats rv"' + (b.id ? h` id="${b.id}"` : '') + '>' + b.items.map(function (s) { return h`<div class="stat"><b>${s.n}</b><span>${s.label}</span></div>`; }).join('') + '</section>'; };
   R.cards = function (b) {
     var inner = '<div class="cards">' + b.items.map(function (c) {
       var tag = c.href ? 'a' : 'div';
-      return '<' + tag + ' class="card"' + (c.href ? h` href="${c.href}"` : '') + '>' + (c.img ? h`<div class="img"><img src="${c.img}" alt="${c.href ? '' : (c.alt || '')}" loading="lazy" decoding="async"></div>` : '') +
+      return '<' + tag + ' class="card"' + (c.href ? h` href="${c.href}"` : '') + '>' + (c.img ? h`<div class="img"><img src="${c.img}" alt="${c.href ? '' : (c.alt || '')}" loading="lazy" decoding="async">` + renderingCap(c.img) + '</div>' : '') +
         '<div class="cb">' + (c.meta ? h`<div class="meta">${c.meta}</div>` : '') + h`<h3>${c.title}</h3>` + (c.text ? h`<p>${c.text}</p>` : '') +
         (c.badge ? chipHtml(c.badge, c.badgeCls || 'sample') : '') + (c.foot ? h`<div class="foot">${c.foot}</div>` : '') + '</div></' + tag + '>';
     }).join('') + '</div>';
@@ -94,8 +127,8 @@
   };
   R.people = function (b) {
     var inner = b.items.map(function (p) {
-      return '<div class="person">' + h`<span class="av${p.gold ? ' g' : ''}">${p.init || initials(p.name)}</span><div><b>${p.name}</b><span>${[p.role, p.org].filter(Boolean).join(' · ')}</span></div>` +
-        '<div class="act">' + (p.tag ? chipHtml(p.tag, p.tagCls || 'soft') : '') + (b.dm ? '<button class="pill ghost" type="button" data-dm="' + esc(p.name) + '" aria-label="Message ' + esc(p.name) + '">Message</button>' : '') + '</div></div>';
+      return '<div class="person">' + h`<span class="av${p.gold ? ' g' : ''}">${p.init || initials(p.name)}</span><div><b>${p.name}</b><span>${adaLine([p.role, p.org].filter(Boolean).join(' · '))}</span>` + (p.tag ? chipHtml(p.tag, p.tagCls || 'soft') : '') + '</div>' +
+        (b.dm ? '<div class="act"><button class="pill ghost" type="button" data-dm="' + esc(p.name) + '" aria-label="Message ' + esc(p.name) + '">Message</button></div>' : '') + '</div>';
     }).join('');
     return card(b, inner);
   };
@@ -110,13 +143,15 @@
   };
   R.announcements = function (b) {
     var inner = b.items.map(function (a) {
-      return '<div class="ann"><span class="dot"></span><div>' + h`<p>${a.text}</p><div class="w">${[a.who, a.when].filter(Boolean).join(' · ')}</div>` + '</div></div>';
+      return '<div class="ann"><div>' + h`<p>${a.text}</p><div class="w">${adaLine([a.who, a.when].filter(Boolean).join(' · '))}</div>` + '</div></div>';
     }).join('');
     return card(b, inner || '<div class="empty">Nothing posted yet.</div>');
   };
   R.materials = function (b) {
     var inner = b.items.map(function (m) {
-      return '<div class="mat">' + h`<span class="k">${m.kind || 'DOC'}</span><div><b>${m.title}</b>` + (m.sub ? h`<span>${m.sub}</span>` : '') + '</div>' + (m.href ? h`<a class="lnk" href="${m.href}" aria-label="Open ${m.title}">Open</a>` : (m.restricted ? chipHtml('Restricted', 'soft') : '')) + '</div>';
+      var kind = String(m.kind || 'DOC').toUpperCase();
+      var glyph = (kind === 'PLAY' || kind === 'REC') ? 'play' : kind === 'DECK' ? 'slides' : 'file';
+      return '<div class="mat">' + '<span class="k" aria-hidden="true">' + icon(glyph) + '</span>' + h`<div><b>${m.title}</b>` + (m.sub ? h`<span>${m.sub}</span>` : '') + (!m.href && m.restricted ? chipHtml('Restricted') : '') + '</div>' + (m.href ? h`<a class="lnk" href="${m.href}" aria-label="Open ${m.title}">Open</a>` : '') + '</div>';
     }).join('');
     return card(b, inner);
   };
@@ -141,7 +176,7 @@
   function postHtml(p, i) {
     var n = p.likes || 0;
     return '<div class="post" data-chan="' + esc(p.chan || '') + '"><div class="ph">' + h`<span class="av">${p.init || initials(p.who)}</span><div><b>${p.who}</b><br><span>${[p.chan, p.when].filter(Boolean).join(' · ')}</span></div>` + '</div>' + h`<p>${p.text}</p>` +
-      '<div class="acts"><button type="button" data-like="' + i + '" aria-pressed="false" aria-label="Like, ' + n + '"><span aria-hidden="true">♥</span> <span>' + n + '</span></button>' +
+      '<div class="acts"><button type="button" data-like="' + i + '" aria-pressed="false" aria-label="Like, ' + n + '"><span aria-hidden="true" class="ic">' + smallIcon('heart') + '</span><span>' + n + '</span></button>' +
       '<button type="button" data-reply="' + esc(p.who) + '">Reply</button></div></div>';
   }
   R.chat = function (b) {
@@ -151,7 +186,7 @@
     var inner = '<div class="chat"><div class="scroll" data-scroll role="log" aria-live="polite" aria-label="Messages" tabindex="0">' + msgs.map(bub).join('') + '</div><form data-chat="' + esc(b.room) + '"><input placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" maxlength="400"><button type="submit">Send</button></form></div>';
     var s = card(b, inner); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
   };
-  function bub(m) { return '<div class="bub' + (m.me ? ' me' : '') + '">' + h`<div class="who">${m.who}</div><p>${m.text}</p>` + (m.when ? h`<div class="w">${m.when}</div>` : '') + '</div>'; }
+  function bub(m) { return '<div class="bub' + (m.me ? ' me' : '') + '">' + h`<div class="who">${adaLine(m.who)}</div><p>${m.text}</p>` + (m.when ? h`<div class="w">${m.when}</div>` : '') + '</div>'; }
   R.checkin = function (b) {
     var done = get('checkin:' + b.session, false);
     var okHtml = '<div class="ok" tabindex="-1"><i>' + ICONS.check + '</i>You are checked in.<button type="button" class="pill ghost" data-uncheck style="margin-left:12px">Undo</button></div>';
@@ -161,14 +196,14 @@
     return card(b, inner);
   };
   R.replays = function (b) {
-    var inner = '<div class="reps">' + b.items.map(function (r) { return '<button type="button" class="rep" data-replay="' + esc(r.title) + '">' + h`<img src="${r.poster}" alt="" loading="lazy" decoding="async">` + (r.len ? h`<span class="len">${r.len}</span>` : '') + '<div class="cap">' + h`<b>${r.title}</b><span>${[r.date, r.tag].filter(Boolean).join(' · ')}</span>` + '</div></button>'; }).join('') + '</div>';
+    var inner = '<div class="reps">' + b.items.map(function (r) { return '<button type="button" class="rep" data-replay="' + esc(r.title) + '">' + h`<img src="${r.poster}" alt="" loading="lazy" decoding="async">` + (isRendering(r.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + (r.len ? h`<span class="len">${r.len}</span>` : '') + '<div class="cap">' + h`<b>${r.title}</b><span>${[r.date, r.tag].filter(Boolean).join(' · ')}</span>` + '</div></button>'; }).join('') + '</div>';
     return card(b, inner);
   };
   R.player = function (b) {
     var now = b.now ? '<div class="nowbar">' + (b.live ? '<span class="flag">Live</span>' : chipHtml('Test picture · sample', 'soft')) + h`<b>${b.now.title}</b>` + (b.now.who ? h`<span>${b.now.who}</span>` : '') + (b.now.when ? h`<span>${b.now.when}</span>` : '') + '</div>' : '';
     var inner = '<div class="player" data-player data-stream="' + esc(b.stream || '/ht/img/hero-flyover.mp4') + '">' +
       '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="flag">Live</span>' : '') + '</div>' +
-      '<div class="poster" style="background-image:url(' + esc(b.poster || '/ht/img/hero-flyover-poster.jpg') + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '"><span aria-hidden="true">▶</span>&nbsp; Watch</button></div>' +
+      '<div class="poster" style="background-image:url(' + esc(b.poster || '/ht/img/hero-flyover-poster.jpg') + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '">' + smallIcon('play') + ' Watch</button>' + (isRendering(b.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + '</div>' +
       '<img class="wm" src="/assets/logo-nav.webp" alt=""></div>' + now;
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
   };
@@ -181,7 +216,7 @@
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
   };
   R.timeline = function (b) {
-    var inner = '<div class="tl">' + b.items.map(function (t) { return '<div class="tli' + (t.done ? ' done' : '') + '">' + h`<em>${t.when}</em>` + (t.done ? '<span class="chip green" style="margin-left:8px;vertical-align:middle">Done</span>' : '') + h`<b>${t.title}</b>` + (t.text ? h`<p>${t.text}</p>` : '') + '</div>'; }).join('') + '</div>';
+    var inner = '<div class="tl">' + b.items.map(function (t) { return '<div class="tli' + (t.done ? ' done' : '') + '">' + h`<em>${t.when}</em>` + (t.done ? chipHtml('Done', 'green').replace('class="chip lbl"', 'class="chip lbl" style="margin-left:10px;vertical-align:middle"') : '') + h`<b>${t.title}</b>` + (t.text ? h`<p>${t.text}</p>` : '') + '</div>'; }).join('') + '</div>';
     return card(b, inner);
   };
   /* Integer yyyymmdd comparison: no Date parsing, so no timezone drift on "is this past?". */
@@ -205,7 +240,7 @@
       var w = c.date ? whenOf(c.date, c.end) : '';
       var flag = '';
       if (w === 'now') flag = '<span class="flag">Today</span>';
-      else if (w === 'ahead' && !flagged) { flagged = true; flag = '<span class="chip nextup">Next</span>'; }
+      else if (w === 'ahead' && !flagged) { flagged = true; flag = chipHtml('Next', 'nextup'); }
       return '<div class="cal' + (w ? ' is-' + w : '') + '"><div class="d">' + (d ? h`<b>${d.getDate()}</b><span>${MON[d.getMonth()]}</span>` : h`<b>${c.day || ''}</b><span>${c.mon || ''}</span>`) + '</div><div class="b">' + h`<b>${c.title}</b>` + (c.where ? h`<span>${c.where}</span>` : '') + '</div>' + ((c.tag || flag) ? '<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + flag + (c.tag ? chipHtml(c.tag, c.tagCls || 'soft') : '') + '</span>' : '') + '</div>';
     }).join('');
     return card(b, inner);
@@ -219,7 +254,7 @@
       var isNext = w === 'ahead' && !nextSeen; if (isNext) nextSeen = true;
       var k = KIND[c.kind] || KIND.term;
       var span = c.end && c.end !== c.d;
-      var flag = w === 'now' ? '<span class="flag">' + (span ? 'On now' : 'Today') + '</span>' : (isNext ? '<span class="chip nextup">Next up</span>' : '');
+      var flag = w === 'now' ? '<span class="flag">' + (span ? 'On now' : 'Today') + '</span>' : (isNext ? chipHtml('Next up', 'nextup') : '');
       return '<div class="yr is-' + w + (isNext ? ' nx' : '') + '" data-term="' + esc(c.term) + '" data-when="' + w + '">' +
         '<div class="d">' + h`<b>${a.getDate()}</b><span>${MON[a.getMonth()]}</span>` + '</div>' +
         '<div class="b">' + h`<b>${c.t}</b><span>${longDate(c.d, c.end)}${c.note ? ' · ' + c.note : ''}</span>` + '</div>' +
@@ -233,14 +268,14 @@
   };
   R.split = function (b) {
     var inner = '<div class="split' + (b.side === 'left' ? ' r' : '') + '"><div>' + (b.kicker ? h`<div class="k" style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ht-maroon);margin-bottom:8px">${b.kicker}</div>` : '') + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') +
-      (b.bullets && b.bullets.length ? '<ul>' + b.bullets.map(function (x) { return h`<li>${x}</li>`; }).join('') + '</ul>' : '') + (b.cta ? '<div style="margin-top:16px">' + btn(b.cta) + '</div>' : '') + '</div>' +
-      (b.image ? h`<div class="art"><img src="${b.image}" alt="${b.imageAlt || ''}" loading="lazy" decoding="async"></div>` : '') + '</div>';
+      (b.bullets && b.bullets.length ? '<ul>' + b.bullets.map(function (x) { return '<li>' + smallIcon('check') + h`<span>${x}</span></li>`; }).join('') + '</ul>' : '') + (b.cta ? '<div style="margin-top:16px">' + btn(b.cta) + '</div>' : '') + '</div>' +
+      (b.image ? artHtml(b.image, b.imageAlt) : '') + '</div>';
     return card({ id: b.id, meta: b.meta }, inner);
   };
   R.steps = function (b) { return card(b, '<div class="steps">' + b.items.map(function (s) { return h`<div class="step"><em>${s.em}</em><h3>${s.h}</h3><p>${s.p}</p></div>`; }).join('') + '</div>'); };
   R.faq = function (b) { return card(b, '<div class="faq">' + b.items.map(function (q) { return h`<details><summary>${q.q}</summary><p>${q.a}</p></details>`; }).join('') + '</div>'); };
   R.notice = function (b) { return '<div class="notice rv' + (b.tone === 'maroon' ? ' maroon' : '') + '"' + (b.id ? h` id="${b.id}"` : '') + '>' + (b.html ? b.html : esc(b.text)) + '</div>'; };
-  R.cta = function (b) { return '<section class="cta rv"' + (b.id ? h` id="${b.id}"` : '') + '><div>' + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') + '</div><div class="ctas">' + btn(b.primary) + (b.secondary ? btn(Object.assign({ style: 'ht-gold' }, b.secondary)) : '') + '</div></section>'; };
+  R.cta = function (b) { return '<section class="cta rv"' + (b.id ? h` id="${b.id}"` : '') + '><div>' + h`<h2>${b.title}</h2>` + (b.text ? h`<p>${b.text}</p>` : '') + '</div><div class="ctas">' + btn(b.primary, true) + (b.secondary ? btn(Object.assign({ style: 'ht-line' }, b.secondary)) : '') + '</div></section>'; };
   R.table = function (b) { return card(b, '<div style="overflow-x:auto" tabindex="0" role="region" aria-label="' + esc(b.title || 'Table') + '"><table class="tbl"><thead><tr>' + b.cols.map(function (c) { return h`<th scope="col">${c}</th>`; }).join('') + '</tr></thead><tbody>' + b.rows.map(function (r) { return '<tr>' + r.map(function (c, i) { return i === 0 ? h`<td><b>${c}</b></td>` : h`<td>${c}</td>`; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>'); };
   R.install = function (b) {
     var android = /Android/i.test(navigator.userAgent || '');
@@ -264,7 +299,9 @@
       link('community','Community','users',pageKey === 'community') + link('messages','Messages','chat',pageKey === 'messages' || pageKey === 'people') + link('spaces','Campus','grid',pageKey === 'spaces' || (HT.order || []).indexOf(pageKey) !== -1);
     var more = '<details class="campus-nav-more"><summary' + (moreCurrent ? ' aria-current="page"' : '') + '>' + icon('grid') + '<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">' +
       link('events','Events','calendar',pageKey === 'events') + link('live','Classrooms','play',['live','legacy-live','session','replay'].indexOf(pageKey) !== -1) + (['staff','leadership'].indexOf(demoRole) !== -1 ? link('success','Student success','shield',pageKey === 'success') : '') + link('trust','Security & integrations','door',pageKey === 'trust') + link('calendar','Academic calendar','calendar',pageKey === 'calendar') + link('support','Get help','help',false).replace('<a ','<a class="campus-more-phone" ') + link('welcome','Hub guide','book',false).replace('<a ','<a class="campus-more-phone" ') + '</div></details>';
-    return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + '</div></div></nav>';
+    var stripItems = [['events','Events','calendar'],['live','Classrooms','play']].concat(['staff','leadership'].indexOf(demoRole) !== -1 ? [['success','Student success','shield']] : []).concat([['trust','Security & integrations','door'],['calendar','Calendar','calendar'],['support','Get help','help'],['welcome','Guide','book']]);
+    var strip = '<nav class="campus-phone-strip" aria-label="More destinations">' + stripItems.map(function (it) { return link(it[0], it[1], it[2], pageKey === it[0]); }).join('') + '</nav>';
+    return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + '</div></div></nav>' + strip;
   }
   function breadcrumbHtml(key, title) {
     var parent = key === 'calendar' ? ['events', 'Events'] : ['session','replay','legacy-live'].indexOf(key) !== -1 ? ['live', 'Classrooms'] : ['spaces', 'Around campus'];
@@ -286,20 +323,34 @@
     else instruction = 'Start with “' + (intro ? intro.title : title) + '” below, then use its links and the sections that follow to explore ' + (space.office || title) + '.';
     if (wasSeen) return '';
     var open = '';
-    return '<details class="campus-page-guide ht-page-guide" data-campus-page-guide="' + esc(storageKey) + '"' + open + '><summary><span><strong>First time here?</strong><span>See how to use ' + esc(title) + '</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><p>' + esc(instruction) + '</p></div><div class="campus-page-guide-actions"><a class="campus-button campus-button-secondary campus-button-small" href="' + esc(HT.site.hub + 'welcome/') + '">Full site guide</a><button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>';
+    return '<details class="campus-page-guide ht-page-guide" data-campus-page-guide="' + esc(storageKey) + '"' + open + '><summary><span><strong>First time here?</strong><span>How this page works</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><p>' + esc(instruction) + '</p></div><div class="campus-page-guide-actions"><a class="campus-button campus-button-secondary campus-button-small" href="' + esc(HT.site.hub + 'welcome/') + '">Full site guide</a><button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>';
+  }
+  /* The cabinet tour. It starts on the new work (success, insights, a course with Ada, grading,
+     badges, the IT page) and then walks every space. Steps may switch the demo role; ?tour=1 keeps
+     the rail visible for student and staff stops. */
+  function tourLabel(step) {
+    return ({ success: 'Student success', insights: 'Insights', trust: 'Security', live: 'Classrooms', learn: 'Badges' })[step.key] ||
+      (step.key === 'courses' ? (step.role === 'staff' ? 'Grading' : 'Ask Ada') : step.key[0].toUpperCase() + step.key.slice(1));
+  }
+  function tourHref(step) {
+    var q = new URLSearchParams(Object.assign({ demo: step.role || 'leadership' }, step.query || {}, { tour: '1' }));
+    return HT.site.hub + step.key + '/?' + q.toString();
   }
   function leadershipDemoRail(key) {
-    if (new URLSearchParams(location.search).get('demo') !== 'leadership') return '';
+    var params = new URLSearchParams(location.search), demo = params.get('demo') || '';
+    if (demo !== 'leadership' && params.get('tour') !== '1') return '';
     var journey = HT.leadershipWalkthrough || [];
-    var index = journey.findIndex(function (step) { return step.key === key; });
+    var index = journey.findIndex(function (step) { return step.key === key && (step.role || 'leadership') === demo; });
+    if (index < 0 && demo === 'leadership') index = journey.findIndex(function (step) { return step.key === key && !step.role; });
     if (index < 0) return '';
     var current = journey[index], previous = journey[index - 1], next = journey[index + 1];
-    function stepHref(step) { return HT.site.hub + step.key + '/?demo=leadership'; }
     var forward = next
-      ? '<a class="campus-leadership-next" href="' + esc(stepHref(next)) + '">Next: ' + esc(next.key === 'live' ? 'Classrooms' : next.key === 'learn' ? 'Learning pathways' : next.key[0].toUpperCase() + next.key.slice(1)) + ' <span aria-hidden="true">→</span></a>'
-      : '<a class="campus-leadership-next" href="' + esc(stepHref(journey[0])) + '">Restart walkthrough <span aria-hidden="true">↺</span></a>';
-    return '<section class="campus-leadership-tour" aria-labelledby="campusLeadershipTourTitle"><div class="campus-leadership-tour-top"><p class="campus-eyebrow">Leadership walkthrough · sample journey</p><span>Step <b>' + (index + 1) + '</b> of ' + journey.length + '</span></div><div class="campus-leadership-tour-body"><div><h2 id="campusLeadershipTourTitle">' + esc(current.title) + '</h2><p>' + esc(current.detail) + '</p></div><nav aria-label="Leadership walkthrough navigation">' + (previous ? '<a class="campus-leadership-previous" href="' + esc(stepHref(previous)) + '">← Previous: ' + esc(previous.key === 'live' ? 'Classrooms' : previous.key === 'learn' ? 'Learning pathways' : previous.key[0].toUpperCase() + previous.key.slice(1)) + '</a>' : '<span class="campus-leadership-previous">Start of journey</span>') + forward + '<a class="campus-leadership-all" href="' + esc(HT.site.hub + 'spaces/?demo=leadership') + '">All 13 spaces</a></nav></div><progress value="' + (index + 1) + '" max="' + journey.length + '" aria-label="Leadership walkthrough progress"></progress></section>';
+      ? '<a class="campus-leadership-next" href="' + esc(tourHref(next)) + '">Next: ' + esc(tourLabel(next)) + ' <span aria-hidden="true">→</span></a>'
+      : '<a class="campus-leadership-next" href="' + esc(HT.site.hub + '?demo=leadership') + '">Finish the tour <span aria-hidden="true">✓</span></a>';
+    var roleNote = current.role ? ' <span class="campus-leadership-role">Viewing as ' + esc(current.role === 'staff' ? 'the instructor' : 'a student') + '</span>' : '';
+    return '<section class="campus-leadership-tour" aria-labelledby="campusLeadershipTourTitle"><div class="campus-leadership-tour-top"><p class="campus-eyebrow">Guided tour · sample journey' + roleNote + '</p><span>Stop <b>' + (index + 1) + '</b> of ' + journey.length + '</span></div><div class="campus-leadership-tour-body"><div><h2 id="campusLeadershipTourTitle">' + esc(current.title) + '</h2><p>' + esc(current.detail) + '</p></div><nav aria-label="Tour navigation">' + (previous ? '<a class="campus-leadership-previous" href="' + esc(tourHref(previous)) + '">← ' + esc(tourLabel(previous)) + '</a>' : '<a class="campus-leadership-previous" href="' + esc(HT.site.hub + '?demo=leadership') + '">← Today</a>') + forward + '</nav></div><progress value="' + (index + 1) + '" max="' + journey.length + '" aria-label="Tour progress"></progress></section>';
   }
+  window.HTTour = { href: tourHref, steps: function () { return HT.leadershipWalkthrough || []; } };
   function staticDemoHeader(role) {
     if (['student', 'staff', 'leadership'].indexOf(role) === -1) return;
     var header = document.querySelector('.site-header .nav-cta');
@@ -327,7 +378,7 @@
       '</div><div class="campus-head-actions">' + (demoStrip(roleNow) ? '' : '<span class="ht-space-stamp">' + esc(space.stamp || 'Preview · sample content') + '</span>') + (space.headCta ? btn(space.headCta) : '') + '</div></header>' +
       '<main class="campus-main ht-space-main" id="htMain" tabindex="-1">' + firstVisitGuide(key, space) + leadershipDemoRail(key) + '<div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></main></div>' +
       '<nav class="campus-mobile-nav" aria-label="Mobile navigation">' +
-      [['home','home','Today'],['courses','book','Learn'],['community','users','Community'],['messages','chat','Messages'],['spaces','grid','Campus']].map(function (item) {
+      [['home','home','Today'],['courses','book','Learning'],['community','users','Community'],['messages','chat','Messages'],['spaces','grid','Campus']].map(function (item) {
         var current = item[0] === 'spaces' ? (HT.order || []).indexOf(key) !== -1 || key === 'spaces' : item[0] === 'courses' ? ['courses','learn'].indexOf(key) !== -1 : item[0] === 'community' ? key === 'community' : item[0] === 'messages' ? ['messages','people'].indexOf(key) !== -1 : item[0] === 'home' && key === 'home';
         return '<a href="' + esc(HT.site.hub + (item[0] === 'home' ? '' : item[0] + '/')) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(item[1]) + '<span>' + esc(item[2]) + '</span></a>';
       }).join('') + '</nav>';

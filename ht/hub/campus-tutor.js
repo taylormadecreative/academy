@@ -67,12 +67,14 @@ export function sentences(text) {
   return out;
 }
 
-const shortTitle = (title, max = 24) => {
-  const text = String(title || '').trim();
-  if (text.length <= max) return text;
-  const cut = text.slice(0, max + 1).replace(/\s+\S*$/, '').replace(/[\s,;:—–-]+$/, '');
-  return `${cut || text.slice(0, max)}…`;
-};
+/** "Friday, Sep 25 at 11:59 PM" in the reader's own time zone. The year shows only when it is not this year. */
+export function formatWhen(value, now = new Date()) {
+  const d = new Date(value);
+  if (!value || !Number.isFinite(d.getTime())) return '';
+  const day = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', ...(d.getFullYear() !== now.getFullYear() ? { year: 'numeric' } : {}) });
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${day} at ${time}`.replace(/\s+/g, ' ');
+}
 
 /**
  * Build Ada's library from one section: the connected course's modules (title, body, and the
@@ -86,13 +88,21 @@ export function buildCorpus({ modules = [], assignments = [] } = {}) {
     String(module.body || '').split(/\n\s*\n/).filter(Boolean).forEach((paragraph, p) => add(paragraph, source, p));
     if (module.assignment_prompt) add(module.assignment_prompt, source, 'prompt');
   });
-  assignments.filter(item => item.status === 'published').forEach(assignment => {
+  const published = assignments.filter(item => item.status === 'published');
+  published.forEach(assignment => {
     const source = { kind: 'assignment', id: assignment.id, title: String(assignment.title || 'Assignment'), titleTokens: new Set(tokenize(assignment.title)) };
     String(assignment.instructions || '').split(/\n\s*\n/).filter(Boolean).forEach((paragraph, p) => add(paragraph, source, p));
   });
+  // Dates, points, attempts, and the rubric are kept apart from the ranked sentences: they answer
+  // "when is it due?" and "how is it graded?" directly instead of competing on keywords.
+  const facts = published.map(assignment => ({
+    id: assignment.id, title: String(assignment.title || 'Assignment'), titleTokens: new Set(tokenize(assignment.title)),
+    due_at: assignment.due_at || null, closes_at: assignment.closes_at || null, points: Number(assignment.points_possible) || 0,
+    attempts: Number(assignment.max_attempts) || 0, personal: !!assignment.personal_extension, rubric: rubricFor(assignment),
+  }));
   const df = new Map();
   for (const passage of passages) for (const term of new Set([...passage.tokens, ...passage.source.titleTokens])) df.set(term, (df.get(term) || 0) + 1);
-  return { passages, df, size: passages.length };
+  return { passages, df, size: passages.length, facts };
 }
 
 function idf(corpus, term) { return Math.log((corpus.size + 1) / ((corpus.df.get(term) || 0) + 0.5)); }
@@ -117,8 +127,8 @@ export function rankPassages(question, corpus) {
 }
 
 const citationFor = source => source.kind === 'module'
-  ? { kind: 'module', id: source.id, number: source.number, title: source.title, label: `From Module ${source.number} · ${shortTitle(source.title)}` }
-  : { kind: 'assignment', id: source.id, title: source.title, label: `From the assignment · ${shortTitle(source.title, 30)}` };
+  ? { kind: 'module', id: source.id, number: source.number, title: source.title, label: `From Module ${source.number} · ${source.title}` }
+  : { kind: 'assignment', id: source.id, title: source.title, label: `From the assignment · ${source.title}` };
 
 /** The guard is for requests that hand the work to Ada, not for questions about how to do it. */
 export function isIntegrityRequest(question) {
@@ -137,6 +147,56 @@ export function isIntegrityRequest(question) {
   return false;
 }
 
+/* ---------- Plain logistics: due dates and grading ---------- */
+const DUE_INTENT = /\b(due|deadlines?|late|how long do i have|when (is|are|do|does|should|can|must)\b.*\b(submit|turn(ed)? in|hand(ed)? in|clos(e|es|ed)|finish|send))\b/;
+const DETAIL_INTENT = /\b(how many (points|attempts|tries|chances)|worth|points possible|attempts?|tries|resubmit|submit again)\b/;
+const GRADING_INTENT = /\b(grad(e|ed|es|ing)|scor(e|ed|es|ing)|rubric|marked|points? (for|on))\b/;
+const plural = (count, word) => `${count.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${word}${count === 1 ? '' : 's'}`;
+const intentText = question => String(question || '').toLowerCase().replace(/[’']/g, '').replace(/\s+/g, ' ');
+export function questionIntent(question) {
+  const q = intentText(question);
+  if (GRADING_INTENT.test(q) && !/\bdue\b/.test(q)) return 'grading';
+  if (DUE_INTENT.test(q) || DETAIL_INTENT.test(q)) return 'due';
+  return '';
+}
+/** The assignment(s) a question names; every published one when it names none. */
+function assignmentsAsked(question, facts) {
+  const words = new Set(tokenize(question).filter(word => !WEAK.has(word)));
+  const scored = facts.map(item => ({ item, hits: [...item.titleTokens].filter(token => words.has(token)).length })).filter(entry => entry.hits > 0);
+  if (scored.length) { const best = Math.max(...scored.map(entry => entry.hits)); return scored.filter(entry => entry.hits === best).map(entry => entry.item); }
+  return facts;
+}
+const byDue = (a, b) => (Date.parse(a.due_at) || Infinity) - (Date.parse(b.due_at) || Infinity) || a.title.localeCompare(b.title);
+const assignmentCitation = (item, prefix = 'From the assignment') => ({ kind: 'assignment', id: item.id, title: item.title, label: `${prefix} · ${item.title}` });
+function dueAnswer(question, corpus) {
+  const chosen = assignmentsAsked(question, corpus?.facts || []).slice().sort(byDue).slice(0, 3);
+  if (!chosen.length) return null;
+  return { kind: 'answer', lead: chosen.length === 1 ? 'Here is what your assignment says:' : 'Here is what your assignments say:', passages: chosen.map(item => {
+    const due = formatWhen(item.due_at), closes = formatWhen(item.closes_at);
+    const parts = [due ? `${item.title} is due ${due}.` : `${item.title} has no due date yet.`];
+    if (closes && item.closes_at !== item.due_at) parts.push(`You can still turn it in until ${closes}. After that, it closes.`);
+    if (item.personal) parts.push('These dates include your personal extension.');
+    const facts = [item.points ? `It is worth ${plural(item.points, 'point')}` : '', item.attempts ? `you get ${plural(item.attempts, 'attempt')}` : ''].filter(Boolean);
+    if (facts.length) parts.push(`${facts.join(', and ')}.`);
+    return { text: parts.join(' '), citation: assignmentCitation(item) };
+  }) };
+}
+function gradingAnswer(question, corpus) {
+  const asked = assignmentsAsked(question, corpus?.facts || []).filter(item => item.rubric).sort(byDue);
+  const item = asked[0];
+  if (!item) return null;
+  const { rubric } = item, names = rubric.criteria.map(criterion => criterion.name);
+  const list = `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+  const passages = [
+    { text: `${item.title} is graded with a rubric. It has ${['zero', 'one', 'two', 'three', 'four', 'five', 'six'][rubric.criteria.length] || rubric.criteria.length} parts, worth ${plural(rubric.each, 'point')} each, for ${plural(rubric.possible, 'point')} in all: ${list}.`, citation: assignmentCitation(item, 'From the rubric') },
+    { text: 'To earn full points on each part:', items: rubric.criteria.map(criterion => ({ label: criterion.name, points: rubric.each, text: criterion.levels.find(level => level.id === 'exemplary')?.text || '' })), citation: assignmentCitation(item, 'From the rubric') },
+  ];
+  // One supporting line from the lessons, when a lesson talks about how work is reviewed.
+  const lesson = rankPassages(`${question} reviewed feedback`, corpus).find(entry => entry.passage.source.kind === 'module');
+  if (lesson && lesson.score >= MIN_SCORE) passages.push({ text: lesson.passage.text, citation: citationFor(lesson.passage.source) });
+  return { kind: 'answer', lead: 'Here is how your work is graded:', passages };
+}
+
 /**
  * Ada's answer. kind: 'answer' (1–3 cited passages), 'none' (not in the materials),
  * 'integrity' (declines to do the work; points to the right module), or 'empty'.
@@ -152,6 +212,9 @@ export function answerQuestion(question, corpus) {
     const source = topicModule?.passage.source || assignmentModule?.source || modules[0]?.source;
     return { kind: 'integrity', passages: [], pointer: source ? citationFor(source) : null };
   }
+  const intent = questionIntent(text);
+  const direct = intent === 'grading' ? gradingAnswer(text, corpus) : intent === 'due' ? dueAnswer(text, corpus) : null;
+  if (direct) return direct;
   const ranked = rankPassages(text, corpus);
   if (!ranked.length || ranked[0].score < MIN_SCORE || ranked[0].coverage < MIN_COVERAGE) return { kind: 'none', passages: [] };
   const top = ranked[0].score, chosen = [], seen = new Set();
@@ -204,11 +267,32 @@ function answerHtml(h, answer) {
     const ask = h.instructorId && h.instructorId !== h.userId ? `<a href="${h.esc(h.href('people', { person: h.instructorId }))}">ask ${h.esc(h.instructorName)}</a>` : `ask ${h.esc(h.instructorName)}`;
     return `<p>I couldn't find that in this course's materials. Try rephrasing, or ${ask}${/[.!?]$/.test(String(h.instructorName || '')) ? '' : '.'}</p>`;
   }
-  return `<p class="tutor-lead">Here is what your course materials say:</p>${answer.passages.map(item => `<div class="tutor-passage"><p>${h.esc(item.text)}</p>${chip(h, item.citation)}</div>`).join('')}`;
+  const fmt = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const items = item => Array.isArray(item.items) && item.items.length ? `<ul class="tutor-list">${item.items.map(entry => `<li><span class="tutor-list-head"><strong>${h.esc(entry.label)}</strong>${Number.isFinite(Number(entry.points)) ? `<span class="tutor-num">${fmt(entry.points)} pts</span>` : ''}</span>${entry.text ? `<span>${h.esc(entry.text)}</span>` : ''}</li>`).join('')}</ul>` : '';
+  return `<p class="tutor-lead">${h.esc(answer.lead || 'Here is what your course materials say:')}</p>${answer.passages.map(item => `<div class="tutor-passage"><p>${h.esc(item.text)}</p>${items(item)}${chip(h, item.citation)}</div>`).join('')}`;
 }
+const turnHtml = (h, turn) => `<div class="tutor-turn"><p class="tutor-q"><span class="campus-sr-only">You asked: </span>${h.esc(turn.q)}</p><div class="tutor-a"><span class="campus-sr-only">Ada: </span>${answerHtml(h, turn.a)}</div></div>`;
 export function renderTurns(h, turns) {
   if (!turns.length) return `<p class="tutor-empty">Ask about anything in this course. I'll show you where the answer comes from.</p>`;
-  return turns.map(turn => `<div class="tutor-turn"><p class="tutor-q"><span class="campus-sr-only">You asked: </span>${h.esc(turn.q)}</p><div class="tutor-a"><span class="campus-sr-only">Ada: </span>${answerHtml(h, turn.a)}</div></div>`).join('');
+  return turns.map(turn => turnHtml(h, turn)).join('');
+}
+
+/**
+ * Bring the newest turn into view, like any chat: the log scrolls so the newest question sits at
+ * its top (short answers simply land at the bottom). On phones the log grows with the page, so the
+ * page scrolls instead when the newest question is above the screen.
+ */
+export function showNewest(log, { page = false } = {}) {
+  const last = log?.lastElementChild;
+  if (!last) return;
+  if (log.scrollHeight > log.clientHeight + 1) {
+    const offset = last.getBoundingClientRect().top - log.getBoundingClientRect().top;
+    log.scrollTop = Math.max(0, log.scrollTop + offset - 4);
+    return;
+  }
+  if (!page) return;
+  const top = last.getBoundingClientRect().top, view = globalThis.innerHeight || 0;
+  if (top < 72 || top > view * 0.45) globalThis.scrollBy?.({ top: top - 88, behavior: 'auto' });
 }
 
 /** h: { esc, href, cohortId, userId, instructorId, instructorName, preview, suggestions } */
@@ -233,12 +317,17 @@ export function bindTutor(root, getContext, onDraftSettled = () => {}) {
     const text = String(question || '').trim().slice(0, 300);
     const input = panel.querySelector('input[name="question"]');
     if (!text) { input?.focus(); return; }
-    const turns = loadTurns(h.userId, h.cohortId);
-    turns.push({ q: text, a: answerQuestion(text, h.corpus), at: new Date().toISOString() });
+    const turns = loadTurns(h.userId, h.cohortId), turn = { q: text, a: answerQuestion(text, h.corpus), at: new Date().toISOString() };
+    turns.push(turn);
     saveTurns(h.userId, h.cohortId, turns);
-    const kept = turns.slice(-TUTOR_MAX_TURNS);
     const log = panel.querySelector('[data-tutor-log]');
-    if (log) { log.innerHTML = renderTurns(h, kept); log.lastElementChild?.scrollIntoView?.({ block: 'nearest' }); log.scrollTop = log.scrollHeight; }
+    if (log) {
+      // Append only the new turn so screen readers announce just the new answer.
+      log.querySelector('.tutor-empty')?.remove();
+      log.insertAdjacentHTML('beforeend', turnHtml(h, turn));
+      while (log.children.length > TUTOR_MAX_TURNS) log.firstElementChild.remove();
+      showNewest(log, { page: true });
+    }
     const clear = panel.querySelector('[data-tutor-clear]'); if (clear) clear.hidden = false;
     if (input) { input.value = ''; input.focus({ preventScroll: true }); }
     onDraftSettled(panel.querySelector('form[data-tutor-form]'));
@@ -263,9 +352,13 @@ export function bindTutor(root, getContext, onDraftSettled = () => {}) {
     }
   };
   root.addEventListener('submit', submit); root.addEventListener('click', click);
-  // Open on the newest answer, like any chat.
-  root.querySelectorAll?.('[data-tutor-log]').forEach(log => { log.scrollTop = log.scrollHeight; });
-  return () => { root.removeEventListener('submit', submit); root.removeEventListener('click', click); };
+  // Open on the newest turn, like any chat, and again once fonts and images settle the layout.
+  const settle = () => root.querySelectorAll?.('[data-tutor-log]').forEach(log => showNewest(log));
+  settle();
+  globalThis.requestAnimationFrame?.(settle);
+  globalThis.document?.fonts?.ready?.then(settle).catch?.(() => {});
+  globalThis.addEventListener?.('load', settle, { once: true });
+  return () => { root.removeEventListener('submit', submit); root.removeEventListener('click', click); globalThis.removeEventListener?.('load', settle); };
 }
 
 /* ---------- Rubric ---------- */

@@ -193,18 +193,18 @@ test('guided destinations show their tour instruction instead of duplicate page 
 test('deep course tabs and message threads name the page the visitor is actually viewing', () => {
   const ctx = context();
   let html = at('https://ht.invalid/ht/hub/courses/?cohort=section&tab=assignments', () => renderPageOrientation('courses', ctx));
-  assert.match(html, /See how to use Assignments/); assert.match(html, /due dates, then submit your work/);
+  assert.match(html, /How this page works/); assert.match(html, /due dates, then submit your work/);
   html = at('https://ht.invalid/ht/hub/messages/?person=member', () => renderPageOrientation('people', ctx));
-  assert.match(html, /See how to use Conversation/); assert.match(html, /write your reply in the message box/);
+  assert.match(html, /How this page works/); assert.match(html, /write your reply in the message box/);
   html = at('https://ht.invalid/ht/hub/live/?cohort=section', () => renderPageOrientation('live', ctx));
-  assert.match(html, /See how to use Cohort classroom/);
+  assert.match(html, /How this page works/);
   html = at('https://ht.invalid/ht/hub/messages/?new=1', () => renderPageOrientation('people', ctx));
-  assert.match(html, /See how to use New message/); assert.match(html, /Search the campus directory/);
+  assert.match(html, /How this page works/); assert.match(html, /Search the campus directory/);
   html = at('https://ht.invalid/ht/hub/support/?request=request-id', () => renderPageOrientation('support', ctx));
-  assert.match(html, /See how to use Support request/); assert.match(html, /campus team’s replies/);
+  assert.match(html, /How this page works/); assert.match(html, /campus team’s replies/);
   const staff = context('staff');
   html = at('https://ht.invalid/ht/hub/live/?manage=1&cohort=section', () => renderPageOrientation('live', staff));
-  assert.match(html, /See how to use Classroom management/); assert.match(html, /manage classrooms, enrollment, or scheduled sessions/);
+  assert.match(html, /How this page works/); assert.match(html, /manage classrooms, enrollment, or scheduled sessions/);
 });
 
 test('contextual guide validates requested step and route; persisted current step supports inner course navigation', () => {

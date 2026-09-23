@@ -16,7 +16,12 @@
 .tutor-lead{color:var(--campus-muted);font-size:12px}
 .tutor-passage{margin-top:9px;padding-left:11px;border-left:2px solid #e3d8c6}
 .tutor-passage>p{color:var(--campus-ink)}
-.tutor-cite{display:inline-flex;align-items:center;max-width:100%;margin-top:6px;padding:4px 9px;border:1px solid #e3d8c6;border-radius:7px;background:var(--campus-surface);color:var(--campus-maroon)!important;font-size:11px;font-weight:600;line-height:1.4;text-decoration:none!important;overflow-wrap:anywhere}
+.tutor-cite{display:inline-block;max-width:100%;margin-top:6px;padding:4px 9px;white-space:normal;text-align:left;border:1px solid #e3d8c6;border-radius:7px;background:var(--campus-surface);color:var(--campus-maroon)!important;font-size:11px;font-weight:600;line-height:1.4;text-decoration:none!important;overflow-wrap:anywhere}
+.tutor-list{display:grid;gap:8px;margin:8px 0 0;padding:0;list-style:none}
+.tutor-list li{display:grid;gap:2px;padding:8px 10px;border-radius:9px;background:var(--campus-surface);border:1px solid var(--campus-line)}
+.tutor-list-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tutor-list strong{font-size:12px}
+.tutor-num{flex:none;font-size:11px;font-weight:600;color:var(--campus-maroon);font-variant-numeric:tabular-nums}
 .tutor-cite:hover{background:#f3eee5;border-color:#d9cec1}
 .tutor-suggest{display:flex;flex-wrap:wrap;gap:7px}
 .tutor-chip{min-height:34px;max-width:100%;padding:7px 12px;border:1px solid #d9cec1;border-radius:9px;background:var(--campus-surface);color:var(--campus-ink);font-size:12px;line-height:1.35;text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease}
@@ -42,13 +47,13 @@
 .rubric-level input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
 .rubric-level-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .rubric-level-name{font-size:12px;font-weight:600}
-.rubric-level-points{font-family:Georgia,serif;font-size:19px;line-height:1;color:var(--campus-maroon);font-variant-numeric:tabular-nums}
+.rubric-level-points{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;font-weight:600;line-height:1;color:var(--campus-maroon);font-variant-numeric:tabular-nums lining-nums}
 .rubric-level-text{font-size:11px;line-height:1.45;color:var(--campus-muted)}
 .rubric-level:has(input:checked){border-color:var(--campus-maroon);background:#fbf3f1;box-shadow:inset 0 0 0 1px var(--campus-maroon)}
 .rubric-level:has(input:checked) .rubric-level-text{color:var(--campus-ink)}
 .rubric-level:has(input:focus-visible){outline:2px solid var(--campus-maroon);outline-offset:2px}
 .rubric-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:12px;border-top:1px solid var(--campus-line);font-size:12px;font-weight:600}
-.rubric-total output{font-family:Georgia,serif;font-size:24px;font-weight:400;color:var(--campus-maroon);font-variant-numeric:tabular-nums}
+.rubric-total output{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--campus-maroon);font-variant-numeric:tabular-nums lining-nums}
 .rubric-draft{display:grid;gap:6px;justify-items:start;margin:-6px 0 18px}
 .rubric-draft .campus-button{gap:8px}
 .rubric-draft-face{width:20px;height:20px;border-radius:50%;object-fit:cover;object-position:50% 30%}
@@ -60,6 +65,27 @@
 .rubric-result-name{font-weight:600}
 .rubric-result-level{color:var(--campus-muted);text-align:right;font-variant-numeric:tabular-nums}
 
+
+/* Course pages: a compact context strip under the page title (the h1 is the course name). */
+.campus-academic-context{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:12px 16px;border:1px solid #e3d8c6;border-radius:12px;background:#f4efe5}
+.campus-academic-context dl{display:flex;flex-wrap:wrap;gap:6px 22px;margin:0;min-width:0}
+.campus-academic-context dl>div{display:flex;gap:6px;align-items:baseline;min-width:0;font-size:12px;line-height:1.5}
+.campus-academic-context dt{color:var(--campus-muted)}
+.campus-academic-context dd{margin:0;font-weight:600;color:var(--campus-ink);overflow-wrap:anywhere}
+.campus-academic-context .campus-button{flex:none}
+[data-campus-academics]>.campus-academic-context+.campus-academic-tabs,[data-campus-academics]>.campus-academic-context+.campus-member-notice{margin-top:8px}
+.campus-academic-grade-summary h3.campus-academic-grade-number{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums}
+.campus-academic-grade-summary h3.campus-academic-grade-empty{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:600;font-size:18px;color:var(--campus-ink);letter-spacing:-.01em}
+/* Instructor: work waiting for a grade comes first. */
+.campus-academic-waiting{display:grid;gap:10px;margin:0 0 16px;padding:14px 16px;border:1px solid #e3cfc9;border-left:3px solid var(--campus-maroon);border-radius:10px;background:#fbf3f1}
+.campus-academic-waiting>p{margin:0!important;font-size:13px}
+.campus-academic-waiting ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.campus-academic-waiting a{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;min-height:44px;padding:10px 14px;border-radius:9px;background:var(--campus-surface);border:1px solid #e3cfc9;text-decoration:none;color:var(--campus-ink)}
+.campus-academic-waiting a strong{color:var(--campus-maroon);font-size:14px}
+.campus-academic-waiting a span{font-size:12px;color:var(--campus-muted);font-variant-numeric:tabular-nums}
+.campus-academic-waiting a:hover{border-color:var(--campus-maroon)}
+.campus-academic-review-list a small{margin-left:6px;font-size:11px;font-weight:600}
+@media(max-width:760px){.campus-academic-context{padding:12px 14px}.campus-academic-context .campus-button{width:100%}}
 @media(max-width:1100px){.rubric-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){
  .tutor-panel{padding:18px}

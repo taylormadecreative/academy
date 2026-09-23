@@ -4,13 +4,13 @@ HT.spaces.showcase = {
   key: 'showcase', title: 'Showcase', office: 'Student work & research', icon: 'star',
   blurb: 'Student projects and the undergraduate research showcase, with judges, for the people behind each gift to see.',
   sub: 'See their name, see their face. The work students made, with their permission, for the campus and for the people who funded the seats.',
-  stamp: 'Preview · sample projects', headCta: { label: 'The research showcase', href: '#research', style: 'ht-gold' },
+  stamp: 'Preview · sample projects', headCta: { label: 'The research showcase', href: '#research', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Student work & research', title: 'See their name. See their work.',
       text: 'Every track ends here. Projects from the co-curricular tracks, posters from the undergraduate research showcase, and the judges\' scores, in one place. Students appear with their permission, first names only. When a donor funded the cohort, the work lands on their page too.',
       ctas: [{ label: 'The projects', href: '#projects', style: 'ht' }, { label: 'Judges\' scoring', href: '#judging', style: 'ht-line' }],
       image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop',
-      ada: { text: 'These six sample projects show what a track produces. Work from a funded cohort appears here and on that donor\'s page as the track runs. The research showcase call for entries opens January 19.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'These six sample projects show what a track produces. Work from a funded cohort appears here and on that donor\'s page as the track runs. The research showcase call for entries opens January 19.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'projects', title: 'Projects from the tracks', meta: 'With permission · first names only', items: [
       { meta: 'AI Literacy · Daniel O., Business', title: 'A booking assistant for a barbershop', text: 'A small automation that answers the shop\'s messages and books the chair. Built in Session 06.', img: '/ht/img/r-retail-street.jpg', alt: 'Rendering of a campus street', badge: 'With permission · sample' },
       { meta: 'AI Literacy · Maribel A., Biology', title: 'A study guide that writes itself', text: 'Lecture notes in, a weekly quiz out. She shares it with her lab section.', img: '/ht/img/r-academic.jpg', alt: 'Rendering of an academic building', badge: 'With permission · sample' },

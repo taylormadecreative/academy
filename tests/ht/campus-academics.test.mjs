@@ -177,7 +177,7 @@ function render(state, query = '') {
  test('modules point to existing learning activities without claiming numeric grade completion', () => {
   const state = stateFor();
   let html = render(state, 'cohort=section&tab=modules');
-  assert.match(html, /Open pathway activities/); assert.match(html, /#module-module/); assert.match(html, /separate from your section’s numeric coursework grades/);
+  assert.match(html, /Open pathway activities/); assert.match(html, /#module-module/); assert.match(html, /Finishing these lessons doesn’t change your course grade/);
   state.courses[0].status = 'draft';
   html = render(state, 'cohort=section&tab=modules');
   assert.match(html, /Course materials are being prepared/); assert.doesNotMatch(html, /Read and reflect/);
@@ -261,4 +261,31 @@ function formHarness(state, kind, values, options = {}) {
     assert.deepEqual(order, [['discard', gradeForm], ['refresh']]);
     assert.equal(focused, true); assert.equal(discard.disabled, false);
   } finally { cleanup?.(); globalThis.window = oldWindow; }
+});
+
+ test('course pages carry one title: a compact context strip, no back links, plain grade copy', () => {
+  const state = stateFor();
+  const html = render(state, 'cohort=section&tab=overview');
+  assert.doesNotMatch(html, /← All courses|← All assignments|campus-academic-hero|<h1|<h2/);
+  assert.match(html, /<section class="campus-academic-context"[^>]*><dl><div><dt>Instructor<\/dt><dd>Morgan T\.<\/dd><\/div><div><dt>Section<\/dt><dd>Fall cohort<\/dd><\/div><div><dt>Course<\/dt><dd>AI Literacy<\/dd><\/div><\/dl>/);
+  assert.match(html, /Classroom & recordings<\/a><\/section>/);
+  assert.doesNotMatch(html, /(is|are) waiting for a grade/, 'nothing turned in means nothing is waiting');
+  assert.match(html, /No grade yet<\/h3><p>You’ll see it here once Morgan grades your work\.<\/p>/);
+  assert.match(html, /<h3>How grades work<\/h3><p>Morgan grades each assignment you turn in\. Work waiting for a grade doesn’t count against you/);
+  assert.doesNotMatch(html, /Coursework grades are separate|never silently counted|Pending work is excluded/);
+  assert.doesNotMatch(render(state, 'cohort=section&tab=assignments&assignment=work'), /← All assignments/);
+});
+
+ test('instructors see work waiting for a grade first, with the student’s name as the first link', () => {
+  const state = stateFor('teacher', 'staff');
+  state.assignment_attempts = [{ id: 'other-1', assignment_id: 'work', user_id: 'other', attempt_no: 1, body: 'Avery’s brief', submitted_at: iso(-1000) }];
+  const html = render(state, 'cohort=section&tab=assignments&assignment=work');
+  const callout = html.indexOf('campus-academic-waiting'), list = html.indexOf('campus-academic-review-list');
+  assert.ok(callout > 0 && callout < list, 'the waiting callout comes before the student list');
+  assert.match(html, /<p><strong>1 submission waiting for a grade<\/strong><\/p><ul><li><a href="[^"]*student=other"[^>]*><strong>Avery W\.<\/strong><span>Attempt 1 · turned in/);
+  assert.match(html, /data-student-id="other"/, 'the waiting student opens first even though Jordan sorts earlier');
+  assert.match(render(state, 'cohort=section&tab=assignments'), /1 submission waiting for a grade/);
+  assert.match(render(state, 'cohort=section&tab=overview'), /1 submission waiting for a grade · Responsible AI brief/);
+  state.assignment_grades = [{ id: 'g', assignment_id: 'work', user_id: 'other', attempt_id: 'other-1', score: 90, status: 'published', disposition: 'graded', revision: 1 }];
+  assert.doesNotMatch(render(state, 'cohort=section&tab=assignments&assignment=work'), /waiting for a grade/);
 });

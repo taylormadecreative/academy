@@ -6,7 +6,7 @@ import fs from 'node:fs';
 const code = fs.readFileSync(new URL('../../ht/hub/campus-trust.js', import.meta.url), 'utf8');
 const { renderTrust, TRUST_GROUPS, TRUST_QUESTIONS, ACCESS } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const ctx = (role) => ({ state: { mode: 'demo', member: { role } }, esc, icon: (n) => `<svg data-icon="${n}"></svg>`, href: (t) => `/ht/hub/${t}/`, notify() {} });
+const ctx = (role) => ({ state: { mode: 'demo', member: { role } }, esc, icon: (n) => `<svg data-icon="${n}"></svg>`, href: (t, q) => `/ht/hub/${t}/${q ? `?${new URLSearchParams(q)}` : ''}`, notify() {} });
 
 test('renders for every role with no h1 and the two honest statuses', () => {
   for (const role of ['student', 'staff', 'admin', 'leadership']) {
@@ -14,7 +14,7 @@ test('renders for every role with no h1 and the two honest statuses', () => {
     assert.ok(!html.includes('<h1'));
     assert.ok(!/undefined|NaN/.test(html));
     assert.match(html, /What’s built, what we’ll set up together/);
-    assert.match(html, /href="\/ht\/hub\/support\/"/);
+    assert.match(html, /href="\/ht\/hub\/support\/\?topic=Technology&amp;subject=Security\+packet\+request"/);
     assert.match(html, /data-trust-copy/);
   }
   const items = TRUST_GROUPS.flatMap((g) => g.items);
@@ -26,8 +26,10 @@ test('renders for every role with no h1 and the two honest statuses', () => {
 test('never names a hosting vendor or claims a certification', () => {
   const html = renderTrust('trust', ctx('leadership'));
   const text = html.replace(/<[^>]+>/g, ' ');
-  for (const banned of [/supabase/i, /cloudflare/i, /\baws\b/i, /amazon/i, /vercel/i, /netlify/i, /github/i, /realtimekit/i, /openai/i, /anthropic/i, /\bSOC ?2\b/i, /certified/i, /FERPA[- ]compliant/i, /HIPAA/i, /leverage|seamless|robust|cutting-edge/i]) assert.doesNotMatch(text, banned, String(banned));
+  for (const banned of [/supabase/i, /cloudflare/i, /\baws\b/i, /amazon/i, /vercel/i, /netlify/i, /github/i, /realtimekit/i, /openai/i, /anthropic/i, /microsoft/i, /\bentra\b/i, /google/i, /postgres/i, /\bcompleted before launch\b/i, /audit (is|was) complete/i, /\bSOC ?2\b/i, /certified/i, /FERPA[- ]compliant/i, /HIPAA/i, /leverage|seamless|robust|cutting-edge/i]) assert.doesNotMatch(text, banned, String(banned));
   assert.match(text, /Built to support your FERPA obligations/);
+  assert.match(text, /We design to WCAG 2\.2 AA\. An outside review and a VPAT are planned before launch\./);
+  assert.match(text, /HT’s campus accounts, using SAML or OIDC/);
   assert.match(text, /student questions are not used to train any AI model/);
   assert.ok(TRUST_QUESTIONS.length >= 6 && TRUST_QUESTIONS.length <= 8);
 });

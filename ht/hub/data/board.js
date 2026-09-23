@@ -4,7 +4,7 @@ HT.spaces.board = {
   key: 'board', title: 'Board', office: 'Board of Trustees', icon: 'shield',
   blurb: 'A private portal for trustees: the packet, the agenda, and check-in.',
   sub: 'The packet, the agenda, and the room, for the people who govern the Hill. Restricted to trustees.',
-  stamp: 'Preview · restricted space, sample', headCta: { label: 'Fall meeting agenda', href: '#fall-meeting', style: 'ht-gold' },
+  stamp: 'Preview · restricted space, sample', headCta: { label: 'Fall meeting agenda', href: '#fall-meeting', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Board of Trustees', title: 'The board packet, without the binder.',
       text: 'Restricted to trustees. Meeting materials open on the phone you already carry, with the agenda beside them. Check in at the door and the secretary sees who has arrived before the gavel. The campaign update comes straight from Advancement, the same page they run. Nothing here leaves this space.',

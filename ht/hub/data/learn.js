@@ -4,13 +4,13 @@ HT.spaces.learn = {
   key: 'learn', title: 'Learn', office: 'Academic Affairs · co-curricular', icon: 'book',
   blurb: 'Co-curricular tracks with a live room, a materials shelf, and, next, a certificate from HT.',
   sub: 'Short tracks that run beside the course catalog, never inside it. Live sessions, replays, materials, and, next, a certificate issued by the University when a track closes.',
-  stamp: 'Preview · sample tracks', headCta: { label: 'The tracks', href: '#tracks', style: 'ht-gold' },
+  stamp: 'Preview · sample tracks', headCta: { label: 'The tracks', href: '#tracks', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Academic Affairs · co-curricular', title: 'Everything around the classroom.',
       text: 'AI Literacy, Entrepreneurship on the Hill, Financial Literacy. Short tracks with a live room, a materials shelf, attendance by code, and, next on the roadmap, a certificate issued by HT when a track closes. This is not the University\'s course system, and it never touches it. It is the learning that happens between classes, kept in one place.',
       ctas: [{ label: 'The tracks', href: '#tracks', style: 'ht' }, { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' }],
       image: '/ht/img/students-library.jpg', imageAlt: 'Huston-Tillotson students studying in the library',
-      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same night. Want me to put the eight dates on your calendar?', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'AI Literacy opens Tuesday, October 13, at 6, in the live room. Every session is recorded to the shelf the same night. Want me to put the eight dates on your calendar?', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'stats', items: [{ n: '3', label: 'Tracks this year (sample)' }, { n: '19', label: 'Sessions across the tracks' }, { n: 'Oct 13', label: 'AI Literacy opens (sample)' }, { n: 'Next', label: 'Certificate from HT per track' }] },
     { type: 'tracks', id: 'tracks', title: 'The tracks', meta: 'Live in the hub · replays same day', items: [
       { title: 'AI Literacy', text: 'Eight sessions. Every student leaves each one with real work done by AI, on free tools, in their own voice.', tag: 'Fall 2026', sessions: [
@@ -37,7 +37,7 @@ HT.spaces.learn = {
     { type: 'split', id: 'cohort', kicker: 'A named cohort a donor funded', title: 'The cohort on the donor\'s page.',
       text: 'When a gift funds a block of seats, the cohort appears on the donor\'s own page: the name they chose, the sessions, and the students it reached, first names only, with permission. The certificate lands there too.',
       bullets: ['"The Johnson Family AI Literacy Cohort" · 24 seats · sample', 'Daniel O., Maribel A., Jalen W., and twenty-one more, with permission', 'Showcase December 4, the donor is invited'],
-      image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop', side: 'right', cta: { label: 'How funding a cohort works', href: '/ht/fund/', style: 'ht-gold' } },
+      image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop', side: 'right', cta: { label: 'How funding a cohort works', href: '/ht/fund/', style: 'ht' } },
     { type: 'faq', title: 'What faculty and students ask', items: [
       { q: 'Does this replace the University\'s course system?', a: 'No. Tracks are co-curricular and live only here. Courses, grades, and records stay exactly where they are.' },
       { q: 'Who teaches a track?', a: 'HT faculty and staff, guest instructors approved by Academic Affairs, and, for the AI tracks, the Academy\'s instructors, on HT\'s calendar.' },

@@ -125,3 +125,37 @@ test('Ada drafts kind, specific feedback from the chosen levels using the studen
   assert.equal(T.draftFeedback(rubric, levels, 'Jordan R.'), text);
   assert.equal(T.draftFeedback(rubric, {}, 'Jordan R.'), '');
 });
+
+test('Ada answers "when is it due" from the published assignment dates, points, and attempts', () => {
+  const dated = T.buildCorpus({ modules, assignments: [
+    { ...assignments[0], max_attempts: 3, due_at: new Date(2026, 8, 25, 23, 59).toISOString(), closes_at: new Date(2026, 8, 26, 23, 59).toISOString() },
+    { ...assignments[1], due_at: new Date(2026, 8, 20, 23, 59).toISOString() },
+  ] });
+  assert.equal(T.formatWhen(new Date(2026, 8, 25, 23, 59), new Date(2026, 0, 1)), 'Friday, Sep 25 at 11:59 PM');
+  for (const question of ['whats the due date', 'When is the brief due?', 'how many attempts do I get', 'Can I turn it in late?']) {
+    const answer = T.answerQuestion(question, dated);
+    assert.equal(answer.kind, 'answer', question);
+    assert.equal(answer.passages.length, 1, `${question}: only published work`);
+    assert.equal(answer.passages[0].citation.id, 'brief');
+    assert.match(answer.passages[0].text, /^Responsible AI project brief is due Friday, Sep 25 at 11:59 PM\. You can still turn it in until Saturday, Sep 26 at 11:59 PM\. After that, it closes\. It is worth 100 points, and you get 3 attempts\.$/, question);
+    assert.doesNotMatch(JSON.stringify(answer), /SECRET/);
+  }
+  assert.equal(T.answerQuestion('What time does the cafeteria open on Sunday?', dated).kind, 'none');
+});
+
+test('Ada leads grading questions with the rubric, not a policy sentence', () => {
+  const policy = T.buildCorpus({ modules, assignments: [{ ...assignments[0], instructions: `${assignments[0].instructions} Coursework grades are separate from pathway completion.` }] });
+  const answer = T.answerQuestion('How is my brief graded?', policy);
+  assert.equal(answer.kind, 'answer');
+  assert.match(answer.passages[0].text, /graded with a rubric\. It has four parts, worth 25 points each, for 100 points in all: Purpose & audience, Prompt clarity, Evidence of verification, and Reflection & limits\./);
+  assert.match(answer.passages[0].citation.label, /^From the rubric · Responsible AI project brief$/);
+  assert.deepEqual(answer.passages[1].items.map(item => [item.label, item.points]), [['Purpose & audience', 25], ['Prompt clarity', 25], ['Evidence of verification', 25], ['Reflection & limits', 25]]);
+  assert.doesNotMatch(answer.passages[0].text + answer.passages[1].text, /separate from pathway/);
+  assert.ok(answer.passages.slice(2).every(item => item.citation.kind === 'module'), 'any extra support comes from a lesson');
+  assert.equal(T.answerQuestion('What is the rubric for the brief?', policy).lead, 'Here is how your work is graded:');
+});
+
+test('source chips show the full module title', () => {
+  const answer = T.answerQuestion('How do I check if an AI answer is accurate?', corpus);
+  assert.equal(answer.passages[0].citation.label, 'From Module 1 · Understand what AI can—and cannot—do');
+});

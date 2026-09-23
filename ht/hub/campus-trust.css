@@ -29,7 +29,7 @@
 .trust-legend dd{margin:0;font-size:12px;color:var(--campus-muted);line-height:1.5}
 .trust-legend dd strong{color:var(--campus-ink);font-weight:600}
 
-.trust-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+.trust-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px;align-items:start}
 .trust-group{min-width:0}
 .trust-group h3{display:flex;align-items:center;gap:9px;padding-bottom:10px;border-bottom:1px solid var(--campus-line);font-size:14px}
 .trust-group h3 svg{width:18px;height:18px;color:var(--campus-maroon)}
@@ -171,3 +171,35 @@ body.ht .badge-lead{margin:-2px 0 18px;font-size:12px;max-width:66ch}
   body.badge-print-mode .badge-record h2{font-size:28px}
 }
 .campus-app :is(.badge-grid,.badge-record-list,.trust-group ul,.trust-hero-facts){padding-left:0}
+
+/* ---------- Student Today hero: course, at-a-glance, next class ---------- */
+.campus-hero.campus-today-hero.has-glance{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(240px,.95fr);gap:24px}
+.campus-today-hero .campus-hero-copy{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.campus-app .campus-today-hero .today-course-name{margin-top:8px;font-size:12px;font-weight:600;color:#6d5b49;letter-spacing:.01em}
+.today-glance{display:flex;flex-direction:column;justify-content:center;gap:18px;min-width:0;padding:4px 0 4px 24px;border-left:1px solid #dccfb9}
+.today-glance .campus-eyebrow{margin:0!important}
+.today-glance-row{display:grid;gap:6px;min-width:0}
+.today-glance-label{font-size:11px;font-weight:600;color:#6d5b49}
+.campus-app .campus-today-hero .today-figure{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;color:var(--campus-ink);font-variant-numeric:tabular-nums lining-nums;max-width:none}
+.today-figure span{font-size:30px;font-weight:400;line-height:1;letter-spacing:-.02em;margin-right:3px}
+.today-glance-bar{display:block;width:100%;max-width:260px;height:6px;border:0;border-radius:6px;overflow:hidden;background:#d6c7ae;appearance:none;-webkit-appearance:none}
+.today-glance-bar::-webkit-progress-bar{background:#d6c7ae;border-radius:6px}
+.today-glance-bar::-webkit-progress-value{background:var(--campus-maroon);border-radius:6px}
+.today-glance-bar::-moz-progress-bar{background:var(--campus-maroon);border-radius:6px}
+.today-due-link{display:grid;gap:3px;padding:12px 14px;border:1px solid #e0d4c1;border-radius:10px;background:#fffdf8;text-decoration:none!important;min-width:0}
+.today-due-link strong{font-size:13px;font-weight:600;color:var(--campus-ink);line-height:1.35}
+.today-due-link span{font-size:12px;color:#6d5b49;font-variant-numeric:tabular-nums lining-nums}
+.today-due-link:hover strong{color:var(--campus-maroon)}
+.campus-app .campus-today-hero .today-glance-quiet{margin:0;font-size:12px}
+.today-due-word{font-weight:600;color:var(--campus-maroon)}
+.campus-today-agenda .campus-event-date{font-variant-numeric:tabular-nums lining-nums}
+@media(max-width:1050px){
+  .campus-hero.campus-today-hero.has-glance{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr)}
+  .campus-today-hero.has-glance .campus-hero-aside{grid-column:2;grid-row:1 / span 2}
+  .today-glance{padding:18px 0 0;border-left:0;border-top:1px solid #dccfb9}
+}
+@media(max-width:760px){
+  .campus-hero.campus-today-hero.has-glance{grid-template-columns:1fr}
+  .campus-today-hero.has-glance .campus-hero-aside{grid-column:auto;grid-row:auto}
+  .campus-app .campus-today-hero .today-course-name{font-size:13px}
+}

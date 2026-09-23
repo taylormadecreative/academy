@@ -23,32 +23,37 @@ HT.spaceArtwork = {
 };
 /* A clearly labeled, illustrative path leaders can follow across the full hub. */
 HT.leadershipWalkthrough = [
+  { key: 'success', title: 'Every student who needs a hand has an owner', detail: 'Early alerts come from sign-ins, missed work, midterm grades, and attendance. Advisors see names; you see the pattern.' },
+  { key: 'insights', title: 'The whole campus on one page', detail: 'Enrollment, persistence, weekly activity, pathways, and support, filtered by class year. Sample figures.' },
+  { key: 'courses', role: 'student', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'overview' }, title: 'Ada tutors from the course itself', detail: 'You are now Jordan, a first-year student. Ask Ada a question: she answers only from this class’s lessons, and won’t write the assignment.' },
+  { key: 'courses', role: 'staff', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'assignments', assignment: 'd0000000-0000-4000-8000-000000000001' }, title: 'Grade in minutes, with a rubric', detail: 'You are now Morgan, the instructor. Open Imani’s brief, pick a level for each part, and let Ada draft the feedback you edit and publish.' },
+  { key: 'learn', role: 'student', title: 'Credentials that travel', detail: 'Back as Jordan: finished pathways become badges and a printable record that feeds the career portfolio.' },
+  { key: 'trust', title: 'Ready for your IT review', detail: 'What is built today, what we set up with your IT team, and who can see what.' },
+  { key: 'president', title: 'University communication reaches one shared place', detail: 'The town hall, the replay shelf, the annual calendar, and approved messages together.' },
   { key: 'admissions', title: 'Welcome begins before move-in', detail: 'Follow an admitted student from the first campus connection to the next useful step for the student and family.' },
-  { key: 'students', title: 'Student support meets the whole week', detail: 'Bring orientation, organizations, campus events, and help into one familiar starting place.' },
-  { key: 'learn', title: 'Learning continues beyond the course', detail: 'Show a co-curricular pathway with materials, practice, progress, and a clear route to the live session.' },
-  { key: 'live', title: 'Each cohort gets its own classroom', detail: 'Keep class sessions, materials, attendance, and replays together while campus events stay easy to find.' },
+  { key: 'students', title: 'Student support meets the whole week', detail: 'Orientation, organizations, campus events, and help in one familiar starting place.' },
   { key: 'community', title: 'A campus conversation has a next step', detail: 'Move from a shared channel to a private message or the right campus office without losing context.' },
-  { key: 'events', title: 'The academic year becomes easier to act on', detail: 'Put published dates beside event details, calendar actions, and a sample check-in at the door.' },
-  { key: 'career', title: 'Student work can travel further', detail: 'Give students a place to shape portfolios and help employers find relevant skills and projects.' },
-  { key: 'showcase', title: 'Progress becomes visible with permission', detail: 'Bring coursework and research into a showcase with clear student-consent expectations.' },
-  { key: 'alumni', title: 'Relationships continue after graduation', detail: 'Connect alumni chapters, mentoring, Homecoming, and lifelong learning to the campus community.' },
-  { key: 'advancement', title: 'Giving connects to the work it makes possible', detail: 'Demonstrate how a sample cohort and its student work can support a thoughtful donor update.' },
-  { key: 'president', title: 'University communication reaches one shared place', detail: 'Show the town hall, replay shelf, annual calendar, and approved messages together.' },
-  { key: 'outreach', title: 'Campus learning extends into the neighborhood', detail: 'Help partners, families, and prospective students find public programs and the next way to participate.' },
-  { key: 'board', title: 'Governance has a clear working space', detail: 'Walk through the sample meeting agenda, materials, and attendance flow in a trustee-oriented space.' }
+  { key: 'events', title: 'The academic year becomes easier to act on', detail: 'Published dates beside event details, calendar actions, and a sample check-in at the door.' },
+  { key: 'career', title: 'Student work can travel further', detail: 'Portfolios students shape, and a way for employers to find relevant skills and projects.' },
+  { key: 'showcase', title: 'Progress becomes visible with permission', detail: 'Coursework and research in a showcase, with clear student-consent expectations.' },
+  { key: 'alumni', title: 'Relationships continue after graduation', detail: 'Alumni chapters, mentoring, Homecoming, and lifelong learning connected to campus.' },
+  { key: 'advancement', title: 'Giving connects to the work it makes possible', detail: 'A sample cohort and its student work, ready for a thoughtful donor update.' },
+  { key: 'outreach', title: 'Campus learning extends into the neighborhood', detail: 'Partners, families, and prospective students find public programs and a next step.' },
+  { key: 'board', title: 'Governance has a clear working space', detail: 'The sample meeting agenda, materials, and attendance flow in a trustee space.' },
+  { key: 'live', title: 'Each cohort gets its own classroom', detail: 'Class sessions, materials, attendance, and replays together, with campus events easy to find.' }
 ];
 HT.pages = ['replay', 'calendar', 'session', 'legacy-live'];   /* pages outside the main tabs: replay belongs to Live, academic calendar to Events */
 
 HT.home = {
   title: 'Home', kicker: 'Huston-Tillotson University · Austin, Texas', stamp: 'Preview · sample content',
   sub: 'Every office on the Hill, one sign-in. Events, live seminars, learning, community, and the people behind each gift.',
-  headCta: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht-gold' },
+  headCta: { label: 'Open the live room', href: '/ht/hub/live/', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Huston-Tillotson × Taylormade Academy', title: 'One campus. One hub. Every office.',
       text: 'The HT Hub is where a campus runs the things that usually live in separate subscriptions: the event app, the live room, the classroom beside the course catalog, the community, the showcase, and the way donors see what their gift built. Ada opens the door. The people of HT do the rest.',
       ctas: [{ label: 'See the spaces', href: '#spaces', style: 'ht' }, { label: 'Put it on your phone', href: '#install', style: 'ht-line' }],
-      video: '/ht/img/ada-idle-loop.mp4', poster: '/ht/img/ada-idle-poster.jpg', imageAlt: 'Ada, the HT student ambassador, at the campus gate',
-      ada: { text: 'Welcome to the Hill. Three things are coming up: the President\'s Fall Briefing for donors on October 8, the fall town hall on October 15 at noon, and the 152nd Charter Day Observance on October 23. Pick a space below and I\'ll walk you in.', when: 'Ada · HT student ambassador · sample line' } },
+      video: '/ht/img/ada-idle-loop.mp4', poster: '/ht/img/ada-idle-poster.jpg', imageAlt: 'Ada, the Hub’s AI guide, at the campus gate',
+      ada: { text: 'Welcome to the Hill. Three things are coming up: the President\'s Fall Briefing for donors on October 8, the fall town hall on October 15 at noon, and the 152nd Charter Day Observance on October 23. Pick a space below and I\'ll walk you in.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'notice', tone: 'maroon', html: '<b>What is real and what is sample.</b> Sign-in, the live room, the replay page, HT\'s published calendar and the community are real and running. Every HT name, event and figure marked Sample is sample content, prepared with Institutional Advancement for the University\'s review.' },
     { type: 'announcements', title: 'Campus announcements', meta: 'Sample', items: [
       { who: 'Office of the President', when: 'This week', text: 'The fall town hall streams live in the hub on October 15 at noon. The replay lands the same afternoon.' },
@@ -73,13 +78,13 @@ HT.spaces.advancement = {
   key: 'advancement', title: 'Advancement', office: 'Institutional Advancement', icon: 'gift',
   blurb: 'Donor pages by name, the President\'s briefing, Donor Appreciation Weekend, and the cohorts a gift can fund.',
   sub: 'The ask and the thank-you, by name. Then the room where donors hear from the President, and the program their gift builds.',
-  stamp: 'Preview · sample donors', headCta: { label: 'Open the donor deck', href: 'https://taylormadecreative.github.io/ht-advancement/', style: 'ht-gold' },
+  stamp: 'Preview · sample donors', headCta: { label: 'Open the donor deck', href: 'https://taylormadecreative.github.io/ht-advancement/', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Institutional Advancement', title: 'Every donor, by name. Every gift, followed through.',
       text: 'A personal page for the ask and one for what happened after, sent from your office under HT\'s name. A live briefing donors join from a text. A weekend on campus with its own agenda in their pocket. And a named cohort a gift can fund, with the students it reached on the other side.',
       ctas: [{ label: 'The donor pages', href: '#pages', style: 'ht' }, { label: 'Fund a cohort', href: '/ht/fund/', style: 'ht-line' }],
       image: '/ht/img/fall-convocation.jpg', imageAlt: 'Fall Convocation at Huston-Tillotson',
-      ada: { text: 'Welcome to the Advancement space. Three sample donor pages are below: the thank-you, the ask, and an endowment update. Each one opens from a text or an email, the way a donor would open it.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Welcome to the Advancement space. Three sample donor pages are below: the thank-you, the ask, and an endowment update. Each one opens from a text or an email, the way a donor would open it.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'stats', items: [{ n: '3', label: 'Donor pages in review (sample)' }, { n: 'Oct 8', label: 'President\'s Fall Briefing, live (sample)' }, { n: 'Nov 6–7', label: 'Donor Appreciation Weekend (sample)' }, { n: '24', label: 'Cohort seats funded this year (sample)' }] },
     { type: 'cards', id: 'pages', title: 'Donor pages', meta: 'Each opens from a text or an email', items: [
       { meta: 'The thank-you · after the gift', title: 'Robert & Denise Johnson', text: 'Your Year on the Hill: the endowed scholarship in their name, the students it reached, and a note from the President.', href: 'https://taylormadecreative.github.io/ht-advancement/stewardship.html?to=Robert%20%26%20Denise%20Johnson', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', badge: 'Sample', foot: 'Open the page →' },
@@ -94,8 +99,8 @@ HT.spaces.advancement = {
     { type: 'split', id: 'fund', kicker: 'What a gift builds', title: 'Fund a cohort. Meet the students on the other side.',
       text: 'A named block of seats in a track the campus already runs. The gift goes to the University, the University funds the block, and no student pays. The donor\'s page shows the cohort their gift funded, the sessions it covered, and the showcase at the end.',
       bullets: ['A named cohort: "The Johnson Family AI Literacy Cohort"', 'Seats, sessions, and a showcase, on the donor\'s own page', 'Students appear with permission, first names, their work'],
-      image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop', side: 'left', cta: { label: 'How funding a cohort works', href: '/ht/fund/', style: 'ht-gold' } },
-    { type: 'cta', title: 'Three donors to start.', text: 'One who just gave, one about to be asked, and an endowed fund whose donors are due their annual update.', primary: { label: 'Open the donor deck', href: 'https://taylormadecreative.github.io/ht-advancement/', style: 'ht-gold' }, secondary: { label: 'The Board portal', href: '/ht/hub/board/', style: 'ht-line' } },
+      image: '/ht/img/student-laptop.jpg', imageAlt: 'A student working on a laptop', side: 'left', cta: { label: 'How funding a cohort works', href: '/ht/fund/', style: 'ht' } },
+    { type: 'cta', title: 'Three donors to start.', text: 'One who just gave, one about to be asked, and an endowed fund whose donors are due their annual update.', primary: { label: 'Open the donor deck', href: 'https://taylormadecreative.github.io/ht-advancement/', style: 'ht' }, secondary: { label: 'The Board portal', href: '/ht/hub/board/', style: 'ht-line' } },
     { type: 'announcements', side: true, title: 'Advancement desk', meta: 'Sample', items: [
       { who: 'Stewardship', when: 'This week', text: 'The Johnson page is ready for the President\'s note. Two-line script attached in materials.' },
       { who: 'Events', when: 'This week', text: 'Weekend agenda posted. The guest list opens October 16.' },
@@ -107,7 +112,7 @@ HT.spaces.advancement = {
       { date: '2026-12-01', title: 'Year-end letters go out from each donor page', where: 'Stewardship' },
       { day: 'Feb', mon: '2027', title: 'Homecoming 2027 · alumni giving', where: 'Alumni Relations · dates announced by HT', tag: 'Save the month', tagCls: 'soft' } ] },
     { type: 'people', side: true, title: 'Your team in the hub', meta: 'Sample roles, one real name', dm: false, items: [
-      { name: 'Linda Y. Jackson', role: 'Vice President for Institutional Advancement', org: 'Proposed space owner', gold: true, tag: 'Owner', tagCls: 'green' },
+      { name: 'Linda Y. Jackson', role: 'Vice President for Institutional Advancement', org: 'Proposed space owner', gold: true, tag: 'Owner' },
       { name: 'Gift officer (sample)', role: 'Major gifts', org: 'Drafts the ask pages' },
       { name: 'Stewardship coordinator (sample)', role: 'Endowment reports', org: 'Owns the thank-you pages' },
       { name: 'Events lead (sample)', role: 'Donor weekend', org: 'Runs the agenda and check-in' } ] },

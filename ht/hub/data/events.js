@@ -7,13 +7,13 @@ HT.spaces.events = {
   key: 'events', title: 'Events', office: 'Institutional Advancement · events', icon: 'calendar',
   blurb: 'The published academic year, live against today, plus Advancement’s own events and the check-in at the door.',
   sub: 'The University’s published academic calendar, on one page that knows what today is. What has passed steps back, today lights up, and what is next sits at the top. Advancement’s own events sit alongside it, with the agenda, the rooms, and the door.',
-  stamp: 'Real HT dates · sample donor weekend', headCta: { label: 'See what’s next', href: '#year', style: 'ht-gold' },
+  stamp: 'Real HT dates · sample donor weekend', headCta: { label: 'See what’s next', href: '#year', style: 'ht' },
   blocks: [
     { type: 'intro', kicker: 'Huston-Tillotson · the academic year', title: 'The whole year, and it knows what today is.',
       text: 'Huston-Tillotson publishes the academic year as a PDF. This page carries the same dates and keeps them live: what has already happened steps back, today lights up, and whatever comes next sits at the top of the list. Filter to a term, send any stretch of it to your phone in one tap, or print it. Advancement’s own events sit alongside, with the agenda, the rooms, a line to your host, and the check-in at the door.',
       ctas: [{ label: 'See what’s next', href: '#year', style: 'ht' }, { label: 'Donor Appreciation Weekend', href: '#weekend', style: 'ht-line' }],
       image: '/ht/img/commencement.jpg', imageAlt: 'Two Huston-Tillotson graduates celebrating commencement',
-      ada: { text: 'Every date on this page comes from the University’s own published calendar, so the list is never out of step with what the Registrar has posted. It knows what today is, which means what is next is already at the top. Tap add to your calendar and the whole term goes to your phone.', when: 'Ada · HT student ambassador · sample line' } },
+      ada: { text: 'Every date on this page comes from the University’s own published calendar, so the list is never out of step with what the Registrar has posted. It knows what today is, which means what is next is already at the top. Tap add to your calendar and the whole term goes to your phone.', when: 'Ada, the Hub’s AI guide · sample' } },
     { type: 'cards', id: 'events', title: 'On the Hill', meta: 'Three published University dates, one Advancement event', items: [
       { meta: 'Fall 2026 · Spring 2027 · Summer 2027', title: 'The academic year, live', text: 'Every date the University has published for 2026-2027, on one page that knows today’s date. Filter by term, add it to your phone, print it for the wall.', href: '#year', img: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson campus', foot: 'See what’s next →' },
       { meta: 'Friday, October 23, 2026', title: '152nd Charter Day Observance', text: 'The Hill marks its charter. Published on the University calendar and carried here with the rest of the fall.', href: '#year', img: '/ht/img/cover-dais.jpg', alt: 'The dais at a Huston-Tillotson ceremony', foot: 'On the calendar →' },
