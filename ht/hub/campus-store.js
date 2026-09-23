@@ -6,6 +6,12 @@ const COLLECTIONS = [...BASE_COLLECTIONS,...ACADEMIC_COLLECTIONS];
 const SETTINGS = {ada_video_url:'',ada_video_poster:'',ada_video_transcript:'',support_email:''};
 const IDS = {instructor:'10000000-0000-4000-8000-000000000008',cohort:'a0000000-0000-4000-8000-000000000001',otherCohort:'a0000000-0000-4000-8000-000000000002',student:'10000000-0000-4000-8000-000000000001',staff:'10000000-0000-4000-8000-000000000002',leadership:'10000000-0000-4000-8000-000000000003',other:'10000000-0000-4000-8000-000000000004',course:'20000000-0000-4000-8000-000000000001',event:'30000000-0000-4000-8000-000000000001'};
 const clone = value => JSON.parse(JSON.stringify(value));
+/** Bump when the built-in sample records change, so an older browser snapshot resets to them. */
+const FIXTURES_REV = 3;
+/** Sample times land where a campus would put them: a local clock time N days out, or the next quarter hour. */
+const at = (now,days,hour,minute=0) => {const d=new Date(now);d.setDate(d.getDate()+days);d.setHours(hour,minute,0,0);return d.toISOString();};
+const quarter = (now,minutes) => {const q=15*60000;return new Date(Math.ceil((now+minutes*60000)/q)*q).toISOString();};
+const quarterBack = (now,minutes) => {const q=15*60000;return new Date(Math.floor((now+minutes*60000)/q)*q).toISOString();};
 const uuid = () => globalThis.crypto.randomUUID();
 const empty = () => ({mode:'unavailable',user:null,member:null,error:null,...Object.fromEntries(COLLECTIONS.map(k=>[k,[]])),settings:{...SETTINGS},metrics:null});
 const fail = message => {throw new Error(message);};
@@ -18,11 +24,11 @@ function upgradeAcademics(s,now){
  for(const key of ACADEMIC_COLLECTIONS)if(!Array.isArray(s[key]))s[key]=[];
  if(s._academics_version===1)return s;
  const iso=offset=>new Date(now+offset*60000).toISOString();
- const assignment=(n,cohort_id,title,instructions,points_possible,max_attempts,status,due,close)=>({id:`d0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id,title,instructions,points_possible,max_attempts,status,opens_at:iso(-60),due_at:iso(due),closes_at:iso(close),created_by:cohort_id===IDS.cohort?IDS.staff:IDS.instructor,created_at:iso(0),updated_at:iso(0)});
+ const assignment=(n,cohort_id,title,instructions,points_possible,max_attempts,status,due,close)=>({id:`d0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id,title,instructions,points_possible,max_attempts,status,opens_at:at(now,-1,9),due_at:at(now,Math.round(due/1440),23,59),closes_at:at(now,Math.round(close/1440),23,59),created_by:cohort_id===IDS.cohort?IDS.staff:IDS.instructor,created_at:iso(0),updated_at:iso(0)});
  const seeds=[
-  assignment(1,IDS.cohort,'Responsible AI project brief','Describe a useful campus project, its audience, and a prompt you would use. Include one result you would verify, the source you would consult, and a limitation you would explain. Submit your brief as text or an HTTPS project link. This fictional assignment is separate from pathway completion.',100,3,'published',2880,4320),
-  assignment(2,IDS.cohort,'Evaluate a source and explain your reasoning','Choose a claim from an AI-generated draft. Identify a primary source, explain how you would check the claim, and describe the change you would make. This is an unpublished sample assignment.',50,2,'draft',10080,11520),
-  assignment(3,IDS.otherCohort,'Shape a digital story','Outline a short story about a campus experience. Describe your intended audience, opening scene, and one ethical choice about the people represented. This sample belongs to a separate cohort.',50,2,'published',2880,4320)
+  assignment(1,IDS.cohort,'Responsible AI project brief','Describe a useful campus project, its audience, and a prompt you would use. Include one result you would verify, the source you would consult, and a limitation you would explain. Submit your brief as text or an HTTPS project link. Coursework grades are separate from pathway completion.',100,3,'published',2880,4320),
+  assignment(2,IDS.cohort,'Evaluate a source and explain your reasoning','Choose a claim from an AI-generated draft. Identify a primary source, explain how you would check the claim, and describe the change you would make.',50,2,'draft',10080,11520),
+  assignment(3,IDS.otherCohort,'Shape a digital story','Outline a short story about a campus experience. Describe your intended audience, opening scene, and one ethical choice about the people represented.',50,2,'published',2880,4320)
  ];
  for(const row of seeds)if(s.cohorts.some(c=>c.id===row.cohort_id)&&!s.assignments.some(a=>a.id===row.id))s.assignments.push(row);
  s._academics_version=1;return s;
@@ -45,10 +51,14 @@ function academicLink(value){
 }
 function fixtures(now) {
  const iso=offset=>new Date(now+offset*60000).toISOString();
- const s=empty();s.version=2;s.created_day=new Date(now).toISOString().slice(0,10);s._codes={[IDS.event]:'HT2026'};s._checks=[];
+ const s=empty();s.version=2;s.fixtures_rev=FIXTURES_REV;s.created_day=new Date(now).toISOString().slice(0,10);s._codes={[IDS.event]:'HT2026'};s._checks=[];
  s.members=[{user_id:IDS.student,display_name:'Jordan R.',role:'student'},{user_id:IDS.staff,display_name:'Morgan T.',role:'staff'},{user_id:IDS.leadership,display_name:'Avery W.',role:'leadership'},{user_id:IDS.other,display_name:'Cameron L.',role:'student'},{user_id:IDS.instructor,display_name:'Riley S.',role:'staff'}].map(m=>({...m,active:true}));
- s.announcements=[{id:'40000000-0000-4000-8000-000000000001',title:'Your next chapter starts here',body:'Explore the AI Literacy pathway, join a campus conversation, and connect with support when you need it. This is an illustrative campus announcement for your demo.',office:'Student Success',audience:'campus',status:'published',publish_at:iso(-180),created_at:iso(-180),author_id:IDS.staff}];
- s.events=[{id:IDS.event,title:'AI Literacy · Open Studio',description:'Bring one question and a project idea. Practice writing a clear prompt, evaluating an AI response, and deciding what to verify. Sample event for demonstration.',office:'Academic Innovation',location:'Innovation Lab · HT campus',starts_at:iso(-15),ends_at:iso(45),capacity:24,status:'published',join_url:null},{id:'30000000-0000-4000-8000-000000000002',title:'Build your next opportunity',description:'A practical career conversation: connect your campus learning with a portfolio story and your next opportunity.',office:'Career Services',location:'Student Center',starts_at:iso(1440),ends_at:iso(1500),capacity:40,status:'published',join_url:null}];
+ s.announcements=[
+  {id:'40000000-0000-4000-8000-000000000001',title:'Your next chapter starts here',body:'Explore the AI Literacy pathway, join a campus conversation, and connect with support when you need it. Office hours are open all week in the Student Success Center.',office:'Student Success',audience:'campus',status:'published',publish_at:iso(-180),created_at:iso(-180),author_id:IDS.staff},
+  {id:'40000000-0000-4000-8000-000000000002',title:'Midterm check-ins are open',body:'Meet with your advisor before midterms. Bring your course list and one question about next semester. Walk-ins welcome; appointments get priority.',office:'Academic Advising',audience:'campus',status:'published',publish_at:iso(-1500),created_at:iso(-1500),author_id:IDS.staff},
+  {id:'40000000-0000-4000-8000-000000000003',title:'Study Jam in the library',body:'Tutors from the Writing and Math centers will be on the second floor with snacks and quiet tables. Bring a draft or a problem set.',office:'Downs-Jones Library',audience:'campus',status:'published',publish_at:iso(-2900),created_at:iso(-2900),author_id:IDS.staff}
+ ];
+ s.events=[{id:IDS.event,title:'AI Literacy · Open Studio',description:'Bring one question and a project idea. Practice writing a clear prompt, evaluating an AI response, and deciding what to verify. Sample event for demonstration.',office:'Academic Innovation',location:'Innovation Lab · HT campus',starts_at:quarterBack(now,-15),ends_at:quarter(now,45),capacity:24,status:'published',join_url:null},{id:'30000000-0000-4000-8000-000000000002',title:'Build your next opportunity',description:'A practical career conversation: connect your campus learning with a portfolio story and your next opportunity.',office:'Career Services',location:'Student Center',starts_at:at(now,1,12),ends_at:at(now,1,13),capacity:40,status:'published',join_url:null},{id:'30000000-0000-4000-8000-000000000003',title:'Study Jam: midterm prep',description:'Writing and Math center tutors, quiet tables, and snacks. Bring a draft or a problem set and leave with a plan.',office:'Downs-Jones Library',location:'Library · second floor',starts_at:at(now,2,18),ends_at:at(now,2,20),capacity:60,status:'published',join_url:null},{id:'30000000-0000-4000-8000-000000000004',title:'Student org showcase',description:'Meet every chartered student organization in one afternoon. Sign up, grab a schedule, and find your people.',office:'Student Life',location:'Campus lawn',starts_at:at(now,4,15),ends_at:at(now,4,17),capacity:null,status:'published',join_url:null}];
  s.courses=[{id:IDS.course,title:'AI Literacy: From Curiosity to Practice',description:'Build a thoughtful, practical approach to AI. Learn the fundamentals, write a useful prompt, and create a small project with human review.',category:'AI Literacy',status:'published',image_url:null}];
  s.modules=[
   {id:'50000000-0000-4000-8000-000000000001',course_id:IDS.course,title:'Understand what AI can—and cannot—do',position:1,body:'Generative AI predicts useful patterns in language, images, and other information. A fluent answer can still be inaccurate or incomplete. Treat its output as a draft to evaluate, not as evidence.\n\nBefore using a tool for coursework, check your instructor’s policy. Keep private student information, passwords, and confidential documents out of unapproved tools. Verify factual claims using reliable original sources, and acknowledge AI assistance when required.\n\nPractice: ask an AI tool to explain a familiar concept. Identify one claim you would verify and name a source you could check.',resource_url:null,question:'An AI answer sounds confident. What should you do before using a factual claim?',options:['Use it immediately because confidence means accuracy','Verify the claim against a reliable original source','Ask it to use a more academic tone'],answer_index:1,assignment_prompt:null},
@@ -65,8 +75,8 @@ function fixtures(now) {
  s.notifications=[{id:'91000000-0000-4000-8000-000000000001',user_id:IDS.student,title:'Morgan replied to your request',body:'Open Student support to continue the conversation.',href:'/ht/hub/support/',created_at:iso(-30),read_at:null}];
  s.cohorts=[{id:IDS.cohort,title:'AI Literacy · First-Year Scholars',description:'A small cohort turning responsible AI practice into useful work, with Morgan as your instructor.',course_id:IDS.course,instructor_id:IDS.staff,status:'active',created_at:iso(-10080)},{id:IDS.otherCohort,title:'Digital Storytelling · Creative Lab',description:'A separate classroom with its own instructor, roster, and session records.',course_id:null,instructor_id:IDS.instructor,status:'active',created_at:iso(-10080)}];
  s.cohort_members=[{cohort_id:IDS.cohort,user_id:IDS.student,active:true,joined_at:iso(-10080)},{cohort_id:IDS.otherCohort,user_id:IDS.other,active:true,joined_at:iso(-10080)}];
- const session=(n,cohort,title,start,end,extra={})=>({id:`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id:cohort?.id||null,event_id:null,title,description:'Bring one question and a small project idea. We will review a prompt, compare sources, and share our next step.',starts_at:iso(start),ends_at:iso(end),status:'scheduled',audience:cohort?'cohort':'campus',instructor_id:cohort?.instructor_id||IDS.staff,room_id:`c0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,room_slug:`htc-${String(n).padStart(24,'0')}`,is_live:false,recording_url:null,replay_published:false,...extra});
- s.class_sessions=[session(1,s.cohorts[0],'Prompt Lab: From question to useful draft',30,90),session(2,s.cohorts[1],'Story Studio: Shape your opening',30,90),session(3,s.cohorts[0],'Project Clinic: Evaluate and improve',1470,1530),session(4,null,'Campus conversation: Learning with AI',120,180,{event_id:IDS.event}),session(5,s.cohorts[0],'Getting started with responsible AI',-1440,-1380,{replay_published:true})];
+ const session=(n,cohort,title,start,end,extra={})=>({id:`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,cohort_id:cohort?.id||null,event_id:null,title,description:'Bring one question and a small project idea. We will review a prompt, compare sources, and share our next step.',starts_at:start,ends_at:end,status:'scheduled',audience:cohort?'cohort':'campus',instructor_id:cohort?.instructor_id||IDS.staff,room_id:`c0000000-0000-4000-8000-${String(n).padStart(12,'0')}`,room_slug:`htc-${String(n).padStart(24,'0')}`,is_live:false,recording_url:null,replay_published:false,...extra});
+ s.class_sessions=[session(1,s.cohorts[0],'Prompt Lab: From question to useful draft',quarter(now,30),quarter(now,90)),session(2,s.cohorts[1],'Story Studio: Shape your opening',quarter(now,30),quarter(now,90)),session(3,s.cohorts[0],'Project Clinic: Evaluate and improve',at(now,1,10),at(now,1,11)),session(4,null,'Campus conversation: Learning with AI',quarter(now,120),quarter(now,180),{event_id:IDS.event}),session(5,s.cohorts[0],'Getting started with responsible AI',at(now,-1,10),at(now,-1,11),{replay_published:true})];
  s._session_joins=[];
  return upgradeAcademics(s,now);
 }
@@ -78,16 +88,16 @@ export function repairDemoSchedule(s,now=Date.now()) {
  const futureSession=s.class_sessions.some(session=>fixtureSessions.has(session.id)&&session.status==='scheduled'&&new Date(session.ends_at||session.starts_at).getTime()>=now);
  let changed=false;
  if(!futureEvent){
-  for(const [id,start,end] of [[IDS.event,120,180],['30000000-0000-4000-8000-000000000002',1440,1500]]){
+  for(const [id,start,end] of [[IDS.event,quarter(now,120),quarter(now,180)],['30000000-0000-4000-8000-000000000002',at(now,1,12),at(now,1,13)]]){
    const event=s.events.find(item=>item.id===id&&item.status==='published');
-   if(event){event.starts_at=new Date(now+start*60000).toISOString();event.ends_at=new Date(now+end*60000).toISOString();changed=true;}
+   if(event){event.starts_at=start;event.ends_at=end;changed=true;}
   }
  }
  if(!futureSession){
-  for(const [n,start,end] of [[1,30,90],[2,30,90],[3,1470,1530],[4,120,180]]){
+  for(const [n,start,end] of [[1,quarter(now,30),quarter(now,90)],[2,quarter(now,30),quarter(now,90)],[3,at(now,1,10),at(now,1,11)],[4,quarter(now,120),quarter(now,180)]]){
    const id=`b0000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
    const session=s.class_sessions.find(item=>item.id===id&&item.status==='scheduled'&&!item.is_live);
-   if(session){session.starts_at=new Date(now+start*60000).toISOString();session.ends_at=new Date(now+end*60000).toISOString();changed=true;}
+   if(session){session.starts_at=start;session.ends_at=end;changed=true;}
   }
  }
  return changed;
@@ -250,7 +260,7 @@ export function createCampusStore(options={}) {
  let storage=options.storage;try{storage??=win?.localStorage;}catch{/* memory demo remains usable */}
  let data=null,client=options.client||null,clientPromise=null,destroyed=false,timer=null,authSubscription=null,current=empty(),authEpoch=0,observedUserId,watchingAuth=false;
  const listeners=new Set();const emit=(event={reason:'refresh'})=>{if(!destroyed)listeners.forEach(fn=>fn(event));};
- const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&BASE_COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());const upgrade=!saved||data._academics_version!==1;upgradeAcademics(data,now());const repaired=repairDemoSchedule(data,now());if(upgrade||repaired)try{storage?.setItem(DEMO_KEY,JSON.stringify(data));}catch{/* in-memory demonstration */}return data;};
+ const readDemo=()=>{let saved=null;try{saved=JSON.parse(storage?.getItem(DEMO_KEY)||'null');}catch{/* invalid sample state resets only sample data */}data=saved?.version===2&&saved.fixtures_rev===FIXTURES_REV&&BASE_COLLECTIONS.every(k=>Array.isArray(saved[k]))&&saved._codes&&Array.isArray(saved._checks)?saved:data||fixtures(now());const upgrade=!saved||data._academics_version!==1;upgradeAcademics(data,now());const repaired=repairDemoSchedule(data,now());if(upgrade||repaired)try{storage?.setItem(DEMO_KEY,JSON.stringify(data));}catch{/* in-memory demonstration */}return data;};
  const watchAuth=sb=>{if(watchingAuth)return;watchingAuth=true;authSubscription=sb.auth.onAuthStateChange?.((event,session)=>{
   const user_id=session?.user?.id||null;
   const identityChanged=event==='SIGNED_OUT'||(observedUserId!==undefined&&user_id!==observedUserId);

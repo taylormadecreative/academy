@@ -7,11 +7,12 @@ const read = (file) => fs.readFileSync(new URL(`../../${file}`, import.meta.url)
 
 function calendarContext() {
   const returnLink = { href: '/ht/hub/events/#next', getAttribute: function () { return this.href; }, setAttribute: function (_key, value) { this.href = value; } };
-  const root = { innerHTML: '', querySelectorAll: () => [], querySelector: (selector) => selector === '.ht-grid' ? { style: {} } : null };
+  const root = { innerHTML: '', querySelectorAll: () => [], querySelector: (selector) => selector === '.ht-grid' ? { style: {} } : null, addEventListener: () => {} };
+  const classList = { add: () => {}, toggle: () => {}, remove: () => {} };
   const bar = { innerHTML: '' };
   const context = { URL, URLSearchParams, Date, TextEncoder, console, setTimeout: () => {}, location: { origin: 'https://example.test', hostname: 'example.test', pathname: '/ht/hub/calendar/', search: '?demo=student' }, navigator: { userAgent: '' } };
   context.window = context;
-  context.document = { currentScript: null, body: { getAttribute: () => 'calendar' }, querySelectorAll: (selector) => selector === 'a[href^="/ht/hub/"]' ? [returnLink] : [], addEventListener: () => {}, getElementById: (id) => id === 'htRoot' ? root : id === 'htBar' ? bar : null };
+  context.document = { currentScript: null, body: { getAttribute: () => 'calendar', classList }, querySelectorAll: (selector) => selector === 'a[href^="/ht/hub/"]' ? [returnLink] : [], addEventListener: () => {}, querySelector: () => null, getElementById: (id) => id === 'htRoot' ? root : id === 'htBar' ? bar : null };
   vm.createContext(context);
   for (const file of ['ht/hub/data.js', 'ht/hub/data/events.js', 'ht/hub/data/calendar.js', 'ht/hub/ht.js']) vm.runInContext(read(file), context, { filename: file });
   return { context, root, bar, returnLink };
@@ -38,7 +39,7 @@ test('legacy calendar renderer retains term filters, full dated rows, ICS and pr
   for (const term of ['next', 'fall', 'spring', 'summer']) assert.ok(root.innerHTML.includes(`data-yr="${term}"`));
   assert.match(root.innerHTML, /data-yics/);
   assert.match(root.innerHTML, /data-print/);
-  assert.match(root.innerHTML, /<h1>Academic calendar<\/h1>/);
+  assert.match(root.innerHTML, /<h1[^>]*>Academic calendar<\/h1>/);
   assert.ok(root.innerHTML.includes(original.sourceHref));
   assert.equal(returnLink.href, '/ht/hub/events/?demo=student#next');
   context.HTHub.boot();

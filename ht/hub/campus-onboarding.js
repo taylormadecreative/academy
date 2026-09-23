@@ -161,9 +161,9 @@ export function renderPageOrientation(view, ctx) {
   const progress = currentProgress(ctx);
   if (guidedStep(view, progress) || (view === 'home' && progress.status === 'active')) return '';
   const key = pageGuideKey(view, ctx), guidance = { ...pageGuidance[view], title: pageGuideTitle(view, ctx) }, tips = pageGuideTip(view, ctx);
-  let leadershipDemo = false;
-  try { leadershipDemo = new URL(globalThis.location?.href || 'https://ht.invalid/').searchParams.get('demo') === 'leadership'; } catch { /* Keep the normal first-visit guide if the URL is unavailable. */ }
-  const open = pageGuideSeen(key) || leadershipDemo ? '' : ' open';
+  // Collapsed on arrival, and gone once someone has opened or dismissed it; the header Guide link stays.
+  if (pageGuideSeen(key)) return '';
+  const open = '';
   return `<details class="campus-page-guide" data-campus-page-guide="${escape(ctx, key)}"${open}><summary><span><strong>First time here?</strong><span>See how to use ${escape(ctx, guidance.title)}</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><ol>${tips.map(tip => `<li>${escape(ctx, tip)}</li>`).join('')}</ol></div><div class="campus-page-guide-actions">${anchor(ctx, ctx.href('welcome'), 'Full site guide', 'campus-button campus-button-secondary campus-button-small')}<button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>`;
 }
 export function renderOnboardingPrompt(view, ctx) {

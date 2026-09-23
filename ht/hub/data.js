@@ -3,21 +3,21 @@ window.HT = window.HT || {};
 HT.site = { name: 'Huston-Tillotson University', short: 'HT', partner: 'Taylormade Academy', hub: '/ht/hub/', sample: true, adaPoster: '/ht/img/ada-face.jpg' };
 HT.spaces = HT.spaces || {};
 HT.order = ['advancement', 'president', 'events', 'live', 'learn', 'community', 'showcase', 'students', 'career', 'alumni', 'admissions', 'outreach', 'board'];
-/* Intentional, space-specific photography for the individual campus destinations.
-   The directory stays icon-based; functional student destinations use this artwork
-   in their app-backed page hero. These HT assets have descriptive alt text. */
+/* One photo per campus space, none repeated: the directory cards and the app-backed
+   page heroes both use it. athletics.jpg carries the Rams mark, so it stays off
+   every non-athletics space. */
 HT.spaceArtwork = {
   advancement: { image: '/ht/img/fall-convocation.jpg', alt: 'Huston-Tillotson faculty and students at Fall Convocation' },
-  president: { image: '/ht/img/wallace-students.jpg', alt: 'Dr. Melva K. Wallace with Huston-Tillotson students' },
+  president: { image: '/ht/img/cover-dais.jpg', alt: 'Dr. Melva K. Wallace on the dais at a Huston-Tillotson ceremony' },
   events: { image: '/ht/img/commencement.jpg', alt: 'Two Huston-Tillotson graduates celebrating commencement' },
-  live: { image: '/ht/img/student-laptop.jpg', alt: 'A Huston-Tillotson student working at a laptop in the library' },
+  live: { image: '/ht/img/r-academic.jpg', alt: 'Rendering of a Huston-Tillotson academic building' },
   learn: { image: '/ht/img/students-library.jpg', alt: 'Huston-Tillotson students gathered in the library' },
   community: { image: '/ht/img/wallace-students.jpg', alt: 'Huston-Tillotson students and university leadership together' },
-  showcase: { image: '/ht/img/student-laptop.jpg', alt: 'A Huston-Tillotson student developing work on a laptop' },
-  students: { image: '/ht/img/athletics.jpg', alt: 'Huston-Tillotson student athletes representing the university' },
+  showcase: { image: '/ht/img/r-student-center.jpg', alt: 'Rendering of the Huston-Tillotson student center' },
+  students: { image: '/ht/img/hero-flyover-poster.jpg', alt: 'Students walking across the Huston-Tillotson campus, rendering' },
   career: { image: '/ht/img/student-laptop.jpg', alt: 'A Huston-Tillotson student working at a laptop in the library' },
-  alumni: { image: '/ht/img/commencement.jpg', alt: 'Huston-Tillotson graduates celebrating commencement' },
-  admissions: { image: '/ht/img/students-library.jpg', alt: 'Huston-Tillotson students meeting in the library' },
+  alumni: { image: '/ht/img/campus-hero.jpg', alt: 'The Huston-Tillotson University sign and bell tower in Austin, Texas' },
+  admissions: { image: '/ht/img/r-village-plaza.jpg', alt: 'Rendering of a Huston-Tillotson residential plaza' },
   outreach: { image: '/ht/img/r-retail-street.jpg', alt: 'Architectural rendering of a walkable campus retail street' },
   board: { image: '/ht/img/r-admin-dusk.jpg', alt: 'Rendering of the Huston-Tillotson administrative building at dusk' }
 };

@@ -149,16 +149,17 @@ test('page guidance changes for staff, course sections, and assigned classroom t
   assert.match(renderPageOrientation('insights', leadership), /private student work and messages remain/);
 });
 
-test('page guides open once per view and offer a non-destructive Got it dismissal', () => {
+test('page guides arrive collapsed and leave the page once seen', () => {
   const ctx = context(), previous = globalThis.localStorage, values = new Map();
   globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   try {
     const html = renderPageOrientation('community', ctx);
     const key = `ht-hub-page-guide:v1:${encodeURIComponent(`demo:student:${ctx.state.user.id}:community`)}`;
-    assert.match(html, /<details class="campus-page-guide"[^>]* open>/);
+    assert.match(html, /<details class="campus-page-guide"/);
+    assert.doesNotMatch(html, /<details class="campus-page-guide"[^>]* open>/);
+    assert.match(html, /data-page-guide-done>Got it/);
     values.set(key, 'seen');
-    assert.doesNotMatch(renderPageOrientation('community', ctx), /<details class="campus-page-guide"[^>]* open>/);
-    assert.match(renderPageOrientation('community', ctx), /data-page-guide-done>Got it/);
+    assert.equal(renderPageOrientation('community', ctx), '');
   } finally { if (previous === undefined) delete globalThis.localStorage; else globalThis.localStorage = previous; }
 });
 
@@ -178,7 +179,8 @@ test('Got it stores only this page guide and leaves the whole-site guide availab
     root.listeners.get('click')({ target: { closest: selector => selector === '[data-page-guide-done]' ? done : null } });
     assert.equal(values.get(key), 'seen'); assert.equal(details.open, false); assert.equal(summary.focused, true);
     assert.equal(ctx.onboarding.read(ctx.state).status, 'new');
-    assert.match(renderPageOrientation('community', ctx), /Full site guide/);
+    // The page tip is gone; the whole-site guide stays in the header and on Today.
+    assert.equal(renderPageOrientation('community', ctx), '');
   } finally { if (previous === undefined) delete globalThis.localStorage; else globalThis.localStorage = previous; if (previousLocation === undefined) delete globalThis.location; else globalThis.location = previousLocation; }
 });
 

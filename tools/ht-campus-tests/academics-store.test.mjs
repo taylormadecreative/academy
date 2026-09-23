@@ -16,7 +16,7 @@ eq(s.assignments.map(a=>a.id),['d0000000-0000-4000-8000-000000000001'],'student 
 eq(teacher.assignments.length,2,'instructor sees own published assignment and draft');
 eq((await leadership.load()).assignments,[],'leadership cannot access individual coursework');
 eq(s.assignment_attempts.length+s.assignment_grades.length,0,'demo does not invent submission or grading history');
-eq(first.due_at,iso(time+2*86400000),'sample assignment due date starts in the future');
+eq([Date.parse(first.due_at)>time,new Date(first.due_at).getHours(),new Date(first.due_at).getMinutes()],[true,23,59],'sample assignment is due in the future at 11:59 PM local');
 eq(raw()._academics_version,1,'new demo persists academic upgrade marker on initial load');
 await student.command('post',{channel:'Campus',body:'Preserve my existing campus conversation'});
 await student.command('readMessages',{message_ids:[s.messages[0].id]});

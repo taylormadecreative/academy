@@ -298,8 +298,8 @@ a.card:hover{transform:translateY(-3px);box-shadow:0 22px 40px -24px rgba(41,28,
 .tbl td b{color:var(--ht-ink)}
 /* misc */
 .empty{padding:22px;text-align:center;color:var(--muted);font-size:14px}
-.js .rv{opacity:0;transform:translateY(12px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
-.rv.in{opacity:1;transform:none}
+/* Content is never hidden waiting on a scroll reveal: a background tab freezes the transition and the section reads empty. */
+.js .rv,.rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}}
 /* install card */
 .install{display:flex;gap:14px;align-items:center}

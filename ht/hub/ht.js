@@ -254,7 +254,8 @@
 
   /* ---------- page assembly ---------- */
   function tabsHtml(pageKey) {
-    var moreCurrent = ['events','calendar','live','legacy-live','session','replay'].indexOf(pageKey) !== -1;
+    var moreCurrent = ['events','calendar','live','legacy-live','session','replay','success','trust'].indexOf(pageKey) !== -1;
+    var demoRole = new URLSearchParams(location.search).get('demo');
     function link(k, label, glyph, current) {
       var href = HT.site.hub + (k === 'home' ? '' : k + '/');
       return '<a href="' + esc(href) + '"' + (current ? ' aria-current="page"' : '') + '>' + icon(glyph) + '<span>' + esc(label) + '</span></a>';
@@ -262,8 +263,8 @@
     var menu = link('home','Today','home',pageKey === 'home') + link('courses','Learning','book',pageKey === 'courses') +
       link('community','Community','users',pageKey === 'community') + link('messages','Messages','chat',pageKey === 'messages' || pageKey === 'people') + link('spaces','Campus','grid',pageKey === 'spaces' || (HT.order || []).indexOf(pageKey) !== -1);
     var more = '<details class="campus-nav-more"><summary' + (moreCurrent ? ' aria-current="page"' : '') + '>' + icon('grid') + '<span>More</span><span class="campus-nav-more-chevron" aria-hidden="true">⌄</span></summary><div class="campus-nav-more-panel" aria-label="More campus destinations">' +
-      link('events','Events','calendar',pageKey === 'events') + link('live','Classrooms','play',['live','legacy-live','session','replay'].indexOf(pageKey) !== -1) + link('calendar','Academic calendar','calendar',pageKey === 'calendar') + '</div></details>';
-    return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + link('support','Get help','help',false) + '</div></div></nav>';
+      link('events','Events','calendar',pageKey === 'events') + link('live','Classrooms','play',['live','legacy-live','session','replay'].indexOf(pageKey) !== -1) + (['staff','leadership'].indexOf(demoRole) !== -1 ? link('success','Student success','shield',pageKey === 'success') : '') + link('trust','Security & integrations','door',pageKey === 'trust') + link('calendar','Academic calendar','calendar',pageKey === 'calendar') + '</div></details>';
+    return '<nav class="campus-nav campus-nav-communication" aria-label="Main navigation"><div class="campus-nav-inner">' + menu + '<div class="campus-nav-end">' + more + '</div></div></nav>';
   }
   function breadcrumbHtml(key, title) {
     var parent = key === 'calendar' ? ['events', 'Events'] : ['session','replay','legacy-live'].indexOf(key) !== -1 ? ['live', 'Classrooms'] : ['spaces', 'Around campus'];
@@ -283,7 +284,8 @@
     else if (key === 'legacy-live') instruction = 'Choose the campus session or cohort classroom you need. Its page brings the schedule, room, and available replay together.';
     else if (space.headCta && space.headCta.label) instruction = 'For a quick first step, choose “' + space.headCta.label + '” above. The sections below contain the rest of this space’s resources.';
     else instruction = 'Start with “' + (intro ? intro.title : title) + '” below, then use its links and the sections that follow to explore ' + (space.office || title) + '.';
-    var open = wasSeen || demo === 'leadership' ? '' : ' open';
+    if (wasSeen) return '';
+    var open = '';
     return '<details class="campus-page-guide ht-page-guide" data-campus-page-guide="' + esc(storageKey) + '"' + open + '><summary><span><strong>First time here?</strong><span>See how to use ' + esc(title) + '</span></span><span class="campus-page-guide-chevron" aria-hidden="true">⌄</span></summary><div class="campus-page-guide-content"><div><p class="campus-eyebrow">Start here</p><p>' + esc(instruction) + '</p></div><div class="campus-page-guide-actions"><a class="campus-button campus-button-secondary campus-button-small" href="' + esc(HT.site.hub + 'welcome/') + '">Full site guide</a><button type="button" class="campus-onboarding-text-button" data-page-guide-done>Got it</button></div></div></details>';
   }
   function leadershipDemoRail(key) {
@@ -302,13 +304,15 @@
     if (['student', 'staff', 'leadership'].indexOf(role) === -1) return;
     var header = document.querySelector('.site-header .nav-cta');
     if (!header) return;
-    var roles = [['student', 'Student'], ['staff', 'Staff'], ['leadership', 'Leadership']];
-    header.innerHTML = '<a class="navlink campus-header-guide" href="' + esc(HT.site.hub + 'welcome/?demo=' + role) + '">Guide</a><a class="navlink campus-header-help" href="' + esc(HT.site.hub + 'support/?demo=' + role) + '">Get help</a><span class="ht-static-demo-label">Interactive demo · sample data</span><label class="campus-sr-only" for="htStaticDemoRole">View demo as</label><select class="ht-static-demo-select" id="htStaticDemoRole" aria-label="View demo as">' + roles.map(function (item) { return '<option value="' + item[0] + '"' + (item[0] === role ? ' selected' : '') + '>' + item[1] + '</option>'; }).join('') + '</select>';
-    header.querySelector('#htStaticDemoRole').addEventListener('change', function (event) {
-      var url = new URL(location.href);
-      url.searchParams.set('demo', event.currentTarget.value);
-      location.assign(url.pathname + url.search + url.hash);
-    });
+    var persona = { student: 'Jordan R.', staff: 'Morgan T.', leadership: 'Avery W.' }[role];
+    var initials = persona.split(' ').map(function (w) { return w[0]; }).join('');
+    header.innerHTML = '<a class="navlink campus-header-guide" href="' + esc(HT.site.hub + 'welcome/?demo=' + role) + '">Guide</a><a class="navlink campus-header-help" href="' + esc(HT.site.hub + 'support/?demo=' + role) + '">Get help</a><a class="campus-account" href="' + esc(HT.site.hub + '?demo=' + role) + '" aria-label="' + esc(persona) + ', sample account"><span class="campus-avatar">' + esc(initials) + '</span><span>' + esc(persona) + '</span></a>';
+  }
+  /* The same demo strip the app pages carry, so a space never looks like a different product. */
+  function demoStrip(role) {
+    if (['student', 'staff', 'leadership'].indexOf(role) === -1) return '';
+    var roles = [['student', 'Student'], ['staff', 'Faculty & staff'], ['leadership', 'Leadership']];
+    return '<div class="campus-demo"><div><strong>Interactive demo</strong><span>Sample people and records, not university data. Changes stay in this browser.</span></div><label for="campusDemoRole">View as</label><select id="campusDemoRole">' + roles.map(function (item) { return '<option value="' + item[0] + '"' + (item[0] === role ? ' selected' : '') + '>' + item[1] + '</option>'; }).join('') + '</select></div>';
   }
   function render(key) {
     var space = key === 'home' ? HT.home : HT.spaces[key];
@@ -317,9 +321,10 @@
     var main = [], side = [];
     (space.blocks || []).forEach(function (b) { var fn = R[b.type]; if (!fn) return; (b.side === true ? side : main).push(fn(b)); });
     var pageTitle = space.title === 'Home' ? 'The HT Hub' : space.title;
-    var head = tabsHtml(key) + '<div class="campus-container ht-space-container">' + breadcrumbHtml(key, pageTitle) + '<header class="campus-page-head ht-space-page-head" aria-labelledby="htSpaceTitle"><div>' +
+    var roleNow = new URLSearchParams(location.search).get('demo');
+    var head = tabsHtml(key) + '<div class="campus-container ht-space-container">' + demoStrip(roleNow) + breadcrumbHtml(key, pageTitle) + '<header class="campus-page-head ht-space-page-head" aria-labelledby="htSpaceTitle"><div>' +
       h`<p class="campus-eyebrow">${space.office || space.kicker || 'Huston-Tillotson University'}</p><h1 id="htSpaceTitle">${pageTitle}</h1>` + (space.sub ? h`<p>${space.sub}</p>` : '') +
-      '</div><div class="campus-head-actions"><span class="ht-space-stamp">' + esc(space.stamp || 'Preview · sample content') + '</span>' + (space.headCta ? btn(space.headCta) : '') + '</div></header>' +
+      '</div><div class="campus-head-actions">' + (demoStrip(roleNow) ? '' : '<span class="ht-space-stamp">' + esc(space.stamp || 'Preview · sample content') + '</span>') + (space.headCta ? btn(space.headCta) : '') + '</div></header>' +
       '<main class="campus-main ht-space-main" id="htMain" tabindex="-1">' + firstVisitGuide(key, space) + leadershipDemoRail(key) + '<div class="ht-grid' + (side.length ? '' : ' one') + '">' + '<div class="ht-col">' + main.join('') + '</div>' + (side.length ? '<div class="ht-col">' + side.join('') + '</div>' : '') + '</div></main></div>' +
       '<nav class="campus-mobile-nav" aria-label="Mobile navigation">' +
       [['home','home','Today'],['courses','book','Learn'],['community','users','Community'],['messages','chat','Messages'],['spaces','grid','Campus']].map(function (item) {
@@ -332,6 +337,9 @@
     var demoRole = new URLSearchParams(location.search).get('demo');
     if (['student', 'staff', 'leadership'].indexOf(demoRole) !== -1) {
       document.body.classList.add('ht-interactive-demo');
+      var previewBar = document.getElementById('htBar'); if (previewBar) previewBar.hidden = true;
+      var picker = document.getElementById('campusDemoRole');
+      if (picker) picker.addEventListener('change', function () { var url = new URL(location.href); url.searchParams.set('demo', picker.value); location.assign(url.pathname + url.search + url.hash); });
       document.body.classList.toggle('ht-leadership-demo', demoRole === 'leadership');
       staticDemoHeader(demoRole);
       document.querySelectorAll('a[href^="/ht/hub/"]').forEach(function (a) {
@@ -645,6 +653,8 @@
     }).catch(function () {});
   }
 
+  document.addEventListener('click', function (e) { document.querySelectorAll('.campus-nav-more[open]').forEach(function (m) { if (!m.contains(e.target)) m.open = false; }); });
+  document.addEventListener('keydown', function (e) { if (e.key !== 'Escape') return; var m = document.querySelector('.campus-nav-more[open]'); if (m) { m.open = false; var sm = m.querySelector('summary'); if (sm) sm.focus(); } });
   window.HTHub = { render: render, boot: boot, esc: esc, icon: icon, leadershipDemoRail: leadershipDemoRail };
   document.addEventListener('DOMContentLoaded', function () {
     var k = document.body.getAttribute('data-space') || 'home';
@@ -654,7 +664,7 @@
     if (isDemo) document.querySelectorAll('a[href="/ht/hub/welcome/"]').forEach(function(link) { link.href = '/ht/hub/welcome/?demo=' + encodeURIComponent(demo); });
     if (isDemo && ['session','replay','legacy-live'].indexOf(k) !== -1) { location.replace('/ht/hub/live/?demo=' + encodeURIComponent(demo)); return; }
     if (k === 'live' && params.has('k') && !isDemo) k = 'legacy-live';
-    if (['home','welcome','courses','learn','events','community','people','spaces','support','staff','insights','live'].indexOf(k) !== -1) {
+    if (['home','welcome','courses','learn','events','community','people','spaces','support','staff','insights','live','success','trust'].indexOf(k) !== -1) {
       import('/ht/hub/campus-app.js' + V).then(function(m){return m.mountCampus(k);}).catch(function(){
         var root=document.getElementById('htRoot');
         if(root)root.innerHTML='<main id="htMain" class="hub-wrap" style="padding-block:60px"><h1>The Hub could not open.</h1><p>Check your connection and reload this page.</p><button class="btn ht" type="button" id="htCampusReload">Try again</button></main>';
