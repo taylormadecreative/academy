@@ -233,6 +233,15 @@ export async function mountRoomV2(o) {
   /* one init for the first meeting and for a rejoin after a drop (same token, or a fresh one) */
   const initKit = (authToken, audio, video) => RealtimeKitClient.init({ authToken, defaults: { audio, video, mediaConfiguration } });
   /* hosts arrive ready to teach; students arrive muted, camera off, and turn them on in one tap */
+  /* a host arrives with camera and mic on, so the browser may be holding its permission prompt here —
+     say so instead of showing an empty box; the join screen below replaces this line */
+  if (host && !mountEl.firstChild) {
+    const wait = document.createElement('p');
+    wait.className = 'r2-media-wait';
+    wait.setAttribute('role', 'status');
+    wait.textContent = 'Allow your camera and microphone when your browser asks. The room opens right after.';
+    mountEl.appendChild(wait);
+  }
   const meeting = await initKit(join.token, host, host);
   let current = meeting;   /* the meeting this page is in: the main room, or a breakout room */
   try { window.__r2 = { get meeting() { return current; }, get effects() { return effects; } }; } catch (e) {}   /* support hook, read-only */

@@ -419,3 +419,5 @@
 .r2-right .r2-btn[hidden]{display:none}   /* Share and Captions keep their state in the DOM but never show in the bar (they live in Tools) */
 /* the host's On stage list above the kit's People list */
 .r2-stagelist{padding:10px 10px 0}.r2-stagelist .r2-hand{grid-template-columns:1fr auto}
+/* while the browser holds its camera/mic prompt, the box says what to do (the join screen replaces it) */
+#rtkMount.r2host>.r2-media-wait{margin:0;padding:48px 24px;text-align:center;font:500 16px/1.5 Inter,system-ui,sans-serif;color:#fcfdff}

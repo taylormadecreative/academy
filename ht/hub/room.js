@@ -14,12 +14,16 @@ const V = new URL(import.meta.url).search;   /* our own ?v= — the HT build sta
 const POLL_MS = Number(window.__htRoomPollMs) > 0 ? Number(window.__htRoomPollMs) : 20000;
 const FIRST_LOOK_MS = Math.min(5000, POLL_MS);   /* the ended card's first look comes early */
 
-/* the stylesheet first, so the cards never paint unstyled */
-await new Promise((res) => {
-  if (document.querySelector('link[href^="/ht/hub/room.css"]')) return res();
-  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/ht/hub/room.css' + V;
+/* the stylesheets first, so the cards never paint unstyled: the shared class room's base rules, then HT's
+   colors on top (room.css is a fork that predates the join screen's cells/header/grid — without the base
+   the getting-in screen paints raw, a 500px calendar icon) */
+const loadCss = (href) => new Promise((res) => {
+  if (document.querySelector('link[href^="' + href + '"]')) return res();
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href + V;
   l.onload = res; l.onerror = res; document.head.appendChild(l);
 });
+await loadCss('/css/rtk-room-v2.css');
+await loadCss('/ht/hub/room.css');
 const [{ roomKey, roomBranch, statusLine, replayLabel, iframeUrl }, { htWords, HT_TOKENS, htErrorText, rememberKey, recallKey, forgetKey, nextSessionLine, nextSessionWhen, calendarLinks }, { endCopy, backOn }, { createClient }] = await Promise.all([
   import('/js/room-page.js' + V),
   import('/ht/hub/room-words.js' + V),
