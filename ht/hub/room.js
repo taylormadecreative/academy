@@ -119,7 +119,7 @@ function settleOnCard() { requestAnimationFrame(() => { try { const y = ctl.getB
    monogram (target.mark): at strip height the two-line wordmark falls under HT's minimum reproduction
    width and its second line smears, and on a phone it would crowd out the guest's "this session is being
    recorded" line. Both gold on transparent. */
-const LOGO = { src: '/ht/img/ht-wordmark-gold.png', alt: 'Huston-Tillotson University' };
+const LOGO = { src: '/ht/img/ht-wordmark-gold-900.png', alt: 'Huston-Tillotson University' };
 const MARK = { src: '/ht/img/ht-monogram-gold.png', alt: 'Huston-Tillotson University' };
 const WM = '<img class="ht-room-wm" src="' + LOGO.src + '" alt="' + LOGO.alt + '">';
 const onAirLine = (st) => '<p class="s">' + (st.is_live ? 'Live now' : 'Off air') + '</p>';

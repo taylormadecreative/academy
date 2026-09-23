@@ -414,7 +414,7 @@ test('Today lists the published assignment due date and Learn shows the earned C
     assert.doesNotMatch(learn, /campus-page-intro/);
     assert.match(learn, /See career portfolio/);
     assert.match(learn, /<section class="campus-panel badge-shelf" id="badges"/);
-    assert.match(learn, /<img class="badge-record-wordmark" src="\/ht\/img\/ht-wordmark-maroon\.png" alt="Huston-Tillotson University"/);
+    assert.match(learn, /<img class="badge-record-wordmark" src="\/ht\/img\/ht-wordmark-maroon-900\.png" alt="Huston-Tillotson University"/);
     assert.doesNotMatch(learn, /Add to my career portfolio/);
     assert.doesNotMatch(learn, /Available · Sample<\/p><h3>Career Ready/);
   } finally { student.destroy(); }

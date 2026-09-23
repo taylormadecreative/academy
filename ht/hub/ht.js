@@ -229,7 +229,7 @@
   R.player = function (b) {
     var now = b.now ? '<div class="nowbar">' + (b.live ? '<span class="flag">Live</span>' : chipHtml('Test picture · sample', 'soft')) + h`<b>${b.now.title}</b>` + (b.now.who ? h`<span>${b.now.who}</span>` : '') + (b.now.when ? h`<span>${b.now.when}</span>` : '') + '</div>' : '';
     var inner = '<div class="player" data-player data-stream="' + esc(b.stream || '/ht/img/hero-flyover.mp4') + '">' +
-      '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="flag">Live</span>' : '') + '</div>' +
+      '<div class="brand"><div style="display:flex;align-items:center;gap:10px"><img src="/ht/img/ht-wordmark-gold-900.png" alt="Huston-Tillotson University"><span class="t">' + esc(b.title || 'The live room') + '</span></div>' + (b.live ? '<span class="flag">Live</span>' : '') + '</div>' +
       '<div class="poster" style="background-image:url(' + esc((firstUse(b.poster || '/ht/img/hero-flyover-poster.jpg'), b.poster || '/ht/img/hero-flyover-poster.jpg')) + ')"><button type="button" aria-label="Watch ' + esc(b.title || 'the live room') + '">' + smallIcon('play') + ' Watch</button>' + (isRendering(b.poster) ? '<span class="ht-render-cap">Campus plan rendering</span>' : '') + '</div>' +
       '<img class="wm" src="/assets/logo-nav.webp" alt=""></div>' + now;
     var s = card({ id: b.id, title: b.cardTitle, meta: b.meta }, inner, 'dark'); return s.replace('<div class="bd">', '<div class="bd" style="padding:0">');
