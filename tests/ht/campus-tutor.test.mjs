@@ -179,6 +179,6 @@ test('the verification criterion connects to the module\'s "evaluation" wording'
   assert.equal(verify.name, 'Evidence of verification');
   assert.match(verify.detail, /evaluation/i); assert.match(verify.detail, /what you checked and how/i);
   const html = T.renderRubric({ esc: value => String(value), attemptId: 'a1', levels: {} }, rubric);
-  assert.match(html, /<span>Evidence of verification<\/span><span class="rubric-max">25 points<\/span><\/legend><p class="rubric-detail">Your evaluation — what you checked and how\.<\/p>/);
+  assert.match(html, /<span>Evidence of verification<\/span><span class="rubric-max">25 points<\/span><\/legend><p class="rubric-detail">Your evaluation: what you checked and how\.<\/p>/);
   assert.equal((html.match(/rubric-detail/g) || []).length, 1, 'only criteria with a descriptor show one');
 });
