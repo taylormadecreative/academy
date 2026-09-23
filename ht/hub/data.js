@@ -25,7 +25,6 @@ HT.spaceArtwork = {
 HT.leadershipWalkthrough = [
   { key: 'success', title: 'Every student who needs a hand has an owner', detail: 'Early alerts come from sign-ins, missed work, midterm grades, and attendance. Advisors see names; you see the pattern.' },
   { key: 'insights', title: 'The whole campus on one page', detail: 'Enrollment, persistence, weekly activity, pathways, and support, filtered by class year. Sample figures.' },
-  { key: 'courses', role: 'student', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'overview' }, hash: 'ada', title: 'Ada tutors from the course itself', detail: 'You are now Jordan, a first-year student. Ask Ada a question: she answers only from this class’s lessons, and won’t write the assignment.' },
   { key: 'courses', role: 'staff', query: { cohort: 'a0000000-0000-4000-8000-000000000001', tab: 'assignments', assignment: 'd0000000-0000-4000-8000-000000000001' }, title: 'Grade in minutes, with a rubric', detail: 'You are now Morgan, the instructor. Open Imani’s brief, pick a level for each part, and let Ada draft the feedback you edit and publish.' },
   { key: 'learn', role: 'student', hash: 'badges', title: 'Credentials that travel', detail: 'Back as Jordan: finished pathways become badges and a printable record that feeds the career portfolio.' },
   { key: 'trust', title: 'Ready for your IT review', detail: 'What is built today, what we set up with your IT team, and who can see what.' },

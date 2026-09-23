@@ -60,7 +60,7 @@ try {
  await check('The guided tour walks every stop in order across roles and keeps the role selector available',async()=>{
   await visit('spaces','leadership');
   const journey=await page.evaluate(()=>window.HT.leadershipWalkthrough.map(step=>({key:step.key,role:step.role||'leadership',href:window.HTTour.href(step)})));
-  assert.ok(journey.length>=18,'tour covers the new work and all spaces');
+  assert.ok(journey.length>=17,'tour covers the new work and all spaces');
   for(const key of await page.evaluate(()=>window.HT.order.slice()))assert.ok(journey.some(step=>step.key===key),`${key} is on the tour`);
   for(const key of ['success','insights','trust'])assert.ok(journey.some(step=>step.key===key),`${key} is on the tour`);
   assert.ok(journey.some(step=>step.key==='courses'&&step.role==='staff'),'grading stop views as the instructor');

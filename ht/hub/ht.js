@@ -363,7 +363,7 @@
      the rail visible for student and staff stops. */
   function tourLabel(step) {
     return ({ success: 'Student success', insights: 'Insights', trust: 'Security', live: 'Classrooms', learn: 'Badges' })[step.key] ||
-      (step.key === 'courses' ? (step.role === 'staff' ? 'Grading' : 'Ask Ada') : step.key[0].toUpperCase() + step.key.slice(1));
+      (step.key === 'courses' ? (step.role === 'staff' ? 'Grading' : 'Course') : step.key[0].toUpperCase() + step.key.slice(1));
   }
   function tourHref(step) {
     var q = new URLSearchParams(Object.assign({ demo: step.role || 'leadership' }, step.query || {}, { tour: '1' }));

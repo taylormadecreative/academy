@@ -112,19 +112,8 @@ function sectionModules(ctx, cohort) {
   const course = find(ctx.state, 'courses', cohort.course_id);
   return course?.status === 'published' ? rows(ctx.state, 'modules').filter(item => item.course_id === course.id).slice().sort((a, b) => number(a.position) - number(b.position)) : [];
 }
-/** Ada reads only this section's modules and its published assignment instructions. */
-function tutorContext(ctx, cohort) {
-  if (!tutor || !cohort) return null;
-  const manage = canManageAcademicSection(ctx, cohort);
-  // Students hear their own dates, including a personal extension.
-  const assignments = sectionAssignments(ctx, cohort, false).map(item => { if (manage) return item; const own = extensionFor(ctx.state, item, uid(ctx)); return { ...item, due_at: own.due_at, closes_at: own.closes_at, personal_extension: !!own.extension }; });
-  const corpus = tutor.buildCorpus({ modules: sectionModules(ctx, cohort), assignments });
-  return { esc: value => esc(ctx, value), href: ctx.href, cohortId: cohort.id, userId: uid(ctx), instructorId: cohort.instructor_id, instructorName: name(ctx, cohort.instructor_id), preview: manage, corpus, suggestions: tutor.suggestedQuestions(corpus) };
-}
-function tutorPanel(ctx, cohort) {
-  const h = tutorContext(ctx, cohort);
-  return h && h.corpus.size ? tutor.renderTutorPanel(h) : '';
-}
+/* The Ask Ada chat is off: Ada's course presence will be a recorded video. Rubric drafting stays. */
+function tutorPanel() { return ''; }
 function rubricResult(ctx, assignment, grade) {
   if (!tutor || !grade || grade.disposition !== 'graded' || !grade.attempt_id) return '';
   const record = tutor.loadRubric(grade.attempt_id), published = record?.published;
@@ -165,9 +154,8 @@ function overview(ctx, cohort, manage) {
   const coming = `<section class="campus-panel campus-academic-next"><p class="campus-eyebrow">Coming up</p>${next ? `<h3>${esc(ctx, next.title)}</h3><p>Due ${esc(ctx, when(ctx, dueFor(next)))}</p>${nextStatus ? `<p class="campus-muted">${esc(ctx, nextStatus.label)}</p>` : ''}${link(ctx, href(ctx, cohort, 'assignments', { assignment: next.id }), manage ? 'View assignment' : 'Open assignment')}` : '<h3>No upcoming due date</h3><p>Assignments without a due date are still in the Assignments tab.</p>'}</section>`;
   const grades = `<section class="campus-panel"><h3>How grades work</h3>${manage ? '<p>Students see a grade only after you publish it. Work waiting for a grade doesn’t count against them, and excused work is left out.</p>' : `<p>${esc(ctx, firstName(name(ctx, cohort.instructor_id)))} grades each assignment you turn in. Work waiting for a grade doesn’t count against you, and excused work is left out.</p>`}${link(ctx, href(ctx, cohort, 'grades'), manage ? 'Open gradebook' : 'See your grades')}</section>`;
   const section = manage ? `<section class="campus-panel"><p class="campus-eyebrow">Your section</p><h3>${sectionRoster(ctx, cohort).filter(item => item.active).length} enrolled students</h3><p>${published.length} published assignments · ${assignments.length - published.length} drafts</p>${published.map(item => ({ item, waiting: waitingForGrade(ctx, cohort, item) })).filter(entry => entry.waiting.length).map(entry => `<p>${link(ctx, href(ctx, cohort, 'assignments', { assignment: entry.item.id, student: entry.waiting[0].id }), `${waitingLabel(entry.waiting.length)} · ${entry.item.title}`)}</p>`).join('')}${cohort.status === 'active' ? link(ctx, href(ctx, cohort, 'assignments', { new: '1' }), 'Create assignment', 'campus-button campus-button-secondary') : '<p class="campus-muted">Archived section · history only.</p>'}</section>` : '';
-  // Ask Ada sits at the top of the right column; the next task and grading notes fill the left.
-  const aside = manage ? `${section}${tutorPanel(ctx, cohort)}` : `${tutorPanel(ctx, cohort)}${summaryCard(ctx, academicGradeSummary(ctx.state, cohort.id, uid(ctx)), cohort)}`;
-  return `<div class="campus-academic-layout"><div class="campus-stack">${about}${coming}${grades}</div><aside class="campus-stack">${aside}</aside></div>`;
+  const aside = manage ? `${section}${coming}` : `${summaryCard(ctx, academicGradeSummary(ctx.state, cohort.id, uid(ctx)), cohort)}${coming}`;
+  return `<div class="campus-academic-layout"><div class="campus-stack">${about}${grades}</div><aside class="campus-stack">${aside}</aside></div>`;
 }
 
 function modules(ctx, cohort) {
@@ -347,14 +335,6 @@ export function bindAcademics(view, root, ctx) {
   /** A citation such as #module-2 opens that module on the Modules tab. */
   const openHashTarget = () => {
     const hash = globalThis.location?.hash || '';
-    if (hash === '#ada') {
-      // The guided tour links here: bring Ask Ada into view and put the cursor in her box.
-      const panel = globalThis.document?.getElementById('ada');
-      if (!panel || !root.contains(panel)) return false;
-      panel.scrollIntoView({ block: 'start' });
-      panel.querySelector('input[name="question"]')?.focus({ preventScroll: true });
-      return true;
-    }
     if (!/^#module-\d{1,3}$/.test(hash)) return false;
     const target = globalThis.document?.getElementById(hash.slice(1));
     if (!target || !target.isConnected || target.tagName !== 'DETAILS') return false;

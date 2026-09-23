@@ -30,8 +30,8 @@ test('never names a hosting vendor or claims a certification', () => {
   assert.match(text, /Built to support your FERPA obligations/);
   assert.match(text, /We design to WCAG 2\.2 AA\. An outside review and a VPAT are planned before launch\./);
   assert.match(text, /HT’s campus accounts, using SAML or OIDC/);
-  assert.match(text, /student questions are not used to train any AI model/);
-  assert.match(text, /Ada, the Hub’s AI guide, answers from the course’s materials/);
+  assert.match(text, /Nothing a student writes in the Hub is used to train any AI model/);
+  assert.doesNotMatch(text, /answers from the course’s materials/, 'no Ask Ada chat is described');
   assert.doesNotMatch(text, /course tutor/i);
   const chips = html.match(/<span class="trust-chip" data-status="(built|scoped)">/g) || [];
   assert.ok(chips.length >= 17, 'every item and legend entry carries a chip');
