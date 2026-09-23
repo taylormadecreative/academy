@@ -183,10 +183,12 @@ document.getElementById('stats').innerHTML = [
 ].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join('');
 
 /* registrations table */
+/* an approved row can be moved to another team (Move → move-student.js, migration 0055) */
+const approvedCell = (id) => `<span style="color:var(--emerald);font-weight:600;white-space:nowrap">✓ approved</span> <button class="pillbtn" data-move="${id}" title="Move this student to another team" style="padding:4px 10px;font-size:11px;margin-left:6px">Move</button>`;
 function regRow(r){
   const named = ((r.members || []).length || 0);
   const status = r.approved
-    ? '<span style="color:var(--emerald);font-weight:600">✓ approved</span>'
+    ? approvedCell(r.id)
     : `<button class="pillbtn" data-approve="${r.id}">Approve</button>`;
   const label = { self: 'Resume', lead: 'Lead', m2: 'M2', m3: 'M3', m4: 'M4' };
   const cvs = (r.resumes || []).map(x =>
@@ -252,8 +254,9 @@ document.querySelector('#regTbl').addEventListener('click', async (ev) => {
   const { error } = await sb.from('ea_opil_registrations').update({ approved: true }).eq('id', b.dataset.approve);
   if (error) { b.textContent = 'Approve'; alert('Could not approve: ' + error.message); return; }
   const r = (regs || []).find(x => x.id === b.dataset.approve); if (r) r.approved = true;
-  b.closest('td').innerHTML = '<span style="color:var(--emerald);font-weight:600">✓ approved</span>';
+  b.closest('td').innerHTML = approvedCell(b.dataset.approve);
 });
+try { const { wire: wireMove } = await import('/opil/hub/admin/move-student.js?v=e994d3b7e0'); wireMove(sb, document.querySelector('#regTbl'), { esc, regs, teams }); } catch (e) { console.warn('[admin] move student', e); }
 
 /* late registrants: one-time invite links. The token is the row's primary key (a 32-hex uuid);
    the link is /opil/register/?invite=<token>. The database burns it on the registrant's insert. */
