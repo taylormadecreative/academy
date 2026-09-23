@@ -67,6 +67,8 @@ Deno.serve(async (req: Request) => {
     let body: Record<string, unknown>;
     try { body = await req.json(); } catch (_) { return json({ error: "bad_request" }, 400); }
 
+    // the honeypot, checked here too: a script posting straight to this endpoint never ran the page
+    if (str(body.website, 200)) return json({ done: true });
     const tierId = str(body.tier_id, 40);
     const email = str(body.email, 200).toLowerCase();
     const name = str(body.name, 120);
@@ -114,7 +116,7 @@ Deno.serve(async (req: Request) => {
     if (early && UUID_RX.test(early)) {
       const { data: su } = await sb.from("ea_wl_signups").select("id, status")
         .eq("early_token", early).eq("workshop_slug", ev.workshop_slug).maybeSingle();
-      if (su && su.status !== "unsubscribed") signupId = su.id;
+      if (su && su.status !== "unsubscribed" && su.status !== "purchased") signupId = su.id;
     }
     if (tier.access === "waitlist" && !signupId) return json({ error: "waitlist_only" }, 403);
 

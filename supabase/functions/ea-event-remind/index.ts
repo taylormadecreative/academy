@@ -9,8 +9,9 @@
 // Deploy WITHOUT the JWT gate (pg_cron carries no user token):
 //   supabase functions deploy ea-event-remind --no-verify-jwt --project-ref pgqdmnmessbbzyszjfvr
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { SITE, button, esc, layout, sendBatch, when } from "../_shared/email.ts";
+import { NELSON, SITE, button, esc, layout, sendBatch, sendEmail, when } from "../_shared/email.ts";
 import { type EventRow, handleRemind, type Kind, type Recipient } from "./handler.ts";
+import { freshJoinUrl } from "../_shared/tickets.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -28,7 +29,9 @@ Deno.serve(async (req: Request) => {
         .select("id, workshop_slug, title, starts_at, tz, format, status, join_url, venue_label, venue_address")
         .in("status", ["on_sale", "sold_out"]).gte("starts_at", from).lte("starts_at", to);
       if (error) { console.error("[ea-event-remind] events", error.message); return []; }
-      return (data || []) as EventRow[];
+      const evs = (data || []) as EventRow[];
+      for (const ev of evs) ev.join_url = await freshJoinUrl(admin, ev.join_url);
+      return evs;
     },
     listReminded: async () => {
       const { data, error } = await admin.from("ea_event_reminders").select("event_id, kind");
@@ -62,5 +65,11 @@ Deno.serve(async (req: Request) => {
     site: SITE,
   });
   if (reply.status === 200) console.log("[ea-event-remind]", JSON.stringify(reply.body));
+  const missed = ((reply.body as { due?: string[] }).due || []).filter((l) => /missed/.test(l));
+  if (missed.length) {
+    await sendEmail({ to: NELSON, subject: "REMINDER EMAIL PARTLY FAILED",
+      html: `<p>Some reminder emails did not go out:</p><p>${missed.map(esc).join("<br>")}</p><p>Resend the room link from /founder/ → Announce.</p>` })
+      .catch((e) => console.error("[ea-event-remind] alert", (e as Error).message));
+  }
   return json(reply.body, reply.status);
 });

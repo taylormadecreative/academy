@@ -34,6 +34,15 @@ export const AI101 = {
 };
 export const isAi101 = (ev: { workshop_slug?: string | null } | null | undefined) => ev?.workshop_slug === AI101.slug;
 
+// A room link stored on an event goes stale the moment the room link is rotated, and the Academy
+// room refuses a stale key. Every email re-reads the live key instead of trusting the stored copy.
+export async function freshJoinUrl(sb: SupabaseClient, url: string | null): Promise<string | null> {
+  if (!url || !/\/room\/\?k=/.test(url)) return url;
+  const { data, error } = await sb.from("ea_rooms").select("link_key").eq("slug", "academy").maybeSingle();
+  if (error || !data?.link_key) { console.error("[tickets] room key", error?.message); return url; }
+  return url.replace(/\?k=[^&#]*/, `?k=${encodeURIComponent(data.link_key)}`);
+}
+
 type FulfilResult = {
   error?: string;
   first_time?: boolean;
@@ -71,6 +80,7 @@ export async function fulfillOrder(
   if (!res.first_time) return tickets;
 
   if (isAi101(res.event)) await joinAgentList(sb, order);
+  if (res.event) res.event.join_url = await freshJoinUrl(sb, res.event.join_url);
 
   await notifyFulfilled(order, res.event ?? null, res.tier ?? null, tickets);
   return tickets;

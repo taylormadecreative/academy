@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 
-<link rel="stylesheet" href="/css/build-mode.css?v=8b4e5ac3b0">
+<link rel="stylesheet" href="/css/build-mode.css?v=d63788ca8f">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -31,13 +31,13 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=8b4e5ac3b0" defer></script>
-<script src="/js/native.js?v=8b4e5ac3b0" defer></script>
-<script src="/js/meta-pixel.js?v=8b4e5ac3b0" defer></script>
+<script src="/js/pwa.js?v=d63788ca8f" defer></script>
+<script src="/js/native.js?v=d63788ca8f" defer></script>
+<script src="/js/meta-pixel.js?v=d63788ca8f" defer></script>
 <script>document.documentElement.classList.add('js')</script>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="/css/agent.css?v=8b4e5ac3b0">
-<link rel="stylesheet" href="/css/ai101.css?v=8b4e5ac3b0">
+<link rel="stylesheet" href="/css/agent.css?v=d63788ca8f">
+<link rel="stylesheet" href="/css/ai101.css?v=d63788ca8f">
 </head><body><header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
 <nav class="nav"><a class="navlink active" href="/ai101/">Free class</a><a class="navlink" href="/agent/">Workshop</a><a class="navlink" href="/join/">Community</a><a class="navlink" href="/store/">Store</a><a class="navlink" href="/pricing/">Pricing</a><a class="navlink" href="/about/">About</a></nav>
@@ -51,7 +51,7 @@
 <div class="a1-rp" id="rp" aria-live="polite"><p class="muted">Checking your account&hellip;</p></div>
 </div></section></main>
 <script type="module">
-import { iframeUrl } from "/js/room-page.js?v=8b4e5ac3b0";
+import { iframeUrl } from "/js/room-page.js?v=d63788ca8f";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
 const box = document.getElementById("rp");
@@ -70,6 +70,10 @@ try {
       card("The replay is for members.", "The live class was free. The replay is part of the Taylormade Academy membership: $15 a month, every replay, every ebook, every course. Cancel anytime. Use the same email you signed in with at checkout.",
         '<a class="btn gold" href="#" data-buy="all-access">Join for $15/mo to watch <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">What members get</a>');
     } else {
+      if (Date.now() < Date.parse("2026-10-04T00:45:00Z")) {
+        card("The replay is on its way.", "AI 101 is live on Saturday, October 3 at 7 PM Central. The replay shows up here after class.", '<a class="btn ghost" href="/ai101/">Save your free seat</a>');
+        throw "shown";
+      }
       const { data: st, error: sErr } = await sb.rpc("ea_room_state");
       if (sErr) throw sErr;
       const url = st && st.recording_url ? iframeUrl(st.recording_url) : null;
@@ -82,7 +86,7 @@ try {
     }
   }
 } catch (e) {
-  card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\"textlink\" href=\"mailto:hello@taylormadecreative.net\">hello@taylormadecreative.net</a>.", "");
+  if (e !== "shown") card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\"textlink\" href=\"mailto:hello@taylormadecreative.net\">hello@taylormadecreative.net</a>.", "");
 }
 </script>
 <footer class="site-footer"><div class="wrap">
@@ -146,4 +150,4 @@ try {
 </div>
 </div></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=8b4e5ac3b0"></script><script src="/js/site.js?v=8b4e5ac3b0"></script></body></html>
+<script src="/js/config.js?v=d63788ca8f"></script><script src="/js/site.js?v=d63788ca8f"></script></body></html>

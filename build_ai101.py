@@ -230,6 +230,10 @@ try {{
       card("The replay is for members.", "The live class was free. The replay is part of the Taylormade Academy membership: $15 a month, every replay, every ebook, every course. Cancel anytime. Use the same email you signed in with at checkout.",
         '<a class="btn gold" href="#" data-buy="all-access">Join for $15/mo to watch <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">What members get</a>');
     }} else {{
+      if (Date.now() < Date.parse("2026-10-04T00:45:00Z")) {{
+        card("The replay is on its way.", "AI 101 is live on Saturday, October 3 at 7 PM Central. The replay shows up here after class.", '<a class="btn ghost" href="/ai101/">Save your free seat</a>');
+        throw "shown";
+      }}
       const {{ data: st, error: sErr }} = await sb.rpc("ea_room_state");
       if (sErr) throw sErr;
       const url = st && st.recording_url ? iframeUrl(st.recording_url) : null;
@@ -242,7 +246,7 @@ try {{
     }}
   }}
 }} catch (e) {{
-  card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\\"textlink\\" href=\\"mailto:hello@taylormadecreative.net\\">hello@taylormadecreative.net</a>.", "");
+  if (e !== "shown") card("Something went wrong.", "The replay could not load. Refresh the page, or email <a class=\\"textlink\\" href=\\"mailto:hello@taylormadecreative.net\\">hello@taylormadecreative.net</a>.", "");
 }}
 </script>
 """ + footer()

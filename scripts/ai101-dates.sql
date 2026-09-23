@@ -1,6 +1,7 @@
 -- AI 101 (free, Sat Oct 3 2026, 7 PM CT) + Build Your First AI Agent moved to Sat Oct 17 2026, 7–9 PM CT.
 -- Data, not schema: run by scripts/apply-ai101.sh AFTER 0056. Safe to re-run until the first agent
 -- seat sells; after that it stops and says so (change tiers in /founder/ instead, so no buyer's tier vanishes).
+-- The AI 101 block below always runs. Emails re-read the live room key (_shared/tickets.ts freshJoinUrl).
 --
 -- Agent ladder (Nelson, 9/23: the Academy prices, not Eventbrite's):
 --   AI 101 class price  $65   list-only (the personal early link), Sat Oct 3 9 PM → Mon Oct 5 9 PM CT
@@ -15,8 +16,6 @@ do $$
 declare
   v_agent uuid;
   v_orders int;
-  v_room text;
-  v_ai uuid;
 begin
   /* ---------------- the agent date ---------------- */
   select id into v_agent from public.ea_events
@@ -24,13 +23,15 @@ begin
      and (starts_at at time zone 'America/Chicago')::date in ('2026-10-03', '2026-10-17')
    order by starts_at limit 1;
   if v_agent is null then
-    raise exception 'No Build Your First AI Agent date on Oct 3 or Oct 17 was found. Nothing changed.';
+    raise notice 'No Build Your First AI Agent date on Oct 3 or Oct 17 was found. The agent date was NOT changed.';
+    return;  -- a notice, not an error: the AI 101 block below must still run in this same transaction
   end if;
 
   select count(*) into v_orders from public.ea_orders
    where event_id = v_agent and (status = 'paid' or (status = 'pending' and created_at > now() - interval '30 minutes'));
   if v_orders > 0 then
-    raise exception 'The agent date already has % order(s). Tiers were NOT replaced; edit them in /founder/.', v_orders;
+    raise notice 'The agent date already has % order(s). Tiers were NOT replaced; edit them in /founder/.', v_orders;
+    return;
   end if;
 
   update public.ea_events
@@ -55,8 +56,15 @@ begin
     (v_agent, 'Build With Me (In Person)', 'A seat in the studio, building next to me. Bring a laptop that runs Claude or ChatGPT. The address comes in your ticket email.',
        20000, 15, now(), timestamptz '2026-10-17 12:00 America/Chicago', 'public', 4);
 
-  /* ---------------- AI 101 ---------------- */
-  select 'https://taylormadeacademy.com/room/?k=' || link_key into v_room from public.ea_rooms order by created_at limit 1;
+end $$;
+
+-- AI 101 is its own block: once an agent seat sells, the block above stops, and this one still runs
+do $$
+declare
+  v_room text;
+  v_ai uuid;
+begin
+  select 'https://taylormadeacademy.com/room/?k=' || link_key into v_room from public.ea_rooms where slug = 'academy';
   if v_room is null then
     raise exception 'The Academy room (ea_rooms) does not exist yet. Nothing changed.';
   end if;

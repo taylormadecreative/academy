@@ -55,12 +55,13 @@
     try { box.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
   }
 
+  var busy = false;   /* one sign-up in flight across BOTH forms */
   forms.forEach(function (form) {
     var box = form.closest('.ag-form');
     var err = box.querySelector('.err');
     var btn = form.querySelector('button[type=submit]');
     var label = btn.innerHTML;
-    function fail(msg) { err.innerHTML = msg; err.classList.add('show'); btn.disabled = false; btn.innerHTML = label; }
+    function fail(msg) { busy = false; err.innerHTML = msg; err.classList.add('show'); btn.disabled = false; btn.innerHTML = label; }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       err.classList.remove('show');
@@ -69,13 +70,15 @@
       var name = (f.name.value || '').trim(), email = (f.email.value || '').trim().toLowerCase();
       if (name.length < 2) return fail('Add your name so I know who the seat is for.');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('That email does not look right. Check it and try again.');
+      if (busy) return;
+      busy = true;
       btn.disabled = true; btn.textContent = 'Saving your seat...';
       ready.then(function () {
         if (over) { closed(box); return; }
         if (!seat) return fail('Sign-up is not open yet. Try again soon, or email ' + HELP + ' and I will save your seat by hand.');
         return fetch(CFG.FUNCTIONS_BASE + '/ea-ticket-checkout', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tier_id: seat.tier.id, email: email, name: name, qty: 1 })
+          body: JSON.stringify({ tier_id: seat.tier.id, email: email, name: name, qty: 1, website: f.website ? f.website.value : '' })
         })
           .then(function (r) { return r.json().catch(function () { return {}; }); })
           .then(function (d) {
