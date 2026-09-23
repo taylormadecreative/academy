@@ -461,7 +461,7 @@ body.ht .chip.lbl svg{flex:0 0 auto;width:13px;height:13px}
 body.ht .hc.dark .chip.lbl,body.ht .nowbar .chip.lbl{color:#e9d3c8}
 /* the label sits under the words it describes, so a narrow column keeps its line length */
 body.ht .person>div .chip.lbl,body.ht .mat>div .chip.lbl{margin-top:5px}
-body.ht .person>div{min-width:0;flex:1 1 auto}
+body.ht .person>div{min-width:0;flex:1 1 0}
 /* materials: a line icon in a quiet tile instead of PLAY / DOC / PDF chips */
 body.ht .mat{align-items:flex-start}
 body.ht .mat .k{width:34px;height:34px;border-radius:8px;background:var(--campus-surface,#fffefa);border:1px solid var(--campus-line,#e7e0d7);color:var(--ht-maroon)}

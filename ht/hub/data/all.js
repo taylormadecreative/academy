@@ -368,7 +368,7 @@ HT.spaces.showcase = {
       { meta: 'AI Literacy · Aaliyah R., Kinesiology', title: 'A portfolio page in an evening', text: 'Her internship page, written once and kept current from her phone.', tile: { icon: 'laptop', label: 'Web' }, badge: 'With permission · sample' } ] },
     { type: 'cards', id: 'research', title: 'Undergraduate research showcase, Spring 2027', meta: 'Posters · faculty mentors · sample', items: [
       { meta: 'Poster 01 · Biology', title: 'Water quality along the creek', text: 'Kiana M. and Devon C. · mentored by a biology faculty member', tile: { icon: 'drop', label: 'Environment' }, badge: 'Sample' },
-      { meta: 'Poster 02 · Sociology', title: 'Who stays in East Austin', text: 'Priscilla O. · mentored by a sociology faculty member', tile: { icon: 'chart', label: 'Sociology · data' } },
+      { meta: 'Poster 02 · Sociology', title: 'Who stays in East Austin', text: 'Priscilla O. · mentored by a sociology faculty member', tile: { icon: 'chart', label: 'Sociology · data' }, badge: 'Sample' },
       { meta: 'Poster 03 · Computer Science', title: 'A campus map that reads out loud', text: 'Tre J. and Simone A. · mentored by a computer science faculty member', tile: { icon: 'code', label: 'Software' }, badge: 'Sample' } ] },
     { type: 'table', id: 'judging', title: 'Judges\' scoring', meta: 'Sample · entries are anonymous to judges · out of 10 each', cols: ['Entry', 'Clarity', 'Impact', 'Craft', 'Total'], rows: [
       ['Entry 01 · AI Literacy', '9', '8', '9', '26'], ['Entry 02 · AI Literacy', '8', '9', '8', '25'], ['Entry 03 · AI Literacy', '9', '7', '8', '24'], ['Entry 04 · Entrepreneurship', '8', '9', '7', '24'], ['Entry 05 · AI Literacy', '7', '7', '9', '23'] ] },

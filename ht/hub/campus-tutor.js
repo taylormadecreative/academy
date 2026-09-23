@@ -396,7 +396,7 @@ export const RUBRIC_LEVELS = [
 export const RUBRIC_CRITERIA = [
   { id: 'purpose', name: 'Purpose & audience', levels: { exemplary: 'Clear purpose. Names exactly who it helps and why.', proficient: 'Purpose is clear. Audience is named but general.', developing: 'Purpose or audience is unclear or missing a detail.', beginning: 'Purpose and audience are not stated yet.' } },
   { id: 'prompt', name: 'Prompt clarity', levels: { exemplary: 'Prompt names task, audience, context, and a good result.', proficient: 'Prompt is clear but misses one part.', developing: 'Prompt is vague or missing key limits.', beginning: 'No usable prompt yet.' } },
-  { id: 'verify', name: 'Evidence of verification', detail: 'Your evaluation — what you checked and how.', levels: { exemplary: 'Shows what was checked and the source used.', proficient: 'Names a result to check; the source is thin.', developing: 'Mentions checking without a source or steps.', beginning: 'No sign the result was checked.' } },
+  { id: 'verify', name: 'Evidence of verification', detail: 'Your evaluation: what you checked and how.', levels: { exemplary: 'Shows what was checked and the source used.', proficient: 'Names a result to check; the source is thin.', developing: 'Mentions checking without a source or steps.', beginning: 'No sign the result was checked.' } },
   { id: 'reflect', name: 'Reflection & limits', levels: { exemplary: 'Honest reflection. A real limit and how it was handled.', proficient: 'Names a limit; says little about the fix.', developing: 'Reflection is brief or general.', beginning: 'No reflection or limitation yet.' } },
 ];
 const round = value => Math.round(value * 100) / 100;
