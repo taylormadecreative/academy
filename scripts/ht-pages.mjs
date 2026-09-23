@@ -3,7 +3,7 @@
 // Against prod: node scripts/ht-pages.mjs https://taylormadeacademy.com  (reads only; nothing signs in)
 import { chromium } from 'playwright';
 const BASE = process.argv[2] || 'http://127.0.0.1:8790';
-const SPACES = ['advancement', 'president', 'events', 'calendar', 'live', 'learn', 'community', 'showcase', 'students', 'career', 'alumni', 'admissions', 'outreach', 'board', 'replay'];
+const SPACES = ['advancement', 'president', 'events', 'calendar', 'live', 'learn', 'community', 'showcase', 'students', 'career', 'alumni', 'admissions', 'outreach', 'board', 'replay', 'success', 'trust', 'insights', 'spaces', 'courses'];
 const PAGES = ['/ht/', '/ht/fund/', '/ht/playbook/', '/ht/hub/', ...SPACES.map((k) => '/ht/hub/' + k + '/')];
 /* noise that is not a page defect: third-party scripts the sweep does not load, the backend the page cannot reach offline */
 const NOISE = /esm\.sh|supabase|cloudflarestream|Failed to load resource|net::ERR|ea_room_state|ERR_NAME_NOT_RESOLVED|the server responded with a status of (401|403|404|5\d\d)/;

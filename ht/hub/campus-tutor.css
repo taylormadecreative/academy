@@ -1,0 +1,76 @@
+/* Ada, the course tutor, and rubric grading. Uses the campus tokens set on body.ht. */
+.tutor-panel{display:grid;gap:16px;padding:22px}
+.tutor-head{display:flex;align-items:flex-start;gap:13px}
+.tutor-head>div{min-width:0}
+.tutor-head .campus-eyebrow{margin:0 0 3px!important}
+.tutor-head h3{font-family:Georgia,serif;font-size:22px;font-weight:400;line-height:1.2;letter-spacing:-.02em}
+.tutor-head .campus-muted{margin-top:3px;line-height:1.5}
+.tutor-face{flex:none;width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 30%;border:2px solid var(--campus-surface);box-shadow:0 0 0 1px var(--campus-line)}
+.tutor-log{display:grid;gap:14px;max-height:430px;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 2px 0;scrollbar-width:thin}
+.tutor-empty{font-size:13px;color:var(--campus-muted);line-height:1.6;padding:12px 14px;border:1px dashed var(--campus-line);border-radius:12px}
+.tutor-turn{display:grid;gap:8px;min-width:0}
+.tutor-q{justify-self:end;max-width:92%;padding:9px 13px;border-radius:14px 14px 4px 14px;background:#f1e3df;color:var(--campus-ink);font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.tutor-a{max-width:100%;min-width:0;padding:12px 14px;border:1px solid var(--campus-line);border-radius:14px 14px 14px 4px;background:var(--campus-paper);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.tutor-a>p+p{margin-top:8px}
+.tutor-a a:not(.tutor-cite){color:var(--campus-maroon);font-weight:600}
+.tutor-lead{color:var(--campus-muted);font-size:12px}
+.tutor-passage{margin-top:9px;padding-left:11px;border-left:2px solid #e3d8c6}
+.tutor-passage>p{color:var(--campus-ink)}
+.tutor-cite{display:inline-flex;align-items:center;max-width:100%;margin-top:6px;padding:4px 9px;border:1px solid #e3d8c6;border-radius:7px;background:var(--campus-surface);color:var(--campus-maroon)!important;font-size:11px;font-weight:600;line-height:1.4;text-decoration:none!important;overflow-wrap:anywhere}
+.tutor-cite:hover{background:#f3eee5;border-color:#d9cec1}
+.tutor-suggest{display:flex;flex-wrap:wrap;gap:7px}
+.tutor-chip{min-height:34px;max-width:100%;padding:7px 12px;border:1px solid #d9cec1;border-radius:9px;background:var(--campus-surface);color:var(--campus-ink);font-size:12px;line-height:1.35;text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease}
+.tutor-chip:hover{background:#f3eee5;border-color:#cdbfae}
+.tutor-form{display:flex;gap:8px;align-items:stretch}
+.tutor-form input{flex:1;min-width:0}
+.tutor-form .campus-button{flex:none}
+.tutor-foot{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--campus-line)}
+.tutor-foot .campus-muted{font-size:11px;line-height:1.55}
+.tutor-clear{justify-self:start;min-height:32px;padding:4px 0;border:0;background:transparent;color:var(--campus-maroon);font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.tutor-chip:focus-visible,.tutor-clear:focus-visible,.tutor-cite:focus-visible{outline:2px solid var(--campus-maroon);outline-offset:2px}
+
+/* Rubric grading */
+.campus-app fieldset.rubric{margin:4px 0 20px;padding:18px;border:1px solid var(--campus-line);border-radius:14px;background:var(--campus-paper)}
+.rubric-legend{padding:0 6px;font-size:12px;font-weight:600;color:var(--campus-maroon)}
+.rubric>.campus-muted{margin-bottom:14px}
+.campus-app fieldset.rubric-criterion{margin:0 0 16px;padding:0;border:0;border-radius:0}
+.rubric-criterion>legend{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;padding:0;margin-bottom:8px;font-size:13px;font-weight:600}
+.rubric-max{font-size:11px;font-weight:500;color:var(--campus-muted);white-space:nowrap}
+.rubric-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rubric-level{position:relative;display:grid;align-content:start;gap:5px;min-width:0;padding:11px 12px;border:1px solid var(--campus-line);border-radius:12px;background:var(--campus-surface);cursor:pointer;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.rubric-level:hover{border-color:#d9cec1}
+.rubric-level input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.rubric-level-top{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.rubric-level-name{font-size:12px;font-weight:600}
+.rubric-level-points{font-family:Georgia,serif;font-size:19px;line-height:1;color:var(--campus-maroon);font-variant-numeric:tabular-nums}
+.rubric-level-text{font-size:11px;line-height:1.45;color:var(--campus-muted)}
+.rubric-level:has(input:checked){border-color:var(--campus-maroon);background:#fbf3f1;box-shadow:inset 0 0 0 1px var(--campus-maroon)}
+.rubric-level:has(input:checked) .rubric-level-text{color:var(--campus-ink)}
+.rubric-level:has(input:focus-visible){outline:2px solid var(--campus-maroon);outline-offset:2px}
+.rubric-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:12px;border-top:1px solid var(--campus-line);font-size:12px;font-weight:600}
+.rubric-total output{font-family:Georgia,serif;font-size:24px;font-weight:400;color:var(--campus-maroon);font-variant-numeric:tabular-nums}
+.rubric-draft{display:grid;gap:6px;justify-items:start;margin:-6px 0 18px}
+.rubric-draft .campus-button{gap:8px}
+.rubric-draft-face{width:20px;height:20px;border-radius:50%;object-fit:cover;object-position:50% 30%}
+.rubric-draft-status{font-size:12px;color:var(--campus-green)}
+.rubric-draft-status:empty{display:none}
+.rubric-result{margin-top:14px;padding-top:12px;border-top:1px solid var(--campus-line)}
+.rubric-result ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.rubric-result li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:12px;line-height:1.5}
+.rubric-result-name{font-weight:600}
+.rubric-result-level{color:var(--campus-muted);text-align:right;font-variant-numeric:tabular-nums}
+
+@media(max-width:1100px){.rubric-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+ .tutor-panel{padding:18px}
+ .tutor-log{max-height:none}
+ .campus-app fieldset.rubric{padding:14px}
+ .rubric-levels{grid-template-columns:minmax(0,1fr)}
+ .rubric-level{grid-template-columns:minmax(0,1fr) auto}
+ .rubric-level-top{display:contents}
+ .rubric-level-name{grid-column:1}
+ .rubric-level-points{grid-column:2;grid-row:1}
+ .rubric-level-text{grid-column:1 / -1}
+}
+@media(max-width:380px){.tutor-form{flex-wrap:wrap}.tutor-form .campus-button{flex:1}}
+@media(prefers-reduced-motion:reduce){.tutor-chip,.rubric-level{transition:none}}

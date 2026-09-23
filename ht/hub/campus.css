@@ -1,5 +1,4 @@
 /* HT campus workspace. Academic identity, quiet surfaces, task-first navigation. */
-@import url('campus-success.css?v=1');@import url('campus-trust.css?v=1');@import url('campus-tutor.css?v=1');
 body.ht{--campus-ink:#291c14;--campus-muted:#74675e;--campus-line:#e7e0d7;--campus-paper:#f8f6f1;--campus-surface:#fffefa;--campus-maroon:#660100;--campus-gold:#ffcc00;--campus-green:#245446;--campus-radius:18px}
 body.ht.campus-app{background:var(--campus-paper);color:var(--campus-ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.55}
 .campus-app *{box-sizing:border-box}.campus-app [hidden]{display:none!important}.campus-app button,.campus-app input,.campus-app textarea,.campus-app select{font:inherit}
@@ -386,13 +385,13 @@ body.ht.ht-space-page{background:var(--campus-paper);color:var(--campus-ink);fon
 .campus-office-photo img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .campus-office-card:hover .campus-office-photo img{transform:scale(1.03)}
 .campus-office-card.is-featured{grid-column:span 2}
-.campus-office-card.is-featured .campus-office-photo{aspect-ratio:16/6.2}
+.campus-office-card.is-featured .campus-office-photo{aspect-ratio:16/5.4}
 .campus-office-card-copy{min-height:0}
 .campus-directory-hero{margin-bottom:22px}
 @media(max-width:1000px){.campus-office-card.is-featured{grid-column:1/-1}}
 @media(max-width:760px){.campus-office-card.is-featured{grid-column:auto}.campus-office-photo{aspect-ratio:16/7}}
 /* Student Today: the aside carries a photo */
-.campus-hero-aside-photo{display:block;width:calc(100% + 44px);max-width:none;margin:-22px -22px 16px;height:128px!important;min-height:0!important;object-fit:cover;border-radius:12px 12px 0 0!important}
+.campus-hero .campus-hero-aside-photo{display:block;width:calc(100% + 44px);max-width:none;margin:-22px -22px 16px;height:140px!important;min-height:0!important;max-height:none;object-fit:cover;object-position:center 30%;border-radius:12px 12px 0 0!important}
 /* Leadership */
 .lead-hero{grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);align-items:stretch;background:linear-gradient(135deg,#5a0100 0%,#660100 55%,#7d1a0b 100%);border-color:#4d0100;color:#fffefa}
 .lead-hero .campus-eyebrow{color:var(--campus-gold)}
@@ -484,9 +483,38 @@ body.ht.ht-space-page{background:var(--campus-paper);color:var(--campus-ink);fon
 .lead-flag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#fbeee1;color:#8a3f0e;font-size:11px;font-weight:600}
 .lead-course-links{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px}
 .lead-export{display:flex;justify-content:flex-end;margin:16px 0 26px}
-.lead-live-totals{padding-top:22px;border-top:1px solid var(--campus-line)}
-.lead-live-totals>.campus-muted{margin:6px 0 14px}
+.lead-live-totals{margin-top:6px;padding:18px 20px;border:1px solid var(--campus-line);border-radius:14px;background:var(--campus-surface)}
+.lead-live-totals>summary{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.lead-live-totals>summary>span{display:flex;flex-direction:column;gap:3px}
+.lead-live-totals>summary strong{font-size:15px}
+.lead-live-totals[open]>summary{margin-bottom:14px}
+.lead-live-totals[open] .campus-page-guide-chevron{transform:rotate(180deg)}
+.lead-chart-grid .lead-span-2 .lead-mini-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:1000px){.lead-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.lead-doors{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.lead-hero{grid-template-columns:1fr}.lead-hero h2{font-size:30px}.lead-chart-grid{grid-template-columns:1fr}.lead-doors{grid-template-columns:1fr}.lead-mini-stats{grid-template-columns:1fr}.lead-kpi strong{font-size:32px}.lead-bars li{grid-template-columns:minmax(96px,40%) minmax(0,1fr) 48px}.lead-course-links{flex-direction:column;align-items:flex-start}}
 @media(max-width:420px){.lead-kpis{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.campus-office-photo img{transition:none}}
+
+/* Phone: help and the guide live in More; the picker and charts stay legible */
+.campus-more-phone{display:none!important}
+.campus-event-date{word-spacing:60px;line-height:1.25}
+@media(max-width:760px){
+ .campus-more-phone{display:flex!important}
+ .campus-demo{flex-wrap:wrap}
+ .campus-demo select{margin-left:auto;min-width:150px}
+ .lead-axis{font-size:17px}
+ .lead-direct{font-size:19px}
+ .lead-chart .lead-line{stroke-width:3.5}
+}
+/* Space pages speak the app's type and wear its footer */
+body.ht-space-page{--display:Georgia,"Times New Roman",serif}
+.ht-space-page .ht-space-page-head h1{color:var(--campus-ink)}
+.ht-space-page .site-footer{background:var(--campus-paper);border-top:1px solid var(--campus-line);color:var(--campus-muted);padding:0}
+.ht-space-page .site-footer .foot-top,.ht-space-page .site-footer .foot-bottom .mono{display:none}
+.ht-space-page .site-footer .wrap{max-width:1328px;padding:0 36px}
+.ht-space-page .site-footer .foot-bottom{padding:17px 0;border:0;font-size:10px;align-items:center;line-height:1.6;color:var(--campus-muted)}
+.ht-space-page .site-footer .foot-bottom a{color:var(--campus-muted)!important;font-size:10px}
+@media(max-width:760px){.ht-space-page .site-footer .wrap{padding-inline:18px}}
+/* Figures: Georgia only has old-style numerals (its 0 reads as an "o"), so every big number uses Inter's lining, tabular figures */
+body.ht .lead-kpi strong,body.ht .lead-mini-stats strong,body.ht .lead-giving h2,body.ht .success-signals strong,body.ht .success-big strong,body.ht .rubric-level-points,body.ht .rubric-total output{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-weight:300!important;letter-spacing:-.045em!important;font-variant-numeric:lining-nums tabular-nums}
+body.ht .lead-giving h2{font-weight:400!important;letter-spacing:-.035em!important}

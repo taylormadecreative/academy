@@ -23,8 +23,11 @@ try{
   assert.equal(await page.locator('.campus-mobile-nav').getByRole('link',{name:'Community',exact:true}).isVisible(),true);
   assert.equal(await unread(),'Messages, 1 unread');
   assert.equal(await page.locator('.campus-communication-preview').count(),1);
+  await page.locator('.campus-nav-more summary').click();
   assert.equal(await page.locator('.campus-nav-end').getByRole('link',{name:'Events',exact:true}).isVisible(),true);
-  assert.equal(await page.locator('.campus-nav-end').getByRole('link',{name:'Get help',exact:true}).isVisible(),true);
+  assert.equal(await page.locator('.campus-nav-end').getByRole('link',{name:'Get help',exact:true}).isVisible(),true,'On a phone, Get help lives in More.');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.campus-nav-more').evaluate(node=>node.open),false,'Escape closes More.');
  });
  await check('A phone inbox does not mark its hidden conversation read',async()=>{
   await visit('messages');
@@ -117,7 +120,7 @@ try{
   assert.equal(await page.getByText(firstMessage,{exact:true}).count(),0);
   assert.equal(await page.getByText(answer,{exact:true}).count(),0);
   await visit('career');
-  await page.locator('.nav-cta').getByRole('link',{name:'Messages',exact:true}).click();
+  await page.locator('.campus-mobile-nav').getByRole('link',{name:'Messages',exact:true}).click();
   await settled();
   assert.equal(new URL(page.url()).pathname,'/ht/hub/messages/');
   assert.equal(new URL(page.url()).searchParams.get('demo'),'student','Office preview returns to the same demo workspace');

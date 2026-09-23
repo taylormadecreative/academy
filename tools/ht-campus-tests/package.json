@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "test": "node database.test.mjs && node store.test.mjs && node classrooms.test.mjs && node classrooms-store.test.mjs && node messages.test.mjs && node messages-store.test.mjs && node academics.test.mjs && node academics-store.test.mjs",
-    "test:views": "node --test ../../tests/ht/campus-student.test.mjs ../../tests/ht/calendar-route.test.mjs ../../tests/ht/campus-classrooms.test.mjs ../../tests/ht/classroom-context.test.mjs ../../tests/ht/campus-academics.test.mjs ../../tests/ht/onboarding-progress.test.mjs ../../tests/ht/campus-onboarding.test.mjs",
+    "test:views": "node --test ../../tests/ht/campus-student.test.mjs ../../tests/ht/calendar-route.test.mjs ../../tests/ht/campus-classrooms.test.mjs ../../tests/ht/classroom-context.test.mjs ../../tests/ht/campus-academics.test.mjs ../../tests/ht/onboarding-progress.test.mjs ../../tests/ht/campus-onboarding.test.mjs ../../tests/ht/campus-tutor.test.mjs ../../tests/ht/campus-trust.test.mjs",
     "test:browser": "node ../../tests/ht/campus-app.test.mjs && node ../../tests/ht/campus-staff.test.mjs && node ../../tests/ht/classrooms-app.test.mjs && node ../../tests/ht/classroom-adapters.test.mjs && node ../../tests/ht/communication-app.test.mjs && node ../../tests/ht/academics-app.test.mjs && node ../../tests/ht/onboarding-app.test.mjs"
   }
 }

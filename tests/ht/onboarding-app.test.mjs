@@ -18,13 +18,15 @@ const records=()=>page.evaluate(()=>Object.fromEntries(Object.keys(localStorage)
 const progress=async role=>Object.entries(await records()).find(([key])=>key.includes(`:demo:${role}:`))?.[1];
 const actions=()=>page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('ht-campus-demo-v2'));return Object.fromEntries(['cohort_members','assignment_attempts','assignment_grades','posts','replies','requests','responses','rsvps','attendance','progress','enrollments','events','assignments','settings'].map(key=>[key,data[key]]));});
 try{
- await check('First visit offers a nonblocking guide and dismissing preserves an unfinished support request',async()=>{
-  await visit('support');await page.locator('.campus-onboarding-prompt').waitFor();assert.equal(await guide().count(),1);assert.equal(await page.getByRole('dialog').count(),0);
+ await check('First visit is quiet: no pop-up, a collapsed page tip, and the Guide one click away',async()=>{
+  await visit('support');assert.equal(await guide().count(),1);assert.equal(await page.getByRole('dialog').count(),0);
+  assert.equal(await page.locator('.campus-onboarding-prompt').count(),0,'No first-visit pop-up interrupts the page.');
+  const tip=page.locator('.campus-page-guide');assert.equal(await tip.count(),1);assert.equal(await tip.evaluate(node=>node.open),false,'The page tip arrives collapsed.');
   await page.getByLabel('Subject',{exact:true}).fill('An unfinished support request');
   await page.getByLabel('What do you need help with?').fill('I am drafting my question before sending it.');
-  await page.getByRole('button',{name:'Not now',exact:true}).click();await page.locator('.campus-onboarding-prompt').waitFor({state:'detached'});
-  assert.equal(await page.getByLabel('Subject',{exact:true}).inputValue(),'An unfinished support request');
-  assert.equal((await progress('student')).status,'dismissed');await page.reload();await ready();assert.equal(await page.locator('.campus-onboarding-prompt').count(),0);
+  await tip.locator('summary').click();await tip.locator('[data-page-guide-done]').click();
+  assert.equal(await page.getByLabel('Subject',{exact:true}).inputValue(),'An unfinished support request','Dismissing the tip keeps the draft.');
+  await page.reload();await ready();assert.equal(await page.locator('.campus-page-guide').count(),0,'Once seen, the tip is gone.');
  });
  await check('Permanent Guide opens the student guide, with relevant destinations and searchable offices',async()=>{
   await guide().click();await ready();assert.equal(new URL(page.url()).pathname,'/ht/hub/welcome/');

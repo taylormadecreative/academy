@@ -204,11 +204,94 @@ function moduleCard(module, index, progress, enrolled, ctx) {
   return `<details class="campus-module${complete ? ' campus-module-complete' : !unlocked ? ' campus-module-locked' : ''}" id="module-${esc(module.id)}"${firstIncomplete && unlocked ? ' open' : ''}><summary><span class="campus-module-number">${complete ? '✓' : String(index + 1).padStart(2, '0')}</span><span><strong>${esc(module.title)}</strong><span class="campus-muted">${label}</span></span><span aria-hidden="true">+</span></summary><div class="campus-module-content">${textBlock(module.body, ctx)}${resource ? `<p><a href="${esc(resource)}" target="_blank" rel="noopener noreferrer">Open learning resource <span aria-hidden="true">↗</span><span class="campus-sr-only"> (opens in a new tab)</span></a></p>` : ''}${!unlocked && !complete ? `<p class="campus-member-notice">${enrolled ? 'Finish the earlier modules to unlock this activity.' : 'Enroll in the pathway to save your progress and complete activities.'}</p>` : ''}${checkForm}${assignment}${simpleComplete}</div></details>`;
 }
 
+/* ---------- Badges: credentials that travel (learn view only) ---------- */
+const BADGE_ISSUER = 'Huston-Tillotson University · HT Hub';
+const BADGE_GLYPHS = {
+  book: 'M12 5c-3-2-7-2-10-1v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-3-1-7-1-10 1Z M12 5v15',
+  briefcase: 'M3 7h18v14H3z M8 7V3h8v4 M3 12h18 M12 10v4',
+  coin: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M15 9c-1-1.5-6-1.5-6 1s6 1.5 6 4-5 2.5-6 1 M12 6v2 M12 16v2',
+  star: 'm12 3 3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1Z'
+};
+/* Sample pathways, clearly labeled as samples. They are never shown as earned. */
+const SAMPLE_BADGES = [
+  { name: 'Career Ready', glyph: 'briefcase', need: 'Finish a résumé review, a mock interview, and one employer event.' },
+  { name: 'Financial Wellness', glyph: 'coin', need: 'Complete the budgeting workshop and one meeting with a financial aid counselor.' }
+];
+const ROSETTE = (() => {
+  const pts = [];
+  for (let i = 0; i < 48; i++) { const a = (Math.PI * 2 * i) / 48 - Math.PI / 2, r = i % 2 ? 44 : 48; pts.push(`${(50 + r * Math.cos(a)).toFixed(2)},${(50 + r * Math.sin(a)).toFixed(2)}`); }
+  return pts.join(' ');
+})();
+
+function badgeSeal(state, glyph, share = 0) {
+  const path = BADGE_GLYPHS[glyph] || BADGE_GLYPHS.star;
+  const ring = 2 * Math.PI * 38, done = Math.max(0, Math.min(1, share));
+  const tails = state === 'earned' ? '<path class="badge-tail" d="M34 80 26 104l12-6 7 10 6-24Z"/><path class="badge-tail" d="M66 80l8 24-12-6-7 10-6-24Z"/>' : '';
+  const progress = state === 'progress' ? `<circle class="badge-seal-track" cx="50" cy="50" r="38"/>${done > 0 ? `<circle class="badge-seal-arc" cx="50" cy="50" r="38" stroke-dasharray="${(ring * done).toFixed(1)} ${ring.toFixed(1)}" transform="rotate(-90 50 50)"/>` : ''}` : `<circle class="badge-seal-ring" cx="50" cy="50" r="38"/>`;
+  return `<svg class="badge-seal" data-state="${state}" viewBox="0 0 100 110" aria-hidden="true" focusable="false">${tails}<polygon class="badge-seal-edge" points="${ROSETTE}"/><circle class="badge-seal-face" cx="50" cy="50" r="33"/>${progress}<g class="badge-seal-glyph" transform="translate(35 35) scale(1.25)"><path d="${path}"/></g></svg>`;
+}
+
+function badgeName(course) {
+  return String(course.badge_name || course.category || course.title || 'Pathway');
+}
+
+function learnerBadges(state) {
+  const enrollments = own(state, 'enrollments');
+  const submissions = own(state, 'submissions');
+  return publishedCourses(state).map((course) => {
+    const enrollment = enrollments.find((item) => item.course_id === course.id);
+    const progress = progressFor(state, course.id);
+    const inReview = progress.modules.some((module) => !progress.completeIds.has(module.id) && submissions.some((item) => item.module_id === module.id && item.status === 'submitted'));
+    const earned = !!enrollment?.completed_at && Number.isFinite(time(enrollment.completed_at));
+    return { course, enrollment, progress, inReview, earned, state: earned ? 'earned' : enrollment ? 'progress' : 'available' };
+  });
+}
+
+function badgeCard(badge, ctx) {
+  const { esc, href } = ctx;
+  const { course, progress, earned, inReview } = badge;
+  const name = badgeName(course);
+  let status, meta;
+  if (earned) {
+    status = 'Earned';
+    meta = `<p class="badge-meta">Earned <time datetime="${esc(badge.enrollment.completed_at)}">${esc(dateText(badge.enrollment.completed_at, ctx))}</time></p>`;
+  } else if (badge.state === 'progress') {
+    status = 'In progress';
+    meta = `<p class="badge-meta">${progress.complete} of ${progress.total} ${progress.total === 1 ? 'module' : 'modules'}${inReview ? ' · project in review' : ''}</p><progress class="badge-progress" value="${progress.complete}" max="${progress.total || 1}" aria-label="${esc(name)} badge: ${progress.complete} of ${progress.total} modules">${progress.percent}%</progress>`;
+  } else {
+    status = 'Available';
+    meta = `<p class="badge-meta">Finish all ${progress.total} ${progress.total === 1 ? 'module' : 'modules'} of this pathway.</p><a class="badge-link" href="${esc(href('learn'))}#course-${esc(course.id)}">See the pathway <span aria-hidden="true">→</span></a>`;
+  }
+  return `<li class="badge-card" data-state="${badge.state}">${badgeSeal(badge.state, 'book', progress.total ? progress.complete / progress.total : 0)}<div class="badge-card-copy"><p class="badge-status" data-state="${badge.state}">${status}</p><h3>${esc(name)}</h3><p class="badge-issuer">${esc(BADGE_ISSUER)}</p>${meta}</div></li>`;
+}
+
+function sampleBadgeCard(sample, ctx) {
+  const { esc } = ctx;
+  return `<li class="badge-card" data-state="available" data-sample="true">${badgeSeal('available', sample.glyph)}<div class="badge-card-copy"><p class="badge-status" data-state="available">Available · Sample</p><h3>${esc(sample.name)}</h3><p class="badge-issuer">${esc(BADGE_ISSUER)}</p><p class="badge-meta">${esc(sample.need)}</p></div></li>`;
+}
+
+function badgeShelf(ctx) {
+  const { state, icon } = ctx;
+  const badges = learnerBadges(state);
+  const earned = badges.filter((badge) => badge.earned).length;
+  return `<section class="campus-panel badge-shelf" aria-labelledby="badge-shelf-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Credentials that travel</p><h2 id="badge-shelf-title">Your badges</h2></div><span class="campus-label">${earned} earned</span></div><p class="campus-muted badge-lead">Finish every module in a pathway to earn its badge. Each badge names the skill, who issued it, and when you earned it.</p><ul class="badge-grid">${badges.map((badge) => badgeCard(badge, ctx)).join('')}${SAMPLE_BADGES.map((sample) => sampleBadgeCard(sample, ctx)).join('')}</ul><p class="lead-sample-note">${icon('star')}<span><strong>Sample badges.</strong> Career Ready and Financial Wellness show what HT could offer next. They are not live pathways yet.</span></p></section>`;
+}
+
+function coCurricularRecord(ctx) {
+  const { state, esc, href } = ctx;
+  const earned = learnerBadges(state).filter((badge) => badge.earned);
+  const name = state.member?.display_name || 'Campus learner';
+  const next = learnerBadges(state).find((badge) => badge.state === 'progress') || learnerBadges(state).find((badge) => badge.state === 'available');
+  const demo = state.mode === 'demo' ? '<p class="badge-record-demo">Illustrative demo record. Not an official university credential.</p>' : '';
+  const list = earned.length ? `<ol class="badge-record-list">${earned.map(({ course, enrollment }) => `<li><div><strong>${esc(badgeName(course))} badge</strong><span>Pathway completed: ${esc(course.title)}</span>${enrollment.credential_id ? `<span>Credential ID <code>${esc(enrollment.credential_id)}</code></span>` : ''}</div><time datetime="${esc(enrollment.completed_at)}">${esc(dateText(enrollment.completed_at, ctx))}</time></li>`).join('')}</ol>` : `<div class="badge-record-empty"><h3>Your record starts with your first badge.</h3><p>${next ? `Finish the modules in ${esc(badgeName(next.course))} to earn it. It will show up here, ready to print or add to your career portfolio.` : 'When a pathway opens, finish its modules to earn a badge. It will show up here.'}</p>${next ? `<a class="campus-button campus-button-small" href="${esc(href('learn'))}#course-${esc(next.course.id)}">${next.state === 'progress' ? `Continue ${esc(badgeName(next.course))}` : 'Start a pathway'}</a>` : ''}</div>`;
+  return `<section class="campus-panel badge-record" aria-labelledby="badge-record-title"><div class="campus-section-head"><div><p class="campus-eyebrow">Co-curricular record</p><h2 id="badge-record-title">${esc(name)}’s learning record</h2></div></div><p class="badge-record-issuer">Issued by ${esc(BADGE_ISSUER)}</p>${demo}${list}<div class="campus-card-actions badge-record-actions"><a class="campus-button campus-button-secondary campus-button-small" href="${esc(href('/ht/hub/career/'))}">Add to my career portfolio</a><button type="button" class="campus-button campus-button-small" data-campus-action="printRecord"${earned.length ? '' : ' disabled'}>Print record</button></div></section>`;
+}
+
 function learnView(ctx) {
   const { state, esc, href } = ctx;
   const courses = publishedCourses(state);
   const enrollments = own(state, 'enrollments');
-  return `${guestNotice(state)}<div class="campus-page-intro"><p>Build skills one clear step at a time. Complete activities, get instructor feedback, and keep a record of what you’ve learned.</p><a href="${esc(href('live'))}">Find your classroom & recordings <span aria-hidden="true">→</span></a></div>${courses.length ? `<div class="campus-stack">${courses.map((course) => {
+  return `${guestNotice(state)}<div class="campus-page-intro"><p>Build skills one clear step at a time. Complete activities, get instructor feedback, and keep a record of what you’ve learned.</p><a href="${esc(href('live'))}">Find your classroom & recordings <span aria-hidden="true">→</span></a></div><div class="badge-layout">${badgeShelf(ctx)}${coCurricularRecord(ctx)}</div>${courses.length ? `<div class="campus-stack">${courses.map((course) => {
     const enrollment = enrollments.find((item) => item.course_id === course.id);
     const progress = progressFor(state, course.id);
     const image = safeCampusUrl(course.image_url);
@@ -377,6 +460,16 @@ export function bindStudent(view, root, ctx) {
         const content = `${demoLabel}HT CAMPUS HUB · LEARNING COMPLETION RECORD\n\nLearner: ${ctx.state.member.display_name}\nPathway: ${course.title}\nCompleted: ${new Date(enrollment.completed_at).toISOString()}\nCredential ID: ${enrollment.credential_id}\n\nIssued by the HT Campus Hub. Campus staff can confirm the saved completion using this credential ID.\n`;
         download(content, 'text/plain;charset=utf-8', 'ht-learning-completion.txt');
         ctx.notify('Your completion record has been downloaded.');
+        return;
+      }
+      if (action === 'printRecord') {
+        const body = globalThis.document?.body;
+        if (!body || typeof globalThis.print !== 'function') return;
+        body.classList.add('badge-print-mode');
+        const done = () => { body.classList.remove('badge-print-mode'); globalThis.removeEventListener('afterprint', done); };
+        globalThis.addEventListener('afterprint', done);
+        globalThis.print();
+        setTimeout(done, 1000);
         return;
       }
       if (!canAct(ctx.state)) { ctx.notify('Sign in with a campus membership to continue.', 'error'); return; }

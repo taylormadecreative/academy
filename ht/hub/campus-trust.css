@@ -1,0 +1,173 @@
+/* Security & integrations (.trust-) and learning badges (.badge-). Uses campus.css tokens on body.ht. */
+
+/* ---------- Security & integrations ---------- */
+.trust-page{display:grid;gap:22px;min-width:0}
+.trust-page>.lead-sample-note{margin:0}
+.trust-hero{grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);align-items:stretch;background:linear-gradient(135deg,#5a0100 0%,#660100 55%,#7d1a0b 100%);border-color:#4d0100;color:#fffefa}
+.trust-hero-copy{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.trust-hero .campus-eyebrow{color:var(--campus-gold)}
+.trust-hero h2{color:#fffefa;font-size:40px;max-width:14ch;text-wrap:balance}
+.trust-hero p{color:#f3e6d8;font-size:14px;max-width:54ch}
+.trust-hero .campus-button{background:#fffefa;border-color:#fffefa;color:var(--campus-maroon)!important}
+.trust-hero .campus-button:hover{background:#f3eee5}
+.trust-hero .campus-button-secondary{background:transparent;color:#fffefa!important;border-color:rgba(255,254,250,.45)}
+.trust-hero .campus-button-secondary:hover{background:rgba(255,254,250,.1)}
+.trust-hero .campus-card-actions{margin-top:22px;padding-top:0}
+.trust-hero .trust-hero-photo{width:100%;height:100%;min-height:220px;max-height:320px;object-fit:cover;border-radius:12px}
+.trust-hero-facts{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px 20px}
+.trust-hero-facts li{display:flex;align-items:center;gap:7px;font-size:12px;color:#f3e6d8}
+.trust-hero-facts strong{color:#fffefa;font-weight:600}
+.trust-hero-facts svg{width:16px;height:16px;color:var(--campus-gold)}
+
+.trust-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px 4px 7px;border-radius:6px;font-size:11px;font-weight:600;line-height:1.35;white-space:nowrap;border:1px solid transparent}
+.trust-chip svg{width:14px;height:14px}
+.trust-chip[data-status="built"]{background:#e7f0e9;color:var(--campus-green);border-color:#cfe0d4}
+.trust-chip[data-status="scoped"]{background:#fbf3dc;color:#6c5100;border-color:#ecdcae}
+
+.trust-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.trust-legend>div{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px 16px;border:1px solid var(--campus-line);border-radius:12px;background:#fbf9f4}
+.trust-legend dd{margin:0;font-size:12px;color:var(--campus-muted);line-height:1.5}
+.trust-legend dd strong{color:var(--campus-ink);font-weight:600}
+
+.trust-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 28px}
+.trust-group{min-width:0}
+.trust-group h3{display:flex;align-items:center;gap:9px;padding-bottom:10px;border-bottom:1px solid var(--campus-line);font-size:14px}
+.trust-group h3 svg{width:18px;height:18px;color:var(--campus-maroon)}
+.trust-group ul{list-style:none;padding:0;margin:0}
+.trust-item{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid #f0ebe3}
+.trust-item:last-child{border-bottom:0}
+.trust-item strong{display:block;font-size:13px;font-weight:600;color:var(--campus-ink)}
+.trust-item p{font-size:12px;color:var(--campus-muted);margin-top:3px;line-height:1.55}
+.trust-item .trust-chip{flex-shrink:0;margin-top:1px}
+
+.trust-lead{margin:-8px 0 16px;font-size:12px;max-width:72ch}
+.trust-matrix-wrap{min-width:0}
+.trust-matrix{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.trust-matrix th,.trust-matrix td{text-align:left;vertical-align:top;padding:12px 10px;border-bottom:1px solid var(--campus-line)}
+.trust-matrix thead th{font-size:10px;color:var(--campus-muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;border-bottom-color:#d9cec1}
+.trust-matrix thead th:first-child{width:19%}
+.trust-matrix tbody th{font-weight:400}
+.trust-matrix tbody th strong{display:block;font-size:13px;font-weight:600;color:var(--campus-ink)}
+.trust-matrix tbody th span{display:block;font-size:11px;color:var(--campus-muted);margin-top:2px}
+.trust-matrix tbody tr:last-child :is(th,td){border-bottom:0}
+.trust-mark{display:inline-flex;align-items:flex-start;gap:6px;line-height:1.4}
+.trust-mark svg{width:15px;height:15px;margin-top:1px;flex-shrink:0}
+.trust-mark[data-kind="yes"]{color:var(--campus-green);font-weight:600}
+.trust-mark[data-kind="some"]{color:var(--campus-ink)}
+.trust-mark[data-kind="some"] svg{color:var(--campus-green)}
+.trust-mark[data-kind="no"]{color:var(--campus-muted)}
+.trust-mark[data-kind="no"] svg{color:#a4432f}
+.trust-footnote{margin-top:14px!important;font-size:12px;color:var(--campus-muted)}
+
+.trust-two{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:22px;align-items:start}
+.trust-faq .campus-section-head .campus-button{margin:0}
+.trust-faq-list{border-top:1px solid var(--campus-line)}
+.trust-q{border-bottom:1px solid var(--campus-line)}
+.trust-q summary{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:15px 2px;list-style:none;font-size:14px;font-weight:600;color:var(--campus-ink)}
+.trust-q summary::-webkit-details-marker{display:none}
+.trust-q summary:hover{color:var(--campus-maroon)}
+.trust-q-sign{position:relative;width:14px;height:14px;flex-shrink:0}
+.trust-q-sign::before,.trust-q-sign::after{content:"";position:absolute;left:0;right:0;top:6px;height:2px;border-radius:2px;background:var(--campus-maroon);transition:transform .18s ease}
+.trust-q-sign::after{transform:rotate(90deg)}
+.trust-q[open] .trust-q-sign::after{transform:rotate(0)}
+.trust-q p{padding:0 2px 16px;font-size:13px;color:#4d4037;max-width:68ch}
+.trust-close{background:#fcf7e8;border-color:#e6d6a8;display:flex;flex-direction:column;gap:6px}
+.trust-close h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:26px;letter-spacing:-.03em}
+.trust-close p:not(.campus-eyebrow){font-size:13px;color:#5d4f45;margin-top:8px}
+.trust-close .campus-card-actions{margin-top:14px;padding-top:0;flex-direction:column;align-items:stretch}
+
+@media(max-width:1000px){
+  .trust-two{grid-template-columns:1fr}
+  .trust-groups{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .trust-hero{grid-template-columns:1fr}
+  .trust-hero h2{font-size:31px}
+  .trust-hero .trust-hero-photo{min-height:170px;max-height:200px}
+  .trust-legend{grid-template-columns:1fr}
+  .trust-item{flex-direction:column;gap:8px}
+  .trust-matrix,.trust-matrix tbody,.trust-matrix tr,.trust-matrix th,.trust-matrix td{display:block;width:100%}
+  .trust-matrix thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .trust-matrix tbody tr{padding:14px 0;border-bottom:1px solid var(--campus-line)}
+  .trust-matrix tbody tr:last-child{border-bottom:0}
+  .trust-matrix tbody th,.trust-matrix td{border:0;padding:3px 0}
+  .trust-matrix tbody th{padding-bottom:8px}
+  .trust-matrix td{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:10px}
+  .trust-matrix td::before{content:attr(data-label);color:var(--campus-muted);font-size:11px;line-height:1.4}
+  .trust-faq .campus-section-head{flex-wrap:wrap}
+}
+@media print{
+  .trust-hero{background:none;color:inherit;border-color:#bbb}
+  .trust-hero :is(h2,p,.campus-eyebrow,li,strong){color:#222!important}
+  .trust-hero-photo{display:none}
+  .trust-q p{display:block}
+}
+
+/* ---------- Learning badges ---------- */
+.badge-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:22px;align-items:start;margin:22px 0}
+body.ht .badge-lead{margin:-2px 0 18px;font-size:12px;max-width:66ch}
+.badge-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.badge-card{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:start;padding:16px;border:1px solid var(--campus-line);border-radius:14px;background:#fffefa;min-width:0}
+.badge-card[data-state="earned"]{background:#fcf7e8;border-color:#e6d6a8}
+.badge-card[data-state="available"]{background:#fbf9f4;border-style:dashed;border-color:#d9cec1}
+.badge-card-copy{min-width:0}
+.badge-card h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:19px;letter-spacing:-.02em;line-height:1.2;margin-top:3px!important}
+.badge-status{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--campus-muted)}
+.badge-status[data-state="earned"]{color:var(--campus-maroon)}
+.badge-status[data-state="progress"]{color:var(--campus-green)}
+.badge-issuer{font-size:11px!important;color:var(--campus-muted);margin-top:4px!important;line-height:1.4!important}
+.badge-meta{font-size:12px!important;color:#4d4037;margin-top:8px!important;line-height:1.5!important}
+.badge-link{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;text-decoration:none}
+.badge-progress{display:block;width:100%;height:6px;margin-top:8px;border:0;border-radius:6px;overflow:hidden;background:#ede6db;appearance:none;-webkit-appearance:none}
+.badge-progress::-webkit-progress-bar{background:#ede6db;border-radius:6px}
+.badge-progress::-webkit-progress-value{background:var(--campus-maroon);border-radius:6px}
+.badge-progress::-moz-progress-bar{background:var(--campus-maroon);border-radius:6px}
+.badge-shelf .lead-sample-note{margin-top:16px}
+
+.campus-app svg.badge-seal{width:64px;height:70px;overflow:visible}
+.badge-seal .badge-seal-glyph path{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.badge-seal[data-state="earned"] .badge-seal-edge{fill:var(--campus-maroon)}
+.badge-seal[data-state="earned"] .badge-seal-face{fill:#7d1a0b}
+.badge-seal[data-state="earned"] .badge-seal-ring{fill:none;stroke:var(--campus-gold);stroke-width:2.5}
+.badge-seal[data-state="earned"] .badge-seal-glyph path{stroke:var(--campus-gold)}
+.badge-seal .badge-tail{fill:#8a1d0c}
+.badge-seal[data-state="progress"] .badge-seal-edge{fill:#f2ece3;stroke:#d9cec1;stroke-width:1}
+.badge-seal[data-state="progress"] .badge-seal-face{fill:#fffefa}
+.badge-seal-track{fill:none;stroke:#e3d9cb;stroke-width:4}
+.badge-seal-arc{fill:none;stroke:var(--campus-maroon);stroke-width:4;stroke-linecap:round}
+.badge-seal[data-state="progress"] .badge-seal-glyph path{stroke:var(--campus-maroon)}
+.badge-seal[data-state="available"] .badge-seal-edge{fill:#fbf8f1;stroke:#c9bba8;stroke-width:1;stroke-dasharray:3 3}
+.badge-seal[data-state="available"] .badge-seal-face{fill:none}
+.badge-seal[data-state="available"] .badge-seal-ring{fill:none;stroke:#d9cec1;stroke-width:1.5}
+.badge-seal[data-state="available"] .badge-seal-glyph path{stroke:#8a7a6c}
+
+.badge-record{display:flex;flex-direction:column}
+.badge-record h2{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:24px;letter-spacing:-.03em}
+.badge-record-issuer{font-size:12px;color:var(--campus-muted);margin:-12px 0 12px!important}
+.badge-record-demo{font-size:11px!important;color:#6c5100;background:#fbf3dc;border:1px solid #ecdcae;border-radius:8px;padding:7px 10px;margin-bottom:12px!important}
+.badge-record-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--campus-line)}
+.badge-record-list li{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--campus-line)}
+.badge-record-list li>div{min-width:0}
+.badge-record-list strong{display:block;font-size:13px;font-weight:600}
+.badge-record-list span{display:block;font-size:12px;color:var(--campus-muted);margin-top:2px;overflow-wrap:anywhere}
+.badge-record-list code{font-size:11px}
+.badge-record-list time{font-size:12px;color:var(--campus-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.badge-record-empty{padding:18px;border:1px dashed #d9cec1;border-radius:12px;background:#fbf9f4}
+.badge-record-empty h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:18px}
+.badge-record-empty p{font-size:12px;color:var(--campus-muted);margin-top:6px!important}
+.badge-record-empty .campus-button{margin-top:12px}
+.badge-record-actions{margin-top:16px;padding-top:0}
+.badge-record-actions .campus-button{margin-top:0}
+
+@media(max-width:1000px){.badge-layout{grid-template-columns:1fr}}
+@media(max-width:420px){.badge-grid{grid-template-columns:1fr}.badge-record-list li{flex-direction:column;gap:4px}}
+
+/* Print only the co-curricular record when the learner presses "Print record". */
+@media print{
+  body.badge-print-mode *{visibility:hidden!important}
+  body.badge-print-mode .badge-record,body.badge-print-mode .badge-record *{visibility:visible!important}
+  body.badge-print-mode .badge-record{position:fixed;left:0;top:0;width:100%;border:0;padding:24px;background:#fff}
+  body.badge-print-mode :is(.badge-record-actions,.badge-record .campus-button){display:none!important}
+  body.badge-print-mode .badge-record h2{font-size:28px}
+}
+.campus-app :is(.badge-grid,.badge-record-list,.trust-group ul,.trust-hero-facts){padding-left:0}

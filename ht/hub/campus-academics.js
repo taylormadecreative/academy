@@ -13,6 +13,9 @@ const name = (ctx, id) => rows(ctx.state, 'members').find(item => item.user_id =
 const sortRevision = (a, b) => number(b.revision) - number(a.revision) || (stamp(b.created_at) || 0) - (stamp(a.created_at) || 0);
 const sortAttempt = (a, b) => number(b.attempt_no) - number(a.attempt_no) || (stamp(b.submitted_at) || 0) - (stamp(a.submitted_at) || 0);
 const tabs = ['overview', 'modules', 'assignments', 'grades', 'people'];
+/* Ada (course tutor + rubric drafting) is optional: coursework keeps working if it cannot load. */
+let tutor = null;
+try { tutor = await import(new URL('./campus-tutor.js', import.meta.url).href.split('?')[0] + new URL(import.meta.url).search); } catch { tutor = null; }
 
 export function parseAcademicLocation(value = globalThis.location?.href || 'https://ht.invalid/ht/hub/courses/') {
   const empty = { cohort: '', tab: 'overview', assignment: '', student: '', isNew: false };
@@ -83,6 +86,28 @@ function secureLink(value) {
   try { const url = new URL(String(value || '')); return url.protocol === 'https:' && !url.username && !url.password && !/[\u0000-\u001f\u007f]/.test(value) ? url.href : ''; } catch { return ''; }
 }
 
+function sectionModules(ctx, cohort) {
+  const course = find(ctx.state, 'courses', cohort.course_id);
+  return course?.status === 'published' ? rows(ctx.state, 'modules').filter(item => item.course_id === course.id).slice().sort((a, b) => number(a.position) - number(b.position)) : [];
+}
+/** Ada reads only this section's modules and its published assignment instructions. */
+function tutorContext(ctx, cohort) {
+  if (!tutor || !cohort) return null;
+  const manage = canManageAcademicSection(ctx, cohort);
+  const corpus = tutor.buildCorpus({ modules: sectionModules(ctx, cohort), assignments: sectionAssignments(ctx, cohort, false) });
+  return { esc: value => esc(ctx, value), href: ctx.href, cohortId: cohort.id, userId: uid(ctx), instructorId: cohort.instructor_id, instructorName: name(ctx, cohort.instructor_id), preview: manage, corpus, suggestions: tutor.suggestedQuestions(corpus) };
+}
+function tutorPanel(ctx, cohort) {
+  const h = tutorContext(ctx, cohort);
+  return h && h.corpus.size ? tutor.renderTutorPanel(h) : '';
+}
+function rubricResult(ctx, assignment, grade) {
+  if (!tutor || !grade || grade.disposition !== 'graded' || !grade.attempt_id) return '';
+  const record = tutor.loadRubric(grade.attempt_id), published = record?.published;
+  if (!published || number(published.revision) !== number(grade.revision) || number(published.score) !== number(grade.score)) return '';
+  return tutor.renderRubricResult({ esc: value => esc(ctx, value) }, tutor.rubricFor(assignment), published);
+}
+
 function summaryCard(ctx, summary) {
   const label = summary.final ? 'Final points total' : 'Current grade';
   return `<section class="campus-panel campus-academic-grade-summary"><p class="campus-eyebrow">${label}</p><h3>${summary.currentPercent === null ? 'No numeric grade yet' : `${summary.currentPercent.toFixed(1)}%`}</h3>${summary.possible > 0 ? `<p><strong>${points(summary.earned)} / ${points(summary.possible)} points</strong> from ${summary.graded} published ${summary.graded === 1 ? 'grade' : 'grades'}.</p>` : '<p>Published scores will appear here when work has been graded.</p>'}<p class="campus-muted">${summary.pending} pending · ${summary.excused} excused · ${summary.total} published ${summary.total === 1 ? 'assignment' : 'assignments'}.</p>${summary.pending ? '<p class="campus-muted">Pending work is excluded from this total. It is not counted as zero.</p>' : ''}<p class="campus-muted">Coursework grades are separate from learning-pathway completion records.</p></section>`;
@@ -101,14 +126,14 @@ function overview(ctx, cohort, manage) {
   const assignments = sectionAssignments(ctx, cohort), published = assignments.filter(item => item.status === 'published');
   const dueFor = assignment => manage ? assignment.due_at : extensionFor(ctx.state, assignment, uid(ctx)).due_at;
   const next = published.filter(item => Number.isFinite(stamp(dueFor(item))) && stamp(dueFor(item)) >= Date.now()).sort((a, b) => stamp(dueFor(a)) - stamp(dueFor(b)))[0];
-  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><h3>About this course</h3>${paragraphs(ctx, cohort.description || 'Find your assignments, learning materials, and instructor feedback in this workspace.')}<p>Your section connects coursework with its own instructor, roster, and classroom schedule.</p><div class="campus-card-actions">${link(ctx, href(ctx, cohort, 'assignments'), 'Open assignments', 'campus-button')}<a class="campus-button campus-button-secondary" href="${esc(ctx, ctx.href('live', { cohort: cohort.id }))}">Open classroom</a></div></section><section class="campus-panel"><h3>How learning and grades work</h3><p>Learning pathways contain readings, practice, and completion activities. Course assignments collect your submitted work and published numeric grades.</p><p>A submitted assignment awaits review. An instructor must explicitly publish a zero; ungraded work is never silently counted as zero. Excused assignments do not count toward the points total.</p>${link(ctx, href(ctx, cohort, 'grades'), manage ? 'Open gradebook' : 'View your grades')}</section></div><aside class="campus-stack">${manage ? `<section class="campus-panel"><p class="campus-eyebrow">Your section</p><h3>${sectionRoster(ctx, cohort).filter(item => item.active).length} enrolled members</h3><p>${published.length} published assignments · ${assignments.length - published.length} drafts</p>${cohort.status === 'active' ? link(ctx, href(ctx, cohort, 'assignments', { new: '1' }), 'Create assignment', 'campus-button campus-button-secondary') : '<p class="campus-muted">Archived section · history only.</p>'}</section>` : summaryCard(ctx, academicGradeSummary(ctx.state, cohort.id, uid(ctx)))}<section class="campus-panel"><p class="campus-eyebrow">Coming up</p>${next ? `<h3>${esc(ctx, next.title)}</h3><p>Due ${date(ctx, dueFor(next))}</p>${link(ctx, href(ctx, cohort, 'assignments', { assignment: next.id }), 'View assignment')}` : '<h3>No upcoming due date</h3><p>Assignments without a due date are still available in the Assignments tab.</p>'}</section></aside></div>`;
+  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><h3>About this course</h3>${paragraphs(ctx, cohort.description || 'Find your assignments, learning materials, and instructor feedback in this workspace.')}<p>Your section connects coursework with its own instructor, roster, and classroom schedule.</p><div class="campus-card-actions">${link(ctx, href(ctx, cohort, 'assignments'), 'Open assignments', 'campus-button')}<a class="campus-button campus-button-secondary" href="${esc(ctx, ctx.href('live', { cohort: cohort.id }))}">Open classroom</a></div></section><section class="campus-panel"><h3>How learning and grades work</h3><p>Learning pathways contain readings, practice, and completion activities. Course assignments collect your submitted work and published numeric grades.</p><p>A submitted assignment awaits review. An instructor must explicitly publish a zero; ungraded work is never silently counted as zero. Excused assignments do not count toward the points total.</p>${link(ctx, href(ctx, cohort, 'grades'), manage ? 'Open gradebook' : 'View your grades')}</section></div><aside class="campus-stack">${manage ? `<section class="campus-panel"><p class="campus-eyebrow">Your section</p><h3>${sectionRoster(ctx, cohort).filter(item => item.active).length} enrolled members</h3><p>${published.length} published assignments · ${assignments.length - published.length} drafts</p>${cohort.status === 'active' ? link(ctx, href(ctx, cohort, 'assignments', { new: '1' }), 'Create assignment', 'campus-button campus-button-secondary') : '<p class="campus-muted">Archived section · history only.</p>'}</section>` : summaryCard(ctx, academicGradeSummary(ctx.state, cohort.id, uid(ctx)))}${tutorPanel(ctx, cohort)}<section class="campus-panel"><p class="campus-eyebrow">Coming up</p>${next ? `<h3>${esc(ctx, next.title)}</h3><p>Due ${date(ctx, dueFor(next))}</p>${link(ctx, href(ctx, cohort, 'assignments', { assignment: next.id }), 'View assignment')}` : '<h3>No upcoming due date</h3><p>Assignments without a due date are still available in the Assignments tab.</p>'}</section></aside></div>`;
 }
 
 function modules(ctx, cohort) {
   const course = find(ctx.state, 'courses', cohort.course_id);
   if (!course || course.status !== 'published') return empty(ctx, 'Course materials are being prepared', 'Your instructor can connect a published learning pathway to this section. Assignments remain available in their own tab.');
-  const modules = rows(ctx.state, 'modules').filter(item => item.course_id === course.id).slice().sort((a, b) => number(a.position) - number(b.position));
-  return `<section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Connected learning pathway</p><h3>${esc(ctx, course.title)}</h3></div><a class="campus-button campus-button-secondary" href="${esc(ctx, ctx.href('learn'))}#course-${esc(ctx, course.id)}">Open pathway activities</a></div><p>${esc(ctx, course.description)}</p><p class="campus-muted">Pathway enrollment, progress, and completion are separate from your section’s numeric coursework grades.</p>${modules.length ? `<div class="campus-list">${modules.map((item, index) => `<details class="campus-academic-module"><summary><span class="campus-eyebrow">Module ${index + 1}</span> <strong>${esc(ctx, item.title)}</strong></summary>${paragraphs(ctx, item.body)}<a href="${esc(ctx, ctx.href('learn'))}#module-${esc(ctx, item.id)}">Open this learning activity</a></details>`).join('')}</div>` : empty(ctx, 'No modules published yet', 'Your instructor is preparing this pathway.')}</section>`;
+  const modules = sectionModules(ctx, cohort), ada = tutorPanel(ctx, cohort);
+  return `${ada ? '<div class="campus-academic-layout">' : ''}<section class="campus-panel"><div class="campus-section-head"><div><p class="campus-eyebrow">Connected learning pathway</p><h3>${esc(ctx, course.title)}</h3></div><a class="campus-button campus-button-secondary" href="${esc(ctx, ctx.href('learn'))}#course-${esc(ctx, course.id)}">Open pathway activities</a></div><p>${esc(ctx, course.description)}</p><p class="campus-muted">Pathway enrollment, progress, and completion are separate from your section’s numeric coursework grades.</p>${modules.length ? `<div class="campus-list">${modules.map((item, index) => `<details class="campus-academic-module" id="module-${index + 1}"><summary><span class="campus-eyebrow">Module ${index + 1}</span> <strong>${esc(ctx, item.title)}</strong></summary>${paragraphs(ctx, item.body)}<a href="${esc(ctx, ctx.href('learn'))}#module-${esc(ctx, item.id)}">Open this learning activity</a></details>`).join('')}</div>` : empty(ctx, 'No modules published yet', 'Your instructor is preparing this pathway.')}</section>${ada ? `<aside class="campus-stack">${ada}</aside></div>` : ''}`;
 }
 
 function assignmentCard(ctx, cohort, assignment, manage) {
@@ -132,7 +157,7 @@ function studentAssignment(ctx, cohort, assignment) {
   const reason = assignment.status !== 'published' ? 'This assignment is not published.' : cohort.status !== 'active' ? 'This section is archived.' : cohort.instructor_id === id ? 'Instructors cannot submit their own coursework.' : Number.isFinite(stamp(assignment.opens_at)) && now < stamp(assignment.opens_at) ? 'Submissions have not opened yet.' : Number.isFinite(stamp(effective.closes_at)) && now > stamp(effective.closes_at) ? 'Submissions are closed. Ask your instructor about an extension.' : attempts.length >= number(assignment.max_attempts) ? 'You have used all available attempts.' : '';
   const late = Number.isFinite(stamp(effective.due_at)) && now > stamp(effective.due_at);
   const item = academicGradeSummary(ctx.state, cohort.id, id).items.find(item => item.assignment.id === assignment.id);
-  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><p class="campus-eyebrow">Assignment instructions</p><h3>${esc(ctx, assignment.title)}</h3>${paragraphs(ctx, assignment.instructions || 'Follow your instructor’s directions and submit your work below.')}<div class="campus-academic-facts"><p><strong>${number(assignment.points_possible)} points</strong></p><p>Opens ${date(ctx, assignment.opens_at, 'Any time')}</p><p>Due ${date(ctx, effective.due_at, 'No due date')}${effective.extension ? ' · personal extension' : ''}</p><p>Closes ${date(ctx, effective.closes_at, 'No closing date')}</p></div></section><section class="campus-panel campus-academic-submit"><h3>${attempts.length ? 'Submit another attempt' : 'Submit your work'}</h3><p class="campus-muted">${attempts.length} of ${number(assignment.max_attempts)} attempts used. Earlier submissions stay in your history.</p>${reason ? `<p class="campus-member-notice">${esc(ctx, reason)}</p>` : `<form data-academic-form="submission" data-cohort-id="${esc(ctx, cohort.id)}" data-assignment-id="${esc(ctx, assignment.id)}" data-student-id="${esc(ctx, id)}">${textarea(ctx, 'Your response', 'body', '', 'maxlength="12000"')}${field(ctx, 'Project link (HTTPS, optional)', 'link_url', '', 'url', 'maxlength="2000" placeholder="https://"')}<p class="campus-muted">Include a written response or a secure project link.${late ? ' This attempt will be submitted after your due date.' : ''}</p><button class="campus-button" type="submit">${attempts.length ? 'Submit new attempt' : 'Submit assignment'}</button>${formStatus()}</form>`}</section>${attemptHistory(ctx, attempts, grades, attempts[0]?.id)}</div><aside class="campus-stack"><section class="campus-panel"><p class="campus-eyebrow">Your result</p><h3>${esc(ctx, item?.stateLabel || 'Awaiting review')}</h3>${item?.currentGrade ? paragraphs(ctx, item.currentGrade.feedback || 'No written feedback.') : '<p>Your instructor’s published grade for your latest attempt will appear here.</p>'}${item?.latestAttempt ? `<p class="campus-muted">Latest submission ${date(ctx, item.latestAttempt.submitted_at)}${Number.isFinite(stamp(effective.due_at)) && stamp(item.latestAttempt.submitted_at) > stamp(effective.due_at) ? ' · after due date' : ''}</p>` : ''}</section><section class="campus-panel"><h3>Need help?</h3><p>Contact your instructor about the assignment or a personal deadline.</p><a href="${esc(ctx, ctx.href('messages', { person: cohort.instructor_id }))}">Message your instructor</a></section></aside></div>`;
+  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><p class="campus-eyebrow">Assignment instructions</p><h3>${esc(ctx, assignment.title)}</h3>${paragraphs(ctx, assignment.instructions || 'Follow your instructor’s directions and submit your work below.')}<div class="campus-academic-facts"><p><strong>${number(assignment.points_possible)} points</strong></p><p>Opens ${date(ctx, assignment.opens_at, 'Any time')}</p><p>Due ${date(ctx, effective.due_at, 'No due date')}${effective.extension ? ' · personal extension' : ''}</p><p>Closes ${date(ctx, effective.closes_at, 'No closing date')}</p></div></section><section class="campus-panel campus-academic-submit"><h3>${attempts.length ? 'Submit another attempt' : 'Submit your work'}</h3><p class="campus-muted">${attempts.length} of ${number(assignment.max_attempts)} attempts used. Earlier submissions stay in your history.</p>${reason ? `<p class="campus-member-notice">${esc(ctx, reason)}</p>` : `<form data-academic-form="submission" data-cohort-id="${esc(ctx, cohort.id)}" data-assignment-id="${esc(ctx, assignment.id)}" data-student-id="${esc(ctx, id)}">${textarea(ctx, 'Your response', 'body', '', 'maxlength="12000"')}${field(ctx, 'Project link (HTTPS, optional)', 'link_url', '', 'url', 'maxlength="2000" placeholder="https://"')}<p class="campus-muted">Include a written response or a secure project link.${late ? ' This attempt will be submitted after your due date.' : ''}</p><button class="campus-button" type="submit">${attempts.length ? 'Submit new attempt' : 'Submit assignment'}</button>${formStatus()}</form>`}</section>${attemptHistory(ctx, attempts, grades, attempts[0]?.id)}</div><aside class="campus-stack"><section class="campus-panel"><p class="campus-eyebrow">Your result</p><h3>${esc(ctx, item?.stateLabel || 'Awaiting review')}</h3>${item?.currentGrade ? paragraphs(ctx, item.currentGrade.feedback || 'No written feedback.') + rubricResult(ctx, assignment, item.currentGrade) : '<p>Your instructor’s published grade for your latest attempt will appear here.</p>'}${item?.latestAttempt ? `<p class="campus-muted">Latest submission ${date(ctx, item.latestAttempt.submitted_at)}${Number.isFinite(stamp(effective.due_at)) && stamp(item.latestAttempt.submitted_at) > stamp(effective.due_at) ? ' · after due date' : ''}</p>` : ''}</section><section class="campus-panel"><h3>Need help?</h3><p>Contact your instructor about the assignment or a personal deadline.</p><a href="${esc(ctx, ctx.href('messages', { person: cohort.instructor_id }))}">Message your instructor</a></section></aside></div>`;
 }
 
 function reviewStudents(ctx, cohort, assignment) {
@@ -145,10 +170,12 @@ function gradingForm(ctx, cohort, assignment, studentId) {
   const attempts = attemptsFor(ctx.state, assignment.id, studentId), grades = gradesFor(ctx.state, assignment.id, studentId), latest = attempts[0], latestGrade = grades[0];
   const applicable = latestGrade && (latestGrade.attempt_id || null) === (latest?.id || null) ? latestGrade : null;
   const allowed = cohort.status === 'active' && assignment.status === 'published' && activeLearner(ctx, cohort, studentId) && studentId !== uid(ctx);
+  const rubric = tutor && latest ? tutor.rubricFor(assignment) : null;
+  const rubricHtml = rubric ? tutor.renderRubric({ esc: value => esc(ctx, value), attemptId: latest.id, levels: tutor.loadRubric(latest.id)?.levels || {} }, rubric) : '';
   if (!allowed) return '<p class="campus-member-notice">This record is available as history. Grading requires a published assignment, an active enrolled student, and an active section. You cannot grade your own work.</p>';
   // Read-only text inputs are hidden visually but stay part of ordinary draft data. Their
   // captured revision/attempt survives a refresh, so stale work cannot overwrite a new grade.
-  return `<form data-academic-form="grade" data-cohort-id="${esc(ctx, cohort.id)}" data-assignment-id="${esc(ctx, assignment.id)}" data-student-id="${esc(ctx, studentId)}"><input type="text" name="expected_revision" value="${number(latestGrade?.revision)}" hidden readonly><input type="text" name="attempt_id" value="${esc(ctx, latest?.id || '')}" hidden readonly>${select(ctx, 'Result', 'disposition', [['graded', 'Score this assignment'], ['excused', 'Excused — exclude from total']], applicable?.disposition || 'graded')}${field(ctx, `Score (out of ${number(assignment.points_possible)})`, 'score', applicable?.disposition === 'graded' ? applicable.score : '', 'number', `min="0" max="${number(assignment.points_possible)}" step="0.01" required`)}${!latest ? '<p class="campus-muted">No attempt has been submitted. You may excuse this assignment or publish an explicit zero with explanatory feedback.</p>' : `<p class="campus-muted">Grading latest attempt ${number(latest.attempt_no)} from ${date(ctx, latest.submitted_at)}.</p>`}${textarea(ctx, 'Instructor feedback', 'feedback', applicable?.feedback || '', 'maxlength="12000"')}${select(ctx, 'Grade visibility', 'status', [['draft', 'Draft — instructors only'], ['published', 'Publish to student']], 'draft')}<p class="campus-muted">Draft feedback stays private. Publishing a grade notifies the student. A newer submission requires a new review.</p><div class="campus-card-actions"><button class="campus-button" type="submit">Save grade</button><button class="campus-button campus-button-secondary" type="button" data-academic-discard-review>Discard draft &amp; load latest review</button></div><p class="campus-muted">Loading the latest review discards your unsaved score and feedback, then opens the current submission and grade.</p>${formStatus()}</form>`;
+  return `<form data-academic-form="grade" data-cohort-id="${esc(ctx, cohort.id)}" data-assignment-id="${esc(ctx, assignment.id)}" data-student-id="${esc(ctx, studentId)}"${rubric ? ` data-student-name="${esc(ctx, name(ctx, studentId))}"` : ''}><input type="text" name="expected_revision" value="${number(latestGrade?.revision)}" hidden readonly><input type="text" name="attempt_id" value="${esc(ctx, latest?.id || '')}" hidden readonly>${select(ctx, 'Result', 'disposition', [['graded', 'Score this assignment'], ['excused', 'Excused — exclude from total']], applicable?.disposition || 'graded')}${rubricHtml}${field(ctx, `Score (out of ${number(assignment.points_possible)})`, 'score', applicable?.disposition === 'graded' ? applicable.score : '', 'number', `min="0" max="${number(assignment.points_possible)}" step="0.01" required`)}${!latest ? '<p class="campus-muted">No attempt has been submitted. You may excuse this assignment or publish an explicit zero with explanatory feedback.</p>' : `<p class="campus-muted">Grading latest attempt ${number(latest.attempt_no)} from ${date(ctx, latest.submitted_at)}.</p>`}${textarea(ctx, 'Instructor feedback', 'feedback', applicable?.feedback || '', 'maxlength="12000"')}${rubric ? tutor.renderDraftButton() : ''}${select(ctx, 'Grade visibility', 'status', [['draft', 'Draft — instructors only'], ['published', 'Publish to student']], 'draft')}<p class="campus-muted">Draft feedback stays private. Publishing a grade notifies the student. A newer submission requires a new review.</p><div class="campus-card-actions"><button class="campus-button" type="submit">Save grade</button><button class="campus-button campus-button-secondary" type="button" data-academic-discard-review>Discard draft &amp; load latest review</button></div><p class="campus-muted">Loading the latest review discards your unsaved score and feedback, then opens the current submission and grade.</p>${formStatus()}</form>`;
 }
 
 function extensionForm(ctx, cohort, assignment, studentId) {
@@ -182,7 +209,7 @@ function assignments(ctx, cohort, manage, route) {
 
 function studentGrades(ctx, cohort) {
   const summary = academicGradeSummary(ctx.state, cohort.id, uid(ctx));
-  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><h3>Your published grades</h3>${summary.items.length ? `<div class="campus-list">${summary.items.map(item => `<article class="campus-academic-grade-row"><div class="campus-section-head"><h4>${link(ctx, href(ctx, cohort, 'assignments', { assignment: item.assignment.id }), item.assignment.title)}</h4><strong>${esc(ctx, item.stateLabel)}</strong></div>${item.currentGrade ? paragraphs(ctx, item.currentGrade.feedback || 'No written feedback.') : '<p class="campus-muted">This item is pending and excluded from the current points total.</p>'}</article>`).join('')}</div>` : empty(ctx, 'No grades yet', 'Your published assignments and instructor feedback will appear here.')}</section></div><aside>${summaryCard(ctx, summary)}</aside></div>`;
+  return `<div class="campus-academic-layout"><div class="campus-stack"><section class="campus-panel"><h3>Your published grades</h3>${summary.items.length ? `<div class="campus-list">${summary.items.map(item => `<article class="campus-academic-grade-row"><div class="campus-section-head"><h4>${link(ctx, href(ctx, cohort, 'assignments', { assignment: item.assignment.id }), item.assignment.title)}</h4><strong>${esc(ctx, item.stateLabel)}</strong></div>${item.currentGrade ? paragraphs(ctx, item.currentGrade.feedback || 'No written feedback.') + rubricResult(ctx, item.assignment, item.currentGrade) : '<p class="campus-muted">This item is pending and excluded from the current points total.</p>'}</article>`).join('')}</div>` : empty(ctx, 'No grades yet', 'Your published assignments and instructor feedback will appear here.')}</section></div><aside>${summaryCard(ctx, summary)}</aside></div>`;
 }
 
 function gradebook(ctx, cohort) {
@@ -239,13 +266,54 @@ export function bindAcademics(view, root, ctx) {
       } finally { if (discard.isConnected) { discard.disabled = false; discard.removeAttribute('aria-busy'); } }
       return;
     }
+    const draftButton = event.target.closest?.('[data-rubric-draft]');
+    if (draftButton && root.contains(draftButton)) { event.preventDefault(); draftWithAda(draftButton.closest('form[data-academic-form="grade"]')); return; }
     const anchor = event.target.closest?.('[data-academic-nav]');
     if (!anchor || !root.contains(anchor) || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
     event.preventDefault();
     const url = new URL(anchor.href, globalThis.location.href);
     globalThis.history.pushState({}, '', url.pathname + url.search + url.hash);
     await ctx.refresh();
-    root.querySelector('[data-academic-focus]')?.focus({ preventScroll: true });
+    if (!openHashTarget()) root.querySelector('[data-academic-focus]')?.focus({ preventScroll: true });
+  };
+  /** A citation such as #module-2 opens that module on the Modules tab. */
+  const openHashTarget = () => {
+    const hash = globalThis.location?.hash || '';
+    if (!/^#module-\d{1,3}$/.test(hash)) return false;
+    const target = globalThis.document?.getElementById(hash.slice(1));
+    if (!target || !target.isConnected || target.tagName !== 'DETAILS') return false;
+    target.open = true;
+    target.scrollIntoView({ block: 'start' });
+    target.querySelector('summary')?.focus({ preventScroll: true });
+    return true;
+  };
+  const rubricFor = form => {
+    const assignment = find(ctx.state, 'assignments', form?.dataset.assignmentId);
+    return tutor && assignment ? tutor.rubricFor(assignment) : null;
+  };
+  const touch = input => input?.dispatchEvent(new Event('input', { bubbles: true }));
+  const syncRubric = (form, fillScore) => {
+    const fieldset = form?.querySelector('[data-rubric]'), rubric = rubricFor(form);
+    if (!fieldset || !rubric) return;
+    const levels = tutor.readLevels(form), total = tutor.rubricTotal(rubric, levels), fmt = value => points(value);
+    const output = fieldset.querySelector('[data-rubric-total]');
+    if (output) output.textContent = total.picked ? `${fmt(total.total)} / ${fmt(rubric.possible)}` : `— / ${fmt(rubric.possible)}`;
+    if (fillScore && total.picked && form.elements.score && !form.elements.score.disabled) { form.elements.score.value = String(total.total); touch(form.elements.score); }
+    const attemptId = fieldset.dataset.attemptId, saved = tutor.loadRubric(attemptId);
+    tutor.saveRubric(attemptId, { levels, published: saved?.published || null });
+  };
+  const draftWithAda = form => {
+    if (!form || !root.contains(form)) return;
+    const rubric = rubricFor(form), status = form.querySelector('[data-rubric-status]'), feedback = form.elements.feedback;
+    const levels = tutor?.readLevels(form) || {};
+    const text = tutor && rubric ? tutor.draftFeedback(rubric, levels, form.dataset.studentName) : '';
+    if (!text) { if (status) status.textContent = 'Pick a rubric level first, then Ada can draft feedback.'; return; }
+    const current = feedback.value.trim(), previous = form.dataset.adaDraft || '';
+    feedback.value = !current || current === previous ? text : `${feedback.value.trimEnd()}\n\n${text}`;
+    form.dataset.adaDraft = text;
+    touch(feedback);
+    feedback.focus({ preventScroll: true });
+    if (status) status.textContent = 'Ada wrote a draft in the feedback box. Read it and make it yours before you save.';
   };
   const submit = async event => {
     const form = event.target.closest?.('form[data-academic-form]');
@@ -287,15 +355,21 @@ export function bindAcademics(view, root, ctx) {
         message = clear ? 'Extension cleared. Original deadlines apply.' : 'Personal deadline extension saved.';
       } else return;
       button.disabled = true; button.setAttribute('aria-busy', 'true'); if (status) status.textContent = 'Saving…';
+      const rubricAttempt = tutor && kind === 'grade' ? form.querySelector?.('[data-rubric]')?.dataset?.attemptId || '' : '', rubricLevels = rubricAttempt ? tutor.readLevels(form) : null;
       const succeeded = await ctx.run(command, payload, message, form);
+      if (succeeded && rubricAttempt && tutor && payload.status === 'published') {
+        const used = payload.disposition === 'graded' && Object.keys(rubricLevels).length > 0;
+        tutor.saveRubric(rubricAttempt, { levels: rubricLevels, published: used ? { levels: rubricLevels, score: payload.score, revision: payload.expected_revision + 1 } : null });
+      }
       if (form.isConnected && status) status.textContent = succeeded ? message : 'Your changes were not saved. Your draft is still here.';
       if (succeeded && form.isConnected && kind === 'submission') form.reset();
     } catch (error) { if (status) status.textContent = error.message || 'This change could not be saved.'; ctx.notify(error.message || 'This change could not be saved.', 'error'); }
     finally { if (button.isConnected) { button.disabled = false; button.removeAttribute('aria-busy'); } }
   };
-  const change = event => { const form = event.target.closest?.('form[data-academic-form="grade"]'); if (form) syncGrade(form); };
+  const change = event => { const form = event.target.closest?.('form[data-academic-form="grade"]'); if (!form) return; syncGrade(form); if (event.target.matches?.('input[data-rubric-criterion]')) syncRubric(form, true); };
+  const tutorCleanup = tutor ? tutor.bindTutor(root, cohortId => tutorContext(ctx, find(ctx.state, 'cohorts', cohortId)), form => { if (form) ctx.discardDraft?.(form); }) : () => {};
   const pop = () => { void ctx.refresh(); };
   root.addEventListener('click', click); root.addEventListener('submit', submit); root.addEventListener('change', change); window.addEventListener('popstate', pop);
-  queueMicrotask(() => { root.querySelectorAll('form[data-academic-form="grade"]').forEach(syncGrade); });
-  return () => { root.removeEventListener('click', click); root.removeEventListener('submit', submit); root.removeEventListener('change', change); window.removeEventListener('popstate', pop); };
+  queueMicrotask(() => { root.querySelectorAll('form[data-academic-form="grade"]').forEach(form => { syncGrade(form); syncRubric(form, false); }); openHashTarget(); });
+  return () => { root.removeEventListener('click', click); root.removeEventListener('submit', submit); root.removeEventListener('change', change); window.removeEventListener('popstate', pop); tutorCleanup(); };
 }

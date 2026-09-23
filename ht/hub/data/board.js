@@ -33,7 +33,7 @@ HT.spaces.board = {
     { type: 'split', id: 'phone', kicker: 'The portal', title: 'Everything a trustee needs, on the phone they already carry.',
       text: 'No binder shipped a week early. No app to install. The packet, the agenda, and the room open from one link, and the board secretary sees who has checked in before the meeting starts.',
       bullets: ['Materials open in place, restricted to the board list', 'The agenda adds to a calendar in one tap and prints for the table', 'Check in at the door, attendance noted as you walk in', 'The campaign update is the same page Advancement runs, nothing re-typed'],
-      image: '/ht/img/r-admin-dusk.jpg', imageAlt: 'Rendering of the administration building at dusk', side: 'right', cta: { label: 'Put it on your phone', href: '/ht/hub/#install', style: 'ht' } },
+      image: '/ht/img/r-arena-entry.jpg', imageAlt: 'Rendering of a new Huston-Tillotson campus building entrance', side: 'right', cta: { label: 'Put it on your phone', href: '/ht/hub/#install', style: 'ht' } },
     { type: 'faq', id: 'faq', title: 'Questions trustees ask', meta: 'Sample answers', items: [
       { q: 'Is this space private?', a: 'Yes. The board space opens only for signed-in members on the board list kept by the board secretary. The rest of the hub is open to the campus. This preview shows sample content so you can see the shape of it.' },
       { q: 'Who can post here?', a: 'The board secretary and the Office of the President post announcements and materials. Trustees and trustees message the secretary directly. There is no open feed in this space, by design.' },

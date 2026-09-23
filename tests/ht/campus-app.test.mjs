@@ -36,11 +36,14 @@ try {
   await visit('events');
   assert.equal(await page.locator('.campus-nav-more > summary').getAttribute('aria-current'),'page');
  });
- await check('Campus directory uses small icons; all thirteen destination pages show their own photography',async()=>{
+ await check('Campus directory cards carry a photo and an icon; all thirteen destination pages show their own photography',async()=>{
   await visit('spaces');
   const directory=page.locator('.campus-spaces-directory');
   assert.equal(await directory.locator('.campus-office-card').count(),13);
-  assert.equal(await directory.locator('.campus-office-card img').count(),0,'Photography belongs inside a destination, not on the directory cards.');
+  assert.equal(await directory.locator('.campus-office-card .campus-office-photo img').count(),13,'Every campus-space card leads with its own photo.');
+  const srcs=await directory.locator('.campus-office-photo img').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')));
+  assert.equal(new Set(srcs).size,13,'No photo repeats across the directory.');
+  assert.ok(!srcs.some(src=>src.includes('athletics')),'The Rams-mark athletics photo stays off non-athletics spaces.');
   assert.equal(await directory.locator('.campus-office-icon svg').count(),13,'Every campus-space card has a small icon.');
   const keys=await page.evaluate(()=>window.HT.order.slice());
   for(const key of keys){
@@ -72,9 +75,9 @@ try {
    assert.equal(await selector.count(),1,`${key} keeps its demo role switcher.`);
    assert.equal(await selector.evaluate(node=>node.value),'leadership');
    assert.equal(await page.locator('.campus-page-guide').first().evaluate(node=>node.open),false,`${key} keeps the first-visit helper available but collapsed in the leadership walkthrough.`);
-   if(['events','live','learn','community'].includes(key))assert.equal(await page.locator('.campus-account').getAttribute('aria-label'),'Leadership preview, sample account',`${key} uses a neutral leadership demo identity.`);
+   if(['events','live','learn','community'].includes(key))assert.equal(await page.locator('.campus-account').getAttribute('aria-label'),'Avery W., sample account',`${key} shows the leadership persona.`);
   }
-  await page.locator('#htStaticDemoRole').selectOption('staff');
+  await page.locator('#campusDemoRole').selectOption('staff');
   await settled();
   assert.equal(new URL(page.url()).searchParams.get('demo'),'staff','The static page role switcher preserves its route and changes the selected demo role.');
  });
@@ -98,7 +101,7 @@ try {
   await page.getByRole('combobox',{name:'Status',exact:true}).selectOption('resolved');
   await page.getByRole('button',{name:'Update request',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-form="request-status"] select[name="status"]')?.value==='resolved' && !document.querySelector('[data-form="request-status"] button[type="submit"]')?.disabled);
-  assert.equal(await page.locator('.campus-workspace-links a').count(),2);
+  assert.equal(await page.locator('.campus-workspace-links a').count(),3,'Staff, Student success, Insights');
  });
  await check('Student sees the staff response and resolution after changing roles',async()=>{
   await visit('support','student');
@@ -136,8 +139,9 @@ try {
   assert.equal(await page.locator('.campus-workspace-links').count(),0);
   await visit('insights','leadership');
   assert.equal(await page.locator('.campus-metric').count(),9);
-  assert.equal(await page.locator('.campus-workspace-links a').count(),1);
+  assert.equal(await page.locator('.campus-workspace-links a').count(),2,'Student success, Insights');
   assert.equal(await page.getByText(subject,{exact:true}).count(),0);
+  await page.locator('.lead-live-totals summary').click();
   await page.getByRole('heading',{name:'Sample campus overview',exact:true}).waitFor();
   await page.screenshot({path:path.join(output,'leadership-insights-desktop.png'),fullPage:true});
   await visit('staff','leadership');
