@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AI 101 (free, Sat Oct 3, 7 PM CT) + Build Your First AI Agent moved to Sat Oct 17, 7–9 PM CT.
+# AI 101 (free, Fri Oct 9, 7 PM CT) + Build Your First AI Agent moved to Fri Oct 23, 7–9 PM CT.
 # Nelson runs it from Claude Code:   ! bash ~/Downloads/ai101-apply.sh
 # (that copy just runs this file from the ~/tma-ai101 worktree, branch ai101)
 #
@@ -37,7 +37,7 @@ run_sql "$TMP/v.sql" >/dev/null
 if [ "$(jq -r '.[0].n' "$TMP/out.json" 2>/dev/null)" = "1" ]; then echo "  reminder secret is set"; else
   echo "  ⚠ the reminder secret is NOT set — reminders will not send until you run: bash ~/tma-ai101/scripts/apply-0050.sh"; fi
 
-echo "== 2/4 the dates: agent → Sat Oct 17, AI 101 on Sat Oct 3"
+echo "== 2/4 the dates: agent → Fri Oct 23, AI 101 on Fri Oct 9"
 code=$(run_sql "$ROOT/scripts/ai101-dates.sql"); echo "HTTP $code"
 case "$code" in 2*) jq -r '.[] | "  \(.title) — \(.starts) — \(.status)\n    \(.tiers)\n    room link set: \(.has_room_link)"' "$TMP/out.json";;
   *) cat "$TMP/out.json"; echo; echo "DATES FAILED — stopping (nothing after this ran)"; exit 1;; esac

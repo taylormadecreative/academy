@@ -46,7 +46,7 @@ export type RemindDeps = {
   layout: (o: { preheader?: string; kicker?: string; heading: string; body: string; foot?: string }) => string;
   button: (href: string, label: string) => string;
   esc: (s: unknown) => string;
-  /* "Saturday, October 3 at 7:00 PM CDT" (_shared/email.ts when) */
+  /* "Friday, October 9 at 7:00 PM CDT" (_shared/email.ts when) */
   when: (iso: string, tz?: string) => string;
   site: string;
 };

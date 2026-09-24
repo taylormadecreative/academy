@@ -8,9 +8,9 @@ one place: the three constants below. Change it there and rebuild. Never edit
 agent/index.html by hand; the next build_site.py run overwrites it.
 """
 
-DAY = "October 17"
-DATE = "Saturday, October 17, 7 to 9 PM CT"
-DATE_LONG = "Saturday, October 17, 2026, 7 to 9 PM CT"
+DAY = "October 23"
+DATE = "Friday, October 23, 7 to 9 PM CT"
+DATE_LONG = "Friday, October 23, 2026, 7 to 9 PM CT"
 
 TITLE = "Build Your First AI Agent: a one-night online workshop by Taylormade Academy"
 DESC = (f"{DATE_LONG}, live online on the Taylormade Academy player. "

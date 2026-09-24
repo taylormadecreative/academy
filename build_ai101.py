@@ -10,10 +10,10 @@ in one place: the constants below. Never edit ai101/index.html by hand; the next
 build_site.py run overwrites it.
 """
 
-DAY = "October 3"
-DATE = "Saturday, October 3, 7 PM CT"
-DATE_LONG = "Saturday, October 3, 2026, 7 PM CT"
-AGENT_DAY = "October 17"
+DAY = "October 9"
+DATE = "Friday, October 9, 7 PM CT"
+DATE_LONG = "Friday, October 9, 2026, 7 PM CT"
+AGENT_DAY = "October 23"
 
 TITLE = "AI 101: a free live class on prompts and AI words, by Taylormade Academy"
 DESC = (f"{DATE_LONG}. Free, 45 minutes, live online. Learn how to ask AI for what you want, "
@@ -71,7 +71,7 @@ WORDS = [
     ("Prompt", "What you type to the AI. The clearer your prompt, the better the answer."),
     ("Model", "The “brain” behind a chatbot. Different models are better at different jobs."),
     ("Hallucination", "When the AI says something wrong but sounds sure. It is why you always check the answer."),
-    ("Agent", "An AI helper you set up once that does a task for you again and again. That is the October 17 workshop."),
+    ("Agent", "An AI helper you set up once that does a task for you again and again. That is the October 23 workshop."),
 ]
 
 
@@ -229,8 +229,8 @@ try {{
       card("The replay is for members.", "The live class was free. The replay is part of the Taylormade Academy membership: $15 a month, every replay, every ebook, every course. Cancel anytime. Use the same email you signed in with at checkout.",
         '<a class="btn gold" href="#" data-buy="all-access">Join for $15/mo to watch <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">What members get</a>');
     }} else {{
-      if (Date.now() < Date.parse("2026-10-04T00:45:00Z")) {{
-        card("The replay is on its way.", "AI 101 is live on Saturday, October 3 at 7 PM Central. The replay shows up here after class.", '<a class="btn ghost" href="/ai101/">Save your free seat</a>');
+      if (Date.now() < Date.parse("2026-10-10T00:45:00Z")) {{
+        card("The replay is on its way.", "AI 101 is live on Friday, October 9 at 7 PM Central. The replay shows up here after class.", '<a class="btn ghost" href="/ai101/">Save your free seat</a>');
         throw "shown";
       }}
       const {{ data: st, error: sErr }} = await sb.rpc("ea_room_state");
