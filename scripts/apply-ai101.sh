@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AI 101 (free, Fri Oct 9, 7 PM CT) + Build Your First AI Agent moved to Fri Oct 23, 7–9 PM CT.
+# AI 101 (free, Fri Oct 9, 7–8 PM CT) + Build Your First AI Agent moved to Fri Oct 23, 7–9 PM CT.
 # Nelson runs it from Claude Code:   ! bash ~/Downloads/ai101-apply.sh
 # (that copy just runs this file from the ~/tma-ai101 worktree, branch ai101)
 #

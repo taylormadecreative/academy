@@ -163,7 +163,7 @@ export function ai101Details(ev: EventRow): string {
     ? `<b>Where:</b> Online, in the Taylormade Academy room: <a href="${esc(ev.join_url)}" style="color:#0b40e0">open the room</a>. It opens a few minutes before 7.`
     : `<b>Where:</b> Online, in the Taylormade Academy room. The link comes by email before the class.`;
   return `<div style="background:#f5f7fc;border-radius:14px;padding:18px 20px;margin:0 0 18px;font-size:15px;line-height:1.7;color:#33415b">` +
-    `<b>What:</b> ${esc(ev.title)} (free, about 45 minutes)<br>` +
+    `<b>What:</b> ${esc(ev.title)} (free, one hour: 7 to 8 PM Central)<br>` +
     `<b>When:</b> ${esc(when(ev.starts_at, ev.tz))}<br>` +
     `${room}</div>`;
 }

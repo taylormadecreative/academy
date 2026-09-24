@@ -11,12 +11,12 @@ build_site.py run overwrites it.
 """
 
 DAY = "October 9"
-DATE = "Friday, October 9, 7 PM CT"
-DATE_LONG = "Friday, October 9, 2026, 7 PM CT"
+DATE = "Friday, October 9, 7 to 8 PM CT"
+DATE_LONG = "Friday, October 9, 2026, 7 to 8 PM CT"
 AGENT_DAY = "October 23"
 
 TITLE = "AI 101: a free live class on prompts and AI words, by Taylormade Academy"
-DESC = (f"{DATE_LONG}. Free, 45 minutes, live online. Learn how to ask AI for what you want, "
+DESC = (f"{DATE_LONG}. Free, one hour, live online. Learn how to ask AI for what you want, "
         "and what the AI words everyone uses actually mean. No experience needed.")
 
 # A prompt, drawn: what you type goes in, the AI reads it, an answer comes out, and a clearer
@@ -80,7 +80,7 @@ def _form(form_id, source, compact=False, on_ink=False):
     return f"""<div class="ag-form a1-form{' on-paper' if on_ink else ''}">
 <div class="ag-live">
 <div class="ag-form-h">Save your free seat</div>
-<p class="ag-form-p">{DATE}. 45 minutes, online. Your room link comes by email.</p>
+<p class="ag-form-p">{DATE}. One hour, online. Your room link comes by email.</p>
 <form id="{form_id}" data-source="{source}" novalidate>
 <div class="ag-fields">
 <div class="ag-field"><label for="{form_id}-name">Your name</label><input id="{form_id}-name" name="name" type="text" autocomplete="name" placeholder="First and last" required maxlength="120"></div>
@@ -104,12 +104,12 @@ def ai101_page(head, header, footer, ver):
 <div class="ag-copy">
 <span class="kicker gold">Free live class</span>
 <h1 class="display-xl">AI 101.<br>Learn to <span class="u-gold">talk</span> to AI.</h1>
-<p class="lead">{DATE}. 45 minutes, live online, free. Learn how to ask AI for what you want, and what all the AI words mean. <b>No experience needed. If you can send a text, you can do this.</b></p>
+<p class="lead">{DATE}. One hour, live online, free. Learn how to ask AI for what you want, and what all the AI words mean. <b>No experience needed. If you can send a text, you can do this.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn gold a1-jump" href="#top" data-scroll-form>Save my free seat <span class="arr">&rarr;</span></a><a class="btn ghost" href="#learn">See what you learn <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="ag-sheet">{_form("a1Form", "ai101-hero")}</div>
 <div class="ag-roster">
-<span class="ag-stamp">Free &middot; 45 min</span>
+<span class="ag-stamp">Free &middot; 1 hour</span>
 <span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
 <div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Taught AI to HBCU students with AUC's Data Science Institute and Johns Hopkins.</p></div></div>
 </div>
@@ -153,14 +153,14 @@ def ai101_page(head, header, footer, ver):
 
 <section class="ag-night"><div class="wrap"><div class="ag-night-grid">
 <div class="ag-night-intro">
-<span class="kicker gold">The 45 minutes</span>
+<span class="kicker gold">The hour</span>
 <h2 style="margin-top:12px">How the class runs.</h2>
 <p class="lead">{DATE}, live in the Taylormade Academy room. Open it on a laptop, tablet, or phone. A laptop makes it easier to try things along with me.</p>
 </div>
 <ol class="ag-steps">
 <li class="ag-step"><span class="t"><b>1</b> Words</span><h3>What AI is, and the words people use.</h3><p>No tech talk. Each word in plain English, with an everyday example.</p></li>
 <li class="ag-step"><span class="t"><b>2</b> Prompts</span><h3>How to ask so you get a good answer.</h3><p>I show you a simple way to write a prompt, then we fix a few weak ones together, live on screen.</p></li>
-<li class="ag-step"><span class="t"><b>3</b> Try it</span><h3>Your turn, plus questions.</h3><p>You write a prompt for something in your own life or business. Then I answer questions. In the last few minutes I tell you about the next step: the Build Your First AI Agent workshop on {AGENT_DAY}.</p></li>
+<li class="ag-step"><span class="t"><b>3</b> Try it</span><h3>Your turn, plus questions.</h3><p>You write a prompt for something in your own life or business. Then I answer questions. In the last few minutes I tell you about the next step: the Build Your First AI Agent workshop on {AGENT_DAY}. We end at 8 on the dot.</p></li>
 </ol></div></div></section>
 
 <section class="ag-note"><div class="wrap"><div class="ag-note-grid">
@@ -169,7 +169,7 @@ def ai101_page(head, header, footer, ver):
 <div class="who"><img src="/assets/agent-nelson-sm.webp" alt="" width="48" height="48"><div><b>Nelson Taylor</b><span>Founder, Taylormade Academy</span></div></div>
 <div class="letter" style="margin-top:22px">
 <p>The thing I hear most is “I think I'm too old to learn this.” You are not. Most people just never had someone explain it plainly.</p>
-<p>So this first step is free. Forty-five minutes, the words, and how to ask. If you like it, the Academy has more, and on {AGENT_DAY} I teach the next step: building your own AI agent.</p>
+<p>So this first step is free. One hour, the words, and how to ask. If you like it, the Academy has more, and on {AGENT_DAY} I teach the next step: building your own AI agent.</p>
 <a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Save my free seat <span class="arr">&rarr;</span></a>
 </div>
 </div>
@@ -184,7 +184,7 @@ def ai101_page(head, header, footer, ver):
 </div></div></section>
 
 <section class="ag-close a1-close on-ink"><div class="wrap">
-<h2>45 minutes. Free. Start here.</h2>
+<h2>One hour. Free. Start here.</h2>
 <p class="lead">{DATE}, online. Save your seat and the link comes to your email.</p>
 {_form("a1Form2", "ai101-close", compact=True, on_ink=True)}
 </div></section>
@@ -229,7 +229,7 @@ try {{
       card("The replay is for members.", "The live class was free. The replay is part of the Taylormade Academy membership: $15 a month, every replay, every ebook, every course. Cancel anytime. Use the same email you signed in with at checkout.",
         '<a class="btn gold" href="#" data-buy="all-access">Join for $15/mo to watch <span class="arr">&rarr;</span></a><a class="btn ghost" href="/pricing/">What members get</a>');
     }} else {{
-      if (Date.now() < Date.parse("2026-10-10T00:45:00Z")) {{
+      if (Date.now() < Date.parse("2026-10-10T01:00:00Z")) {{
         card("The replay is on its way.", "AI 101 is live on Friday, October 9 at 7 PM Central. The replay shows up here after class.", '<a class="btn ghost" href="/ai101/">Save your free seat</a>');
         throw "shown";
       }}
