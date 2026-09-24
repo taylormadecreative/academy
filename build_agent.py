@@ -117,6 +117,11 @@ def agent_page(head, header, footer, ver):
 </div>
 </div></div></section>
 
+<section class="xl-strip"><div class="wrap xl-strip-in">
+<p><b>Brand new to AI? Start free first.</b> AI 101 is a free one-hour class on Friday, October 9, 7 to 8 PM CT. You learn how to write a prompt and what the AI words mean, so you walk into this workshop ready.</p>
+<a class="btn ghost sm" href="/ai101/">Save a free seat <span class="arr">&rarr;</span></a>
+</div></section>
+
 <section class="ag-band on-ink" id="outcomes"><div class="wrap">
 <span class="kicker gold">What you walk out with</span>
 <h2 class="ag-band-h" style="margin-top:12px">Not notes about agents. An agent.</h2>

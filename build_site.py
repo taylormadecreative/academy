@@ -44,7 +44,7 @@ PWA_TAGS = (
     f'<script src="/js/meta-pixel.js?v={ASSET_VER}" defer></script>'
 )
 
-NAV = [("Free class", "/ai101/"), ("Workshop", "/agent/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Workshop", "/agent/"), ("Free class", "/ai101/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -574,6 +574,19 @@ def home():
 </div>
 </div>
 <div class="hero-art reveal">{hero_photo()}</div>
+</div></div></section>
+
+<section class="xl-home"><div class="wrap"><div class="xl-home-in">
+<div>
+<span class="kicker gold">Next live workshop</span>
+<h2 class="display-m" style="margin-top:10px">Build Your First AI Agent</h2>
+<p class="xl-when">Friday, October 23, 7 to 9 PM CT. Live online, or in the studio with me.</p>
+<p>Build an AI agent that does a real job for you, in one night. No code, no experience needed.</p>
+</div>
+<div class="xl-home-act">
+<a class="btn gold" href="/agent/">Get your seat <span class="arr">&rarr;</span></a>
+<a class="textlink" href="/ai101/">New to AI? Start with the free AI 101 on Friday, October 9 &rarr;</a>
+</div>
 </div></div></section>
 
 <section class="section plat on-ink" id="inside"><div class="wrap">

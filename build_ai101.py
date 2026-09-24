@@ -115,6 +115,22 @@ def ai101_page(head, header, footer, ver):
 </div>
 </div></div></section>
 
+<section class="xl-main"><div class="wrap"><div class="xl-main-in">
+<div class="xl-main-copy">
+<span class="kicker gold">The main event</span>
+<h2 class="display-m" style="margin-top:10px">Build Your First AI Agent</h2>
+<p class="xl-when">Friday, October 23, 7 to 9 PM CT. Live online.</p>
+<p>AI 101 teaches you to talk to AI. This two-hour workshop is where you build an AI agent that does a real job for you, with me, step by step. No code.</p>
+<a class="btn gold" href="/agent/">See the workshop <span class="arr">&rarr;</span></a>
+</div>
+<ul class="xl-prices">
+<li><span>Early bird, through October 16</span><b>$75</b></li>
+<li><span>From October 17</span><b>$90</b></li>
+<li><span>A seat in the studio with me, 15 seats</span><b>$125</b></li>
+<li class="xl-hot"><span>Come to AI 101 and get this price for 48 hours after class</span><b>$65</b></li>
+</ul>
+</div></div></section>
+
 <section class="ag-band on-ink" id="learn"><div class="wrap">
 <span class="kicker gold">What you learn</span>
 <h2 class="ag-band-h" style="margin-top:12px">Three things, in plain English.</h2>
