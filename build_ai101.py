@@ -95,7 +95,7 @@ def _form(form_id, source, compact=False, on_ink=False):
 
 
 def ai101_page(head, header, footer, ver):
-    h = head(TITLE, DESC, "/ai101/", og="assets/og-agent.png").replace(
+    h = head(TITLE, DESC, "/ai101/", og="assets/og-ai101.png").replace(
         "</head>", f'<link rel="stylesheet" href="/css/agent.css?v={ver}">\n<link rel="stylesheet" href="/css/ai101.css?v={ver}">\n<link rel="preload" as="image" href="/assets/agent-nelson.webp" type="image/webp" fetchpriority="high">\n</head>')
     words = "".join(f'<div class="a1-word"><dt>{w}</dt><dd>{d}</dd></div>' for w, d in WORDS)
     return h + header("Free class") + f"""
