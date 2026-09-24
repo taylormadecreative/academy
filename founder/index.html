@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=6477032691">
+<link rel="stylesheet" href="/css/build-mode.css?v=e91e778870">
 <script>document.documentElement.classList.add('js')</script>
 <style>
   /* ---- app chrome (matches /dashboard/) ---- */
@@ -146,9 +146,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=6477032691" defer></script>
-<script src="/js/native.js?v=6477032691" defer></script>
-<script src="/js/meta-pixel.js?v=6477032691" defer></script>
+<script src="/js/pwa.js?v=e91e778870" defer></script>
+<script src="/js/native.js?v=e91e778870" defer></script>
+<script src="/js/meta-pixel.js?v=e91e778870" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -236,8 +236,17 @@
 <div class="fgrid" style="margin-top:14px">
   <label class="f full">Which date <select class="fi" id="anEv"></select></label>
   <label class="f full">Subject <input class="fi" id="anSubject" maxlength="160"></label>
-  <label class="f full">Message <span>({name} becomes their first name)</span><textarea class="fi" id="anBody" style="min-height:220px"></textarea></label>
-  <label class="f">Button label <input class="fi" id="anCta" maxlength="60" value="Open my early-bird link"></label>
+  <div class="f full" role="radiogroup" aria-label="Email style" style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;font-size:13.5px">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="radio" name="anMode" id="anModePlain" value="plain" checked> Plain message</label>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="radio" name="anMode" id="anModeHtml" value="html"> Designed email (HTML)</label>
+  </div>
+  <label class="f full" id="anBodyBox">Message <span>({name} becomes their first name)</span><textarea class="fi" id="anBody" style="min-height:220px"></textarea></label>
+  <label class="f" id="anCtaBox">Button label <input class="fi" id="anCta" maxlength="60" value="Open my early-bird link"></label>
+  <div class="f full" id="anHtmlBox" hidden style="display:none">
+    <label class="f" for="anHtml">Designed email HTML <span>({name} = first name, {{button_url}} = their own button link, {{unsub_url}} = their leave link)</span></label>
+    <input type="file" id="anFile" accept=".html,.htm,text/html" style="margin:8px 0;font-size:12.5px">
+    <textarea class="fi" id="anHtml" style="min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:12px" spellcheck="false" placeholder="Paste the full email HTML here, or pick the .html file above."></textarea>
+  </div>
 </div>
 <div class="row" style="margin-top:16px"><button class="btn ghost" id="anTest">Send me a test</button><button class="btn gold" id="anSend">Send to the list</button></div>
 <p class="muted-sm" id="anResult" style="margin-top:12px"></p>
@@ -285,6 +294,6 @@
 <dialog class="fd-dlg" id="confirmDlg"><div class="in-dlg"><h2 id="cfH" style="font-size:20px;letter-spacing:-.02em"></h2><p class="muted-sm" id="cfP" style="margin-top:8px"></p><div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" id="cfNo">Cancel</button><button class="btn gold" id="cfYes">Yes</button></div></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/js/config.js?v=6477032691"></script>
-<script type="module" src="/js/founder.js?v=6477032691"></script>
+<script src="/js/config.js?v=e91e778870"></script>
+<script type="module" src="/js/founder.js?v=e91e778870"></script>
 </body></html>

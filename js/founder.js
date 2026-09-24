@@ -465,7 +465,13 @@ function fillAnnounce() {
     : `{name}, a quick note from me about Build Your First AI Agent.\n\nThe first public date is close. You are on the list, so you hear before anyone else, and your button below will open the waitlist rate the moment seats go live.\n\nReply to this email with anything you want the night to cover.`;
   preview();
 }
+const anHtmlMode = () => $("anModeHtml").checked;
+function previewHtml(html) {
+  // same merge the server does, with sample values: {name} -> Nelson, the button -> /agent/, leave -> #
+  return html.split("{name}").join("Nelson").split("{{button_url}}").join(SITE + "/agent/").split("{{unsub_url}}").join("#");
+}
 function preview() {
+  if (anHtmlMode()) { $("anPreview").srcdoc = previewHtml($("anHtml").value || "<p style=\"font:15px sans-serif;color:#64748b;padding:24px\">Paste the email HTML to see it here.</p>"); return; }
   const e = events.find((x) => x.id === $("anEv").value);
   const paras = ($("anBody").value || "").replace(/\{name\}/g, "Nelson").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.62;color:#33415b">${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
   const dateBox = e ? `<div style="background:#f5f7fc;border-radius:14px;padding:16px 20px;margin:0 0 18px;font-size:15px;line-height:1.7;color:#33415b"><b>${esc(e.title)}</b><br>${esc(when(e.starts_at, e.tz))}<br>${esc(e.format === "virtual" ? "Online" : (e.venue_label || "Dallas-Fort Worth"))}</div>` : "";
@@ -481,9 +487,24 @@ function preview() {
   $("anPreview").srcdoc = html;
 }
 $("anEv").addEventListener("change", fillAnnounce);
-["anSubject", "anBody", "anCta"].forEach((id) => $(id).addEventListener("input", preview));
+["anSubject", "anBody", "anCta", "anHtml"].forEach((id) => $(id).addEventListener("input", preview));
+function setAnMode() {
+  const html = anHtmlMode();
+  $("anHtmlBox").hidden = !html; $("anBodyBox").hidden = html; $("anCtaBox").hidden = html;
+  $("anHtmlBox").style.display = html ? "" : "none"; $("anBodyBox").style.display = html ? "none" : ""; $("anCtaBox").style.display = html ? "none" : "";
+  preview();
+}
+["anModePlain", "anModeHtml"].forEach((id) => $(id).addEventListener("change", setAnMode));
+$("anFile").addEventListener("change", async () => {
+  const f = $("anFile").files && $("anFile").files[0];
+  if (!f) return;
+  if (f.size > 100000) { toast("That file is over 100 KB. Emails that big get clipped."); return; }
+  $("anHtml").value = await f.text();
+  preview();
+});
 async function announce(testTo) {
   const body = { event_id: $("anEv").value || undefined, subject: $("anSubject").value.trim(), body_text: $("anBody").value.trim(), cta_label: $("anCta").value.trim() };
+  if (anHtmlMode()) { body.body_html = $("anHtml").value.trim(); body.body_text = ""; }
   if (testTo) body.test_to = testTo;
   const { data: { session: s } } = await sb.auth.getSession();
   const r = await fetch(CFG.FUNCTIONS_BASE + "/ea-waitlist-announce", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + s.access_token }, body: JSON.stringify(body) });
@@ -500,7 +521,8 @@ $("anTest").onclick = async () => {
 $("anSend").onclick = async () => {
   const n = signups.filter((s) => ["waiting", "invited"].includes(s.status)).length;
   if (!n) return toast("Nobody on the list to send to yet.");
-  if (!$("anSubject").value.trim() || $("anBody").value.trim().length < 10) return toast("Write a subject and a message first.");
+  if (!$("anSubject").value.trim()) return toast("Write a subject first.");
+  if (anHtmlMode() ? $("anHtml").value.trim().length < 50 : $("anBody").value.trim().length < 10) return toast(anHtmlMode() ? "Paste the email HTML first." : "Write a message first.");
   if (!(await confirmDlg("Send to " + n + " people?", "Each person gets their own early-bird button. This cannot be unsent.", "Send to " + n))) return;
   const b = $("anSend"); b.disabled = true; b.textContent = "Sending...";
   try { const d = await announce(); $("anResult").textContent = "Sent to " + d.sent + " of " + d.total + (d.failed ? ". " + d.failed + " failed, try again for those." : "."); toast("Sent to " + d.sent); await loadAll(); }

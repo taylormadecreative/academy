@@ -1,7 +1,8 @@
 // ea-waitlist-announce — Nelson tells the waitlist about a date, from the founder dashboard.
 //
 //   POST (Authorization: Bearer <the signed-in admin's JWT>)
-//     { event_id?, subject, body_text, cta_label?, test_to? }
+//     { event_id?, subject, body_text | body_html, cta_label?, test_to? }
+//   body_html = a designed email sent as-is (see merge.ts: {name}, {{button_url}}, {{unsub_url}}).
 //     -> { ok: true, sent: 1 }                     (test_to: one preview, nothing stamped)
 //     -> { ok: true, sent: 42, failed: 0, total: 42 } (real send, in batches of 100)
 //
@@ -11,6 +12,7 @@
 // never trusted from the body.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { SITE, WORKSHOP, esc, firstName, when, paragraphs, button, layout, sendEmail, sendBatch } from "../_shared/email.ts";
+import { HTML_MAX, mergeHtml } from "./merge.ts";
 
 const ALLOWED_ORIGIN = "https://taylormadeacademy.com";
 const CORS: Record<string, string> = {
@@ -27,9 +29,10 @@ const EMAIL_RX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 type Signup = { id: string; full_name: string; email: string; early_token: string; status: string };
 type Ev = { id: string; title: string; starts_at: string; tz: string; format: string; venue_label: string | null; status: string } | null;
 
-function render(s: { full_name: string; early_token: string }, ev: Ev, subject: string, bodyText: string, cta: string, functionsBase: string) {
+function render(s: { full_name: string; early_token: string }, ev: Ev, subject: string, bodyText: string, cta: string, functionsBase: string, bodyHtml = "") {
   const early = `${SITE}/agent/?early=${s.early_token}#seats`;
   const leave = `${functionsBase}/ea-waitlist-join?unsub=${s.early_token}`;
+  if (bodyHtml) return mergeHtml(bodyHtml, { firstName: firstName(s.full_name), buttonUrl: early, unsubUrl: leave, listName: WORKSHOP.title });
   const dateBox = ev
     ? `<div style="background:#f5f7fc;border-radius:14px;padding:16px 20px;margin:0 0 18px;font-size:15px;line-height:1.7;color:#33415b"><b>${esc(ev.title)}</b><br>${esc(when(ev.starts_at, ev.tz))}<br>${esc(ev.format === "virtual" ? "Online" : (ev.venue_label || "Dallas-Fort Worth"))}</div>`
     : "";
@@ -67,11 +70,14 @@ Deno.serve(async (req: Request) => {
     try { body = await req.json(); } catch (_) { return json({ error: "bad_request" }, 400); }
     const subject = str(body.subject, 160);
     const bodyText = str(body.body_text, 6000);
+    const rawHtml = typeof body.body_html === "string" ? body.body_html.trim() : "";
+    if (rawHtml.length > HTML_MAX) return json({ error: "html_too_large" }, 413);
+    const bodyHtml = rawHtml;
     const cta = str(body.cta_label, 60) || "Open my early-bird link";
     const eventId = str(body.event_id, 40);
     const testTo = str(body.test_to, 200).toLowerCase();
     if (subject.length < 3) return json({ error: "subject_required" }, 400);
-    if (bodyText.length < 10) return json({ error: "body_required" }, 400);
+    if (!bodyHtml && bodyText.length < 10) return json({ error: "body_required" }, 400);
 
     let ev: Ev = null;
     if (eventId) {
@@ -86,7 +92,7 @@ Deno.serve(async (req: Request) => {
       if (!EMAIL_RX.test(testTo)) return json({ error: "email_invalid" }, 400);
       const { data: mine } = await sb.from("ea_wl_signups").select("full_name, early_token").eq("email", testTo).maybeSingle();
       const sample = mine ?? { full_name: "Nelson", early_token: "00000000-0000-0000-0000-000000000000" };
-      const r = await sendEmail({ to: testTo, subject: `[TEST] ${subject}`, html: render(sample, ev, subject, bodyText, cta, functionsBase) });
+      const r = await sendEmail({ to: testTo, subject: `[TEST] ${subject}`, html: render(sample, ev, subject, bodyText, cta, functionsBase, bodyHtml) });
       if (!r.ok) return json({ error: r.error ?? "send_failed" }, 502);
       return json({ ok: true, sent: 1, test: true });
     }
@@ -103,7 +109,7 @@ Deno.serve(async (req: Request) => {
     const stamp = new Date().toISOString();
     for (let i = 0; i < recipients.length; i += 100) {
       const chunk = recipients.slice(i, i + 100);
-      const r = await sendBatch(chunk.map((s) => ({ to: s.email, subject, html: render(s, ev, subject, bodyText, cta, functionsBase) })));
+      const r = await sendBatch(chunk.map((s) => ({ to: s.email, subject, html: render(s, ev, subject, bodyText, cta, functionsBase, bodyHtml) })));
       if (r.ok) {
         sent += chunk.length;
         const ids = chunk.map((s) => s.id);
