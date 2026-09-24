@@ -472,12 +472,12 @@ function preview() {
   const html = `<!doctype html><body style="margin:0;background:#f5f7fc;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif"><div style="padding:22px 12px"><div style="max-width:560px;margin:0 auto">
     <div style="background:#04123a;border-radius:18px 18px 0 0;padding:18px 24px;color:#fff;font-weight:700;font-size:16px"><img src="${SITE}/assets/logo-email.png" width="34" height="34" alt="" style="vertical-align:middle;border-radius:8px;margin-right:10px">Taylormade Academy</div>
     <div style="background:#fff;border:1px solid #e4e9f1;border-top:0;border-radius:0 0 18px 18px;padding:30px 28px 26px">
-    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#0730ad;margin-bottom:12px"><span style="display:inline-block;width:20px;height:3px;background:#f2b705;border-radius:2px;vertical-align:middle;margin-right:10px"></span>From the waitlist</div>
+    <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#0730ad;margin-bottom:12px"><span style="display:inline-block;width:20px;height:3px;background:#f2b705;border-radius:2px;vertical-align:middle;margin-right:10px"></span>Taylormade Academy</div>
     <h1 style="margin:0 0 16px;font-size:26px;line-height:1.15;letter-spacing:-.02em;color:#0a1733">${esc($("anSubject").value)}</h1>${paras}${dateBox}
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 8px"><tr><td style="background:#0b40e0;border-radius:980px"><a style="display:inline-block;padding:14px 26px;font-weight:700;font-size:15px;color:#fff;text-decoration:none">${esc($("anCta").value || "Open my early-bird link")} &rarr;</a></td></tr></table>
-    <p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:#94a3b8">That button is yours alone. It unlocks the waitlist rate before the public sale.</p>
+    <p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:#94a3b8">This button is just for you. When a special price is open for you, it shows up when you tap it.</p>
     <p style="margin:22px 0 0;font-size:15px;line-height:1.6;color:#33415b">Nelson<br><span style="color:#5d6b84">Taylormade Academy, Dallas-Fort Worth</span></p></div>
-    <p style="margin:16px 8px 0;font-size:12px;line-height:1.6;color:#94a3b8">You are on the Build Your First AI Agent waitlist at taylormadeacademy.com/agent. <a style="color:#94a3b8">Leave the list</a>.</p></div></div></body>`;
+    <p style="margin:16px 8px 0;font-size:12px;line-height:1.6;color:#94a3b8">You are on the Build Your First AI Agent list at taylormadeacademy.com/agent. <a style="color:#94a3b8">Leave the list</a>.</p></div></div></body>`;
   $("anPreview").srcdoc = html;
 }
 $("anEv").addEventListener("change", fillAnnounce);

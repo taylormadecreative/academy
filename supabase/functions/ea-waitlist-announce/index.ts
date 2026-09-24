@@ -34,13 +34,13 @@ function render(s: { full_name: string; early_token: string }, ev: Ev, subject: 
     ? `<div style="background:#f5f7fc;border-radius:14px;padding:16px 20px;margin:0 0 18px;font-size:15px;line-height:1.7;color:#33415b"><b>${esc(ev.title)}</b><br>${esc(when(ev.starts_at, ev.tz))}<br>${esc(ev.format === "virtual" ? "Online" : (ev.venue_label || "Dallas-Fort Worth"))}</div>`
     : "";
   const body = paragraphs(bodyText.replace(/\{name\}/g, firstName(s.full_name))) + dateBox + button(early, cta) +
-    `<p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:#94a3b8">That button is yours alone. It unlocks the waitlist rate before the public sale.</p>`;
+    `<p style="margin:10px 0 0;font-size:13px;line-height:1.6;color:#94a3b8">This button is just for you. When a special price is open for you, it shows up when you tap it.</p>`;
   return layout({
-    preheader: ev ? `${when(ev.starts_at, ev.tz)}. Your early-bird link is inside.` : "Your early-bird link is inside.",
-    kicker: "From the waitlist",
+    preheader: ev ? `${when(ev.starts_at, ev.tz)}. Your link is inside.` : "Your link is inside.",
+    kicker: "Taylormade Academy",
     heading: subject,
     body,
-    foot: `You are on the ${esc(WORKSHOP.title)} waitlist at taylormadeacademy.com/agent. <a href="${esc(leave)}" style="color:#94a3b8">Leave the list</a>.`,
+    foot: `You are on the ${esc(WORKSHOP.title)} list at taylormadeacademy.com/agent. <a href="${esc(leave)}" style="color:#94a3b8">Leave the list</a>.`,
   });
 }
 
