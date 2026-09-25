@@ -131,6 +131,7 @@ def footer(pop=True):
     cols = {
         "Explore": [("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
         "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Sign in", "/login/"), ("Join free", "/login/?mode=join")],
+        "For programs": [("Cohorts &amp; campus hubs", "/partners/"), ("Download the PDF", "/partners/taylormade-academy-programs.pdf")],
     }
     colhtml = ""
     for h, items in cols.items():
@@ -971,7 +972,7 @@ def not_found():
 
 SITEMAP_PATHS = ["/", "/ai101/", "/agent/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
-                 "/live/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
+                 "/live/", "/partners/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
 
 def write_meta():
     (ROOT / "404.html").write_text(not_found())
@@ -1069,6 +1070,8 @@ if __name__ == "__main__":
     from build_ai101 import ai101_page, ai101_replay_page
     render("/ai101/", ai101_page(head, header, footer, ASSET_VER))
     render("/ai101/replay/", ai101_replay_page(head, header, footer, ASSET_VER))
+    from build_partners import partners_page
+    render("/partners/", partners_page(head, header, footer, ASSET_VER))
     # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.

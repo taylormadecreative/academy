@@ -314,7 +314,7 @@ p{max-width:68ch;}
 /* ---------- footer ---------- */
 .site-footer{background:var(--navy);color:#9fb0d4;padding-block:clamp(52px,7vw,84px) 30px;border-top:1px solid rgba(255,255,255,.08);}
 .site-footer a{transition:color .16s var(--ease);}
-.foot-top{display:grid;grid-template-columns:1.7fr 1fr 1fr 1.5fr;gap:36px;}
+.foot-top{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.5fr;gap:36px;}
 .foot-brand .mark{font-family:var(--display);font-weight:600;font-size:18px;color:#fff;}
 .foot-brand .mark b{color:#fff;}
 .foot-brand p{font-size:14px;color:#8fa0c7;margin-top:12px;max-width:34ch;line-height:1.6;}
