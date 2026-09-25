@@ -91,7 +91,7 @@
       e.preventDefault();
       var box = document.querySelector('.ag-sheet .ag-form');
       if (!box) return;
-      var target = box.classList.contains('is-done') ? box : (document.getElementById('wlForm-name') || box);
+      var target = document.getElementById('tkBuy') || box;
       box.scrollIntoView({ behavior: 'smooth', block: 'center' });
       if (target.focus) setTimeout(function () { target.focus({ preventScroll: true }); }, 420);
     });
@@ -135,7 +135,6 @@
     var onSale = events.filter(function (e) { return e.status === 'on_sale' || e.status === 'sold_out'; });
     if (!onSale.length || !tiers.length) return;
     seatsSec.hidden = false;
-    if (heroCta) { heroCta.href = '#seats'; heroCta.innerHTML = 'Get your seat <span class="arr">&rarr;</span>'; }
     var byEvent = {};
     tiers.forEach(function (t) { (byEvent[t.event_id] = byEvent[t.event_id] || []).push(t); });
     var now = Date.now();
@@ -147,6 +146,7 @@
     }).join('');
     var early = $('earlyNote');
     if (EARLY && early) { early.classList.add('show'); }
+    heroTicket(onSale, byEvent, now);
     tiersBox.querySelectorAll('[data-buy]').forEach(function (b) {
       b.addEventListener('click', function () {
         var t = tiers.filter(function (x) { return x.id === b.getAttribute('data-buy'); })[0];
@@ -163,13 +163,54 @@
     var locked = t.access === 'waitlist' && !EARLY;
     var av = left === 0 ? 'Sold out' : left <= 3 ? 'Only ' + left + ' left' : left + ' seats left';
     var cta;
-    if (locked) cta = '<p class="lockline">This rate opens through the link in your waitlist email.</p>';
+    if (locked) cta = '<p class="lockline">For AI 101 sign-ups. It opens through the link in your email after the free class.</p>';
     else if (notOpen) cta = '<p class="lockline">Opens ' + esc(when(t.sales_start, e.tz)) + '</p>';
     else if (closed || left === 0 || e.status === 'sold_out') cta = '<button class="btn ghost" disabled>' + (left === 0 || e.status === 'sold_out' ? 'Sold out' : 'Sales closed') + '</button>';
     else cta = '<button class="btn gold" data-buy="' + esc(t.id) + '">Get this seat <span class="arr">&rarr;</span></button>';
     return '<div class="ag-tier' + (locked ? ' locked' : '') + '"><div class="nm">' + esc(t.name) + '</div><div class="pr">' + (t.price_cents === 0 ? 'Free' : money(t.price_cents)) + '</div>' +
       (t.description ? '<p class="ds">' + esc(t.description) + '</p>' : '<p class="ds"></p>') +
       '<div class="av' + (left > 0 && left <= 3 ? ' low' : '') + '">' + esc(av) + '</div>' + cta + '</div>';
+  }
+
+  /* ---------------- the hero ticket box: the price open right now, one tap to checkout ---------------- */
+  function shortDay(iso, tz) {
+    try { return new Intl.DateTimeFormat('en-US', { timeZone: tz || 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(iso)); } catch (_) { return ''; }
+  }
+  function heroTicket(onSale, byEvent, now) {
+    var amt = $('tkAmt'), note = $('tkNote'), buy = $('tkBuy'), studio = $('tkStudio');
+    if (!amt || !buy) return;
+    var e = onSale.filter(function (x) { return x.status === 'on_sale'; })[0];
+    if (!e) { amt.textContent = 'Sold out'; note.textContent = 'Every seat for this date is taken.'; buy.hidden = true; return; }
+    var list = byEvent[e.id] || [];
+    var isStudio = function (t) { return /in person|studio/i.test(t.name); };
+    var isOpen = function (t) {
+      return !(t.sales_start && now < Date.parse(t.sales_start)) && !(t.sales_end && now > Date.parse(t.sales_end)) &&
+        t.qty - t.sold > 0 && (t.access !== 'waitlist' || EARLY);
+    };
+    var online = list.filter(function (t) { return !isStudio(t) && isOpen(t); }).sort(function (a, b) { return a.price_cents - b.price_cents; })[0];
+    var room = list.filter(function (t) { return isStudio(t) && isOpen(t); })[0];
+    var pick = online || room;
+    if (!pick) { amt.textContent = 'Closed'; note.textContent = 'Sales for this date have closed.'; buy.hidden = true; return; }
+    var later = online && list.filter(function (t) { return !isStudio(t) && t.access !== 'waitlist' && t.sales_start && Date.parse(t.sales_start) > now && t.price_cents > online.price_cents; })
+      .sort(function (a, b) { return Date.parse(a.sales_start) - Date.parse(b.sales_start); })[0];
+    amt.textContent = money(pick.price_cents);
+    if (pick === online) {
+      note.textContent = 'Online seat · ' + (pick.access === 'waitlist' ? 'your class price' : pick.name.toLowerCase()) +
+        (later && pick.sales_end ? ' through ' + shortDay(pick.sales_end, e.tz) + ', then ' + money(later.price_cents)
+          : pick.sales_end ? ' · sales close ' + shortDay(pick.sales_end, e.tz) : '');
+    } else {
+      note.textContent = 'Studio seat in Dallas · ' + (pick.qty - pick.sold) + ' left';
+    }
+    buy.removeAttribute('href'); buy.setAttribute('role', 'button'); buy.tabIndex = 0;
+    buy.innerHTML = 'Get my seat · ' + money(pick.price_cents) + ' <span class="arr">&rarr;</span>';
+    var go = function (ev) { ev.preventDefault(); openBuy(pick, e); };
+    buy.onclick = go; buy.onkeydown = function (ev) { if (ev.key === 'Enter' || ev.key === ' ') go(ev); };
+    if (online && room) {
+      var left = room.qty - room.sold;
+      studio.hidden = false;
+      studio.innerHTML = 'Or build next to me in the studio · ' + money(room.price_cents) + ' · ' + left + (left === 1 ? ' seat' : ' seats') + ' left <span class="arr">&rarr;</span>';
+      studio.onclick = function () { openBuy(room, e); };
+    }
   }
 
   /* ---------------- buy dialog ---------------- */
@@ -199,7 +240,7 @@
           if (d.url) { location.href = d.url; return; }
           if (d.done) { location.href = '/agent/thanks/?free=1&codes=' + encodeURIComponent((d.codes || []).join(',')); return; }
           var m = { sold_out: 'That seat just sold out. Pick another tier or join the waitlist for the next date.',
-                    waitlist_only: 'This rate is for the waitlist. Use the link in your waitlist email.',
+                    waitlist_only: 'This price is for AI 101 sign-ups. Use the link in your email after the free class.',
                     not_open_yet: 'This tier is not open yet.', sales_closed: 'Sales for this tier have closed.',
                     payments_not_configured: 'Checkout is turning on. Try again in a few minutes.',
                     rate_limited: 'Too many tries from this connection. Give it a minute.' }[d.error];

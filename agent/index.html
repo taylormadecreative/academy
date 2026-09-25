@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 
-<link rel="stylesheet" href="/css/build-mode.css?v=e91e778870">
+<link rel="stylesheet" href="/css/build-mode.css?v=c401477d6a">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -31,11 +31,11 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=e91e778870" defer></script>
-<script src="/js/native.js?v=e91e778870" defer></script>
-<script src="/js/meta-pixel.js?v=e91e778870" defer></script>
+<script src="/js/pwa.js?v=c401477d6a" defer></script>
+<script src="/js/native.js?v=c401477d6a" defer></script>
+<script src="/js/meta-pixel.js?v=c401477d6a" defer></script>
 <script>document.documentElement.classList.add('js')</script>
-<link rel="stylesheet" href="/css/agent.css?v=e91e778870">
+<link rel="stylesheet" href="/css/agent.css?v=c401477d6a">
 <link rel="preload" as="image" href="/assets/agent-nelson.webp" type="image/webp" fetchpriority="high">
 </head><body><header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
@@ -52,25 +52,14 @@
 <p class="lead">Friday, October 23, 7 to 9 PM CT. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
 </div>
-<div class="ag-sheet"><div class="ag-form">
-<div class="ag-live">
-<div class="ag-form-h">Put your name on the list</div>
-<p class="ag-form-p">The list gets the lowest rate for October 23, through a personal link in your email.</p>
-<form id="wlForm" data-source="agent-hero" novalidate>
-<div class="ag-fields">
-<div class="ag-field"><label for="wlForm-name">Your name</label><input id="wlForm-name" name="name" type="text" autocomplete="name" placeholder="First and last" required maxlength="120"></div>
-<div class="ag-field"><label for="wlForm-email">Email</label><input id="wlForm-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required maxlength="200"></div>
-<div class="ag-field"><label for="wlForm-phone">Phone <span>(optional, for a text the day before)</span></label><input id="wlForm-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(214) 555-0100" maxlength="40"></div>
-<div class="ag-field"><label>Where are you with AI?</label><div class="ag-seg">
-<label><input type="radio" name="experience" value="new" checked><span>Brand new</span></label>
-<label><input type="radio" name="experience" value="some"><span>I use ChatGPT</span></label>
-<label><input type="radio" name="experience" value="building"><span>Already building</span></label></div></div>
-<div class="ag-field full"><label for="wlForm-goal">What should your agent handle? <span>(optional)</span></label><textarea id="wlForm-goal" name="goal" rows="2" maxlength="500" placeholder="Follow up with new leads, answer the same five questions, write captions from my photos..."></textarea></div></div>
-<div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email with your link, one before seats close.</span></div>
-<div class="err" role="alert"></div>
-</form></div>
-<div class="ag-done" aria-live="polite"></div>
+<div class="ag-sheet"><div class="ag-form ag-ticket" id="heroTicket">
+<div class="ag-form-h">Get your seat</div>
+<p class="ag-form-p">Friday, October 23, 7 to 9 PM CT. Live online from your desk, or one of 15 seats in the studio.</p>
+<div class="tk-price"><span class="tk-amt" id="tkAmt">$75</span><span class="tk-note" id="tkNote">Online seat &middot; early bird through Fri, Oct 16</span></div>
+<a class="btn gold tk-go" id="tkBuy" href="#seats">Get my seat <span class="arr">&rarr;</span></a>
+<button class="tk-alt" id="tkStudio" type="button" hidden></button>
+<p class="fine tk-fine">Secure checkout by Stripe. Your ticket and your room link come by email. Refunds up to 7 days before.</p>
+<div class="err" id="tkErr" role="alert"></div>
 </div></div>
 <div class="ag-roster">
 <span class="ag-stamp">First public run</span>
@@ -171,7 +160,7 @@
 <section class="ag-dates" id="dates"><div class="wrap">
 <span class="kicker gold">Dates</span>
 <h2 style="margin-top:12px">Upcoming dates.</h2>
-<p class="ag-empty" id="datesEmpty"><b>Friday, October 23, 2026, 7 to 9 PM CT. Online, on the Academy player.</b> Seats open to the waitlist first, through the personal link in your email, then to everyone.</p>
+<p class="ag-empty" id="datesEmpty"><b>Friday, October 23, 2026, 7 to 9 PM CT. Online, on the Academy player.</b> Seats are on sale now.</p>
 <div class="ag-datelist" id="datesList" style="display:none"></div>
 </div></section>
 
@@ -190,38 +179,25 @@
 <div class="letter" style="margin-top:22px">
 <p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
 <p>The thing I hear most before a workshop is not "what is AI". It is "I think I'm too old to learn this". Then the same person describes the job they want handled, every rule and every exception, in thirty seconds. That description is the whole thing you type in. This is my answer: one night, online, one agent, built by you, doing a job you are tired of doing.</p>
-<p>If that is what you have been waiting for, put your name down. The list gets the lowest rate, through a link only they receive.</p>
-<a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Put my name down <span class="arr">&rarr;</span></a>
+<p>If that is what you have been waiting for, grab your seat.</p>
+<a class="btn gold" href="#heroTicket" data-scroll-form style="margin-top:6px">Get my seat <span class="arr">&rarr;</span></a>
 </div>
 </div>
 <div class="ag-faq">
 <details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
 <details><summary>What do I need?</summary><p>A laptop or desktop with a browser, and a free Claude account (recommended) or a free ChatGPT account, set up before 7 PM. Bring one task you want handled and a few real examples of it. Phones are fine for watching but not for building.</p></details>
 <details><summary>Do I have to pay for the tools?</summary><p>Not on the night. Everything we build runs on free accounts. If you want to use your agent every day afterward, that may take one subscription of about $20 a month on the platform you choose. I say that now so there are no surprises later.</p></details>
-<details><summary>What does it cost?</summary><p>The seat prices are on this page once sales open. The waitlist gets a lower rate first, and that rate is only ever offered through the personal link in your waitlist email.</p></details>
-<details><summary>Is it online or in person?</summary><p>Online, live on the Taylormade Academy player. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
-<details><summary>What if I cannot make October 23?</summary><p>Stay on the list. Every future date goes to the list first, and your personal link keeps working for the next one.</p></details>
+<details><summary>What does it cost?</summary><p>An online seat is $75 early bird through Friday, October 16, then $90. A seat in the studio, building next to me, is $125, and there are only 15. People who come to the free AI 101 on October 9 get a lower price for 48 hours afterward, through the link in their email.</p></details>
+<details><summary>Is it online or in person?</summary><p>Both. Most seats are online, live on the Taylormade Academy player. There are also 15 seats in my Dallas studio; the address comes in your ticket email. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
+<details><summary>What if I cannot make October 23?</summary><p>You can get a full refund up to 7 days before the workshop. If you are not sure yet, start with the free AI 101 on October 9 and decide after.</p></details>
 <details><summary>What is the refund policy?</summary><p>Seven days, no questions, as long as it is before the workshop date. The full policy is on the <a class="textlink" href="/refunds/">refunds page</a>.</p></details>
 </div>
 </div></div></section>
 
 <section class="ag-close on-ink"><div class="wrap">
-<h2>The lowest rate goes to the list.</h2>
-<p class="lead">October 23, online. The list hears first, with a personal link to the lowest rate.</p>
-<div class="ag-form on-paper">
-<div class="ag-live">
-<div class="ag-form-h">Put your name on the list</div>
-<p class="ag-form-p">The list gets the lowest rate for October 23, through a personal link in your email.</p>
-<form id="wlForm2" data-source="agent-close" novalidate>
-<div class="ag-fields">
-<div class="ag-field"><label for="wlForm2-name">Your name</label><input id="wlForm2-name" name="name" type="text" autocomplete="name" placeholder="First and last" required maxlength="120"></div>
-<div class="ag-field"><label for="wlForm2-email">Email</label><input id="wlForm2-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required maxlength="200"></div></div>
-<div class="ag-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
-<div class="ag-submit"><button class="btn gold" type="submit">Save my spot <span class="arr">&rarr;</span></button><span class="fine">No spam. One email with your link, one before seats close.</span></div>
-<div class="err" role="alert"></div>
-</form></div>
-<div class="ag-done" aria-live="polite"></div>
-</div>
+<h2>Build your first agent on October 23.</h2>
+<p class="lead">Friday, October 23, 7 to 9 PM CT. Online from your desk, or one of 15 seats in the studio. No code, no experience needed.</p>
+<a class="btn gold" href="#heroTicket" data-scroll-form style="margin-top:18px">Get my seat <span class="arr">&rarr;</span></a>
 </div></section>
 </main>
 
@@ -240,7 +216,7 @@
 <div class="row"><button class="btn ghost" type="button" id="bdClose">Not now</button><button class="btn gold" type="submit" id="bdGo">Continue to checkout <span class="arr">&rarr;</span></button></div>
 </form>
 </dialog>
-<script src="/js/agent.js?v=e91e778870" defer></script>
+<script src="/js/agent.js?v=c401477d6a" defer></script>
 <footer class="site-footer"><div class="wrap">
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
@@ -268,4 +244,4 @@
 <div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
 </div></aside>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=e91e778870"></script><script src="/js/site.js?v=e91e778870"></script></body></html>
+<script src="/js/config.js?v=c401477d6a"></script><script src="/js/site.js?v=c401477d6a"></script></body></html>

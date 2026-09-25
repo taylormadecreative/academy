@@ -109,7 +109,15 @@ def agent_page(head, header, footer, ver):
 <p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
 </div>
-<div class="ag-sheet">{_form("wlForm", "agent-hero")}</div>
+<div class="ag-sheet"><div class="ag-form ag-ticket" id="heroTicket">
+<div class="ag-form-h">Get your seat</div>
+<p class="ag-form-p">{DATE}. Live online from your desk, or one of 15 seats in the studio.</p>
+<div class="tk-price"><span class="tk-amt" id="tkAmt">$75</span><span class="tk-note" id="tkNote">Online seat &middot; early bird through Fri, Oct 16</span></div>
+<a class="btn gold tk-go" id="tkBuy" href="#seats">Get my seat <span class="arr">&rarr;</span></a>
+<button class="tk-alt" id="tkStudio" type="button" hidden></button>
+<p class="fine tk-fine">Secure checkout by Stripe. Your ticket and your room link come by email. Refunds up to 7 days before.</p>
+<div class="err" id="tkErr" role="alert"></div>
+</div></div>
 <div class="ag-roster">
 <span class="ag-stamp">First public run</span>
 <span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
@@ -168,7 +176,7 @@ def agent_page(head, header, footer, ver):
 <section class="ag-dates" id="dates"><div class="wrap">
 <span class="kicker gold">Dates</span>
 <h2 style="margin-top:12px">Upcoming dates.</h2>
-<p class="ag-empty" id="datesEmpty"><b>{DATE_LONG}. Online, on the Academy player.</b> Seats open to the waitlist first, through the personal link in your email, then to everyone.</p>
+<p class="ag-empty" id="datesEmpty"><b>{DATE_LONG}. Online, on the Academy player.</b> Seats are on sale now.</p>
 <div class="ag-datelist" id="datesList" style="display:none"></div>
 </div></section>
 
@@ -187,25 +195,25 @@ def agent_page(head, header, footer, ver):
 <div class="letter" style="margin-top:22px">
 <p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
 <p>The thing I hear most before a workshop is not "what is AI". It is "I think I'm too old to learn this". Then the same person describes the job they want handled, every rule and every exception, in thirty seconds. That description is the whole thing you type in. This is my answer: one night, online, one agent, built by you, doing a job you are tired of doing.</p>
-<p>If that is what you have been waiting for, put your name down. The list gets the lowest rate, through a link only they receive.</p>
-<a class="btn gold" href="#top" data-scroll-form style="margin-top:6px">Put my name down <span class="arr">&rarr;</span></a>
+<p>If that is what you have been waiting for, grab your seat.</p>
+<a class="btn gold" href="#heroTicket" data-scroll-form style="margin-top:6px">Get my seat <span class="arr">&rarr;</span></a>
 </div>
 </div>
 <div class="ag-faq">
 <details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
 <details><summary>What do I need?</summary><p>A laptop or desktop with a browser, and a free Claude account (recommended) or a free ChatGPT account, set up before 7 PM. Bring one task you want handled and a few real examples of it. Phones are fine for watching but not for building.</p></details>
 <details><summary>Do I have to pay for the tools?</summary><p>Not on the night. Everything we build runs on free accounts. If you want to use your agent every day afterward, that may take one subscription of about $20 a month on the platform you choose. I say that now so there are no surprises later.</p></details>
-<details><summary>What does it cost?</summary><p>The seat prices are on this page once sales open. The waitlist gets a lower rate first, and that rate is only ever offered through the personal link in your waitlist email.</p></details>
-<details><summary>Is it online or in person?</summary><p>Online, live on the Taylormade Academy player. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
-<details><summary>What if I cannot make {DAY}?</summary><p>Stay on the list. Every future date goes to the list first, and your personal link keeps working for the next one.</p></details>
+<details><summary>What does it cost?</summary><p>An online seat is $75 early bird through Friday, October 16, then $90. A seat in the studio, building next to me, is $125, and there are only 15. People who come to the free AI 101 on October 9 get a lower price for 48 hours afterward, through the link in their email.</p></details>
+<details><summary>Is it online or in person?</summary><p>Both. Most seats are online, live on the Taylormade Academy player. There are also 15 seats in my Dallas studio; the address comes in your ticket email. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
+<details><summary>What if I cannot make {DAY}?</summary><p>You can get a full refund up to 7 days before the workshop. If you are not sure yet, start with the free AI 101 on October 9 and decide after.</p></details>
 <details><summary>What is the refund policy?</summary><p>Seven days, no questions, as long as it is before the workshop date. The full policy is on the <a class="textlink" href="/refunds/">refunds page</a>.</p></details>
 </div>
 </div></div></section>
 
 <section class="ag-close on-ink"><div class="wrap">
-<h2>The lowest rate goes to the list.</h2>
-<p class="lead">{DAY}, online. The list hears first, with a personal link to the lowest rate.</p>
-{_form("wlForm2", "agent-close", compact=True, on_ink=True)}
+<h2>Build your first agent on {DAY}.</h2>
+<p class="lead">{DATE}. Online from your desk, or one of 15 seats in the studio. No code, no experience needed.</p>
+<a class="btn gold" href="#heroTicket" data-scroll-form style="margin-top:18px">Get my seat <span class="arr">&rarr;</span></a>
 </div></section>
 </main>
 
