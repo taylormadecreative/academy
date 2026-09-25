@@ -111,7 +111,7 @@ def ai101_page(head, header, footer, ver):
 <div class="ag-roster">
 <span class="ag-stamp">Free &middot; 1 hour</span>
 <span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
-<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Taught AI to HBCU students with AUC's Data Science Institute and Johns Hopkins.</p></div></div>
+<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Taught AI to HBCU students with the AUC Data Science Initiative and Johns Hopkins.</p></div></div>
 </div>
 </div></div></section>
 

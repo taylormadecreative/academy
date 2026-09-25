@@ -636,7 +636,7 @@ def home():
 <span class="kicker gold reveal">Why learn here</span>
 <h2 class="display-m reveal" style="margin-top:12px;max-width:16ch">Taught from the work, not from theory.</h2>
 <div class="receipts reveal" style="grid-template-columns:1fr;margin-top:26px">
-<div class="rc"><div class="num">01</div><div class="h">A live AI build sprint</div><div class="d">A 3-night "Build Your First AI Agent" workshop with AUC's Data Science Institute and Johns Hopkins, for about 50 HBCU students.</div></div>
+<div class="rc"><div class="num">01</div><div class="h">A live AI build sprint</div><div class="d">A 3-night "Build Your First AI Agent" workshop with the AUC Data Science Initiative and Johns Hopkins, for about 50 HBCU students.</div></div>
 <div class="rc"><div class="num">02</div><div class="h">A shipped iOS app</div><div class="d">A real app on the App Store people can download today. Not a prototype, not a slide.</div></div>
 <div class="rc"><div class="num">03</div><div class="h">14 years of client work</div><div class="d">Design, photo, video, branding, and AI for real businesses across Dallas-Fort Worth. BFA, Art Institute of Dallas.</div></div>
 </div>
@@ -905,7 +905,7 @@ def about():
 <span class="kicker gold reveal">The receipts</span>
 <h2 class="display-l reveal" style="margin-top:14px;max-width:18ch">What I have actually shipped.</h2>
 <div class="audience" data-stag style="margin-top:38px">
-<div class="a"><div class="h">The AUC workshop</div><div class="d">A live 3-night "Build Your First AI Agent" sprint with AUC's Data Science Institute and Johns Hopkins, for about 50 HBCU students.</div></div>
+<div class="a"><div class="h">The AUC workshop</div><div class="d">A live 3-night "Build Your First AI Agent" sprint with the AUC Data Science Initiative and Johns Hopkins, for about 50 HBCU students.</div></div>
 <div class="a"><div class="h">A shipped iOS app</div><div class="d">A real app on the App Store. Not a prototype, not a slide. Something people can download.</div></div>
 <div class="a"><div class="h">14 years of client work</div><div class="d">Design, video, branding, and AI for real businesses across Dallas-Fort Worth.</div></div>
 <div class="a"><div class="h">These ebooks</div><div class="d">Written from the work, not from theory. The same steps I teach live.</div></div>

@@ -15,7 +15,7 @@ DATE_LONG = "Friday, October 23, 2026, 7 to 9 PM CT"
 TITLE = "Build Your First AI Agent: a one-night online workshop by Taylormade Academy"
 DESC = (f"{DATE_LONG}, live online on the Taylormade Academy player. "
         "Build a working AI agent in one night, no code, and leave with the playbook to build the next one. "
-        "First taught for AUC's Data Science Institute and Johns Hopkins.")
+        "First taught for the AUC Data Science Initiative and Johns Hopkins.")
 
 _ICON_AGENT = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
                '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M8 12h.01M16 12h.01M9 16h6"/></svg>')
@@ -106,7 +106,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-copy">
 <span class="kicker gold">Taylormade Academy workshop</span>
 <h1 class="display-xl">Build your first<br>AI <span class="u-gold">agent</span>.</h1>
-<p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for AUC's Data Science Institute and Johns Hopkins. Now open to everyone.</b></p>
+<p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for the AUC Data Science Initiative and Johns Hopkins. Now open to everyone.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="ag-sheet"><div class="ag-form ag-ticket" id="heroTicket">
@@ -121,7 +121,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-roster">
 <span class="ag-stamp">First public run</span>
 <span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
-<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Ran the first version of this workshop for about fifty HBCU students with AUC's Data Science Institute and Johns Hopkins.</p></div></div>
+<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Ran the first version of this workshop for about fifty HBCU students with the AUC Data Science Initiative and Johns Hopkins.</p></div></div>
 </div>
 </div></div></section>
 
@@ -193,7 +193,7 @@ def agent_page(head, header, footer, ver):
 <h2>Why I am opening this up.</h2>
 <div class="who"><img src="/assets/agent-nelson-sm.webp" alt="" width="48" height="48"><div><b>Nelson Taylor</b><span>Founder, Taylormade Academy</span></div></div>
 <div class="letter" style="margin-top:22px">
-<p>I taught this first for AUC's Data Science Institute and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
+<p>I taught this first for the AUC Data Science Initiative and Johns Hopkins in June 2026: three nights, about fifty students from HBCUs across the country, most of them starting from zero. By the third night they were pitching agents they built themselves.</p>
 <p>The thing I hear most before a workshop is not "what is AI". It is "I think I'm too old to learn this". Then the same person describes the job they want handled, every rule and every exception, in thirty seconds. That description is the whole thing you type in. This is my answer: one night, online, one agent, built by you, doing a job you are tired of doing.</p>
 <p>If that is what you have been waiting for, grab your seat.</p>
 <a class="btn gold" href="#heroTicket" data-scroll-form style="margin-top:6px">Get my seat <span class="arr">&rarr;</span></a>
