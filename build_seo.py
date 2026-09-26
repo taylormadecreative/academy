@@ -18,12 +18,18 @@ ORG_ID = DOMAIN + "/#org"
 SITE_ID = DOMAIN + "/#website"
 NELSON_ID = DOMAIN + "/about/#nelson"
 
-SAME_AS = [
+# Profiles the Academy itself owns (the Organization) vs Nelson's own (the Person). Keeping them
+# apart stops engines merging the Academy with Taylormade Creative or with other "Taylormade"s.
+ORG_SAME_AS = ["https://www.facebook.com/groups/taylormadeacademy"]
+NELSON_SAME_AS = [
     "https://instagram.com/taylormade_creative",
     "https://tiktok.com/@taylormadecreative",
     "https://linkedin.com/in/taylormademd",
-    "https://www.facebook.com/groups/taylormadeacademy",
+    "https://taylormadecreative.net",
 ]
+AUC = "Atlanta University Center (AUC) Data Science Initiative"
+AUDIENCE = {"@type": "Audience", "audienceType": "Beginners, small business owners and creatives"}
+CITY = {"@type": "PostalAddress", "addressLocality": "Dallas", "addressRegion": "TX", "addressCountry": "US"}
 
 DFW = {"@type": "Place", "name": "Dallas-Fort Worth, Texas"}
 
@@ -31,7 +37,7 @@ DFW = {"@type": "Place", "name": "Dallas-Fort Worth, Texas"}
 STUDIO = {
     "@type": "Place",
     "name": "Taylormade Academy studio, Dallas",
-    "address": {"@type": "PostalAddress", "addressLocality": "Dallas", "addressRegion": "TX", "addressCountry": "US"},
+    "address": CITY,
 }
 
 
@@ -71,13 +77,15 @@ def organization():
         "description": ("Taylormade Academy is a Dallas-Fort Worth school and online community, founded by "
                         "Nelson Taylor, that teaches AI, graphic design, photography, and video to beginners "
                         "through live workshops, video courses, and plain-English ebooks."),
+        "disambiguatingDescription": "An AI and creative-skills school in Dallas-Fort Worth, Texas, founded by Nelson Taylor.",
+        "address": CITY,
         "founder": {"@id": NELSON_ID},
         "parentOrganization": {"@type": "Organization", "name": "Taylormade Creative", "url": "https://taylormadecreative.net"},
         "areaServed": [DFW, {"@type": "Country", "name": "United States"}],
         "knowsAbout": ["Artificial intelligence", "AI agents", "Prompt writing", "ChatGPT", "Claude",
                        "Graphic design", "Photography", "Video production", "Content creation"],
         "email": "taylormademd@gmail.com",
-        "sameAs": SAME_AS,
+        "sameAs": ORG_SAME_AS,
     }
 
 
@@ -95,12 +103,12 @@ def nelson():
         "url": DOMAIN + "/about/",
         "image": DOMAIN + "/assets/hero-nelson.png",
         "description": ("Dallas-Fort Worth creative with 14 years of client work in graphic design, photography, "
-                        "video, and AI. Taught Build Your First AI Agent to about 50 HBCU students with the AUC "
-                        "Data Science Initiative and Johns Hopkins."),
+                        f"video, and AI. Taught Build Your First AI Agent to about 50 HBCU students with the {AUC} "
+                        "and Johns Hopkins."),
         "worksFor": {"@id": ORG_ID},
         "homeLocation": DFW,
         "knowsAbout": ["AI agents", "Prompt writing", "Graphic design", "Photography", "Video production"],
-        "sameAs": SAME_AS[:3] + ["https://taylormadecreative.net"],
+        "sameAs": NELSON_SAME_AS,
     }
 
 
@@ -123,18 +131,20 @@ def faq_from_html(page_html):
 
 
 # ---------- events ----------
-def event(w):
-    """w: a workshop dict from build_workshops.WORKSHOPS."""
+def event(w, with_offers=True):
+    """w: a workshop dict from build_workshops.WORKSHOPS. with_offers=False leaves the prices to the
+    workshop's own page (the /workshops/ hub shows no prices, so its schema carries none either)."""
     online = {"@type": "VirtualLocation", "url": w["url"] if w["url"].startswith("http") else DOMAIN + w["url"]}
     if w["mode"] == "mixed":
-        mode, loc = "MixedEventAttendanceMode", [online, STUDIO]
+        # the physical place first: it is the part search engines can list
+        mode, loc = "MixedEventAttendanceMode", [STUDIO, online]
     elif w["mode"] == "online":
         mode, loc = "OnlineEventAttendanceMode", online
     else:
         mode, loc = "OfflineEventAttendanceMode", w.get("place", STUDIO)
     page = w["url"] if w["url"].startswith("http") else DOMAIN + w["url"]
     offers = []
-    for o in w.get("offers", []):
+    for o in (w.get("offers", []) if with_offers else []):
         off = {"@type": "Offer", "name": o["name"], "url": o.get("url", page), "priceCurrency": "USD",
                "availability": "https://schema.org/InStock"}
         if "price" in o:
@@ -145,7 +155,8 @@ def event(w):
         offers.append(off)
     ev = {
         "@type": "EducationEvent",
-        "@id": page + "#event",
+        # an event sold elsewhere (Eventbrite) still gets an id in our own namespace
+        "@id": (DOMAIN + "/workshops/#" + w["slug"]) if w["url"].startswith("http") else page + "#event",
         "name": w["title"],
         "description": w["schema_desc"],
         "startDate": w["start"],
@@ -158,6 +169,7 @@ def event(w):
         "inLanguage": "en-US",
         "isAccessibleForFree": bool(w.get("free")),
         "educationalLevel": "Beginner",
+        "audience": AUDIENCE,
         "teaches": w.get("teaches"),
         "organizer": {"@type": "Organization", "@id": ORG_ID, "name": "Taylormade Academy", "url": DOMAIN + "/"},
         "performer": {"@type": "Person", "@id": NELSON_ID, "name": "Nelson Taylor"},
@@ -169,34 +181,9 @@ def event(w):
     return {k: v for k, v in ev.items() if v is not None}
 
 
-def course(w):
-    """Course + its instances, for course listings. Only for workshops that teach a skill end to end."""
-    page = DOMAIN + w["url"]
-    inst = []
-    for m in (["Online", "Onsite"] if w["mode"] == "mixed" else ["Online" if w["mode"] == "online" else "Onsite"]):
-        ci = {"@type": "CourseInstance", "courseMode": m, "startDate": w["start"], "endDate": w["end"],
-              "courseWorkload": w["workload"], "instructor": {"@id": NELSON_ID, "@type": "Person", "name": "Nelson Taylor"}}
-        ci["location"] = STUDIO if m == "Onsite" else {"@type": "VirtualLocation", "url": page}
-        inst.append(ci)
-    c = {
-        "@type": "Course",
-        "@id": page + "#course",
-        "name": w["title"],
-        "description": w["schema_desc"],
-        "url": page,
-        "provider": {"@type": "Organization", "@id": ORG_ID, "name": "Taylormade Academy", "sameAs": DOMAIN + "/"},
-        "educationalLevel": "Beginner",
-        "teaches": w.get("teaches"),
-        "inLanguage": "en-US",
-        "isAccessibleForFree": bool(w.get("free")),
-        "hasCourseInstance": inst,
-        "image": DOMAIN + "/" + w["og"],
-    }
-    if w.get("offers"):
-        low = min(o["price"] for o in w["offers"] if "price" in o)
-        c["offers"] = {"@type": "Offer", "category": "Free" if low == 0 else "Paid", "price": str(low),
-                       "priceCurrency": "USD", "url": page, "availability": "https://schema.org/InStock"}
-    return c
+
+def profile_page():
+    return {"@type": "ProfilePage", "url": DOMAIN + "/about/", "mainEntity": nelson()}
 
 
 def glossary(words, page):

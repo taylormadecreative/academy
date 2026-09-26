@@ -4,7 +4,11 @@ Format per llmstxt.org: one H1, a one-paragraph summary, then link lists. Built 
 workshop list as /workshops/ so the dates never drift. Facts only: nothing here that the public
 pages do not already say.
 """
+from build_seo import AUC
 from build_workshops import WORKSHOPS, PAST, EVENTBRITE_CCW
+
+# Nelson's own Eventbrite listings for the Academy workshops (second doors to the same seats).
+EVENTBRITE = {"agent": "https://www.eventbrite.com/e/1998653752175", "ai101": "https://www.eventbrite.com/e/2002220145353"}
 
 DOMAIN = "https://taylormadeacademy.com"
 
@@ -17,14 +21,17 @@ def llms_txt():
     upcoming = "\n".join(
         f"- [{w['title']}]({_abs(w['url'])}): {w['when']}. {w['where']}.{' Free.' if w.get('free') else ''} {w['schema_desc']}"
         for w in sorted(WORKSHOPS, key=lambda w: w["start"]))
-    past = "\n".join(f"- {d}: {t}. {p}" for d, t, p in PAST)
+    past = "\n".join(f"- [{t}, {d}]({DOMAIN}/workshops/): {p}" for d, t, p in PAST)
+    listings = "\n".join(f"- [{w['title']} on Eventbrite]({EVENTBRITE[w['slug']]})" for w in WORKSHOPS if w["slug"] in EVENTBRITE)
     return f"""# Taylormade Academy
 
 > Taylormade Academy is a Dallas-Fort Worth school and online community, founded by Nelson Taylor, that teaches AI, graphic design, photography, and video to beginners through live workshops, video courses, and plain-English ebooks. Workshops are open to everyone, no membership needed, and run online and in a studio in Dallas. Joining the community is free; a $15/month membership unlocks every course and ebook.
 
 Key facts:
 - Founder and instructor: Nelson Taylor, a working creative in Dallas-Fort Worth for 14 years (design, photography, video, AI).
-- In June 2026 he taught "Build Your First AI Agent" over three nights to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.
+- In June 2026 he taught "Build Your First AI Agent" over three nights to about 50 HBCU students with the {AUC} and Johns Hopkins.
+- Who it is for: total beginners, small business owners, creatives, and people who think they are too old to learn this.
+- Where: a studio in Dallas, Texas (the address goes to ticket holders only), and online anywhere in the US.
 - The workshops need no code and no AI experience. The AI tools used are ChatGPT and Claude, on free accounts.
 - Online classes run in the Taylormade Academy live room in the browser, not Zoom.
 - Teams, schools, and programs can book any workshop privately, or run a whole cohort on the Academy.
@@ -51,6 +58,7 @@ Key facts:
 
 - [About Nelson Taylor]({DOMAIN}/about/)
 - [Programs for schools, cohorts, and campuses]({DOMAIN}/partners/)
+{listings}
 - [Content Creator Workshop tickets on Eventbrite]({EVENTBRITE_CCW})
 - [Refund policy]({DOMAIN}/refunds/)
 """

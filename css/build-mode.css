@@ -477,7 +477,7 @@ p{max-width:68ch;}
 a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px;}
 :focus:not(:focus-visible){outline:none;}
 /* dark surfaces: blue outline is invisible on navy, use gold */
-.on-ink :focus-visible,.site-footer :focus-visible,.mem-card.feat :focus-visible,.freebook :focus-visible,.ailaunch :focus-visible,.pop-bottom :focus-visible{outline-color:var(--gold);}
+.on-ink :focus-visible,.xl-home :focus-visible,.site-footer :focus-visible,.mem-card.feat :focus-visible,.freebook :focus-visible,.ailaunch :focus-visible,.pop-bottom :focus-visible{outline-color:var(--gold);}
 /* iOS Safari zooms on focus when inputs are under 16px */
 @media(max-width:640px){input,textarea,select{font-size:16px!important;}}
 @media(prefers-reduced-motion:reduce){
@@ -551,10 +551,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .xs-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px 24px;flex-wrap:wrap}
 .xs-h span{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a8bcf5}
 .xs-h .textlink{color:var(--gold);font-weight:700}
-.xs-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:14px}
-.xs-list a{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"d t" "d w";column-gap:14px;align-items:center;height:100%;padding:12px 16px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.04);transition:background .2s var(--ease),border-color .2s var(--ease)}
+.xs-list{list-style:none;display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media(min-width:761px){.xs-list{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}}
+.xs-list a{display:grid;grid-template-columns:3.6em minmax(0,1fr);grid-template-areas:"d t" "d w";column-gap:14px;align-items:center;height:100%;padding:12px 16px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.04);transition:background .2s var(--ease),border-color .2s var(--ease)}
 @media(hover:hover) and (pointer:fine){.xs-list a:hover{background:rgba(255,255,255,.09);border-color:rgba(253,201,33,.5)}}
-.xs-d{grid-area:d;font-family:var(--display);font-weight:700;font-size:15px;color:var(--gold);white-space:nowrap}
+.xs-d{grid-area:d;font-family:var(--display);font-weight:700;font-size:15px;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
+.xs-h .textlink{display:inline-block;padding-block:12px;margin-block:-12px}
 .xs-t{grid-area:t;font-family:var(--display);font-weight:600;font-size:15.5px;color:#fff;letter-spacing:-.01em;line-height:1.3}
 .xs-w{grid-area:w;font-size:13px;color:#9fb0d4;line-height:1.4}
 
@@ -565,3 +567,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .js .hero .hero-art.reveal{animation-delay:.08s}
 /* images whose width is set in CSS keep their own shape */
 .freebook .fb-cover,.site-footer .logo{height:auto}
+.btn:focus-visible{border-radius:var(--pill)}
+.on-ink .btn.gold,.xl-home .btn.gold{box-shadow:none}
+
+/* the nav never breaks a label over two lines: under 1080px it folds into the menu button */
+.navlink{white-space:nowrap}
+@media(min-width:921px) and (max-width:1079px){
+  .nav{display:none}
+  .nav-cta .navlink{display:none}
+  .burger{display:flex}
+  .nav-cta .cart-btn{display:inline-flex !important}
+}
+/* nothing left to show once every date has passed (build_workshops.HIDE_PAST): drop the empty navy band */
+.xl-home:not(:has(.xl-home-in)):has(.xl-sched[hidden]){display:none}

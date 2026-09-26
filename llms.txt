@@ -4,7 +4,9 @@
 
 Key facts:
 - Founder and instructor: Nelson Taylor, a working creative in Dallas-Fort Worth for 14 years (design, photography, video, AI).
-- In June 2026 he taught "Build Your First AI Agent" over three nights to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.
+- In June 2026 he taught "Build Your First AI Agent" over three nights to about 50 HBCU students with the Atlanta University Center (AUC) Data Science Initiative and Johns Hopkins.
+- Who it is for: total beginners, small business owners, creatives, and people who think they are too old to learn this.
+- Where: a studio in Dallas, Texas (the address goes to ticket holders only), and online anywhere in the US.
 - The workshops need no code and no AI experience. The AI tools used are ChatGPT and Claude, on free accounts.
 - Online classes run in the Taylormade Academy live room in the browser, not Zoom.
 - Teams, schools, and programs can book any workshop privately, or run a whole cohort on the Academy.
@@ -13,14 +15,14 @@ Key facts:
 ## Upcoming workshops
 
 - [All workshops](https://taylormadeacademy.com/workshops/): every upcoming date in one place.
-- [AI 101: Learn to Talk to AI](https://taylormadeacademy.com/ai101/): Friday, October 9, 7 to 8 PM CT. Online. Free. A free, one-hour live online class for beginners on how to write a prompt for ChatGPT or Claude and what common AI words mean, taught by Nelson Taylor of Taylormade Academy.
-- [Build Your First AI Agent](https://taylormadeacademy.com/agent/): Friday, October 23, 7 to 9 PM CT. Online, or in the Dallas studio. A live, beginner-friendly workshop where you build a working AI agent in one night with no code, taught by Nelson Taylor online and in a Dallas studio. First taught for the AUC Data Science Initiative and Johns Hopkins.
-- [Content Creator Workshop](https://www.eventbrite.com/e/content-creator-workshop-tickets-1998653390092): Friday, November 6, 7 to 9 PM CT. In the studio, Dallas. A hands-on, in-person evening workshop in a Dallas studio for content creators, taught by Nelson Taylor: make videos that look and sound professional, and meet other DFW creators.
+- [AI 101: Learn to Talk to AI](https://taylormadeacademy.com/ai101/): Friday, October 9, 2026, 7 to 8 PM CT. Online. Free. A free, one-hour live online class for beginners on how to write a prompt for ChatGPT or Claude and what common AI words mean, taught by Nelson Taylor of Taylormade Academy.
+- [Build Your First AI Agent](https://taylormadeacademy.com/agent/): Friday, October 23, 2026, 7 to 9 PM CT. Online, or one of 15 seats in the Dallas studio. A live, beginner-friendly workshop where you build a working AI agent in one night with no code, taught by Nelson Taylor online and in a Dallas studio. First taught for the Atlanta University Center (AUC) Data Science Initiative and Johns Hopkins.
+- [Content Creator Workshop](https://www.eventbrite.com/e/content-creator-workshop-tickets-1998653390092): Friday, November 6, 2026, 7 to 9 PM CT. In the studio, Dallas. A hands-on, in-person evening workshop in a Dallas studio for content creators, taught by Nelson Taylor: make videos that look and sound professional, and meet other DFW creators.
 
 ## Workshops already taught
 
-- August 21, 2026: Content Creator Workshop. A hands-on night for DFW creators at Jenel Studios in Dallas.
-- June 2026: Build Your First AI Agent, for the AUC Data Science Initiative. Three nights with the AUC Data Science Initiative and Johns Hopkins, for about 50 HBCU students. Most started from zero; by the third night they were pitching agents they built.
+- [Content Creator Workshop, August 21, 2026](https://taylormadeacademy.com/workshops/): A hands-on night for DFW creators at Jenel Studios in Dallas.
+- [Build Your First AI Agent, for the AUC Data Science Initiative, June 2026](https://taylormadeacademy.com/workshops/): Three nights with the Atlanta University Center (AUC) Data Science Initiative and Johns Hopkins, for about 50 HBCU students. Most started from zero; by the third night they were pitching agents they built.
 
 ## Learn
 
@@ -34,5 +36,7 @@ Key facts:
 
 - [About Nelson Taylor](https://taylormadeacademy.com/about/)
 - [Programs for schools, cohorts, and campuses](https://taylormadeacademy.com/partners/)
+- [Build Your First AI Agent on Eventbrite](https://www.eventbrite.com/e/1998653752175)
+- [AI 101: Learn to Talk to AI on Eventbrite](https://www.eventbrite.com/e/2002220145353)
 - [Content Creator Workshop tickets on Eventbrite](https://www.eventbrite.com/e/content-creator-workshop-tickets-1998653390092)
 - [Refund policy](https://taylormadeacademy.com/refunds/)

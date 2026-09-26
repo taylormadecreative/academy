@@ -1,10 +1,12 @@
 """/agent/ and /agent/thanks/ — Build Your First AI Agent (public waitlist + seat sales).
 
 Rendered by build_site.py so the pages inherit the real site header and footer. Page
-styles live in css/agent.css, behaviour in js/agent.js. Tiers and prices are never
-written here: the page reads ea_events_public / ea_tiers_public at load and the founder
-dashboard (/founder/) is where Nelson sets them. The DATE does appear in the copy, in
-one place: the three constants below. Change it there and rebuild. Never edit
+styles live in css/agent.css, behaviour in js/agent.js. The ticket box reads the live tiers
+from ea_events_public / ea_tiers_public, and /founder/ is where Nelson sets them. Two places
+here repeat those prices in words, for people and for search engines: the FAQ answer and
+OFFERS below. If a tier changes in /founder/, change both and rebuild (the build refuses to
+run if an OFFERS price is missing from the FAQ). The DATE appears in the constants below.
+Change it there and rebuild. Never edit
 agent/index.html by hand; the next build_site.py run overwrites it.
 """
 
@@ -21,7 +23,7 @@ OFFERS = [
     {"name": "Studio seat in Dallas (15 seats)", "price": 125, "validFrom": "2026-09-24T00:00:00-05:00", "validThrough": "2026-10-23T12:00:00-05:00"},
 ]
 
-TITLE = "Build Your First AI Agent: AI Workshop Online + Dallas, Oct 23"
+TITLE = "Build Your First AI Agent: No-Code Workshop, Online + Dallas"
 DESC = (f"A live, beginner AI workshop: {DATE_LONG}. Online, or in the Dallas studio. "
         "Build a working AI agent in one night with no code, and leave with the playbook for the next one. "
         "First taught for the AUC Data Science Initiative and Johns Hopkins.")
@@ -114,8 +116,8 @@ def agent_page(head, header, footer, ver):
 <section class="ag-hero"><div class="wrap"><div class="ag-grid">
 <div class="ag-copy">
 <span class="kicker gold">Taylormade Academy workshop</span>
-<h1 class="display-xl">Build your first<br>AI <span class="u-gold">agent</span>.</h1>
-<p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for the AUC Data Science Initiative and Johns Hopkins. Now open to everyone.</b></p>
+<h1 class="display-xl">Build your first <br>AI <span class="u-gold">agent</span>.</h1>
+<p class="lead">{DATE}. Live online, from your own desk. No code, no experience needed. You leave with an agent you built that does a real job for you, and the playbook to build the next one. <b>First taught for the Atlanta University Center (AUC) Data Science Initiative and Johns Hopkins. Now open to everyone.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn ghost" id="heroCta" href="#outcomes">See what you build <span class="arr">&rarr;</span></a></div>
 </div>
 <div class="ag-sheet"><div class="ag-form ag-ticket" id="heroTicket">
@@ -173,7 +175,7 @@ def agent_page(head, header, footer, ver):
 <section class="ag-night"><div class="wrap"><div class="ag-night-grid">
 <div class="ag-night-intro">
 <span class="kicker gold">The night</span>
-<h2 style="margin-top:12px">How the evening runs.</h2>
+<h2 style="margin-top:12px">How do you build an AI agent with no code?</h2>
 <p class="lead">{DATE}, live on the Academy player. You watch me build on screen and build the same thing on your own laptop, with a live chat for questions the whole way. The tools are free to start and I walk you through the accounts. We build in three moves.</p>
 </div>
 <ol class="ag-steps">
@@ -185,14 +187,14 @@ def agent_page(head, header, footer, ver):
 <section class="ag-dates" id="dates"><div class="wrap">
 <span class="kicker gold">Dates</span>
 <h2 style="margin-top:12px">Upcoming dates.</h2>
-<p class="ag-empty" id="datesEmpty"><b>{DATE_LONG}. Online, on the Academy player.</b> Seats are on sale now.</p>
+<p class="ag-empty" id="datesEmpty"><b>{DATE_LONG}. Online on the Academy player, or in person in the Dallas studio (15 seats).</b> Seats are on sale now.</p>
 <div class="ag-datelist" id="datesList" style="display:none"></div>
 </div></section>
 
 <section class="ag-seats" id="seats" hidden><div class="wrap">
 <span class="kicker gold">Seats</span>
 <h2 style="margin-top:12px">Get your seat.</h2>
-<p class="lead">Online, so there is no cap on the room. Checkout is secure and handled by Stripe; your seat code and the sign-in link to the live room come straight to your email.</p>
+<p class="lead">Online seats have no cap. The Dallas studio has 15 seats. Checkout is secure and handled by Stripe; your seat code and the sign-in link to the live room come straight to your email.</p>
 <div class="ag-early" id="earlyNote">You came from your waitlist link, so the waitlist rate is showing below.</div>
 <div class="ag-tiers" id="tiers"></div>
 </div></section>
@@ -209,6 +211,7 @@ def agent_page(head, header, footer, ver):
 </div>
 </div>
 <div class="ag-faq">
+<details><summary>Who is this workshop for?</summary><p>Business owners, creatives and anyone tired of doing the same task every week. You need no code and no AI experience. If you are brand new to AI, start with the free AI 101 on October 9.</p></details>
 <details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
 <details><summary>What do I need?</summary><p>A laptop or desktop with a browser, and a free Claude account (recommended) or a free ChatGPT account, set up before 7 PM. Bring one task you want handled and a few real examples of it. Phones are fine for watching but not for building.</p></details>
 <details><summary>Do I have to pay for the tools?</summary><p>Not on the night. Everything we build runs on free accounts. If you want to use your agent every day afterward, that may take one subscription of about $20 a month on the platform you choose. I say that now so there are no surprises later.</p></details>
@@ -243,6 +246,14 @@ def agent_page(head, header, footer, ver):
 </dialog>
 <script src="/js/agent.js?v={ver}" defer></script>
 """ + footer(pop=False)
+
+
+def check_offers(page_html):
+    """OFFERS feeds the Event schema; the FAQ says the same prices to people. Refuse to build if they drift."""
+    faq = page_html.split('<div class="ag-faq">', 1)[-1]
+    missing = [o["price"] for o in OFFERS if f"${o['price']}" not in faq]
+    if missing:
+        raise SystemExit(f"build_agent.OFFERS prices {missing} are not in the /agent/ FAQ. Update both, then rebuild.")
 
 
 def agent_thanks_page(head, header, footer, ver):

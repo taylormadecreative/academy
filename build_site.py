@@ -3,8 +3,8 @@
 Marketing storefront builds fully with NO keys; Buy buttons degrade to a 503 notice
 until Supabase/Stripe are wired."""
 import pathlib, hashlib, re, urllib.parse, datetime
-from build_seo import inject, organization, website, nelson, breadcrumbs, event, course, faq_from_html, glossary, text as ld_text
-from build_workshops import home_schedule, HIDE_PAST
+from build_seo import inject, organization, website, nelson, profile_page, breadcrumbs, event, faq_from_html, glossary, text as ld_text
+from build_workshops import home_schedule, HIDE_PAST, WORKSHOPS as _WS
 
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://taylormadeacademy.com"
@@ -92,14 +92,14 @@ def hero_photo():
             '</div>')
 
 def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
-    canon = DOMAIN + path
+    canon = DOMAIN + (path or "/")
     hero_preload = ('<link rel="preload" as="image" href="/assets/hero-nelson.webp" '
                     'type="image/webp" fetchpriority="high">') if preload_hero else ""
     return f"""<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="{canon}">
+{f'<link rel="canonical" href="{canon}">' if path else ''}
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
@@ -557,19 +557,20 @@ def ai_launch():
 </div></div></section>""")
 
 # ---------- HOME ----------
+_MAIN = next(w for w in _WS if w.get("feature"))
 def home():
     fb_svg = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z"/></svg>')
     return head(
-        "Taylormade Academy: Live AI Workshops & Creative Courses, Dallas",
-        "Live AI workshops and classes for beginners, online and in Dallas-Fort Worth, taught by Nelson Taylor. Plus video courses, ebooks and a creative community for design, photo, video and AI. Join free.",
+        "Taylormade Academy | Learn AI, Design, Photo & Video in Dallas",
+        "Learn AI, design, photo and video with Nelson Taylor in Dallas-Fort Worth: live workshops, video courses, plain-English ebooks and a free creative community. Join free.",
         "/", preload_hero=True) + header("") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
 <span class="hero-badge"><span class="dot"></span>The creative community for builders</span>
 <h1 class="display-xl" style="margin-top:24px">Learn the craft.<br>Build real things.<br><span class="u-gold">Create real income.</span></h1>
-<p class="sub">Live AI workshops, step-by-step video courses, plain-English ebooks, and a private community for design, photo, video, and AI. Hosted by Nelson Taylor in Dallas-Fort Worth. Built for people who ship.</p>
+<p class="sub"><a class="textlink" href="/workshops/">Live AI workshops</a>, step-by-step video courses, plain-English ebooks, and a private community for design, photo, video, and AI. Hosted by Nelson Taylor in Dallas-Fort Worth. Built for people who ship.</p>
 <div class="cta-row"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="#inside">See what's inside</a></div>
 <div class="statline">
 <div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div>
@@ -580,16 +581,15 @@ def home():
 <div class="hero-art reveal">{hero_photo()}</div>
 </div></div></section>
 
-<section class="xl-home"><div class="wrap"><div class="xl-home-in">
+<section class="xl-home"><div class="wrap"><div class="xl-home-in" data-ends="{_MAIN['end']}">
 <div>
-<span class="kicker gold">Next live workshop &middot; no membership needed</span>
+<span class="kicker gold">The main event</span>
 <h2 class="display-m" style="margin-top:10px">Build Your First AI Agent</h2>
-<p class="xl-when">Friday, October 23, 7 to 9 PM CT. Live online, or in the studio with me.</p>
-<p>Build an AI agent that does a real job for you, in one night. No code, no experience needed.</p>
+<p class="xl-when">{_MAIN["when"]}. Live online, or in the studio with me.</p>
+<p>Build an AI agent that does a real job for you, in one night. No code, no experience, no membership needed.</p>
 </div>
 <div class="xl-home-act">
 <a class="btn gold" href="/agent/">Get your seat <span class="arr">&rarr;</span></a>
-<a class="textlink" href="/ai101/">New to AI? Start with the free AI 101 on Friday, October 9 &rarr;</a>
 </div>
 </div>
 {home_schedule()}
@@ -644,7 +644,7 @@ def home():
 <div class="receipts reveal" style="grid-template-columns:1fr;margin-top:26px">
 <div class="rc"><div class="num">01</div><div class="h">A live AI build sprint</div><div class="d">A 3-night "Build Your First AI Agent" workshop with the AUC Data Science Initiative and Johns Hopkins, for about 50 HBCU students.</div></div>
 <div class="rc"><div class="num">02</div><div class="h">A shipped iOS app</div><div class="d">A real app on the App Store people can download today. Not a prototype, not a slide.</div></div>
-<div class="rc"><div class="num">03</div><div class="h">14 years of client work</div><div class="d">Design, photo, video, branding, and AI for real businesses across Dallas-Fort Worth. BFA, Art Institute of Dallas.</div></div>
+<div class="rc"><div class="num">03</div><div class="h">14 years of client work</div><div class="d">Design, photo, video, branding, and AI for real businesses across Dallas-Fort Worth.</div></div>
 </div>
 <a class="textlink reveal" href="/about/" style="display:inline-block;margin-top:8px">More about Nelson &rarr;</a>
 </div>
@@ -888,7 +888,7 @@ def pricing():
 
 # ---------- ABOUT ----------
 def about():
-    return head("About Nelson Taylor, AI Instructor in Dallas | Taylormade Academy", "Nelson Taylor is a Dallas-Fort Worth creative who teaches AI, graphic design, photography, and video. He taught Build Your First AI Agent to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.", "/about/") + header("About") + f"""
+    return head("Nelson Taylor, AI Instructor in Dallas | Taylormade Academy", "Nelson Taylor is a Dallas-Fort Worth creative who teaches AI, graphic design, photography, and video. He taught Build Your First AI Agent to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.", "/about/") + header("About") + f"""
 <main>
 <section class="section tight"><div class="wrap"><div class="g-12" style="align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/7">
@@ -920,7 +920,7 @@ def about():
 <section class="section cta-band"><div class="wrap">
 <span class="kicker gold reveal" style="justify-content:center">Your turn</span>
 <h2 class="display-l reveal" style="margin-top:14px">Let me show you how I do it.</h2>
-<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="/store/">Get the ebooks</a></div>
+<div class="cta-row reveal" style="justify-content:center"><a class="btn gold" href="/workshops/">See my workshops <span class="arr">&rarr;</span></a><a class="btn ghost" href="/login/?mode=join">Join free</a><a class="btn ghost" href="/store/">Get the ebooks</a></div>
 </div></section>
 </main>""" + footer()
 
@@ -933,8 +933,8 @@ def book_ld(slug):
             "publisher": {"@type": "Organization", "@id": DOMAIN + "/#org", "name": "Taylormade Academy"}}
 
 # ---------- simple stubs (footer links, no-404) ----------
-def stub(title, kicker, heading, body_html, active="", path="/"):
-    return head(f"{title} — Taylormade Academy", heading, path) + header(active) + f"""
+def stub(title, kicker, heading, body_html, active="", path="/", desc=None):
+    return head(f"{title} — Taylormade Academy", desc or heading, path) + header(active) + f"""
 <main><section class="section"><div class="wrap" style="max-width:760px">
 <span class="kicker gold">{kicker}</span><h1 class="display-m" style="margin-top:12px">{heading}</h1>
 <div style="margin-top:20px">{body_html}</div>
@@ -974,7 +974,7 @@ def community_landing():
 
 def not_found():
     return head("Page not found — Taylormade Academy",
-                "That page moved or never existed. Head back to Taylormade Academy.", "/404") + header() + """
+                "That page moved or never existed. Head back to Taylormade Academy.", None) + header() + """
 <main><section class="section" style="text-align:center"><div class="wrap" style="max-width:620px">
 <span class="kicker gold" style="justify-content:center">Error 404</span>
 <h1 class="display-l" style="margin-top:14px">This page took a different path.</h1>
@@ -986,19 +986,36 @@ def not_found():
 
 SITEMAP_PATHS = ["/", "/workshops/", "/agent/", "/ai101/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
-                 "/live/", "/partners/", "/pricing/", "/about/", "/join/", "/community/", "/refunds/", "/terms/", "/privacy/"]
+                 "/partners/", "/pricing/", "/about/", "/join/", "/refunds/", "/terms/", "/privacy/"]
 # Crawlers for AI answers, named so nobody reads the site as closed to them. All allowed.
 AI_BOTS = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot",
-           "Perplexity-User", "Google-Extended", "Applebot-Extended", "Bingbot", "CCBot", "Meta-ExternalAgent", "DuckAssistBot"]
+           "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot", "Meta-ExternalAgent", "DuckAssistBot"]
+
+LASTMOD_FILE = ROOT / "scripts" / "sitemap-lastmod.json"
+
+def _lastmods():
+    """A page's lastmod moves only when its words change: hash each built page with the ?v= cache
+    pins stripped, and keep the date from the last build whose hash differed."""
+    import json
+    seen = json.loads(LASTMOD_FILE.read_text()) if LASTMOD_FILE.exists() else {}
+    today, out = datetime.date.today().isoformat(), {}
+    for pth in SITEMAP_PATHS:
+        f = ROOT / "index.html" if pth == "/" else ROOT / pth.strip("/") / "index.html"
+        body = re.sub(r"\?v=[a-z0-9]+", "", f.read_text()) if f.exists() else ""
+        h = hashlib.sha256(body.encode()).hexdigest()[:16]
+        old = seen.get(pth)
+        seen[pth] = old if old and old[0] == h else [h, today]
+        out[pth] = seen[pth][1]
+    LASTMOD_FILE.write_text(json.dumps(seen, indent=1) + "\n")
+    return out
 
 def write_meta():
     (ROOT / "404.html").write_text(not_found())
     bots = "".join(f"User-agent: {b}\n" for b in AI_BOTS)
     (ROOT / "robots.txt").write_text(
-        "User-agent: *\nAllow: /\n\n# AI search and answer engines are welcome.\n" + bots + "Allow: /\n\n"
+        "User-agent: *\nAllow: /\n\n# Named so it is plain: AI search, answer and training crawlers are all allowed here.\n" + bots + "Allow: /\n\n"
         "Sitemap: " + DOMAIN + "/sitemap.xml\n")
-    today = datetime.date.today().isoformat()
-    urls = "".join(f"  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq></url>\n" for p in SITEMAP_PATHS)
+    urls = "".join(f"  <url><loc>{DOMAIN}{p}</loc><lastmod>{d}</lastmod></url>\n" for p, d in _lastmods().items())
     (ROOT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + '</urlset>\n')
@@ -1084,19 +1101,21 @@ if __name__ == "__main__":
     render("/store/always-on-agent/", inject(product_page("always-on-agent"), book_ld("always-on-agent"), breadcrumbs(("Store", "/store/"), (PRODUCTS["always-on-agent"]["title"], "/store/always-on-agent/"))))
     render("/store/busy-season-handled/", inject(product_page("busy-season-handled"), book_ld("busy-season-handled"), breadcrumbs(("Store", "/store/"), (PRODUCTS["busy-season-handled"]["title"], "/store/busy-season-handled/"))))
     render("/pricing/", pricing())
-    render("/about/", inject(about(), nelson(), breadcrumbs(("About Nelson", "/about/"))))
+    render("/about/", inject(about(), profile_page(), breadcrumbs(("About Nelson", "/about/"))))
     render("/join/", community_landing())
     from build_agent import agent_page, agent_thanks_page
     from build_workshops import WORKSHOPS, workshops_page
     _w = {w["slug"]: w for w in WORKSHOPS}
     _agent = agent_page(head, header, footer, ASSET_VER)
-    render("/agent/", inject(_agent, event(_w["agent"]), course(_w["agent"]), faq_from_html(_agent),
+    from build_agent import check_offers
+    check_offers(_agent)
+    render("/agent/", inject(_agent, event(_w["agent"]), faq_from_html(_agent),
                              breadcrumbs(("Workshops", "/workshops/"), ("Build Your First AI Agent", "/agent/"))))
     render("/agent/thanks/", agent_thanks_page(head, header, footer, ASSET_VER))
     from build_ai101 import ai101_page, ai101_replay_page
     from build_ai101 import WORDS
     _ai101 = ai101_page(head, header, footer, ASSET_VER)
-    render("/ai101/", inject(_ai101, event(_w["ai101"]), course(_w["ai101"]), faq_from_html(_ai101), glossary(WORDS, "/ai101/"),
+    render("/ai101/", inject(_ai101, event(_w["ai101"]), faq_from_html(_ai101), glossary(WORDS, "/ai101/"),
                              breadcrumbs(("Workshops", "/workshops/"), ("AI 101", "/ai101/"))))
     render("/workshops/", workshops_page(head, header, footer, ASSET_VER))
     render("/ai101/replay/", ai101_replay_page(head, header, footer, ASSET_VER))
@@ -1106,10 +1125,10 @@ if __name__ == "__main__":
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.
     render("/refunds/", stub("Refunds", "Policy", "Refund policy",
-        "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>", path="/refunds/"))
+        "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>", path="/refunds/", desc="Taylormade Academy refund policy: a 7-day, no-questions refund on ebooks and digital products, and cancel a membership anytime."))
     render("/terms/", stub("Terms", "Legal", "Terms of use",
-        "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>", path="/terms/"))
-    render("/privacy/", stub("Privacy", "Legal", "Privacy", PRIVACY_BODY, path="/privacy/"))
+        "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>", path="/terms/", desc="Terms of use for Taylormade Academy ebooks, courses, workshops and the community, by Taylormade Creative in Dallas-Fort Worth."))
+    render("/privacy/", stub("Privacy", "Legal", "Privacy", PRIVACY_BODY, path="/privacy/", desc="How Taylormade Academy handles your data, in plain English: what is collected, why, who processes it, and how to delete your account."))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
         "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", path="/thank-you/").replace("</head>", '<meta name="robots" content="noindex">\n</head>', 1))
     write_meta()

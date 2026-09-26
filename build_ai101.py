@@ -106,7 +106,7 @@ def ai101_page(head, header, footer, ver):
 <section class="ag-hero"><div class="wrap"><div class="ag-grid">
 <div class="ag-copy">
 <span class="kicker gold">Free live class</span>
-<h1 class="display-xl">AI 101.<br>Learn to <span class="u-gold">talk</span> to AI.</h1>
+<h1 class="display-xl">AI 101. <br>Learn to <span class="u-gold">talk</span> to AI.</h1>
 <p class="lead">{DATE}. One hour, live online, free. Learn how to ask AI for what you want, and what all the AI words mean. <b>No experience needed. If you can send a text, you can do this.</b></p>
 <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn gold a1-jump" href="#top" data-scroll-form>Save my free seat <span class="arr">&rarr;</span></a><a class="btn ghost" href="#learn">See what you learn <span class="arr">&rarr;</span></a></div>
 </div>
@@ -114,7 +114,7 @@ def ai101_page(head, header, footer, ver):
 <div class="ag-roster">
 <span class="ag-stamp">Free &middot; 1 hour</span>
 <span class="ag-photo"><img src="/assets/agent-nelson.webp" width="715" height="1100" alt="Nelson Taylor in the navy and gold Taylormade Creative varsity jacket" decoding="async" fetchpriority="high"></span>
-<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Taught AI to HBCU students with the AUC Data Science Initiative and Johns Hopkins.</p></div></div>
+<div class="ag-plate"><img class="ag-logo" src="/assets/logo-mark.webp" alt="" width="40" height="40"><div><div class="ag-plate-h">Taught by Nelson Taylor</div><p class="ag-plate-p">Fourteen years a working creative in Dallas-Fort Worth. Taught AI to HBCU students with the Atlanta University Center (AUC) Data Science Initiative and Johns Hopkins.</p></div></div>
 </div>
 </div></div></section>
 
@@ -136,7 +136,7 @@ def ai101_page(head, header, footer, ver):
 
 <section class="ag-band on-ink" id="learn"><div class="wrap">
 <span class="kicker gold">What you learn</span>
-<h2 class="ag-band-h" style="margin-top:12px">Three things, in plain English.</h2>
+<h2 class="ag-band-h" style="margin-top:12px">What will you learn in AI 101?</h2>
 <div class="ag-out">
 <div class="ag-out-lead">
 <h3>How to write a prompt</h3>
@@ -165,15 +165,15 @@ def ai101_page(head, header, footer, ver):
 
 <section class="a1-words"><div class="wrap">
 <span class="kicker gold">The words</span>
-<h2 style="margin-top:12px">Six words you will hear everywhere.</h2>
-<p class="lead" style="margin-top:12px">We go through these and a few more in class. Each one, in one plain sentence.</p>
+<h2 style="margin-top:12px">What do the AI words mean?</h2>
+<p class="lead" style="margin-top:12px">Six words you will hear everywhere. We go through these and a few more in class. Each one, in one plain sentence.</p>
 <dl class="a1-wordlist">{words}</dl>
 </div></section>
 
 <section class="ag-night"><div class="wrap"><div class="ag-night-grid">
 <div class="ag-night-intro">
 <span class="kicker gold">The hour</span>
-<h2 style="margin-top:12px">How the class runs.</h2>
+<h2 style="margin-top:12px">How does the class run?</h2>
 <p class="lead">{DATE}, live in the Taylormade Academy room. Open it on a laptop, tablet, or phone. A laptop makes it easier to try things along with me.</p>
 </div>
 <ol class="ag-steps">
@@ -197,6 +197,7 @@ def ai101_page(head, header, footer, ver):
 <details><summary>How do I get in?</summary><p>Your sign-up email has the room link. You sign in with a free Taylormade Academy account, using the same email. Making the account takes about a minute. You can do it now so you are ready.</p></details>
 <details><summary>What do I need?</summary><p>A laptop, tablet, or phone with internet. A laptop is best if you want to try along with me. A free ChatGPT or Claude account helps, but you can just watch.</p></details>
 <details><summary>Do I need to know anything about AI?</summary><p>No. This class is for beginners. We start from zero.</p></details>
+<details><summary>Am I too old to learn AI?</summary><p>No. It is the thing I hear most, and you are not. Most people just never had someone explain it plainly. This class starts from zero, in plain English, with no code. If you can send a text, you can do this.</p></details>
 <details><summary>Will there be a replay?</summary><p>The live class is free. The replay is for Academy members, at $15 a month. So come live if you can.</p></details>
 <details><summary>Can I bring a friend?</summary><p>Yes. Send them this page. Each person saves their own seat with their own email.</p></details>
 </div>

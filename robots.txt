@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-# AI search and answer engines are welcome.
+# Named so it is plain: AI search, answer and training crawlers are all allowed here.
 User-agent: GPTBot
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
@@ -12,7 +12,6 @@ User-agent: PerplexityBot
 User-agent: Perplexity-User
 User-agent: Google-Extended
 User-agent: Applebot-Extended
-User-agent: Bingbot
 User-agent: CCBot
 User-agent: Meta-ExternalAgent
 User-agent: DuckAssistBot
