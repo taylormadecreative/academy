@@ -2,7 +2,9 @@
 """Taylormade Academy static site generator. Shared chrome + page bodies -> route/index.html.
 Marketing storefront builds fully with NO keys; Buy buttons degrade to a 503 notice
 until Supabase/Stripe are wired."""
-import pathlib, hashlib, re, urllib.parse
+import pathlib, hashlib, re, urllib.parse, datetime
+from build_seo import inject, organization, website, nelson, breadcrumbs, event, course, faq_from_html, glossary, text as ld_text
+from build_workshops import home_schedule, HIDE_PAST
 
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://taylormadeacademy.com"
@@ -13,7 +15,7 @@ def _asset_ver():
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
-                "css/agent.css", "js/agent.js", "css/ai101.css", "js/ai101.js", "js/founder.js",
+                "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
                 "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js"):
@@ -44,7 +46,7 @@ PWA_TAGS = (
     f'<script src="/js/meta-pixel.js?v={ASSET_VER}" defer></script>'
 )
 
-NAV = [("Workshop", "/agent/"), ("Free class", "/ai101/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
+NAV = [("Workshops", "/workshops/"), ("Free class", "/ai101/"), ("Community", "/join/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About", "/about/")]
 
 # Nelson's social accounts. The 3 confirmed are live; more get appended as Nelson sends them.
 SOCIALS = [
@@ -104,7 +106,8 @@ def head(title, desc, path="/", og="assets/og-image.png", preload_hero=False):
 <meta name="theme-color" content="#04123a">
 <meta property="og:type" content="website"><meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{canon}">
-<meta property="og:image" content="{DOMAIN}/{og}"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="{DOMAIN}/{og}"><meta property="og:site_name" content="Taylormade Academy"><meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{title}"><meta name="twitter:description" content="{desc}"><meta name="twitter:image" content="{DOMAIN}/{og}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
@@ -129,7 +132,7 @@ def header(active=""):
 def footer(pop=True):
     socials = "".join(f'<a href="{u}" target="_blank" rel="noopener" style="color:#9fb0d4;margin-right:18px">{t}</a>' for t, u in SOCIALS)
     cols = {
-        "Explore": [("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
+        "Explore": [("Workshops", "/workshops/"), ("Free AI class", "/ai101/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
         "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Sign in", "/login/"), ("Join free", "/login/?mode=join")],
         "For programs": [("Cohorts &amp; campus hubs", "/partners/"), ("Download the PDF", "/partners/taylormade-academy-programs.pdf")],
     }
@@ -558,15 +561,15 @@ def home():
     fb_svg = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z"/></svg>')
     return head(
-        "Taylormade Academy — Learn the craft. Build real things. Create real income.",
-        "A creative community by Nelson Taylor. Video courses, ebooks you can read on-site or download, and a private community for design, photography, video, and AI. Join free, unlock everything for $15/mo.",
+        "Taylormade Academy: Live AI Workshops & Creative Courses, Dallas",
+        "Live AI workshops and classes for beginners, online and in Dallas-Fort Worth, taught by Nelson Taylor. Plus video courses, ebooks and a creative community for design, photo, video and AI. Join free.",
         "/", preload_hero=True) + header("") + f"""
 <main>
 <section class="hero"><div class="wrap"><div class="h-grid">
 <div class="hero-copy reveal">
 <span class="hero-badge"><span class="dot"></span>The creative community for builders</span>
 <h1 class="display-xl" style="margin-top:24px">Learn the craft.<br>Build real things.<br><span class="u-gold">Create real income.</span></h1>
-<p class="sub">A private community, step-by-step video courses, and plain-English ebooks for design, photo, video, and AI. Hosted by Nelson Taylor. Built for people who ship.</p>
+<p class="sub">Live AI workshops, step-by-step video courses, plain-English ebooks, and a private community for design, photo, video, and AI. Hosted by Nelson Taylor in Dallas-Fort Worth. Built for people who ship.</p>
 <div class="cta-row"><a class="btn gold" href="/login/?mode=join">Join free <span class="arr">&rarr;</span></a><a class="btn ghost" href="#inside">See what's inside</a></div>
 <div class="statline">
 <div class="s"><div class="n">Free</div><div class="l">to join, forever</div></div>
@@ -579,7 +582,7 @@ def home():
 
 <section class="xl-home"><div class="wrap"><div class="xl-home-in">
 <div>
-<span class="kicker gold">Next live workshop</span>
+<span class="kicker gold">Next live workshop &middot; no membership needed</span>
 <h2 class="display-m" style="margin-top:10px">Build Your First AI Agent</h2>
 <p class="xl-when">Friday, October 23, 7 to 9 PM CT. Live online, or in the studio with me.</p>
 <p>Build an AI agent that does a real job for you, in one night. No code, no experience needed.</p>
@@ -588,7 +591,10 @@ def home():
 <a class="btn gold" href="/agent/">Get your seat <span class="arr">&rarr;</span></a>
 <a class="textlink" href="/ai101/">New to AI? Start with the free AI 101 on Friday, October 9 &rarr;</a>
 </div>
-</div></div></section>
+</div>
+{home_schedule()}
+</div></section>
+{HIDE_PAST}
 
 <section class="section plat on-ink" id="inside"><div class="wrap">
 <div class="plat-head">
@@ -882,7 +888,7 @@ def pricing():
 
 # ---------- ABOUT ----------
 def about():
-    return head("About Nelson — Taylormade Academy", "Nelson Taylor is a Dallas-Fort Worth creative who teaches graphic design, photography, video, and AI.", "/about/") + header("About") + f"""
+    return head("About Nelson Taylor, AI Instructor in Dallas | Taylormade Academy", "Nelson Taylor is a Dallas-Fort Worth creative who teaches AI, graphic design, photography, and video. He taught Build Your First AI Agent to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.", "/about/") + header("About") + f"""
 <main>
 <section class="section tight"><div class="wrap"><div class="g-12" style="align-items:start;gap:clamp(24px,4vw,56px)">
 <div class="reveal" style="grid-column:1/7">
@@ -918,9 +924,17 @@ def about():
 </div></section>
 </main>""" + footer()
 
+def book_ld(slug):
+    p = PRODUCTS[slug]
+    return {"@type": "Book", "@id": f"{DOMAIN}/store/{slug}/#book", "name": ld_text(p["title"]),
+            "bookFormat": "https://schema.org/EBook", "inLanguage": "en-US", "url": f"{DOMAIN}/store/{slug}/",
+            "image": DOMAIN + p["cover"], "description": ld_text(p.get("what_is") or p["blurb"]),
+            "author": {"@type": "Person", "@id": DOMAIN + "/about/#nelson", "name": "Nelson Taylor"},
+            "publisher": {"@type": "Organization", "@id": DOMAIN + "/#org", "name": "Taylormade Academy"}}
+
 # ---------- simple stubs (footer links, no-404) ----------
-def stub(title, kicker, heading, body_html, active=""):
-    return head(f"{title} — Taylormade Academy", heading, "/") + header(active) + f"""
+def stub(title, kicker, heading, body_html, active="", path="/"):
+    return head(f"{title} — Taylormade Academy", heading, path) + header(active) + f"""
 <main><section class="section"><div class="wrap" style="max-width:760px">
 <span class="kicker gold">{kicker}</span><h1 class="display-m" style="margin-top:12px">{heading}</h1>
 <div style="margin-top:20px">{body_html}</div>
@@ -970,18 +984,26 @@ def not_found():
 <a class="btn ghost" href="/store/">Browse the store</a></div>
 </div></section></main>""" + footer()
 
-SITEMAP_PATHS = ["/", "/ai101/", "/agent/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
+SITEMAP_PATHS = ["/", "/workshops/", "/agent/", "/ai101/", "/store/", "/store/ai-agent-ebook/", "/store/boring-money/", "/store/steal-your-week-back/",
                  "/store/fully-booked-trainer/", "/store/always-on-agent/", "/store/busy-season-handled/",
-                 "/live/", "/partners/", "/pricing/", "/about/", "/join/", "/community/", "/login/", "/refunds/", "/terms/", "/privacy/"]
+                 "/live/", "/partners/", "/pricing/", "/about/", "/join/", "/community/", "/refunds/", "/terms/", "/privacy/"]
+# Crawlers for AI answers, named so nobody reads the site as closed to them. All allowed.
+AI_BOTS = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot",
+           "Perplexity-User", "Google-Extended", "Applebot-Extended", "Bingbot", "CCBot", "Meta-ExternalAgent", "DuckAssistBot"]
 
 def write_meta():
     (ROOT / "404.html").write_text(not_found())
+    bots = "".join(f"User-agent: {b}\n" for b in AI_BOTS)
     (ROOT / "robots.txt").write_text(
-        "User-agent: *\nAllow: /\n\nSitemap: " + DOMAIN + "/sitemap.xml\n")
-    urls = "".join(f"  <url><loc>{DOMAIN}{p}</loc><changefreq>weekly</changefreq></url>\n" for p in SITEMAP_PATHS)
+        "User-agent: *\nAllow: /\n\n# AI search and answer engines are welcome.\n" + bots + "Allow: /\n\n"
+        "Sitemap: " + DOMAIN + "/sitemap.xml\n")
+    today = datetime.date.today().isoformat()
+    urls = "".join(f"  <url><loc>{DOMAIN}{p}</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq></url>\n" for p in SITEMAP_PATHS)
     (ROOT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + '</urlset>\n')
+    from build_llms import llms_txt
+    (ROOT / "llms.txt").write_text(llms_txt())
 
 PRIVACY_BODY = """
 <p style="color:var(--muted);font-size:14px;margin-top:-6px">Last updated: June 26, 2026</p>
@@ -1053,22 +1075,30 @@ Dallas-Fort Worth, Texas, USA</p>
 """
 
 if __name__ == "__main__":
-    render("/", home())
-    render("/store/", store())
-    render("/store/ai-agent-ebook/", product_page("ai-agent-ebook"))
-    render("/store/boring-money/", product_page("boring-money"))
-    render("/store/steal-your-week-back/", product_page("steal-your-week-back"))
-    render("/store/fully-booked-trainer/", product_page("fully-booked-trainer"))
-    render("/store/always-on-agent/", product_page("always-on-agent"))
-    render("/store/busy-season-handled/", product_page("busy-season-handled"))
+    render("/", inject(home(), organization(), website(), nelson()))
+    render("/store/", inject(store(), breadcrumbs(("Store", "/store/"))))
+    render("/store/ai-agent-ebook/", inject(product_page("ai-agent-ebook"), book_ld("ai-agent-ebook"), breadcrumbs(("Store", "/store/"), (PRODUCTS["ai-agent-ebook"]["title"], "/store/ai-agent-ebook/"))))
+    render("/store/boring-money/", inject(product_page("boring-money"), book_ld("boring-money"), breadcrumbs(("Store", "/store/"), (PRODUCTS["boring-money"]["title"], "/store/boring-money/"))))
+    render("/store/steal-your-week-back/", inject(product_page("steal-your-week-back"), book_ld("steal-your-week-back"), breadcrumbs(("Store", "/store/"), (PRODUCTS["steal-your-week-back"]["title"], "/store/steal-your-week-back/"))))
+    render("/store/fully-booked-trainer/", inject(product_page("fully-booked-trainer"), book_ld("fully-booked-trainer"), breadcrumbs(("Store", "/store/"), (PRODUCTS["fully-booked-trainer"]["title"], "/store/fully-booked-trainer/"))))
+    render("/store/always-on-agent/", inject(product_page("always-on-agent"), book_ld("always-on-agent"), breadcrumbs(("Store", "/store/"), (PRODUCTS["always-on-agent"]["title"], "/store/always-on-agent/"))))
+    render("/store/busy-season-handled/", inject(product_page("busy-season-handled"), book_ld("busy-season-handled"), breadcrumbs(("Store", "/store/"), (PRODUCTS["busy-season-handled"]["title"], "/store/busy-season-handled/"))))
     render("/pricing/", pricing())
-    render("/about/", about())
+    render("/about/", inject(about(), nelson(), breadcrumbs(("About Nelson", "/about/"))))
     render("/join/", community_landing())
     from build_agent import agent_page, agent_thanks_page
-    render("/agent/", agent_page(head, header, footer, ASSET_VER))
+    from build_workshops import WORKSHOPS, workshops_page
+    _w = {w["slug"]: w for w in WORKSHOPS}
+    _agent = agent_page(head, header, footer, ASSET_VER)
+    render("/agent/", inject(_agent, event(_w["agent"]), course(_w["agent"]), faq_from_html(_agent),
+                             breadcrumbs(("Workshops", "/workshops/"), ("Build Your First AI Agent", "/agent/"))))
     render("/agent/thanks/", agent_thanks_page(head, header, footer, ASSET_VER))
     from build_ai101 import ai101_page, ai101_replay_page
-    render("/ai101/", ai101_page(head, header, footer, ASSET_VER))
+    from build_ai101 import WORDS
+    _ai101 = ai101_page(head, header, footer, ASSET_VER)
+    render("/ai101/", inject(_ai101, event(_w["ai101"]), course(_w["ai101"]), faq_from_html(_ai101), glossary(WORDS, "/ai101/"),
+                             breadcrumbs(("Workshops", "/workshops/"), ("AI 101", "/ai101/"))))
+    render("/workshops/", workshops_page(head, header, footer, ASSET_VER))
     render("/ai101/replay/", ai101_replay_page(head, header, footer, ASSET_VER))
     from build_partners import partners_page
     render("/partners/", partners_page(head, header, footer, ASSET_VER))
@@ -1076,12 +1106,12 @@ if __name__ == "__main__":
     # They are hand-maintained (vanilla JS + supabase-js, not generated chrome) so the
     # generator must NOT render or overwrite them. Edit those index.html files directly.
     render("/refunds/", stub("Refunds", "Policy", "Refund policy",
-        "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>"))
+        "<p>Digital products come with a 7-day, no-questions refund. If an ebook did not help, email me within 7 days of buying and I will refund it. The community and any future subscription can be canceled anytime, and you keep access through the period you paid for.</p>", path="/refunds/"))
     render("/terms/", stub("Terms", "Legal", "Terms of use",
-        "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>"))
-    render("/privacy/", stub("Privacy", "Legal", "Privacy", PRIVACY_BODY))
+        "<p>Taylormade Academy is an education product by Taylormade Creative. The ebooks, courses, and community are for your personal use. Please do not resell or redistribute the files. This is educational material, not a guarantee of income, and not professional legal, financial, or medical advice. Full terms will be posted here before payments go live.</p>", path="/terms/"))
+    render("/privacy/", stub("Privacy", "Legal", "Privacy", PRIVACY_BODY, path="/privacy/"))
     render("/thank-you/", stub("Thank you", "You're in", "Thank you. Check your email.",
-        "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", ))
+        "<p>Your purchase is confirmed and your download is on the way to your inbox. Create your account with the same email to keep everything in your library, and come say hey in the community.</p>", path="/thank-you/").replace("</head>", '<meta name="robots" content="noindex">\n</head>', 1))
     write_meta()
     stamped = stamp_app_pages(ASSET_VER)
     hub_stamped = stamp_hub_pages(ASSET_VER)

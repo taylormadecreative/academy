@@ -11,10 +11,19 @@ agent/index.html by hand; the next build_site.py run overwrites it.
 DAY = "October 23"
 DATE = "Friday, October 23, 7 to 9 PM CT"
 DATE_LONG = "Friday, October 23, 2026, 7 to 9 PM CT"
+# The same date for search engines (schema.org, build_seo.py). CT is UTC-5 until Nov 1.
+START = "2026-10-23T19:00:00-05:00"
+END = "2026-10-23T21:00:00-05:00"
+# The price ladder the FAQ below already states, as dated offers for the Event schema.
+OFFERS = [
+    {"name": "Online seat, early bird", "price": 75, "validFrom": "2026-09-24T00:00:00-05:00", "validThrough": "2026-10-16T23:59:00-05:00"},
+    {"name": "Online seat", "price": 90, "validFrom": "2026-10-17T00:00:00-05:00", "validThrough": "2026-10-23T18:00:00-05:00"},
+    {"name": "Studio seat in Dallas (15 seats)", "price": 125, "validFrom": "2026-09-24T00:00:00-05:00", "validThrough": "2026-10-23T12:00:00-05:00"},
+]
 
-TITLE = "Build Your First AI Agent: a one-night online workshop by Taylormade Academy"
-DESC = (f"{DATE_LONG}, live online on the Taylormade Academy player. "
-        "Build a working AI agent in one night, no code, and leave with the playbook to build the next one. "
+TITLE = "Build Your First AI Agent: AI Workshop Online + Dallas, Oct 23"
+DESC = (f"A live, beginner AI workshop: {DATE_LONG}. Online, or in the Dallas studio. "
+        "Build a working AI agent in one night with no code, and leave with the playbook for the next one. "
         "First taught for the AUC Data Science Initiative and Johns Hopkins.")
 
 _ICON_AGENT = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
@@ -100,7 +109,7 @@ def _form(form_id, source, compact=False, on_ink=False):
 def agent_page(head, header, footer, ver):
     h = head(TITLE, DESC, "/agent/", og="assets/og-agent.png").replace(
         "</head>", f'<link rel="stylesheet" href="/css/agent.css?v={ver}">\n<link rel="preload" as="image" href="/assets/agent-nelson.webp" type="image/webp" fetchpriority="high">\n</head>')
-    return h + header("Workshop") + f"""
+    return h + header("Workshops") + f"""
 <main>
 <section class="ag-hero"><div class="wrap"><div class="ag-grid">
 <div class="ag-copy">
@@ -239,7 +248,7 @@ def agent_page(head, header, footer, ver):
 def agent_thanks_page(head, header, footer, ver):
     h = head("Your seat is confirmed — Taylormade Academy", "Your seat is confirmed. Your seat code is on its way.", "/agent/thanks/").replace(
         "</head>", f'<meta name="robots" content="noindex">\n<link rel="stylesheet" href="/css/agent.css?v={ver}">\n</head>')
-    return h + header("Workshop") + """
+    return h + header("Workshops") + """
 <main><section class="ag-thanks"><div class="wrap"><div class="card">
 <span class="kicker gold" id="thKicker">Ticket</span>
 <h1 id="thTitle">Confirming your seat</h1>

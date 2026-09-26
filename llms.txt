@@ -1,0 +1,38 @@
+# Taylormade Academy
+
+> Taylormade Academy is a Dallas-Fort Worth school and online community, founded by Nelson Taylor, that teaches AI, graphic design, photography, and video to beginners through live workshops, video courses, and plain-English ebooks. Workshops are open to everyone, no membership needed, and run online and in a studio in Dallas. Joining the community is free; a $15/month membership unlocks every course and ebook.
+
+Key facts:
+- Founder and instructor: Nelson Taylor, a working creative in Dallas-Fort Worth for 14 years (design, photography, video, AI).
+- In June 2026 he taught "Build Your First AI Agent" over three nights to about 50 HBCU students with the AUC Data Science Initiative and Johns Hopkins.
+- The workshops need no code and no AI experience. The AI tools used are ChatGPT and Claude, on free accounts.
+- Online classes run in the Taylormade Academy live room in the browser, not Zoom.
+- Teams, schools, and programs can book any workshop privately, or run a whole cohort on the Academy.
+- Contact: taylormademd@gmail.com
+
+## Upcoming workshops
+
+- [All workshops](https://taylormadeacademy.com/workshops/): every upcoming date in one place.
+- [AI 101: Learn to Talk to AI](https://taylormadeacademy.com/ai101/): Friday, October 9, 7 to 8 PM CT. Online. Free. A free, one-hour live online class for beginners on how to write a prompt for ChatGPT or Claude and what common AI words mean, taught by Nelson Taylor of Taylormade Academy.
+- [Build Your First AI Agent](https://taylormadeacademy.com/agent/): Friday, October 23, 7 to 9 PM CT. Online, or in the Dallas studio. A live, beginner-friendly workshop where you build a working AI agent in one night with no code, taught by Nelson Taylor online and in a Dallas studio. First taught for the AUC Data Science Initiative and Johns Hopkins.
+- [Content Creator Workshop](https://www.eventbrite.com/e/content-creator-workshop-tickets-1998653390092): Friday, November 6, 7 to 9 PM CT. In the studio, Dallas. A hands-on, in-person evening workshop in a Dallas studio for content creators, taught by Nelson Taylor: make videos that look and sound professional, and meet other DFW creators.
+
+## Workshops already taught
+
+- August 21, 2026: Content Creator Workshop. A hands-on night for DFW creators at Jenel Studios in Dallas.
+- June 2026: Build Your First AI Agent, for the AUC Data Science Initiative. Three nights with the AUC Data Science Initiative and Johns Hopkins, for about 50 HBCU students. Most started from zero; by the third night they were pitching agents they built.
+
+## Learn
+
+- [AI 101: what is a prompt, and six AI words in plain English](https://taylormadeacademy.com/ai101/)
+- [What is an AI agent?](https://taylormadeacademy.com/agent/): an AI helper you set up once that does a task for you every time after that. You describe the job in plain English; it reads, decides, and acts.
+- [Ebooks and playbooks](https://taylormadeacademy.com/store/): short, no-code guides, including Build Your First AI Agent and The AI Money Machine.
+- [Membership and pricing](https://taylormadeacademy.com/pricing/)
+- [The community](https://taylormadeacademy.com/join/): free to join.
+
+## About
+
+- [About Nelson Taylor](https://taylormadeacademy.com/about/)
+- [Programs for schools, cohorts, and campuses](https://taylormadeacademy.com/partners/)
+- [Content Creator Workshop tickets on Eventbrite](https://www.eventbrite.com/e/content-creator-workshop-tickets-1998653390092)
+- [Refund policy](https://taylormadeacademy.com/refunds/)

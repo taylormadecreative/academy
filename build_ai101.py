@@ -14,10 +14,13 @@ DAY = "October 9"
 DATE = "Friday, October 9, 7 to 8 PM CT"
 DATE_LONG = "Friday, October 9, 2026, 7 to 8 PM CT"
 AGENT_DAY = "October 23"
+# The same date for search engines (schema.org, build_seo.py). CT is UTC-5 until Nov 1.
+START = "2026-10-09T19:00:00-05:00"
+END = "2026-10-09T20:00:00-05:00"
 
-TITLE = "AI 101: a free live class on prompts and AI words, by Taylormade Academy"
-DESC = (f"{DATE_LONG}. Free, one hour, live online. Learn how to ask AI for what you want, "
-        "and what the AI words everyone uses actually mean. No experience needed.")
+TITLE = "AI 101: Free Live AI Class for Beginners, Online (Oct 9)"
+DESC = (f"A free AI class for beginners: {DATE_LONG}, live online. Learn to write a prompt for ChatGPT or Claude "
+        "and what the AI words mean, in plain English. One hour, no experience needed.")
 
 # A prompt, drawn: what you type goes in, the AI reads it, an answer comes out, and a clearer
 # ask brings a better answer back. Two drawings (wide + phone), same idea.
