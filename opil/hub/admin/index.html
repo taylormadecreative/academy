@@ -123,12 +123,13 @@
 <div class="hd2"><h2>Team pages</h2></div>
 <div class="bd" id="showcasePages"><div class="empty">Loading&hellip;</div></div>
 </div>
-<div class="hcard" style="margin-bottom:60px">
+<div class="hcard" style="margin-bottom:60px" id="annCard">
 <div class="hd2"><h2>Post an announcement</h2></div>
 <div class="bd"><form id="annForm" style="display:flex;gap:10px;flex-wrap:wrap">
-<input id="annBody" placeholder="Everyone in the cohort sees this on their hub home" maxlength="2000" required style="flex:1;min-width:260px;font:inherit;font-size:14px;padding:12px 16px;border:1.5px solid var(--hair);border-radius:12px">
-<button class="pillbtn" style="padding:11px 22px;font-size:14px" type="submit">Post</button>
-</form></div>
+<input id="annBody" aria-label="Announcement" placeholder="Everyone in the cohort sees this on their hub home, with your name on it" maxlength="2000" required style="flex:1;min-width:260px;font:inherit;font-size:14px;padding:12px 16px;border:1.5px solid var(--hair);border-radius:12px">
+<button class="pillbtn" style="padding:11px 22px;font-size:14px;min-height:44px" type="submit">Post</button>
+</form>
+<div id="annMsg" role="status" aria-live="polite" style="font-size:13.5px;margin-top:8px"></div></div>
 </div>
 </main>
 
@@ -507,7 +508,7 @@ function renderMgr(){
   open.forEach(no => { const d = mgr.querySelector('details[data-sess="' + no + '"]'); if (d) d.open = true; });
 }
 async function reloadSess(){ const r = await sb.from('ea_opil_sessions').select('*').order('no'); if (!r.error) allSess = r.data || []; renderMgr(); }
-if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard' && el.id !== 'help') el.style.display = 'none'; });
+if (facOnly) document.querySelectorAll('.hcard, .statrow').forEach(el => { if (!el.contains(mgr) && el.id !== 'dvCard' && el.id !== 'help' && el.id !== 'annCard') el.style.display = 'none'; });
 renderMgr();
 try { const { mount: mountHelp } = await import('/opil/hub/admin/help-queue.js?v=f01baf98ee'); mountHelp(sb, document.getElementById('helpQueue'), { esc, countEl: document.getElementById('helpCount') }); } catch (e) { console.warn('[admin] help queue', e); }
 /* a class in progress or a replay in flight refreshes itself: LIVE now → recording → preparing →
@@ -656,8 +657,14 @@ mgr.addEventListener('submit', async (ev) => {
 document.getElementById('annForm').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const body = document.getElementById('annBody').value.trim(); if (!body) return;
+  const btn = ev.target.querySelector('button[type="submit"]'), msg = document.getElementById('annMsg');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Posting…';
   const { error } = await sb.from('ea_opil_announcements').insert({ author: user.id, body });
-  if (!error) { document.getElementById('annBody').value = ''; alert('Posted to the cohort.'); }
+  btn.disabled = false; btn.textContent = 'Post';
+  if (error) { console.warn('[admin] announcement', error); msg.style.color = '#b42318'; msg.textContent = 'Could not post it. Nothing went out. Try again.'; return; }
+  document.getElementById('annBody').value = '';
+  msg.style.color = '#067a56'; msg.textContent = 'Posted. The whole cohort sees it on their hub home now.';
 });
 
 /* facilitators: email + the sessions they lead. Upsert, so re-adding an email updates its sessions. */

@@ -60,7 +60,7 @@
 
 <script src="/js/config.js?v=f01baf98ee"></script>
 <script type="module">
-import { boot, esc, when, nav } from '/opil/hub/hub.js?v=f01baf98ee';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=f01baf98ee';
 import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=f01baf98ee';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isAdmin, isJudge, facSessions } = ctx;
@@ -136,8 +136,10 @@ try {
 
 /* announcements */
 const { data: anns } = await sb.from('ea_opil_announcements').select('*').order('created_at', { ascending: false }).limit(6);
+/* who posted it: the coordinators and every facilitator can post now (0057) */
+const annBy = await names(sb, (anns || []).map(a => a.author));
 document.getElementById('annList').innerHTML = (anns && anns.length)
-  ? anns.map(a => `<div class="ann"><span class="dot2"></span><div><p>${esc(a.body)}</p><div class="w">${when(a.created_at)}</div></div></div>`).join('')
+  ? anns.map(a => `<div class="ann"><span class="dot2"></span><div><p>${esc(a.body)}</p><div class="w">${annBy[a.author] && annBy[a.author] !== 'Member' ? esc(annBy[a.author]) + ' · ' : ''}${when(a.created_at)}</div></div></div>`).join('')
   : '<div class="empty">No announcements yet.</div>';
 
 /* session list + milestones */
