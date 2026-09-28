@@ -102,6 +102,7 @@
 /* roster */
 .member{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair-soft)}
 .member:first-child{border-top:0}
+button.member{background:none;color:inherit}
 .member[aria-current]{background:var(--blue-soft);border-radius:10px;box-shadow:-8px 0 0 var(--blue-soft),8px 0 0 var(--blue-soft)}
 .member .av{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--navy);color:var(--gold);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
 .member b{font-size:14px;color:var(--ink);display:block}

@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=1a01498994">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=1a01498994">
+<link rel="stylesheet" href="/css/build-mode.css?v=ab2e983f14">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=ab2e983f14">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -35,10 +35,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=1a01498994"></script>
+<script src="/js/config.js?v=ab2e983f14"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=1a01498994';
-import { directory, teamSentLine, teamIntro } from '/opil/hub/messages/directory.js?v=1a01498994';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=ab2e983f14';
+import { directory, teamSentLine, teamIntro } from '/opil/hub/messages/directory.js?v=ab2e983f14';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'messages');
@@ -81,7 +81,7 @@ const teamOf = {}; dir.teams.forEach(t => t.uids.forEach(u => { teamOf[u] = t.na
 
 const peopleEl = document.getElementById('people');
 let to = null, teamTo = null;   /* declared before the first paint: paintPeople() marks the open conversation */
-const person = (uid, sub) => `<button type="button" class="member" data-uid="${esc(uid)}" style="width:100%;background:none;border-left:0;border-right:0;border-bottom:0;font:inherit;text-align:left;cursor:pointer;min-height:54px"><span class="av" aria-hidden="true">${esc((nm[uid] || 'M')[0])}</span>
+const person = (uid, sub) => `<button type="button" class="member" data-uid="${esc(uid)}" style="width:100%;border-left:0;border-right:0;border-bottom:0;font:inherit;text-align:left;cursor:pointer;min-height:54px"><span class="av" aria-hidden="true">${esc((nm[uid] || 'M')[0])}</span>
    <div><b>${esc(nm[uid] || 'Member')}</b><span>${esc(sub)}</span></div></button>`;
 const groupHead = (label, btn) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;min-height:40px">
    <h3 style="margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">${esc(label)}</h3>${btn || ''}</div>`;

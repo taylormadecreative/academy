@@ -238,7 +238,7 @@ def _ensure_pwa_head(html):
 # because these are program surfaces and must NOT get the PWA/Capacitor head block.
 # The public OPIL pages stamp here too: they carry build-mode.css and config.js like
 # every other page, and nothing else was ever bumping those pins.
-HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/team/room", "opil/hub/messages", "opil/hub/admin",
+HUB_PAGES = ("opil/hub", "opil/hub/facilitator-guide", "opil/hub/team", "opil/hub/team/room", "opil/hub/messages", "opil/hub/admin",
              "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/hub/replay", "opil/showcase", "opil/showcase/team",
              "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
              "live", "room")   # the Academy live page + room: hand-written, stamped like the hub pages
