@@ -10,6 +10,8 @@ export type PassDeps = {
   rateCheck: (key: string, max: number, windowSecs: number) => Promise<boolean | null>;
   /* the approved registration for this email (case-insensitive), or null */
   findApproved: (email: string) => Promise<{ full_name: string | null } | null>;
+  /* a coordinator / facilitator / judge address: never admitted here, whatever a registration lists (0057) */
+  isStaff: (email: string) => Promise<boolean>;
   /* a one-time sign-in token for this account (created if it does not exist yet); null when Supabase refuses */
   mintToken: (email: string, fullName: string | null) => Promise<string | null>;
 };
@@ -30,6 +32,11 @@ export async function handlePass(body: PassBody, ctx: { ip: string }, deps: Pass
      6:25 must never hit a wall (the per-email limit is the real brake against walking the list) */
   if ((await deps.rateCheck(`opil_pass_ip:${ctx.ip}`, 300, 600)) === false) return { status: 429, body: { error: "slow_down" } };
   if ((await deps.rateCheck(`opil_pass_email:${email}`, 6, 600)) === false) return { status: 429, body: { error: "slow_down" } };
+  /* staff sign in with the emailed code. A team lead can type any address in as a teammate, so the door must
+     never mint a session for a staff account; an error reading the staff list fails closed */
+  let staff = true;
+  try { staff = await deps.isStaff(email); } catch (_) { staff = true; }
+  if (staff) return { status: 403, body: { error: "not_on_list" } };
   const reg = await deps.findApproved(email);
   if (!reg) return { status: 403, body: { error: "not_on_list" } };
   const token_hash = await deps.mintToken(email, reg.full_name);

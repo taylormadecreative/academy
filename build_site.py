@@ -18,7 +18,7 @@ def _asset_ver():
                 "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
-                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js"):
+                "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js", "opil/hub/admin/move-student.js", "opil/hub/messages/directory.js"):
         f = ROOT / rel
         if f.exists():
             h.update(f.read_bytes())
@@ -242,7 +242,7 @@ HUB_PAGES = ("opil/hub", "opil/hub/team", "opil/hub/team/room", "opil/hub/messag
              "opil/hub/judge", "opil/hub/live", "opil/hub/survey", "opil/hub/replay", "opil/showcase", "opil/showcase/team",
              "opil", "opil/register", "opil/verify", "opil/demo", "opil/proposal",
              "live", "room")   # the Academy live page + room: hand-written, stamped like the hub pages
-_HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js|hide-card\.js|help-button\.js|admin/help-queue\.js|admin/scores\.js|calendar-buttons\.js|team/room-block\.js|team/showcase-editor\.js|admin/showcase-pages\.js)|/js/rtk-presence\.js|/js/rtk-chapters\.js|/css/rtk-chapters\.css|/js/rtk-showcase\.js)(?:\?v=[a-z0-9]+)?')
+_HUB_ASSET_RX = re.compile(r'(/opil/hub/(?:hub\.(?:css|js)|live-rooms\.js|hide-card\.js|help-button\.js|admin/help-queue\.js|admin/scores\.js|calendar-buttons\.js|team/room-block\.js|team/showcase-editor\.js|admin/showcase-pages\.js|admin/move-student\.js|messages/directory\.js)|/js/rtk-presence\.js|/js/rtk-chapters\.js|/css/rtk-chapters\.css|/js/rtk-showcase\.js)(?:\?v=[a-z0-9]+)?')
 
 def stamp_hub_pages(ver):
     stamped = []

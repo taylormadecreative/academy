@@ -10,7 +10,8 @@ function deps(over: Partial<PassDeps> = {}) {
   const d: PassDeps & { rates: typeof rates; minted: typeof minted } = {
     rates, minted,
     rateCheck: async (k, m, w) => { rates.push([k, m, w]); return true; },
-    findApproved: async (email) => (email === "kiara1.pee@famu.edu" ? { full_name: "Kiara Pee" } : null),
+    isStaff: async (email) => email === "jarrellagreen@gmail.com",
+    findApproved: async (email) => (email === "kiara1.pee@famu.edu" || email === "jarrellagreen@gmail.com" ? { full_name: "Kiara Pee" } : null),
     mintToken: async (email, name) => { minted.push([email, name]); return "hash-" + email; },
     ...over,
   };
@@ -61,4 +62,18 @@ Deno.test("cleanEmail", () => {
   assertEquals(cleanEmail("nope"), null);
   assertEquals(cleanEmail("a@b.c"), "a@b.c");
   assertEquals(cleanEmail("x".repeat(250) + "@a.io"), null);
+});
+
+Deno.test("a staff address never gets a token, even when a registration lists it as a teammate", async () => {
+  const d = deps();
+  const r = await handlePass({ email: " JarrellAGreen@gmail.com " }, IP, d);
+  assertEquals(r, { status: 403, body: { error: "not_on_list" } });
+  assertEquals(d.minted.length, 0);
+});
+
+Deno.test("if the staff list can't be read, the door stays shut (fails closed)", async () => {
+  const d = deps({ isStaff: async () => { throw new Error("db down"); } });
+  const r = await handlePass({ email: "kiara1.pee@famu.edu" }, IP, d);
+  assertEquals(r.status, 403);
+  assertEquals(d.minted.length, 0);
 });

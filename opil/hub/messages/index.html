@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=f01baf98ee">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=f01baf98ee">
+<link rel="stylesheet" href="/css/build-mode.css?v=1a01498994">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=1a01498994">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -27,31 +27,40 @@
 <div class="bd" id="people" style="max-height:560px;overflow-y:auto"><div class="empty">Loading&hellip;</div></div>
 </div>
 <div class="hcard chat">
-<div class="hd2"><h2 id="threadTitle">Pick someone to message</h2></div>
+<div class="hd2" style="display:block"><h2 id="threadTitle">Pick someone to message</h2><p id="threadSub" style="margin:4px 0 0;font-size:12.5px;color:var(--muted)"></p></div>
 <div class="scroll" id="dmScroll"><div class="empty">Messages are private between the two of you.</div></div>
 <form id="dmForm" style="display:none"><input id="dmInput" aria-label="Message" placeholder="Write a message" maxlength="4000" autocomplete="off"><button type="submit">Send</button></form>
-<div id="dmMsg" role="status" aria-live="polite" style="font-size:13px;color:#b42318;padding:0 16px 10px"></div>
+<div id="dmMsg" role="status" aria-live="polite" style="font-size:13.5px;padding:0 16px 12px"></div>
 </div>
 </div>
 </main>
 
-<script src="/js/config.js?v=f01baf98ee"></script>
+<script src="/js/config.js?v=1a01498994"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=f01baf98ee';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=1a01498994';
+import { directory, teamSentLine, teamIntro } from '/opil/hub/messages/directory.js?v=1a01498994';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, isAdmin, facSessions } = ctx;
 nav(ctx, 'messages');
-const { directory, teamSentLine, teamIntro } = await import('/opil/hub/messages/directory.js?v=f01baf98ee');
 /* the program team (admins + facilitators) can message a whole team at once (0057) */
 const program = isAdmin || (facSessions || []).length > 0;
 
 /* who is on which team: the program team reads it through ea_opil_roster_teams (facilitators can't read
    team_members directly); a student reads the cohort the way they always have */
-let rows = [], staffPeople = [];
+let rows = [], staffPeople = [], rosterFailed = false;
 if (program) {
   const { data, error } = await sb.rpc('ea_opil_roster_teams');
-  if (error) console.warn('[messages] roster', error);
+  if (error) { console.warn('[messages] roster', error); rosterFailed = true; }
   rows = data || [];
+  if (isAdmin) {
+    /* the roster leaves out the coordinator space (is_staff); an admin still messages fellow coordinators */
+    const { data: st } = await sb.from('ea_opil_teams').select('id').eq('is_staff', true);
+    const ids = (st || []).map(t => t.id);
+    if (ids.length) {
+      const { data: sm } = await sb.from('ea_opil_team_members').select('user_id').in('team_id', ids);
+      staffPeople = (sm || []).map(m => ({ sender_id: m.user_id }));
+    }
+  }
 } else {
   const { data: mems } = await sb.from('ea_opil_team_members').select('user_id, team_id');
   const teamIds = [...new Set((mems || []).map(m => m.team_id))];
@@ -71,26 +80,34 @@ const nm = await names(sb, everyone);
 const teamOf = {}; dir.teams.forEach(t => t.uids.forEach(u => { teamOf[u] = t.name; }));
 
 const peopleEl = document.getElementById('people');
-const person = (uid, sub) => `<a class="member" href="#" style="cursor:pointer" data-uid="${esc(uid)}"><span class="av">${esc((nm[uid] || 'M')[0])}</span>
-   <div><b>${esc(nm[uid] || 'Member')}</b><span>${esc(sub)}</span></div></a>`;
-const groupHead = (label, btn) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;min-height:32px">
-   <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">${esc(label)}</span>${btn || ''}</div>`;
+let to = null, teamTo = null;   /* declared before the first paint: paintPeople() marks the open conversation */
+const person = (uid, sub) => `<button type="button" class="member" data-uid="${esc(uid)}" style="width:100%;background:none;border-left:0;border-right:0;border-bottom:0;font:inherit;text-align:left;cursor:pointer;min-height:54px"><span class="av" aria-hidden="true">${esc((nm[uid] || 'M')[0])}</span>
+   <div><b>${esc(nm[uid] || 'Member')}</b><span>${esc(sub)}</span></div></button>`;
+const groupHead = (label, btn) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px;min-height:40px">
+   <h3 style="margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">${esc(label)}</h3>${btn || ''}</div>`;
 function paintPeople() {
   let html = '';
-  if (dir.program.length) html += groupHead('Program team') + dir.program.map(u => person(u, 'Program team')).join('');
+  if (dir.program.length) html += groupHead('Program team · coordinators and facilitators') + dir.program.map(u => person(u, 'Program team')).join('');
   html += dir.teams.map((t, i) => groupHead(t.name, program && t.name !== 'No team yet'
-      ? `<button type="button" class="pillbtn" data-team="${i}" aria-label="Message the whole team, ${esc(t.name)}" style="padding:6px 12px;font-size:11.5px;min-height:30px">Message the whole team</button>` : '')
+      ? `<button type="button" class="pillbtn" data-team="${i}" aria-label="Message the whole team, ${esc(t.name)}" style="padding:8px 14px;font-size:12px;min-height:40px">Message the whole team</button>` : '')
     + t.uids.map(u => person(u, t.name)).join('')).join('');
-  peopleEl.innerHTML = html || '<div class="empty">As teams register, the whole cohort appears here.</div>';
+  peopleEl.innerHTML = rosterFailed && !html
+    ? '<div class="empty">Could not load the cohort. Reload the page to try again.</div>'
+    : (html || '<div class="empty">As teams register, the whole cohort appears here.</div>');
+  markCurrent();
 }
 paintPeople();
 
-let to = null, teamTo = null;
 const scroll = document.getElementById('dmScroll');
 const form = document.getElementById('dmForm');
 const input = document.getElementById('dmInput');
 const sendBtn = form.querySelector('button[type="submit"]');
 const dmMsg = document.getElementById('dmMsg');
+const sub = document.getElementById('threadSub');
+const say = (t, tone) => { dmMsg.textContent = t || ''; dmMsg.style.color = tone === 'good' ? '#067a56' : '#b42318'; dmMsg.style.fontWeight = tone === 'good' ? '600' : '400'; };
+function markCurrent() {
+  peopleEl.querySelectorAll('[data-uid]').forEach(b => { if (b.dataset.uid === to) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+}
 
 async function loadThread() {
   if (!to) return;
@@ -112,15 +129,20 @@ async function loadThread() {
       .eq('recipient_id', user.id).eq('sender_id', to).is('read_at', null).then(() => {});
 }
 function openThread(uid) {
-  to = uid; teamTo = null; dmMsg.textContent = '';
+  to = uid; teamTo = null; say('');
   document.getElementById('threadTitle').textContent = nm[uid] || 'Member';
+  sub.textContent = `Only you and ${nm[uid] || 'this person'} can see this conversation.`;
   input.placeholder = 'Write a message';
   form.style.display = '';
+  markCurrent();
   loadThread();
+  input.focus();
 }
 function openTeam(t) {
-  to = null; teamTo = t; dmMsg.textContent = '';
+  to = null; teamTo = t; say('');
   document.getElementById('threadTitle').textContent = 'Message the whole team: ' + t.name;
+  sub.textContent = '';
+  markCurrent();
   scroll.innerHTML = `<div class="empty">${esc(teamIntro(t.name, t.uids.length))}</div>`;
   input.placeholder = 'Write to everyone on ' + t.name;
   form.style.display = '';
@@ -130,7 +152,6 @@ peopleEl.addEventListener('click', (ev) => {
   const tb = ev.target.closest('[data-team]');
   if (tb) { const t = dir.teams[+tb.dataset.team]; if (t) openTeam(t); return; }
   const a = ev.target.closest('[data-uid]'); if (!a) return;
-  ev.preventDefault();
   openThread(a.dataset.uid);
 });
 let sending = false;
@@ -139,19 +160,20 @@ form.addEventListener('submit', async (ev) => {
   const body = input.value.trim(); if (!body || sending) return;
   if (!to && !teamTo) return;
   sending = true; sendBtn.disabled = true;
-  const t = teamTo;
-  const recips = t ? t.uids : [to];
+  const t = teamTo, who = to;
+  const recips = t ? t.uids : [who];
   /* one insert, one row per person: all of them land or none do */
   const { error } = await sb.from('ea_opil_dms').insert(recips.map(r => ({ sender_id: user.id, recipient_id: r, body })));
   sending = false; sendBtn.disabled = false;
-  if (error) { console.warn('[messages] send', error); dmMsg.textContent = 'Could not send. Nothing went out. Try again.'; return; }
-  dmMsg.textContent = '';
-  input.value = '';
+  const still = teamTo === t && to === who;   /* the person may have opened another conversation meanwhile */
+  if (!still) return;
+  if (error) { console.warn('[messages] send', error); say('Could not send. Nothing went out. Try again.'); input.focus(); return; }
+  if (input.value.trim() === body) input.value = '';
+  input.focus();
   if (t) {
-    if (teamTo !== t) return;
-    scroll.innerHTML = `<div class="bub me"><p>${esc(body)}</p><div class="w">just now</div></div>`
-      + `<div class="empty" role="status" style="color:#067a56;font-weight:600">${esc(teamSentLine(t.name, recips.length))}</div>`;
-  } else loadThread();
+    scroll.innerHTML = `<div class="bub me"><p>${esc(body)}</p><div class="w">just now</div></div>`;
+    say(teamSentLine(t.name, recips.length), 'good');
+  } else { say(''); loadThread(); }
 });
 try {
   sb.channel('dm-' + user.id)

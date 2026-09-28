@@ -74,7 +74,7 @@
 .ann:first-child{border-top:0;padding-top:0}
 .ann .dot2{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--gold-deep);margin-top:7px}
 .ann p{font-size:14.5px;max-width:none}
-.ann .w{font-size:12px;color:var(--muted-ink);margin-top:3px}
+.ann .w{font-size:12px;color:var(--muted);margin-top:3px}
 /* sessions list */
 .sess{display:flex;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--hair-soft)}
 .sess:first-child{border-top:0}
@@ -102,6 +102,7 @@
 /* roster */
 .member{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair-soft)}
 .member:first-child{border-top:0}
+.member[aria-current]{background:var(--blue-soft);border-radius:10px;box-shadow:-8px 0 0 var(--blue-soft),8px 0 0 var(--blue-soft)}
 .member .av{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--navy);color:var(--gold);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
 .member b{font-size:14px;color:var(--ink);display:block}
 .member span{font-size:12px;color:var(--muted)}

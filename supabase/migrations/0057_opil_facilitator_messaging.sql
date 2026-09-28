@@ -29,3 +29,22 @@ create policy dm_write on public.ea_opil_dms for insert to authenticated
     and (exists (select 1 from public.ea_opil_team_members where user_id = recipient_id)
          or public.ea_opil_is_admin(recipient_id) or public.ea_opil_is_facilitator(recipient_id))
   );
+
+-- a recipient may only mark a message read. dm_mark_read (0013) allowed UPDATE on every column, so a student
+-- could rewrite a message they received — its words, or its sender, making it read as a facilitator's.
+revoke update on public.ea_opil_dms from authenticated;
+grant update (read_at) on public.ea_opil_dms to authenticated;
+
+-- the no-code student door (ea-opil-pass) admits any email on an approved registration — including a teammate
+-- email the team lead typed in. Staff addresses never go through it: with facilitators now able to post to the
+-- whole cohort, a lead listing a facilitator's (or a coordinator's) email as a "teammate" would hand out that
+-- account. Staff keep the emailed-code sign-in. Service role only (the edge function asks).
+create or replace function public.ea_opil_is_staff_email(p_email text) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from ea_opil_facilitators where lower(email) = lower(btrim(p_email)))
+      or exists (select 1 from ea_opil_judge_emails where lower(email) = lower(btrim(p_email)))
+      or exists (select 1 from ea_opil_admin_emails where lower(email) = lower(btrim(p_email)))
+      or exists (select 1 from ea_opil_admins a join auth.users u on u.id = a.user_id where lower(u.email) = lower(btrim(p_email)))
+$$;
+revoke all on function public.ea_opil_is_staff_email(text) from public, anon, authenticated;
+grant execute on function public.ea_opil_is_staff_email(text) to service_role;

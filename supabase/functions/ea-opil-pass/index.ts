@@ -40,6 +40,11 @@ Deno.serve(async (req: Request) => {
       const { data } = await admin.rpc("ea_rate_check", { p_key: key, p_max: max, p_window_secs: windowSecs });
       return data === true ? true : data === false ? false : null;
     },
+    isStaff: async (email) => {
+      const { data, error } = await admin.rpc("ea_opil_is_staff_email", { p_email: email });
+      if (error) throw error;
+      return data !== false;
+    },
     findApproved: async (email) => {
       /* exact match on the lower-cased address (the register page stores lower-case) — never ilike: `%` and `_`
          are legal in an address and would turn the lookup into a wildcard walk of the roster. The school
