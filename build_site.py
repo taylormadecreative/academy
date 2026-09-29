@@ -134,7 +134,7 @@ def footer(pop=True):
     cols = {
         "Explore": [("Workshops", "/workshops/"), ("Free AI class", "/ai101/"), ("Store", "/store/"), ("Pricing", "/pricing/"), ("About Nelson", "/about/"), ("Preview a course", "/course/")],
         "Community": [("The feed", "/community/"), ("Facebook group", FB_GROUP), ("Sign in", "/login/"), ("Join free", "/login/?mode=join")],
-        "For programs": [("Cohorts &amp; campus hubs", "/partners/"), ("Download the PDF", "/partners/taylormade-academy-programs.pdf")],
+        "For programs": [("Cohorts &amp; campus hubs", "/partners/"), ("Slide deck (PDF)", "/partners/taylormade-academy-deck.pdf"), ("Overview (PDF)", "/partners/taylormade-academy-programs.pdf")],
     }
     colhtml = ""
     for h, items in cols.items():

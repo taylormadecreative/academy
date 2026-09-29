@@ -10,6 +10,7 @@ TITLE = "Cohorts and campus hubs on Taylormade Academy"
 DESC = ("Run your cohort or your whole campus on Taylormade Academy: sign-up, a live class room in the browser, "
         "every class recorded, team spaces and one screen for the coordinator. Co-branded, with your name on the door.")
 PDF = "/partners/taylormade-academy-programs.pdf"
+DECK = "/partners/taylormade-academy-deck.pdf"
 MAIL = "mailto:taylormademd@gmail.com?subject=A%20program%20on%20Taylormade%20Academy"
 
 CAPS = [
@@ -109,7 +110,7 @@ def partners_page(head, header, footer, ver):
 <div><p class="pt-offices-h"><b>Spaces we build. Pick the ones you need.</b> Each one is its own page in the hub, in your colors, with that office&rsquo;s events and updates.</p>
 <ul class="pt-offices">{offices}</ul></div>
 </div>
-<div class="pt-brand"><p class="pt-x">Your school <em>&times;</em> Taylormade Academy</p><p><b>Your name on it.</b> A partnership by default: your brand out front, our platform underneath, both names on the door. Carrying your name alone is an option too.</p></div>
+<div class="pt-brand"><p class="pt-x">Your organization <em>&times;</em> Taylormade Academy</p><p><b>Your name on it.</b> A partnership by default: your brand out front, our platform underneath, both names on the door. Carrying your name alone is an option too.</p></div>
 </div></section>
 
 <section class="pt-start" id="start"><div class="wrap">
@@ -121,13 +122,13 @@ def partners_page(head, header, footer, ver):
 <div class="pt-who">
 <img src="/assets/live-demo/poster.jpg" width="1000" height="562" alt="Nelson Taylor in the Taylormade studio, in the navy and gold varsity jacket" loading="lazy" decoding="async">
 <div><h3>Nelson Taylor</h3><p class="pt-role">Founder, Taylormade Academy &middot; Creative director, Taylormade Creative &middot; Dallas&ndash;Fort Worth</p>
-<p>Fourteen years directing real work for brands and businesses, with AI now part of how his studio runs every day. He runs the Open Payments Innovation Lab for Atlanta University Center students on this platform. In June 2026 he facilitated the Johns Hopkins-funded AI agent workshop for the AUC Data Science Initiative, and he runs public AI workshops for business owners.</p></div>
+<p>Fourteen years directing real work for brands and businesses, with AI now part of how his studio runs every day. He built the platform the AUC Open Payments Innovation Lab runs on. In June 2026 he facilitated the Johns Hopkins-funded AI agent workshop for the AUC Data Science Initiative, and he runs public AI workshops for business owners.</p></div>
 </div>
 </div></section>
 
 <section class="pt-cta"><div class="wrap">
 <div><h2>Let&rsquo;s talk about your program.</h2>
-<p>Tell us about your group. We will bring a plan to the call. Sending this to someone? The PDF is four pages and prints clean.</p></div>
-<div class="pt-ctas"><a class="btn gold" href="{MAIL}">Email Nelson <span class="arr">&rarr;</span></a><a class="btn pt-line" href="{PDF}" download>{_DL} Download the PDF</a></div>
+<p>Tell us about your group. We will bring a plan to the call. Sending this to someone? The slide deck is 12 pages, and the overview is four pages that print clean.</p></div>
+<div class="pt-ctas"><a class="btn gold" href="{MAIL}">Email Nelson <span class="arr">&rarr;</span></a><a class="btn pt-line" href="{DECK}" download>{_DL} Slide deck (PDF)</a><a class="btn pt-line" href="{PDF}" download>{_DL} Overview (PDF)</a></div>
 </div></section>
 </main>""" + footer()
