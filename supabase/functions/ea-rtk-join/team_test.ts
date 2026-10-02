@@ -100,11 +100,20 @@ Deno.test("teamTitle: Team <name>, never Team Team", () => {
   assertEquals(teamTitle(null), "Team room");
 });
 
-Deno.test("isProgramTeam is the three names ea_opil_is_program_team counts", () => {
+Deno.test("isProgramTeam is coordinator, judge or a facilitator with a session — never the view-only (0058)", () => {
   assertEquals(isProgramTeam(COORD.role), true);
   assertEquals(isProgramTeam(JUDGE.role), true);
   assertEquals(isProgramTeam(FAC.role), true);
   assertEquals(isProgramTeam(MEMBER.role), false);
+  assertEquals(isProgramTeam({ admin: false, judge: false, facilitator_sessions: [], team: true, view_only: true }), false);
+});
+
+Deno.test("a view-only program team member is refused at a team's room, with no Cloudflare call", async () => {
+  const VIEW: Caller = { ...base, user: { id: "u-view", email: "staff@auc" }, role: { admin: false, judge: false, facilitator_sessions: [], team: true, view_only: true } };
+  const d = deps();
+  const r = await handleTeamJoin({ team: T_OLD }, VIEW, d);
+  assertEquals(r.status, 403); assertEquals(err(r), "not_allowed");
+  assertEquals(d.calls.length, 0);
 });
 
 Deno.test("a body without a real uuid is refused before anything is read", async () => {

@@ -5,7 +5,7 @@
 // the only host of the Academy room). Tokens never leave the function.
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
+export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[]; team?: boolean; view_only?: boolean };   /* team / view_only: 0058 */
 export type Resolved = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; asUser: SupabaseClient };
 export type ResolveFail = { error: string; status: number };
 
@@ -24,6 +24,8 @@ export async function resolveCaller(req: Request, admin: SupabaseClient, url: st
       admin: r.admin === true,
       judge: r.judge === true,
       facilitator_sessions: Array.isArray(r.facilitator_sessions) ? (r.facilitator_sessions as unknown[]).map(Number).filter(Number.isInteger) : [],
+      team: r.team === true,
+      view_only: r.view_only === true,
     },
     academyAdmin: isAdmin === true,
     asUser,

@@ -17,13 +17,17 @@ export async function boot() {
     const { data } = await sb.rpc('ea_opil_claim_team');
     teamId = data || null;
   } catch (e) { /* not registered: hub still opens */ }
-  let isAdmin = false, isJudge = false, facSessions = [];
+  let isAdmin = false, isJudge = false, facSessions = [], isTeam = false, viewOnly = false;
   try {
     const { data: role } = await sb.rpc('ea_opil_my_role');
-    if (role) { isAdmin = !!role.admin; isJudge = !!role.judge; facSessions = role.facilitator_sessions || []; }
+    if (role) { isAdmin = !!role.admin; isJudge = !!role.judge; facSessions = role.facilitator_sessions || []; isTeam = !!role.team; viewOnly = !!role.view_only; }
   } catch (e) {}
   if (!isAdmin) { try { const { data } = await sb.from('ea_opil_admins').select('user_id').eq('user_id', user.id).maybeSingle(); isAdmin = !!data; } catch (e) {} }
-  return { sb, user, teamId, isAdmin, isJudge, facSessions };
+  /* isTeam: anyone on the program team (0058) — coordinator, judge, facilitator, or on the list with no
+     sessions ticked (viewOnly: sees the hub and joins any class, changes nothing). */
+  isTeam = isTeam || isAdmin || isJudge || facSessions.length > 0;
+  if (isAdmin || isJudge || facSessions.length) viewOnly = false;
+  return { sb, user, teamId, isAdmin, isJudge, facSessions, isTeam, viewOnly };
 }
 
 export async function names(sb, ids) {
@@ -70,11 +74,13 @@ const STUDENT = [
 
 /* Role views, only for the people who hold that role. A facilitator lands on the
    same page as a coordinator but sees only their own sessions, so it is labelled
-   for what they will actually find there. */
+   for what they will actually find there; a view-only member sees every session
+   and the lockers, read-only — the Overview. */
 function teamLinks(ctx) {
   const out = [];
   if (ctx.isAdmin) out.push(['admin', 'Coordinator', '/opil/hub/admin/']);
   else if ((ctx.facSessions || []).length) out.push(['admin', 'My sessions', '/opil/hub/admin/']);
+  else if (ctx.viewOnly) out.push(['admin', 'Overview', '/opil/hub/admin/']);
   if (ctx.isJudge) out.push(['judge', 'Judging', '/opil/hub/judge/']);
   return out;
 }
@@ -162,5 +168,5 @@ export function nav(ctx, active) {
 export function tabs(active, isAdmin) {
   const map = { 'Home': 'home', 'My team': 'team', 'Messages': 'messages',
                 'Showcase': 'showcase', 'Coordinator view': 'admin', 'Judging': 'judge' };
-  nav({ isAdmin: !!isAdmin, isJudge: false, facSessions: [] }, map[active] || '');
+  nav({ isAdmin: !!isAdmin, isJudge: false, facSessions: [], isTeam: !!isAdmin, viewOnly: false }, map[active] || '');
 }

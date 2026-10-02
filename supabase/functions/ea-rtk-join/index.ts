@@ -4,7 +4,8 @@
 //
 // Two bodies, one function:
 //   { session_no }          an OPIL class. coordinator (role.admin) or facilitator of this session
-//                           -> opil-host · judge -> opil-judge (watch + chat, no media) · cohort
+//                           -> opil-host · judge or anyone else on the program team (0058: a
+//                           colleague's facilitator, the view-only) -> opil-judge · cohort
 //                           member -> opil-student · anyone else -> 403. The meeting is the
 //                           session's stored "rtk:" id (ea_opil_sessions.stream_url) or one a host
 //                           creates here; a meeting_id in the body is ignored, and a session

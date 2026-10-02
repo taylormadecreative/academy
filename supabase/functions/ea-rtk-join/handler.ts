@@ -8,9 +8,12 @@
 //   · a session whose meeting is the Academy room's (ea_rooms.meeting_id, or any
 //     ea_room_replays.meeting_id) is refused with 403 not_allowed before a participant is minted.
 //   coordinator (role.admin) or facilitator of this session  -> opil-host
-//   judge (role.judge)                                       -> opil-judge   (every tool too, since 9/15)
+//   judge, or anyone else on the program team (role.team)    -> opil-judge   (every tool too, since 9/15)
 //   cohort member (ea_opil_in_cohort)                        -> opil-student
 //   anyone else                                              -> 403 not_allowed
+//   role.team (0058) is the whole program team: a facilitator in a colleague's class, and the view-only
+//   members (on the list, no sessions ticked) — a participant's seat, never the host's. Jamal, 10/1: team
+//   members "not assigned to a specific session" could not get in.
 //
 // Room branch (body.room === true, or a slug string): one room per slug — the Academy room
 // (`body.room === true` is shorthand for slug "academy") or another institution's room (HT: "ht").
@@ -20,7 +23,7 @@
 // Presets and the meeting title come from the row, not a hardcoded pair. Nothing on the OPIL path
 // runs for a room body.
 
-export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[] };
+export type Role = { admin: boolean; judge: boolean; facilitator_sessions: number[]; team?: boolean; view_only?: boolean };
 export type JoinBody = { room?: boolean | string; key?: string | null; session_no?: number; meeting_id?: string };
 export type Caller = { user: { id: string; email?: string | null }; role: Role; academyAdmin: boolean; ip: string };
 export type SessionRow = { no: number; title: string | null; stream_url: string | null; is_live: boolean };
@@ -72,7 +75,7 @@ async function joinOpil(body: JoinBody, ctx: Caller, deps: JoinDeps): Promise<Re
   const isHost = ctx.role.admin === true || ctx.role.facilitator_sessions.includes(no);
   let preset: typeof PRESETS[number] | null = null;
   if (isHost) preset = "opil-host";
-  else if (ctx.role.judge === true) preset = "opil-judge";
+  else if (ctx.role.judge === true || ctx.role.team === true) preset = "opil-judge";   /* the staff seat: same tools as a student's */
   else if (await deps.inCohort()) preset = "opil-student";
   if (!preset || !PRESETS.includes(preset)) return { status: 403, body: { error: "not_allowed" } };
 

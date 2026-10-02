@@ -55,7 +55,8 @@ export function teamTitle(name: unknown): string {
   return /^team\b/i.test(n) ? n : "Team " + n;
 }
 
-/* the program team, as ea_opil_is_program_team counts it: coordinator, judge, or a facilitator of any session */
+/* who may enter any team's room: coordinator, judge, or a facilitator of any session. NOT role.team — since 0058 that
+   also counts the view-only members, and a team's room is not theirs (0058 keeps them out of ea_class_can('team:…')). */
 export function isProgramTeam(role: Caller["role"]): boolean {
   return role.admin === true || role.judge === true || (Array.isArray(role.facilitator_sessions) && role.facilitator_sessions.length > 0);
 }

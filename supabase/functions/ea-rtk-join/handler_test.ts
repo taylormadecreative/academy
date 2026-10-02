@@ -73,6 +73,28 @@ Deno.test("the facilitator of THIS session is a host; of another session, a stud
   assertEquals(outsider.status, 403); assertEquals(err(outsider), "not_allowed");
 });
 
+Deno.test("0058: the program team takes a participant seat in any OPIL class — a facilitator in a colleague's, a view-only member in all", async () => {
+  const FAC7T: Caller = { ...FAC7, role: { ...FAC7.role, team: true } };
+  const VIEW: Caller = { ...base, user: { id: "u-view", email: "staff@auc" }, role: { admin: false, judge: false, facilitator_sessions: [], team: true, view_only: true } };
+  const d = deps();
+  const other = await handleJoin({ session_no: 6 }, FAC7T, d);
+  assertEquals(other.status, 200);
+  assertEquals(other.body, { token: "tok-meet-6", meeting_id: "meet-6", preset: "opil-judge", host: false, name: "fac" });
+  assertEquals((await handleJoin({ session_no: 7 }, FAC7T, deps())).body, { token: "tok-meet-7", meeting_id: "meet-7", preset: "opil-host", host: true, name: "fac" });
+  const dv = deps();
+  const view = await handleJoin({ session_no: 7 }, VIEW, dv);
+  assertEquals(view.body, { token: "tok-meet-7", meeting_id: "meet-7", preset: "opil-judge", host: false, name: "staff" });
+  assertEquals(dv.touched.includes("inCohort"), false);
+  assertEquals(dv.touched.includes("ensureOpilPresets"), false);
+  /* a seat, never the host's: a class nobody has started stays shut for them, and they never open one */
+  const dn = deps();
+  const shut = await handleJoin({ session_no: 8 }, VIEW, dn);
+  assertEquals(shut.status, 409); assertEquals(err(shut), "not_open");
+  assertEquals(dn.calls.length, 0);
+  /* team:false (a database before 0058, or nobody on the list) is the old answer: not the cohort → 403 */
+  assertEquals((await handleJoin({ session_no: 7 }, { ...VIEW, role: { ...VIEW.role, team: false } }, deps())).status, 403);
+});
+
 Deno.test("an OPIL host join brings the presets in line first (9/15: students and judges transcribed); a student join never does", async () => {
   let presets = 0;
   const d = deps({ ensureOpilPresets: async () => { presets++; } });

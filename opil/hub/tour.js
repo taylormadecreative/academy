@@ -9,6 +9,7 @@ function roleOf(ctx) {
   if (ctx.isAdmin) return 'coordinator';
   if ((ctx.facSessions || []).length) return 'facilitator';
   if (ctx.isJudge) return 'judge';
+  if (ctx.viewOnly) return 'viewer';   /* the program team, view only (0058) */
   return 'student';
 }
 
@@ -23,6 +24,7 @@ function steps(page, role, ctx) {
     student: 'You are in as a student. Everything your team does this year lives here.',
     judge: 'You are in as a judge. This is what the cohort sees; your scoring view is one tap away.',
     coordinator: 'You are in as the coordinator. This is the student view; your own view is one tap away.',
+    viewer: 'You are in as the program team, view only. This is the student view; your Overview of every session and the lockers is one tap away.',
     facilitator: ctx.isJudge
       ? 'You are in as a facilitator and a judge. This is the student view; your sessions and your scoring are each one tap away.'
       : 'You are in as a facilitator. This is the student view; your sessions are one tap away.',
@@ -34,7 +36,7 @@ function steps(page, role, ctx) {
       { at: ['#liveNote'], title: 'A session is live', body: 'When a facilitator is on air, this banner appears. Tap it to open the live room.' },
       { at: ['#svyNote'], title: 'The baseline survey', body: 'Six one-to-five questions about where you are starting from. The same six come back after the showcase, and the difference is the proof of what you learned.' },
     ]),
-    { at: ['#annList'], up: '.hcard', title: 'Announcements', body: role === 'facilitator' || role === 'judge' ? 'The program team\u2019s notices to the whole cohort land here first. This card is written for students; your account sees it empty.' : 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
+    { at: ['#annList'], up: '.hcard', title: 'Announcements', body: role === 'facilitator' || role === 'judge' || role === 'viewer' ? 'The program team\u2019s notices to the whole cohort land here first, the same list the students see.' : 'Anything the program team needs the whole cohort to know lands here first. Check it before every session.' },
     { at: ['#sessList'], up: '.hcard', title: 'Kickoff & Orientation', body: 'The first night. Its recording and the files shared in class appear on this row afterwards, so you never lose it.' },
     { at: ['#progList'], up: '.hcard', title: 'The OPIL curriculum', body: (staff ? 'The Wednesday sessions the facilitators run' : 'Your Wednesday sessions with the facilitators') + ': Track 1 on the business, Track 2 on open payments, and the HPC series (high-performance computing: supercomputer time for your own data). Materials and recordings land on each row, the same as the AI Thread.' },
     { at: ['#mileList'], up: '.hcard', title: 'The year', body: 'The big dates: the December pitch, the February hackathon, the March showcase. "Add to calendar" puts all of it on your phone.' },
@@ -42,7 +44,7 @@ function steps(page, role, ctx) {
       ? { at: ['#teamCard'], up: '.hcard', title: 'A student’s team card', body: 'Students see their team, teammates, and the door to their team space here. You have no team by design, so yours stays empty.' }
       : { at: ['#teamCard'], up: '.hcard', title: 'Your team', body: 'Your team, your teammates, and "Open team space", where the chat, the roster, and your checkpoints live. Until you are seated, the note at the top of the page says where your application stands.' },
     staff
-      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here' + (role === 'facilitator' && ctx.isJudge ? ', and Judging next to it for the December pitch and the March showcase' : '') + '. Everything else on this page is ' + (role === 'coordinator' ? 'exactly' : 'close to') + ' what a student sees; a blue band reminds you when you are looking at their side.' }
+      ? { at: ['.ln-team'], title: 'Your own view', body: role === 'judge' ? 'Judging is here. Everything else on this page is exactly what a student sees.' : role === 'viewer' ? 'Your Overview is here: every session with its materials and replays, and what the teams have uploaded. Everything else on this page is close to what a student sees.' : 'Your ' + (role === 'coordinator' ? 'Coordinator' : 'My sessions') + ' view is here' + (role === 'facilitator' && ctx.isJudge ? ', and Judging next to it for the December pitch and the March showcase' : '') + '. Everything else on this page is ' + (role === 'coordinator' ? 'exactly' : 'close to') + ' what a student sees; a blue band reminds you when you are looking at their side.' }
       : { at: ['.ln-primary', '.ln-dock'], title: 'Getting around', body: 'Home, My team, Messages, Showcase. On a phone these sit at the bottom of the screen, under your thumb.' },
   ];
   const team = [
@@ -58,8 +60,8 @@ function steps(page, role, ctx) {
     { at: ['#dmForm', '#threadTitle'], up: '.hcard', title: 'One-to-one', body: 'A message here goes to that one person and nobody else. Team-wide talk belongs in your team chat.' },
   ];
   const live = [
-    { at: ['#rtkMount', '#player'], title: 'The class room', body: staff ? 'Your class runs here, everyone on camera. Start it from Your class above, check your camera, press Enter Class. Students press one big Ask a question button and you bring them on stage in order. Files in the bottom bar is where anyone adds a PDF or slides for the class to download, and Show to class puts it on every screen. Tools holds Small groups (with a clock), share screen, polls and effects. Leave only takes you out; End the class for everyone is in Tools, and the recording lands on your sessions page as a draft.' : 'When your facilitator starts the class it opens here. No code needed on the class link: type the email you applied with. You see everyone, your mic and camera state is spelled out in words, one big Ask a question button puts you in line, Files is where you download what was shared (or add your own), and chat and people sit beside the video.' },
-    { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: role === 'judge' ? 'The cohort\u2019s room chat. Judges watch; posting is for students and the program team.' : 'Everyone in the cohort sees this chat. Questions for the facilitator go here during the session.' },
+    { at: ['#rtkMount', '#player'], title: 'The class room', body: role === 'coordinator' || role === 'facilitator' ? 'Your class runs here, everyone on camera. Start it from Your class above, check your camera, press Enter Class. Students press one big Ask a question button and you bring them on stage in order. Files in the bottom bar is where anyone adds a PDF or slides for the class to download, and Show to class puts it on every screen. Tools holds Small groups (with a clock), share screen, polls and effects. Leave only takes you out; End the class for everyone is in Tools, and the recording lands on your sessions page as a draft.' : 'When your facilitator starts the class it opens here. No code needed on the class link: type the email you applied with. You see everyone, your mic and camera state is spelled out in words, one big Ask a question button puts you in line, Files is where you download what was shared (or add your own), and chat and people sit beside the video.' },
+    { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: role === 'judge' || role === 'viewer' ? 'The room chat beside the video. Everyone in the class reads it and can post in it, you included.' : 'Everyone in the cohort sees this chat. Questions for the facilitator go here during the session.' },
   ];
   const survey = [
     { at: ['#lede', '#svyForm'], title: post ? 'The closing survey' : 'Why this survey', body: post ? 'The same six questions you answered at the start. Answer for where you are now; the difference between the two is the program\u2019s evidence of what changed. Nobody is graded on it.' : 'Six one-to-five questions, one minute. Your answers are the starting line; the same six come back after the showcase so the program can show what changed. Nobody is graded on it.' },
@@ -80,7 +82,7 @@ function steps(page, role, ctx) {
     { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, and upload materials. Add a session at the bottom of the list for anything the facilitators run.' },
     { at: ['a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'The class room', body: 'Open room, in any row, is that session\u2019s own class room: start the class there, everyone on camera, and copy the link students join with. Several sessions can run at once.' },
     { at: ['.replayLine', 'a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'Replays', body: 'Every class records itself. When the recording is ready it appears on the session as a draft only the program team can see \u2014 review it, then Publish to students. Unpublish takes it back down.' },
-    { at: ['#facForm'], up: '.hcard', title: 'Facilitators', body: 'Add a facilitator by email and tick the sessions they lead. When they sign in they get My sessions: their sessions only, with the same recording, materials and check-in controls you have here.' },
+    { at: ['#facForm'], up: '.hcard', title: 'Program team and facilitators', body: 'Add anyone on the program team by email. Tick the sessions they lead and they get My sessions: those sessions, with the same recording, materials and check-in controls you have here. Tick none and they get view-only access: every session and the lockers, and a seat in any class, with nothing they can change.' },
     { at: ['#attWrap'], up: '.hcard', title: 'Attendance', body: 'One cell per student per AI Thread session. Tap to mark; students can also check themselves in with the code you set. Curriculum and HPC check-ins land in the report pack.' },
     { at: ['#judgeForm'], up: '.hcard', title: 'Judges and scores', body: 'Add a judge by email and they get the scoring view the moment they sign in. Averages per team show up here as scores come in.' },
     { at: ['#annForm'], up: '.hcard', title: 'Announcements', body: 'Whatever you post here is the first thing every student sees on their hub home.' },
@@ -102,7 +104,15 @@ function steps(page, role, ctx) {
       : null,
     { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home, Messages and Showcase open the student side as the cohort has it; My team needs a seat on a team, so it sends you Home. A blue band up top brings you back here in one tap.' },
   ].filter(Boolean);
-  const by = { home, team, judge, messages, live, survey, showcase, admin: role === 'facilitator' ? facilitator : admin };
+  /* Overview: the coordinator page, read-only, for the view-only program team */
+  const viewer = [
+    { at: ['.hub-head'], title: 'Your Overview', body: 'You are on the program team with view-only access. Every session is listed here; nothing on this page can be changed from your account.' },
+    { at: ['#sessMgr'], up: '.hcard', title: 'One row per session', body: 'Open a row for its class room, the recording and playbook, the replay once it is published, the materials, and who attended.' },
+    { at: ['a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'Join a class', body: 'Open room takes you into that session\u2019s class while it is running, with the same tools as everyone in it. Before it starts, you wait there and it opens by itself.' },
+    { at: ['#dvWrap'], up: '.hcard', title: 'Lockers', body: 'Everything the teams have turned in, newest first. Open link or Open file shows you the work itself.' },
+    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home and Showcase open the student side as the cohort has it.' },
+  ];
+  const by = { home, team, judge, messages, live, survey, showcase, admin: role === 'facilitator' ? facilitator : role === 'viewer' ? viewer : admin };
   if (!seated) return page === 'home' ? home.filter(st => ['#hello', '#noTeamNote', '.ln-primary'].includes(st.at[0])) : [];
   return by[page] || [];
 }
