@@ -58,9 +58,12 @@ export function facilitatorName(f: Facilitator): string {
   const first = String(f.label ?? "").split(" · ")[0].trim();
   return first || String(f.email).split("@")[0];
 }
-/* who is emailed for a track: the matching facilitators, then always the hub team; lower-cased, no doubles */
+/* who is emailed for a track: the matching facilitators, then always the hub team; lower-cased, no doubles.
+   Only someone who leads a session: a row with no sessions is the view-only program team (0058), who never get a
+   student's question, name, school or reply-to address. */
 export function recipientsFor(track: string, facs: Facilitator[]): { to: string[]; matched: Facilitator[] } {
-  const matched = track === "hub" ? [] : (facs || []).filter((f) => f && f.email && (trackFor(f.label) === track || trackFor(f.email) === track));
+  const matched = track === "hub" ? [] : (facs || []).filter((f) => f && f.email && Array.isArray(f.session_nos) && f.session_nos.length > 0
+    && (trackFor(f.label) === track || trackFor(f.email) === track));
   const seen = new Set<string>(); const to: string[] = [];
   for (const e of [...matched.map((f) => f.email), ...HUB_TEAM]) { const k = String(e).trim().toLowerCase(); if (k && !seen.has(k)) { seen.add(k); to.push(k); } }
   return { to, matched };

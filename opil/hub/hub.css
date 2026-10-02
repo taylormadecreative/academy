@@ -43,7 +43,7 @@
 .ln-dock{display:none}
 @media(max-width:720px){
   .ln-primary{display:none}
-  .ln-bar{border-bottom:0;justify-content:flex-start}
+  .ln-bar{border-bottom:0;justify-content:flex-start;flex-wrap:wrap;row-gap:4px}   /* the role pill keeps its whole label; Show me around drops to its own line */
   .ln-team{margin-bottom:0;max-width:100%;overflow-x:auto;scrollbar-width:none;
     -webkit-overflow-scrolling:touch}
   .ln-team::-webkit-scrollbar{display:none}
@@ -124,6 +124,17 @@ button.member{background:none;color:inherit}
 .tbl td{padding:10px 12px;border-bottom:1px solid var(--hair-soft);color:var(--ink-2)}
 .tbl td b{color:var(--ink)}
 .pillbtn{font:inherit;font-weight:600;font-size:12.5px;color:var(--blue);background:var(--blue-soft);border:0;border-radius:980px;padding:7px 14px;cursor:pointer}
+.pillbtn:focus-visible{border-radius:980px}   /* build-mode.css's a/button:focus-visible radius would square a pill */
+/* the Overview's read-only session row (admin/index.html sessRowView): materials as a label column, the chevron turns open */
+.sv-mat{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:6px 0;font-size:13.5px;color:var(--ink-2)}
+.sv-mat > span:first-child{flex:0 0 auto;min-width:92px;text-align:center;box-sizing:border-box}
+.sv-chev{display:inline-block;color:var(--blue);font-weight:700;font-size:18px;line-height:1;transition:transform .16s ease}
+details[data-sess][open] > summary .sv-chev{transform:rotate(90deg)}
+@media(prefers-reduced-motion:reduce){.sv-chev{transition:none}}
+@media(max-width:720px){
+  #sessMgr .pillbtn{display:inline-flex;align-items:center;min-height:40px;padding:0 16px}
+  #sessMgr .attWrap > summary{padding:9px 0}
+}
 .statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .stat{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:16px 18px}
 .stat b{font-family:var(--display);font-weight:700;font-size:26px;color:var(--ink);display:block}

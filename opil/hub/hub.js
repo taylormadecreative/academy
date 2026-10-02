@@ -2,6 +2,16 @@
 /* Where a signed-out visitor goes, and comes back to. The query string rides along so a room
    link (/opil/hub/live/?s=7) lands in that room after the magic link, not on the bare page. */
 export const loginBounce = (loc) => '/login/?next=' + encodeURIComponent(loc.pathname + loc.search);
+/* One rule for every page that reads ea_opil_my_role: who is on the program team, and who is view-only (0058).
+   isTeam = coordinator, judge, facilitator, or on the list with no sessions ticked; viewOnly = that last one —
+   it sees the hub and joins any class, and changes nothing. */
+export function roleFlags(role, adminRow) {
+  const r = role || {};
+  const isAdmin = !!r.admin || !!adminRow, isJudge = !!r.judge;
+  const facSessions = Array.isArray(r.facilitator_sessions) ? r.facilitator_sessions : [];
+  const working = isAdmin || isJudge || facSessions.length > 0;
+  return { isAdmin, isJudge, facSessions, isTeam: !!r.team || working, viewOnly: !!r.view_only && !working };
+}
 export async function boot() {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const sb = createClient(window.BM_CONFIG.SUPABASE_URL, window.BM_CONFIG.SUPABASE_KEY);
@@ -17,17 +27,10 @@ export async function boot() {
     const { data } = await sb.rpc('ea_opil_claim_team');
     teamId = data || null;
   } catch (e) { /* not registered: hub still opens */ }
-  let isAdmin = false, isJudge = false, facSessions = [], isTeam = false, viewOnly = false;
-  try {
-    const { data: role } = await sb.rpc('ea_opil_my_role');
-    if (role) { isAdmin = !!role.admin; isJudge = !!role.judge; facSessions = role.facilitator_sessions || []; isTeam = !!role.team; viewOnly = !!role.view_only; }
-  } catch (e) {}
-  if (!isAdmin) { try { const { data } = await sb.from('ea_opil_admins').select('user_id').eq('user_id', user.id).maybeSingle(); isAdmin = !!data; } catch (e) {} }
-  /* isTeam: anyone on the program team (0058) — coordinator, judge, facilitator, or on the list with no
-     sessions ticked (viewOnly: sees the hub and joins any class, changes nothing). */
-  isTeam = isTeam || isAdmin || isJudge || facSessions.length > 0;
-  if (isAdmin || isJudge || facSessions.length) viewOnly = false;
-  return { sb, user, teamId, isAdmin, isJudge, facSessions, isTeam, viewOnly };
+  let role = null, adminRow = false;
+  try { const { data } = await sb.rpc('ea_opil_my_role'); role = data || null; } catch (e) {}
+  if (!(role && role.admin)) { try { const { data } = await sb.from('ea_opil_admins').select('user_id').eq('user_id', user.id).maybeSingle(); adminRow = !!data; } catch (e) {} }
+  return { sb, user, teamId, ...roleFlags(role, adminRow) };
 }
 
 export async function names(sb, ids) {
@@ -71,6 +74,8 @@ const STUDENT = [
   ['messages', 'Messages', '/opil/hub/messages/'],
   ['showcase', 'Showcase', '/opil/showcase/']
 ];
+/* view-only with no team of their own: My team and Messages have nothing for them (no team; messages are off) */
+const surfaces = (ctx) => (ctx.viewOnly && !ctx.teamId) ? STUDENT.filter(([k]) => k !== 'team' && k !== 'messages') : STUDENT;
 
 /* Role views, only for the people who hold that role. A facilitator lands on the
    same page as a coordinator but sees only their own sessions, so it is labelled
@@ -117,7 +122,7 @@ export function nav(ctx, active) {
 
   mount.innerHTML =
     '<nav class="ln-bar" aria-label="Lab sections">'
-    + '<div class="ln-primary">' + STUDENT.map(tab).join('') + '</div>'
+    + '<div class="ln-primary">' + surfaces(ctx).map(tab).join('') + '</div>'
     + (team.length
         ? '<div class="ln-team"><span class="ln-team-lbl">Program team</span>' + team.map(role).join('') + '</div>'
         : '')
@@ -138,7 +143,7 @@ export function nav(ctx, active) {
   const dock = document.createElement('nav');
   dock.className = 'ln-dock';
   dock.setAttribute('aria-label', 'Lab sections, bottom bar');
-  dock.innerHTML = STUDENT.map(([key, label, href]) =>
+  dock.innerHTML = surfaces(ctx).map(([key, label, href]) =>
     '<a class="ln-dock-a' + (key === active ? ' on' : '') + '" href="' + href + '"'
     + (key === active ? ' aria-current="page"' : '') + '>' + svg(key) + '<span>' + esc(label) + '</span></a>').join('');
   document.body.appendChild(dock);

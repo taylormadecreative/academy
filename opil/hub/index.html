@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=22ad724089">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=22ad724089">
+<link rel="stylesheet" href="/css/build-mode.css?v=9978be3258">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=9978be3258">
 <script>document.documentElement.classList.add('js')</script>
 </head><body>
 <header class="site-header"><div class="wrap"><div class="bar">
@@ -58,14 +58,14 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=22ad724089"></script>
+<script src="/js/config.js?v=9978be3258"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=22ad724089';
-import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=22ad724089';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=9978be3258';
+import { sessLabel, liveListHTML, roomPath } from '/opil/hub/live-rooms.js?v=9978be3258';
 const ctx = await boot(); if (!ctx) throw new Error('gate');
 const { sb, user, teamId, isTeam } = ctx;
 nav(ctx, 'home');
-import('/opil/hub/calendar-buttons.js?v=22ad724089').then((m) => m.mount(document.getElementById('calBtns'))).catch((e) => console.warn('[hub] calendar buttons', e));
+import('/opil/hub/calendar-buttons.js?v=9978be3258').then((m) => m.mount(document.getElementById('calBtns'))).catch((e) => console.warn('[hub] calendar buttons', e));
 document.getElementById('hello').textContent = (user.email || '').toUpperCase();
 
 /* no-team note — claim_team seats approved registrations only, so say where the application stands.
@@ -75,7 +75,7 @@ if (!teamId && !isTeam) {
   const copy = {
     pending: 'Your application is in. The program team is reviewing it &mdash; your team space opens here the moment it&rsquo;s approved.',
     approved: `You&rsquo;re approved but not seated on a team yet. Reload in a minute; if this persists, email ${mail}.`,
-    none: `You&rsquo;re signed in but not registered for the Lab. Applications closed Wednesday, September 9 &mdash; if you&rsquo;re on a team, email ${mail} and we&rsquo;ll seat you by hand.`,
+    none: `You&rsquo;re signed in but not registered for the Lab. Applications closed Wednesday, September 9 &mdash; if you&rsquo;re on a team, email ${mail} and we&rsquo;ll seat you by hand. <b>On the program team?</b> You&rsquo;re signed in as <b>${esc(user.email || '')}</b>, which isn&rsquo;t on the list. Ask the coordinator to add this exact email, or sign out and sign in with the one they added.`,
   };
   let st = 'none';
   try { const { data } = await sb.rpc('ea_opil_my_registration_status'); if (copy[data]) st = data; } catch (e) {}
@@ -83,7 +83,7 @@ if (!teamId && !isTeam) {
 }
 /* Need help with something? — the gold button + the answer note (spec §5): students only */
 if (!isTeam) {
-  try { const { mount: mountHelp } = await import('/opil/hub/help-button.js?v=22ad724089'); mountHelp(sb, user, document.getElementById('helpHome'), { esc }); } catch (e) { console.warn('[hub] help button', e); }
+  try { const { mount: mountHelp } = await import('/opil/hub/help-button.js?v=9978be3258'); mountHelp(sb, user, document.getElementById('helpHome'), { esc }); } catch (e) { console.warn('[hub] help button', e); }
 }
 /* sessions + materials — must stay above the live banner and check-in blocks, which read `sess` */
 const [{ data: sess }, { data: mats }] = await Promise.all([
@@ -174,7 +174,7 @@ if (teamId) {
     sb.from('ea_opil_teams').select('*').eq('id', teamId).single(),
     sb.from('ea_opil_team_members').select('user_id, role').eq('team_id', teamId),
   ]);
-  const { names } = await import('/opil/hub/hub.js?v=22ad724089');
+  const { names } = await import('/opil/hub/hub.js?v=9978be3258');
   const nm = await names(sb, (members || []).map(m => m.user_id));
   tc.innerHTML = `<b style="font-family:var(--display);font-size:19px;color:var(--ink)">${esc(team.name)}</b>
     <div style="font-size:13px;color:var(--muted);margin:4px 0 12px">${esc(team.school || '')}</div>

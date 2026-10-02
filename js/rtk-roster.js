@@ -29,7 +29,7 @@ export function rosterOrder(list, selfId) {
 }
 
 /* the role word under a name, for someone on the program team (a student's line is school · team) */
-export const ROLE_WORD = Object.freeze({ coordinator: 'Coordinator', facilitator: 'Facilitator', judge: 'Judge', student: '' });
+export const ROLE_WORD = Object.freeze({ coordinator: 'Coordinator', facilitator: 'Facilitator', judge: 'Judge', team: 'Program team', student: '' });   /* team: the view-only program team (0058) */
 
 /* the words when the cards could not be read at all (the RPC or ea_profiles failed) — never a
    "keeps their card private" for a problem that is ours */

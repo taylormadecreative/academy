@@ -49,6 +49,7 @@ test('cardFor (OPIL): a program-team row shows the role word, no project note', 
   assert.equal(c.note, '');
   assert.equal(ROLE_WORD.coordinator, 'Coordinator');
   assert.equal(ROLE_WORD.student, '');
+  assert.equal(ROLE_WORD.team, 'Program team');   /* the view-only program team (0058) is never shown as a facilitator */
 });
 
 test('cardFor (OPIL): a student with no write-up gets a sentence, not a blank', () => {

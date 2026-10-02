@@ -11,7 +11,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=22ad724089">
+<link rel="stylesheet" href="/css/build-mode.css?v=9978be3258">
 <style>
   body{background:var(--bg-soft);}
   /* ---- app bar ---- */
@@ -169,9 +169,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=22ad724089" defer></script>
-<script src="/js/native.js?v=22ad724089" defer></script>
-<script src="/js/meta-pixel.js?v=22ad724089" defer></script>
+<script src="/js/pwa.js?v=9978be3258" defer></script>
+<script src="/js/native.js?v=9978be3258" defer></script>
+<script src="/js/meta-pixel.js?v=9978be3258" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -278,8 +278,8 @@
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=22ad724089"></script>
-<script src="/js/site.js?v=22ad724089"></script>
+<script src="/js/config.js?v=9978be3258"></script>
+<script src="/js/site.js?v=9978be3258"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const CFG = window.BM_CONFIG || {};
@@ -358,15 +358,18 @@ else {
         const role = (roleRes && roleRes.data) || {};
         const fac = Array.isArray(role.facilitator_sessions) ? role.facilitator_sessions : [];
         const staff = !!role.admin, judge = !!role.judge;
-        if(!(staff || judge || fac.length || (teamRes && teamRes.data))) return;
+        const viewer = !!role.view_only && !staff && !judge && !fac.length;   /* the view-only program team (0058) */
+        if(!(staff || judge || fac.length || viewer || (teamRes && teamRes.data))) return;
         const acts = [];
         if(staff) acts.push(["/opil/hub/admin/","gold","Coordinator view"]);
         else if(fac.length) acts.push(["/opil/hub/admin/","gold","My sessions"]);
+        else if(viewer) acts.push(["/opil/hub/admin/","gold","Overview"]);
         acts.push(["/opil/hub/", acts.length ? "ghost" : "gold", "Open the Lab Hub"]);
         if(judge) acts.push(["/opil/hub/judge/","ghost","Judge view"]);
         const blurb = staff ? "Roster and approvals, resumes, CSV exports, and the sessions and content manager."
           : fac.length ? "Your sessions: post recordings, playbooks, assignments, and resources."
           : judge ? "Score team pitches and showcase submissions against the rubric."
+          : viewer ? "View only: every session, its materials and replays, what the teams have uploaded, and any class that is running."
           : "Your sessions, your team space, materials, and the showcase.";
         $("progWrap").innerHTML =
           '<div class="progcard"><div class="ptx">'

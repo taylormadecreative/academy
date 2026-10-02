@@ -57,7 +57,10 @@ Deno.test("recipientsFor: the matching facilitators, then the hub team, no doubl
   /* nobody filed for a track → the hub team still hears it */
   assertEquals(recipientsFor("hpc", [FACS[0]]).to, HUB_TEAM);
   /* Nelson filed as a facilitator is not emailed twice */
-  assertEquals(recipientsFor("business", [{ email: "TaylorMadeMD@gmail.com", label: "Nelson · Track 1" }]).to, ["taylormademd@gmail.com", "jware@aucenter.edu"]);
+  assertEquals(recipientsFor("business", [{ email: "TaylorMadeMD@gmail.com", label: "Nelson · Track 1", session_nos: [201] }]).to, ["taylormademd@gmail.com", "jware@aucenter.edu"]);
+  /* 0058: the view-only program team (on the list, no sessions) is never emailed a student's question, whatever its label says */
+  assertEquals(recipientsFor("business", [{ email: "kim@aucenter.edu", label: "Kim Lee · AUC Business Office", session_nos: [] }]).to, HUB_TEAM);
+  assertEquals(recipientsFor("payments", [{ email: "casey@blazegroupllc.com", label: "Casey Diké · Track 2", session_nos: null }]).to, HUB_TEAM);
 });
 
 Deno.test("facilitatorName: the label's first part, else the email's first half", () => {

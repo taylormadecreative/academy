@@ -24,7 +24,7 @@ function steps(page, role, ctx) {
     student: 'You are in as a student. Everything your team does this year lives here.',
     judge: 'You are in as a judge. This is what the cohort sees; your scoring view is one tap away.',
     coordinator: 'You are in as the coordinator. This is the student view; your own view is one tap away.',
-    viewer: 'You are in as the program team, view only. This is the student view; your Overview of every session and the lockers is one tap away.',
+    viewer: 'You\u2019re signed in with view-only program team access. This page is what students see. Your Overview, with every session and everything the teams have uploaded, is one tap away.',
     facilitator: ctx.isJudge
       ? 'You are in as a facilitator and a judge. This is the student view; your sessions and your scoring are each one tap away.'
       : 'You are in as a facilitator. This is the student view; your sessions are one tap away.',
@@ -55,12 +55,14 @@ function steps(page, role, ctx) {
     { at: ['.ln-tab[href="/opil/showcase/"]', '.ln-dock-a[href="/opil/showcase/"]'], title: 'Showcase', body: 'When the program team publishes a piece of your work, it appears on the public showcase under your team\u2019s name.' },
   ];
   /* Messages, the live room, the survey and the showcase: short, one idea per surface. */
-  const messages = [
+  const messages = role === 'viewer' && !ctx.teamId ? [
+    { at: ['#people'], up: '.hcard', title: 'Messages are off', body: 'View-only access reads the hub but sends no messages. To message students, ask the coordinator to make you the facilitator of a session.' },
+  ] : [
     { at: ['#people'], up: '.hcard', title: 'Everyone in the cohort', body: 'Every seated student across every team, with their team under their name. Pick a person to open a private thread.' },
     { at: ['#dmForm', '#threadTitle'], up: '.hcard', title: 'One-to-one', body: 'A message here goes to that one person and nobody else. Team-wide talk belongs in your team chat.' },
   ];
   const live = [
-    { at: ['#rtkMount', '#player'], title: 'The class room', body: role === 'coordinator' || role === 'facilitator' ? 'Your class runs here, everyone on camera. Start it from Your class above, check your camera, press Enter Class. Students press one big Ask a question button and you bring them on stage in order. Files in the bottom bar is where anyone adds a PDF or slides for the class to download, and Show to class puts it on every screen. Tools holds Small groups (with a clock), share screen, polls and effects. Leave only takes you out; End the class for everyone is in Tools, and the recording lands on your sessions page as a draft.' : 'When your facilitator starts the class it opens here. No code needed on the class link: type the email you applied with. You see everyone, your mic and camera state is spelled out in words, one big Ask a question button puts you in line, Files is where you download what was shared (or add your own), and chat and people sit beside the video.' },
+    { at: ['#rtkMount', '#player'], title: 'The class room', body: role === 'coordinator' || role === 'facilitator' ? 'Your class runs here, everyone on camera. Start it from Your class above, check your camera, press Enter Class. Students press one big Ask a question button and you bring them on stage in order. Files in the bottom bar is where anyone adds a PDF or slides for the class to download, and Show to class puts it on every screen. Tools holds Small groups (with a clock), share screen, polls and effects. Leave only takes you out; End the class for everyone is in Tools, and the recording lands on your sessions page as a draft.' : role === 'judge' || role === 'viewer' ? 'When the facilitator starts the class it opens here. You join muted, as a participant, with the same tools as everyone else: Ask a question puts you in line, Files is where you download what was shared, and chat and people sit beside the video. Everyone in the class sees your name.' : 'When your facilitator starts the class it opens here. No code needed on the class link: type the email you applied with. You see everyone, your mic and camera state is spelled out in words, one big Ask a question button puts you in line, Files is where you download what was shared (or add your own), and chat and people sit beside the video.' },
     { at: ['#lcForm'], up: '.hcard', title: 'Room chat', body: role === 'judge' || role === 'viewer' ? 'The room chat beside the video. Everyone in the class reads it and can post in it, you included.' : 'Everyone in the cohort sees this chat. Questions for the facilitator go here during the session.' },
   ];
   const survey = [
@@ -82,7 +84,7 @@ function steps(page, role, ctx) {
     { at: ['#sessMgr'], up: '.hcard', title: 'Sessions and content', body: 'For each session: paste the recording and playbook links, set a check-in code to read out on the night, and upload materials. Add a session at the bottom of the list for anything the facilitators run.' },
     { at: ['a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'The class room', body: 'Open room, in any row, is that session\u2019s own class room: start the class there, everyone on camera, and copy the link students join with. Several sessions can run at once.' },
     { at: ['.replayLine', 'a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'Replays', body: 'Every class records itself. When the recording is ready it appears on the session as a draft only the program team can see \u2014 review it, then Publish to students. Unpublish takes it back down.' },
-    { at: ['#facForm'], up: '.hcard', title: 'Program team and facilitators', body: 'Add anyone on the program team by email. Tick the sessions they lead and they get My sessions: those sessions, with the same recording, materials and check-in controls you have here. Tick none and they get view-only access: every session and the lockers, and a seat in any class, with nothing they can change.' },
+    { at: ['#facForm'], up: '.hcard', title: 'Program team and facilitators', body: 'Add anyone on the program team by email. Tick the sessions they lead and they get My sessions: those sessions, with the same recording, materials and check-in controls you have here. Tick none and they get view-only access: every session and the lockers, and a seat in any class, with nothing they can change. Nothing is emailed for you: send them the sign-in link under the list.' },
     { at: ['#attWrap'], up: '.hcard', title: 'Attendance', body: 'One cell per student per AI Thread session. Tap to mark; students can also check themselves in with the code you set. Curriculum and HPC check-ins land in the report pack.' },
     { at: ['#judgeForm'], up: '.hcard', title: 'Judges and scores', body: 'Add a judge by email and they get the scoring view the moment they sign in. Averages per team show up here as scores come in.' },
     { at: ['#annForm'], up: '.hcard', title: 'Announcements', body: 'Whatever you post here is the first thing every student sees on their hub home.' },
@@ -91,7 +93,7 @@ function steps(page, role, ctx) {
   /* My sessions: the coordinator page, filtered to one facilitator's rows. The steps point
      inside the first row (the engine opens it), so every control gets named once. */
   const facilitator = [
-    { at: ['.hub-head'], title: 'Your sessions', body: 'You are in as a facilitator. Only the sessions you lead are listed here; the coordinator manages the rest. Open a row to run a session.' },
+    { at: ['.hub-head'], title: 'Your sessions', body: 'You are in as a facilitator. The sessions you lead come first, ready to run; everyone else\u2019s follow, view only, so you can see the whole program and join any class that is running. Open a row to run a session.' },
     { at: ['#sessMgr'], up: '.hcard', title: 'One row per session', body: 'Each row is a session with its date and what is attached so far. The ✎ opens it. Anything you save here shows up on the students\u2019 hub home within seconds.' },
     { at: ['input[data-f="recording"]'], title: 'Recording and playbook', body: 'After the session, paste the recording link and the playbook link (the step-by-step guide from that night) here. Students find both on that session\u2019s row.' },
     { at: ['.addMat'], title: 'Materials', body: 'An assignment is work you want back; a resource is something to read or use. Either is a link, such as your Zoom link, a reading, a form, or a file up to 25 MB. It appears under the session on every student\u2019s home.' },
@@ -108,9 +110,9 @@ function steps(page, role, ctx) {
   const viewer = [
     { at: ['.hub-head'], title: 'Your Overview', body: 'You are on the program team with view-only access. Every session is listed here; nothing on this page can be changed from your account.' },
     { at: ['#sessMgr'], up: '.hcard', title: 'One row per session', body: 'Open a row for its class room, the recording and playbook, the replay once it is published, the materials, and who attended.' },
-    { at: ['a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'Join a class', body: 'Open room takes you into that session\u2019s class while it is running, with the same tools as everyone in it. Before it starts, you wait there and it opens by itself.' },
+    { at: ['a.pillbtn[href^="/opil/hub/live/?s="]'], title: 'Join a class', body: 'Open room puts you in that session\u2019s class while it\u2019s running. You join muted, as a participant: everyone in the class sees your name, and you have the same tools they do. Before it starts, you wait on that page and it opens by itself.' },
     { at: ['#dvWrap'], up: '.hcard', title: 'Lockers', body: 'Everything the teams have turned in, newest first. Open link or Open file shows you the work itself.' },
-    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home and Showcase open the student side as the cohort has it.' },
+    { at: ['.ln-primary', '.ln-dock'], title: 'See what they see', body: 'Home and Showcase show the student side, as the cohort sees it.' },
   ];
   const by = { home, team, judge, messages, live, survey, showcase, admin: role === 'facilitator' ? facilitator : role === 'viewer' ? viewer : admin };
   if (!seated) return page === 'home' ? home.filter(st => ['#hello', '#noTeamNote', '.ln-primary'].includes(st.at[0])) : [];

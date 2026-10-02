@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=22ad724089">
-<link rel="stylesheet" href="/opil/hub/hub.css?v=22ad724089">
-<link rel="stylesheet" href="/css/rtk-room.css?v=22ad724089">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=22ad724089">
+<link rel="stylesheet" href="/css/build-mode.css?v=9978be3258">
+<link rel="stylesheet" href="/opil/hub/hub.css?v=9978be3258">
+<link rel="stylesheet" href="/css/rtk-room.css?v=9978be3258">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=9978be3258">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 .live-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(18px,2.6vw,30px);align-items:start;padding-bottom:60px}
@@ -92,10 +92,10 @@
 </div>
 </main>
 
-<script src="/js/config.js?v=22ad724089"></script>
+<script src="/js/config.js?v=9978be3258"></script>
 <script type="module">
-import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=22ad724089';
-import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2, recChipHidden, endCopy, backOn, passCopy } from '/opil/hub/live-rooms.js?v=22ad724089';
+import { boot, names, esc, when, nav } from '/opil/hub/hub.js?v=9978be3258';
+import { roomFromQuery, pickRoom, roomPath, sessLabel, liveListHTML, useV2, recChipHidden, endCopy, backOn, passCopy } from '/opil/hub/live-rooms.js?v=9978be3258';
 /* No code for approved students (Nelson, 9/16 — the first class ever: "make it to where the students do
    not need codes to get into the classroom … they've already been approved"). A signed-out visitor on a
    room link types the email they applied with; ea-opil-pass checks the approved list and hands back a
@@ -179,6 +179,8 @@ const metaLine = (s) => 'Session ' + sessLabel(s) + (s.outcome ? ' · Today you 
 async function facilitatorName(no) { try { const { data } = await sb.rpc('ea_opil_session_facilitator', { p_session: no }); return data || null; } catch (e) { return null; } }
 let hosting = false;   /* this page runs the class from the control (Start, or Enter the running class): the wake poll must never reload it from under the host */
 let room = null;       /* the joined class, so Start can tear a viewer's room down before opening its own */
+let roomNo = null;     /* …and which session it is: a facilitator may sit in a colleague's class (or its waiting screen)
+                          while their own runs elsewhere — the control and End act only on the room that is theirs */
 let mounting = false;  /* a mount under way (Start, Enter, the straight-in entry while live) — one at a time, page-wide */
 let onMountSettled = null;   /* the class control hooks this: redraw its button when a mount starts or settles */
 let onLeft = null;     /* the class control hooks this: (st, reason) once this person is out of the room */
@@ -198,7 +200,7 @@ const roomState = (st, meeting, reason) => {
   if (st === 'joined') { armLivePoll(); if (onJoined) onJoined(reason); return; }
   if (st !== 'ended' && st !== 'left') return;
   if (livePoll) { clearInterval(livePoll); livePoll = null; }
-  document.body.classList.remove('in-room', 'in-room-v2'); room = null;
+  document.body.classList.remove('in-room', 'in-room-v2'); room = null; roomNo = null;
   if (closing) return;   /* the poll is closing the room and says 'ended' itself once the leave is through */
   if (onLeft) onLeft(st, reason);
   afterRoom(st, reason);
@@ -261,7 +263,7 @@ function afterRoom(st, reason) {
 /* v2 takes the session object and a mode; onOpened fires for a host the moment the meeting exists,
    before they press Enter — that is when the session flips live */
 async function enterRoomV2({ session, mode, meetingId, onOpened }) {
-  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=22ad724089');
+  const { mountRoomV2 } = await import('/js/rtk-room-v2.js?v=9978be3258');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   const facilitator = await facilitatorName(session.no);
   document.getElementById('ttl').textContent = sessLabel(session) + ' · ' + session.title;
@@ -272,15 +274,16 @@ async function enterRoomV2({ session, mode, meetingId, onOpened }) {
      settles — the host on their camera-check screen must never be handed an "Enter the running class" that mounts
      a second room on top of the first (two kit clients, the first holding the camera for good) */
   mounting = true; if (onMountSettled) onMountSettled();
-  try { room = await mountRoomV2({ isJudge: !!isJudge, isAdmin: !!isAdmin, mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok, sb, user, session, mode, meetingId: meetingId || null, facilitator, onState: roomState, onOpened }); return room; }
+  try { roomNo = session.no; room = await mountRoomV2({ isJudge: !!isJudge, isAdmin: !!isAdmin, mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok, sb, user, session, mode, meetingId: meetingId || null, facilitator, onState: roomState, onOpened }); return room; }
   finally { mounting = false; if (onMountSettled) onMountSettled(); }
 }
 async function enterRoom(no, meetingId, title) {
   if (v2) { const sess = (allSess || []).find(s => s.no === no) || roomSess; return enterRoomV2({ session: sess, mode: 'student', meetingId }); }
-  const { mountRoom } = await import('/js/rtk-room.js?v=22ad724089');
+  const { mountRoom } = await import('/js/rtk-room.js?v=9978be3258');
   const tok = (await sb.auth.getSession()).data.session?.access_token || '';
   mounting = true; if (onMountSettled) onMountSettled();
   try {
+    roomNo = no;
     room = await mountRoom({
       mountEl: document.getElementById('rtkMount'), cfg: window.BM_CONFIG, token: tok,
       sessionNo: no, meetingId,
@@ -313,7 +316,7 @@ if (liveSess) {
   /* students and judges land straight in */
   enterRoom(liveSess.no, liveSess.stream_url.slice(RTK_PREFIX.length), liveSess.title)
     .catch((e) => {
-      const hint = e.code === 'not_allowed' ? 'Ask the coordinator to add you to the cohort.' : e.code === 'not_open' ? 'Stay on this page — it opens by itself.' : 'Reload to try again.';
+      const hint = e.code === 'not_allowed' ? 'You’re signed in as ' + (user.email || 'this account') + ', which isn’t on the cohort or the program team list. Ask the coordinator to add this exact email, or sign out and use the one they added.' : e.code === 'not_open' ? 'Stay on this page — it opens by itself.' : 'Reload to try again.';
       idleEl.innerHTML = '<b>' + esc(e.message || 'Could not open the class.') + '</b><span>' + hint + '</span>';
     });
 } else if (roomSess && v2 && !hosts(roomSess.no)) {
@@ -521,9 +524,10 @@ if (staff) {
       const running = !!s.is_live && isRoom(s.stream_url);
       const out = running && leftNo === s.no;
       const busy = entering || mounting;   /* a mount under way — this page's, or the straight-in entry while live */
+      const here = !!room && roomNo === s.no;   /* in THIS class — not a colleague's, not a waiting screen */
       goBtn.hidden = !s.is_live;
-      classBtn.disabled = busy || (running && !!room);
-      classBtn.innerHTML = busy ? (entering && !running ? 'Opening the room…' : 'Entering…') : !running ? 'Start class &mdash; everyone on camera' : room ? 'Class is running' : out ? 'Rejoin the running class &rarr;' : 'Enter the running class';
+      classBtn.disabled = busy || (running && here);
+      classBtn.innerHTML = busy ? (entering && !running ? 'Opening the room…' : 'Entering…') : !running ? 'Start class &mdash; everyone on camera' : here ? 'Class is running' : out ? 'Rejoin the running class &rarr;' : 'Enter the running class';
       stillEl.hidden = !out;
       recChip.hidden = recChipHidden({ running, recFor, sessionNo: s.no });
     }
@@ -574,7 +578,7 @@ if (staff) {
     /* Enter / Rejoin a running class as its host: the same meeting (the server reuses the session's stored one);
        the recording is asked to start again (idempotent server-side: reused while it runs, replaced once it ended) */
     async function enterRunning(s) {
-      if (entering || mounting || room) return;
+      if (entering || mounting || (room && roomNo === s.no)) return;
       entering = true; syncCtl();
       /* the row is re-read first: a host who left, whose class a colleague then ended, must not walk back into a
          session that is off air (a recording would start on a class nobody can join) */
@@ -590,6 +594,7 @@ if (staff) {
       try {
         clearInterval(wakePoll); wakePoll = null; hosting = true;
         if (backPoll) { clearInterval(backPoll); backPoll = null; }
+        if (room) { try { await room.leave(); } catch (x) {} room = null; roomNo = null; }   /* a colleague's class, or its waiting screen */
         await enterRoomV2({ session: s, mode: 'host', onOpened: async () => {
           sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
           /* always: start is idempotent (a live recording is reused), and a recording that sat with nobody in it
@@ -611,7 +616,7 @@ if (staff) {
       try {
         clearInterval(wakePoll); wakePoll = null; hosting = true;
         if (backPoll) { clearInterval(backPoll); backPoll = null; }
-        if (room) { try { await room.leave(); } catch (x) {} room = null; }   /* a class this page had joined as a viewer */
+        if (room) { try { await room.leave(); } catch (x) {} room = null; roomNo = null; }   /* a class this page had joined as a viewer, or a waiting screen */
         const opened = async (meetingId) => {
           await flipLive(s.no, true, 'rtk:' + meetingId);
           sessionNo = s.no; bindUrl(s.no); onAir(true); syncCtl();
@@ -653,7 +658,8 @@ if (staff) {
       }
       if (Date.now() - Number(goBtn.dataset.armedAt || 0) < 500) return;   /* a double-click is not a decision (9/16: the class ended by accident at 6:28) */
       goBtn.dataset.armed = ''; goBtn.disabled = true; goBtn.textContent = 'Ending…';
-      if (room && room.end) { try { await room.end(); } catch (e) {} goBtn.disabled = false; goBtn.textContent = ec.endButton; return; }
+      /* in THIS class: end it from inside. Sitting in a colleague's class, End still means this session — the server path */
+      if (room && room.end && roomNo === cur().no) { try { await room.end(); } catch (e) {} goBtn.disabled = false; goBtn.textContent = ec.endButton; return; }
       const no = cur().no;
       hosting = false; leftNo = null; pendingRecord = null; stopRecPoll();
       try { await record('end', no); }
