@@ -104,7 +104,8 @@ export function emailFor(due: Due, r: Recipient, deps: Pick<RemindDeps, "layout"
     body += P(`<b>Where:</b> ${e(ev.venue_address || ev.venue_label || "the address is in your ticket email")}. Bring a laptop that can run Claude or ChatGPT in a browser.`);
   }
   if (free) {
-    body += P(`Have your cheat sheet ready: <a href="${e(deps.site + "/ai101/cheat-sheet.pdf")}" style="color:#0b40e0">download it here</a>. A laptop is best if you want to try along with me, but a phone works to watch.`);
+    body += P(`Open your class page next to the room: <a href="${e(deps.site + "/ai101/class/")}" style="color:#0b40e0">your AI 101 class page</a>. Every prompt is there to copy, so you can follow along. You get your cheat sheet in class.`) +
+      P(`<b>Before 7:00:</b> make a free account in Claude, ChatGPT or Gemini. Claude texts a code to your phone to finish signing up, so keep your phone close. Already have Gmail? Gemini works with it, no new account needed. Best setup: watch the room on one device, and use a laptop for the class page and your AI chat. A phone works to watch.`);
   }
   body += P(`Questions? Reply to this email, it comes straight to me.`);
   return deps.layout({

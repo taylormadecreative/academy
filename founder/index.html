@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=9978be3258">
+<link rel="stylesheet" href="/css/build-mode.css?v=e5a80994ff">
 <script>document.documentElement.classList.add('js')</script>
 <style>
   /* ---- app chrome (matches /dashboard/) ---- */
@@ -83,6 +83,12 @@
   .st.sold_out,.st.purchased{background:var(--gold-soft);color:var(--gold-ink);}
   .st.refunded,.st.void,.st.canceled,.st.unsubscribed{background:#fff1f0;color:#b42318;}
   .st.draft,.st.pending,.st.past,.st.waiting{background:var(--bg-soft2);color:var(--muted);}
+  /* reviews: waiting, on the site and hidden must not look alike; bigger buttons; long words wrap */
+  #rvList .st.pending{background:var(--gold-soft);color:var(--gold-ink);}
+  #rvList .st.approved{background:var(--emerald-soft);color:#067a56;}
+  #rvList .st.hidden{background:#fff1f0;color:#b42318;}
+  #rvList .btn.xs{min-height:44px;padding:0 16px;font-size:14px;}
+  .rv-body-admin{margin:10px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere;}
 
   /* ---- controls ---- */
   .fi{font:inherit;font-weight:400;font-size:14.5px;color:var(--ink);background:#fff;border:1px solid #c9d3e6;border-radius:12px;padding:10px 13px;outline:none;min-width:0;transition:border-color .16s var(--ease),box-shadow .16s var(--ease);}
@@ -146,9 +152,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=9978be3258" defer></script>
-<script src="/js/native.js?v=9978be3258" defer></script>
-<script src="/js/meta-pixel.js?v=9978be3258" defer></script>
+<script src="/js/pwa.js?v=e5a80994ff" defer></script>
+<script src="/js/native.js?v=e5a80994ff" defer></script>
+<script src="/js/meta-pixel.js?v=e5a80994ff" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -171,6 +177,7 @@
 <a href="#events" data-tab="events" role="tab" id="tab-events" aria-controls="p-events" aria-selected="false">Dates &amp; tickets<span class="n" id="nEv">0</span></a>
 <a href="#orders" data-tab="orders" role="tab" id="tab-orders" aria-controls="p-orders" aria-selected="false">Orders<span class="n" id="nOrd">0</span></a>
 <a href="#announce" data-tab="announce" role="tab" id="tab-announce" aria-controls="p-announce" aria-selected="false">Announce</a>
+<a href="#reviews" data-tab="reviews" role="tab" id="tab-reviews" aria-controls="p-reviews" aria-selected="false">Reviews<span class="n" id="nRev">0</span></a>
 </nav></div>
 
 <!-- ---------------- overview ---------------- -->
@@ -254,6 +261,16 @@
 <div class="card"><h2>Preview</h2><div class="preview" style="margin-top:12px"><iframe id="anPreview" title="Email preview"></iframe></div></div>
 </div>
 </section>
+
+<!-- ---------------- reviews (0059): nothing shows on the site until approved here ---------------- -->
+<section class="panel" id="p-reviews" role="tabpanel" aria-labelledby="tab-reviews" tabindex="0">
+<div class="card">
+<div class="row between"><h2>Reviews<small>Nothing shows on the site until you approve it. An edited review comes back here.</small></h2>
+<select class="fi" id="rvStatus" style="min-width:170px" aria-label="Which reviews"><option value="pending">Waiting for you</option><option value="approved">On the site</option><option value="hidden">Hidden</option><option value="">All</option></select></div>
+<p id="rvCount" class="muted-sm" role="status" style="margin:8px 0 0"></p>
+<div id="rvList" class="rv-admin" style="margin-top:12px"></div>
+</div>
+</section>
 </div>
 </div></main>
 
@@ -294,6 +311,6 @@
 <dialog class="fd-dlg" id="confirmDlg"><div class="in-dlg"><h2 id="cfH" style="font-size:20px;letter-spacing:-.02em"></h2><p class="muted-sm" id="cfP" style="margin-top:8px"></p><div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" id="cfNo">Cancel</button><button class="btn gold" id="cfYes">Yes</button></div></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/js/config.js?v=9978be3258"></script>
-<script type="module" src="/js/founder.js?v=9978be3258"></script>
+<script src="/js/config.js?v=e5a80994ff"></script>
+<script type="module" src="/js/founder.js?v=e5a80994ff"></script>
 </body></html>

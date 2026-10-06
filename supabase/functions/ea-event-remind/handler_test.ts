@@ -51,15 +51,19 @@ Deno.test("windows: day-before between 3 and 24 hours out, hour-before inside th
   assertEquals(dueEvents([EV({ starts_at: "junk" })], [], at(30)), []);
 });
 
-Deno.test("messages: one per address, lower-cased, bad addresses dropped; AI 101 carries the room + cheat sheet", () => {
+Deno.test("messages: one per address, lower-cased, bad addresses dropped; AI 101 carries the room + the class page", () => {
   const [due] = dueEvents([EV()], [], START - 30 * 60000);
   const msgs = messagesFor(due, [{ email: "A@x.com", name: "ann" }, { email: "a@x.com" }, { email: "b@x.com" }, { email: "bad" }], mail);
   assertEquals(msgs.map((m) => m.to), ["a@x.com", "b@x.com"]);
   assertEquals(msgs[0].subject, "Starting in an hour: AI 101");
   assert(msgs[0].html.includes("Hi Ann,"));
   assert(msgs[0].html.includes("/room/?k=abc"));
-  assert(msgs[0].html.includes("/ai101/cheat-sheet.pdf"));
+  assert(msgs[0].html.includes("/ai101/class/"), "the class page link");
+  assert(msgs[0].html.includes("cheat sheet in class"), "the cheat sheet is handed out in class");
+  assert(!msgs[0].html.includes("cheat-sheet.pdf"), "no early PDF link");
   assert(msgs[0].html.includes("Free class"));
+  assert(msgs[0].html.includes("texts a code to your phone"), "the Claude sign-up code, before it stalls the room");
+  assert(msgs[0].html.includes("Gemini"), "the no-new-account path for Gmail users");
 });
 
 Deno.test("messages: a paid date sends the room to online seats and the address to in-person seats, no cheat sheet", () => {
@@ -69,6 +73,7 @@ Deno.test("messages: a paid date sends the room to online seats and the address 
   assertEquals(msgs.length, 2);
   assert(msgs[0].subject.startsWith("Tomorrow: Build Your First AI Agent"));
   assert(msgs[0].html.includes("Open the room") && !msgs[0].html.includes("cheat-sheet"));
+  assert(!msgs[0].html.includes("/ai101/class/"), "a paid date never links the AI 101 class page");
   assert(msgs[1].html.includes("123 Studio Rd") && !msgs[1].html.includes("Open the room"));
 });
 

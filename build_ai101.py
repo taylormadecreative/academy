@@ -42,29 +42,29 @@ _DIAGRAM = """<svg class="dg-h" viewBox="0 0 640 280" role="img" aria-labelledby
   <text x="540" y="98" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="15">You get an answer</text>
   <text x="540" y="122" text-anchor="middle" fill="#5d6b84">keep it, or ask</text>
   <text x="540" y="140" text-anchor="middle" fill="#5d6b84">for changes</text>
-  <path d="M540 170 V224 H100 V172" fill="none" stroke="#c9d3e6" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#a1Arr)"/>
+  <path d="M540 170 V224 H100 V172" fill="none" stroke="#6b7a94" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#a1Arr)"/>
   <rect x="210" y="236" width="220" height="30" rx="15" fill="#fff6da" stroke="#f3dfa0"/>
   <text x="320" y="256" text-anchor="middle" fill="#4a3700" font-weight="700" font-size="13">more detail in, better answer out</text>
 </g></svg>"""
 
-_DIAGRAM_V = """<svg class="dg-v" viewBox="0 0 360 560" role="img" aria-hidden="true">
+_DIAGRAM_V = """<svg class="dg-v" viewBox="0 0 360 560" role="img" aria-labelledby="a1dt">
 <defs><marker id="a1ArrV" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0b40e0"/></marker></defs>
-<g font-family="Inter,system-ui,sans-serif" font-size="16">
+<g font-family="Inter,system-ui,sans-serif" font-size="18">
   <rect x="40" y="12" width="280" height="92" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
-  <text x="180" y="48" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="17">You type a prompt</text>
+  <text x="180" y="48" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="19">You type a prompt</text>
   <text x="180" y="76" text-anchor="middle" fill="#5d6b84">what you want, in plain words</text>
   <line x1="180" y1="106" x2="180" y2="144" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#a1ArrV)"/>
   <rect x="40" y="150" width="280" height="120" rx="18" fill="#04123a"/>
-  <text x="180" y="190" text-anchor="middle" font-weight="700" fill="#ffffff" font-size="17">The AI</text>
+  <text x="180" y="190" text-anchor="middle" font-weight="700" fill="#ffffff" font-size="19">The AI</text>
   <text x="180" y="220" text-anchor="middle" fill="#fdc921" font-weight="600">reads your words</text>
   <text x="180" y="246" text-anchor="middle" fill="#fdc921" font-weight="600">writes an answer</text>
   <line x1="180" y1="272" x2="180" y2="310" stroke="#0b40e0" stroke-width="2.5" marker-end="url(#a1ArrV)"/>
   <rect x="40" y="316" width="280" height="92" rx="18" fill="#f5f7fc" stroke="#e4e9f1"/>
-  <text x="180" y="352" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="17">You get an answer</text>
+  <text x="180" y="352" text-anchor="middle" font-weight="700" fill="#0a1733" font-size="19">You get an answer</text>
   <text x="180" y="380" text-anchor="middle" fill="#5d6b84">keep it, or ask for changes</text>
-  <path d="M320 362 H344 V58 H326" fill="none" stroke="#c9d3e6" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#a1ArrV)"/>
-  <rect x="50" y="450" width="260" height="34" rx="17" fill="#fff6da" stroke="#f3dfa0"/>
-  <text x="180" y="473" text-anchor="middle" fill="#4a3700" font-weight="700" font-size="14">more detail in, better answer out</text>
+  <path d="M320 362 H344 V58 H326" fill="none" stroke="#6b7a94" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#a1ArrV)"/>
+  <rect x="20" y="448" width="320" height="38" rx="19" fill="#fff6da" stroke="#f3dfa0"/>
+  <text x="180" y="473" text-anchor="middle" fill="#4a3700" font-weight="700" font-size="16">more detail in, better answer out</text>
 </g></svg>"""
 
 # The words, each in one plain sentence. The class covers these and a few more.
@@ -95,6 +95,9 @@ def _form(form_id, source, compact=False, on_ink=False):
 </form></div>
 <div class="ag-done" aria-live="polite"></div>
 </div>"""
+
+
+from build_reviews import reviews_section
 
 
 def ai101_page(head, header, footer, ver):
@@ -149,7 +152,7 @@ def ai101_page(head, header, footer, ver):
 </div>
 <div class="ag-out-rest">
 <div class="ag-out-item"><div><h3>The AI words, decoded</h3><p>Model, prompt, hallucination, agent. Each word in one plain sentence, so you can follow any AI conversation.</p></div></div>
-<div class="ag-out-item"><div><h3>A one-page cheat sheet</h3><p>The prompt steps and the words, on one page. It comes in your sign-up email, so you can keep it next to you.</p></div></div>
+<div class="ag-out-item"><div><h3>A printable cheat sheet</h3><p>The 5-part prompt, the AI words, and 15 prompts to try. You get it in class, and it's on your class page too.</p></div></div>
 </div>
 </div></div></section>
 
@@ -182,6 +185,7 @@ def ai101_page(head, header, footer, ver):
 <li class="ag-step"><span class="t"><b>3</b> Try it</span><h3>Your turn, plus questions.</h3><p>You write a prompt for something in your own life or business. Then I answer questions. In the last few minutes I tell you about the next step: the Build Your First AI Agent workshop on {AGENT_DAY}. We end at 8 on the dot.</p></li>
 </ol></div></div></section>
 
+{reviews_section("ai101", "What people said", "", ver)}
 <section class="ag-note"><div class="wrap"><div class="ag-note-grid">
 <div>
 <h2>Why this one is free.</h2>
@@ -221,6 +225,7 @@ def ai101_replay_page(head, header, footer, ver):
 <span class="kicker gold">Replay</span>
 <h1 class="display-l" style="margin-top:12px">AI 101, the replay.</h1>
 <div class="a1-rp" id="rp" aria-live="polite"><p class="muted">Checking your account&hellip;</p></div>
+<p class="a1-rp-next">Following along? <a class="textlink" href="/ai101/class/">Open the AI 101 class page</a>, with every prompt to copy.</p>
 </div></section></main>
 <script type="module">
 const CFG = window.BM_CONFIG || {{}};

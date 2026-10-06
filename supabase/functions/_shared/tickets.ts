@@ -29,8 +29,8 @@ export type TicketRow = { id: string; code: string; status: string };
 // founder's Announce email reaches them for the class price after the class.
 export const AI101 = {
   slug: "ai101",
-  cheatSheet: `${SITE}/ai101/cheat-sheet.pdf`,
   page: `${SITE}/ai101/`,
+  classPage: `${SITE}/ai101/class/`,
 };
 export const isAi101 = (ev: { workshop_slug?: string | null } | null | undefined) => ev?.workshop_slug === AI101.slug;
 
@@ -168,24 +168,28 @@ export function ai101Details(ev: EventRow): string {
     `${room}</div>`;
 }
 
-async function sendAi101Email(order: OrderRow, ev: EventRow) {
+// The free class's confirmation body: when, the room, how to get in, the class page. The cheat sheet is handed out
+// IN class (Nelson 10/6), so this email no longer links the PDF.
+export function ai101EmailBody(order: OrderRow, ev: EventRow): string {
   const p = (html: string) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.62;color:#33415b">${html}</p>`;
-  const body =
-    p(`${esc(firstName(order.full_name))}, your free seat is saved. Here is everything you need.`) +
+  return p(`${esc(firstName(order.full_name))}, your free seat is saved. Here is everything you need.`) +
     ai101Details(ev) +
     p(`<b>To get in:</b> you sign in with a free Taylormade Academy account, using this email (${esc(order.email)}). Making the account takes about a minute. Do it now, and on the night you just click the link and walk in.`) +
     button(`${SITE}/login/?mode=join`, "Make my free account") +
-    p(`<b>Your cheat sheet:</b> the prompt steps and the AI words on one page. <a href="${esc(AI101.cheatSheet)}" style="color:#0b40e0">Download it here</a> and keep it next to you during class.`) +
-    p(`<b>What to have:</b> a laptop, tablet, or phone. A laptop is best if you want to try along with me. A free ChatGPT or Claude account helps, but you can just watch.`) +
+    p(`<b>Your class page:</b> on the night, open <a href="${esc(AI101.classPage)}" style="color:#0b40e0">your AI 101 class page</a> next to the room. Every prompt I use is there to copy, so you can follow along step by step. You get your cheat sheet in class.`) +
+    p(`<b>What to have:</b> a laptop, tablet, or phone. A laptop is best if you want to try along with me. A free Claude, ChatGPT or Gemini account helps, but you can just watch. Making a Claude account? It texts a code to your phone to finish signing up, so keep your phone close. Already have Gmail? Gemini works with it, no new account needed.`) +
     p(`I will send a reminder the day before and one an hour before. Reply to this email with any question, it comes straight to me.`);
+}
+
+async function sendAi101Email(order: OrderRow, ev: EventRow) {
   return await sendEmail({
     to: order.email,
     subject: `You are in: ${ev.title}, ${when(ev.starts_at, ev.tz)}`,
     html: layout({
-      preheader: `${when(ev.starts_at, ev.tz)}. Your room link and cheat sheet are inside.`,
+      preheader: `${when(ev.starts_at, ev.tz)}. Your room link and class page are inside.`,
       kicker: "Free class",
       heading: "You are in.",
-      body,
+      body: ai101EmailBody(order, ev),
       foot: `You signed up for the free AI 101 class at <a href="${AI101.page}" style="color:#94a3b8">taylormadeacademy.com/ai101</a>.`,
     }),
   });

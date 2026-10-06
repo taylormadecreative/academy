@@ -5,6 +5,7 @@ until Supabase/Stripe are wired."""
 import pathlib, hashlib, re, urllib.parse, datetime
 from build_seo import inject, organization, website, nelson, profile_page, breadcrumbs, event, faq_from_html, glossary, text as ld_text
 from build_workshops import home_schedule, HIDE_PAST, WORKSHOPS as _WS
+from build_reviews import reviews_section
 
 ROOT = pathlib.Path(__file__).parent
 DOMAIN = "https://taylormadeacademy.com"
@@ -16,6 +17,7 @@ def _asset_ver():
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
                 "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js",
+                "js/ai101-kit.js", "js/ai101-class.js", "js/ai101-proof.js", "js/ai101-stage.js", "js/reviews.js", "css/ai101-stage.css", "css/ai101-class.css", "js/vendor/gsap.min.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
                 "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js", "opil/hub/admin/move-student.js", "opil/hub/messages/directory.js"):
@@ -594,6 +596,7 @@ def home():
 </div>
 {home_schedule()}
 </div></section>
+{reviews_section("ai101", "What people said about AI 101", "From the free AI 101 class, Oct 9", ASSET_VER)}
 {HIDE_PAST}
 
 <section class="section plat on-ink" id="inside"><div class="wrap">
@@ -1119,6 +1122,9 @@ if __name__ == "__main__":
                              breadcrumbs(("Workshops", "/workshops/"), ("AI 101", "/ai101/"))))
     render("/workshops/", workshops_page(head, header, footer, ASSET_VER))
     render("/ai101/replay/", ai101_replay_page(head, header, footer, ASSET_VER))
+    from build_ai101_class import stage_page, class_page
+    render("/ai101/class/", class_page(head, header, footer, ASSET_VER))
+    render("/ai101/class/stage/", stage_page(head, ASSET_VER))
     from build_partners import partners_page
     render("/partners/", partners_page(head, header, footer, ASSET_VER))
     # NOTE: /community/, /login/, /dashboard/, and /library/ are the live member-area app pages.

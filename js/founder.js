@@ -94,32 +94,33 @@ if (!isAdmin) {
 $("app").hidden = false;
 
 /* ---------- state ---------- */
-let signups = [], events = [], tiers = [], orders = [], tickets = [], stats = {};
+let signups = [], events = [], tiers = [], orders = [], tickets = [], stats = {}, reviews = [];
 
 async function loadAll() {
   // Sweep holds that never reached Stripe so they stop cluttering Orders. Harmless if none.
   sb.rpc("ea_expire_stale_holds").then(({ error }) => { if (error) console.warn("hold sweep", error.message); });
-  const [s, e, t, o, k, st] = await Promise.all([
+  const [s, e, t, o, k, st, rv] = await Promise.all([
     sb.from("ea_wl_signups").select("*").eq("workshop_slug", WORKSHOP).order("created_at", { ascending: false }).limit(2000),
     sb.from("ea_events").select("*").order("starts_at", { ascending: true }),
     sb.from("ea_ticket_tiers").select("*").order("sort").order("price_cents"),
     sb.from("ea_orders").select("*").order("created_at", { ascending: false }).limit(500),
     sb.from("ea_tickets").select("*").order("created_at").limit(2000),
     sb.rpc("ea_founder_stats"),
+    sb.from("ea_reviews").select("*").order("created_at", { ascending: false }).limit(500),
   ]);
-  signups = s.data || []; events = e.data || []; tiers = t.data || []; orders = o.data || []; tickets = k.data || []; stats = st.data || {};
-  const err = [s, e, t, o, k, st].find((r) => r.error);
+  signups = s.data || []; events = e.data || []; tiers = t.data || []; orders = o.data || []; tickets = k.data || []; stats = st.data || {}; reviews = rv.data || [];
+  const err = [s, e, t, o, k, st, rv].find((r) => r.error);
   if (err) toast("Some data did not load: " + esc(err.error.message));
   $("nWait").textContent = signups.filter((x) => x.status !== "unsubscribed").length;
   $("nEv").textContent = events.filter((x) => !["past", "canceled"].includes(x.status)).length;
   $("nOrd").textContent = orders.filter((x) => x.status === "paid").length;
   $("asof").textContent = "Live numbers as of " + new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) + ".";
-  renderOverview(); renderWaitlist(); renderEvents(); renderOrders(); renderAnnounce();
+  renderOverview(); renderWaitlist(); renderEvents(); renderOrders(); renderAnnounce(); renderReviews();
 }
 
 /* ---------- tabs (hash routed so emails can deep link) ---------- */
 function go(tab) {
-  const valid = ["overview", "waitlist", "events", "orders", "announce"];
+  const valid = ["overview", "waitlist", "events", "orders", "announce", "reviews"];
   if (!valid.includes(tab)) tab = "overview";
   document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("on", p.id === "p-" + tab));
   document.querySelectorAll("#tabs a").forEach((a) => {
@@ -128,7 +129,9 @@ function go(tab) {
     a.setAttribute("aria-selected", on ? "true" : "false");
   });
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
+  if (tab === "reviews" && booted) loadReviews(); // fresh every time the tab opens: approve what is there now
 }
+let booted = false;
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
 // Tell people the tab strip keeps going when it is cut off at phone widths.
 function tabOverflow() {
@@ -371,6 +374,45 @@ $("orCsv").onclick = () => {
   download("agent-orders-" + new Date().toISOString().slice(0, 10) + ".csv", csv(rows));
 };
 
+/* ---------- reviews (0059): nothing is public until approved here; every field escaped ---------- */
+const starRow = (n) => { n = Math.max(1, Math.min(5, n | 0)); return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); };
+const RV_ORDER = { pending: 0, approved: 1, hidden: 2 }; // waiting for you first, then newest
+async function loadReviews() {
+  const { data, error } = await sb.from("ea_reviews").select("*").order("created_at", { ascending: false }).limit(500);
+  if (error) return toast("Reviews did not load: " + esc(error.message));
+  reviews = data || []; renderReviews();
+}
+function renderReviews() {
+  $("nRev").textContent = reviews.filter((r) => r.status === "pending").length;
+  const want = $("rvStatus").value;
+  const list = reviews.filter((r) => !want || r.status === want)
+    .sort((a, b) => (RV_ORDER[a.status] ?? 3) - (RV_ORDER[b.status] ?? 3) || String(b.created_at).localeCompare(String(a.created_at)));
+  $("rvCount").textContent = list.length + (list.length === 1 ? " review shown" : " reviews shown");
+  $("rvList").innerHTML = list.length ? list.map((r) => `<div class="card" style="margin-top:10px">
+<div class="row between"><div><span role="img" aria-label="${esc(r.stars)} out of 5 stars">${starRow(r.stars)}</span> <span class="strong" id="rvw-${esc(r.id)}">${esc(r.display_name)}</span>${r.who_line ? ` · ${esc(r.who_line)}` : ""}${r.verified ? ` <span class="st paid">Verified attendee</span>` : ""}</div>
+<span class="muted-sm">${esc(r.workshop_slug)} · ${esc(ago(r.created_at))} · <span class="st ${esc(r.status)}">${esc(r.status === "pending" ? "Waiting" : r.status === "approved" ? "On the site" : "Hidden")}</span></span></div>
+<p class="rv-body-admin">${esc(r.body)}</p>
+<div class="row">${r.status !== "approved" ? `<button class="btn gold xs" data-rv-act="approve" data-rv="${esc(r.id)}" aria-describedby="rvw-${esc(r.id)}">Approve: show it on the site</button>` : ""}${r.status !== "hidden" ? `<button class="btn ghost xs" data-rv-act="hide" data-rv="${esc(r.id)}" aria-describedby="rvw-${esc(r.id)}">Hide</button>` : ""}</div></div>`).join("")
+    : `<div class="empty"><b>Nothing here.</b>New reviews from the class page land here for you to approve.</div>`;
+  $("rvList").querySelectorAll("[data-rv-act]").forEach((b) => b.onclick = async () => {
+    const r = reviews.find((x) => x.id === b.dataset.rv), approve = b.dataset.rvAct === "approve";
+    const values = approve ? { status: "approved", approved_at: new Date().toISOString() } : { status: "hidden", approved_at: null };
+    b.disabled = true;
+    // only the version on screen: if they edited it after this list loaded, nothing changes and the list reloads
+    const { data, error } = await sb.from("ea_reviews").update(values).eq("id", r.id).eq("updated_at", r.updated_at).select("id");
+    b.disabled = false;
+    if (error) return toast("Not saved: " + esc(error.message));
+    if (!data || !data.length) {
+      const { data: cur } = await sb.from("ea_reviews").select("id,updated_at").eq("id", r.id).maybeSingle();
+      if (cur && cur.updated_at !== r.updated_at) { toast("This review was just edited. Read the new version, then approve it.", 6000); return loadReviews(); }
+      return toast("Not saved. Are you signed in as the founder?");
+    }
+    Object.assign(r, values); toast(approve ? "On the site now." : "Hidden."); renderReviews();
+    ($("rvList").querySelector("[data-rv-act]") || $("rvStatus")).focus(); // the button is gone: focus somewhere real
+  });
+}
+$("rvStatus").addEventListener("change", renderReviews);
+
 /* ---------- import seats sold elsewhere (Eventbrite) ---------- */
 function fillImport() {
   const evSel = $("imEv"), cur = evSel.value;
@@ -533,3 +575,4 @@ $("anSend").onclick = async () => {
 /* ---------- boot ---------- */
 await loadAll();
 go(location.hash.slice(1) || "overview");
+booted = true;

@@ -1,0 +1,297 @@
+/* js/ai101-stage.js — Nelson's animated screen for AI 101 (/ai101/class/stage/). He shares this tab.
+   → / Space / PageDown / click = next beat · ← / PageUp = back · F = full screen · R = restart a timer ·
+   H = hide the corner clock. Each scene is a paused GSAP timeline with labels b0…b{n-1} and 'end'; a beat
+   plays from its label to the next. A new press first finishes the running beat, so mashing the key (or a
+   clicker double-firing) can never leave a scene half-drawn; a HELD key's auto-repeat is ignored. Reduced
+   motion jumps straight to each end state. The spot is kept in the address (#scene.beat), so a reload in the
+   middle of class comes back to the same slide. */
+const kit = await import('./ai101-kit.js' + new URL(import.meta.url).search);
+const { createDeck, isBehind, countdown, untilLabel, splitTokens } = kit;
+const gsap = window.gsap;
+gsap.defaults({ lazy: false }); // a jump (back, reduced motion) must draw in the same frame, not on the next tick
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DAY = document.getElementById('stg').dataset.date || ''; // the class date, from the course module
+const CHECKS = [ // the run of show's hard time checks (CT): the clock turns gold if you're still on an earlier scene
+  { at: 19 * 60 + 19, id: 'steer' },    // the 5-part demo should be done
+  { at: 19 * 60 + 30, id: 'yourturn' }, // practice starts, wherever you are
+  { at: 19 * 60 + 41, id: 'qa' },       // stop practice: the after tap, then questions
+  { at: 19 * 60 + 52, id: 'next' },     // the invitation
+].map((c) => ({ ...c, date: DAY }));
+
+const canvas = document.getElementById('canvas');
+const scenes = [...canvas.querySelectorAll('.scene')].map((el) => ({ el, id: el.dataset.id, beats: +el.dataset.beats || 1, tl: null }));
+const deck = createDeck(scenes.map((s) => s.beats));
+const checks = CHECKS.map((c) => ({ ...c, scene: scenes.findIndex((s) => s.id === c.id) })).filter((c) => c.scene >= 0);
+let running = null, shown = -1;
+
+/* ---- entrances ----
+   Every entrance is a fromTo with EXPLICIT end values, never a plain .from(). A .from() reads its end values
+   from the element's current style when it initializes, and in a timeline we jump around in (back, reduced
+   motion) that can happen after its hidden start was already written, so it "ends" hidden. Seen 10/6 on the
+   sample scene's closing line under reduced motion. into() keeps the from-style call sites. */
+const NEUTRAL = { autoAlpha: 1, opacity: 1, x: 0, y: 0, scale: 1, scaleX: 1, scaleY: 1, rotation: 0, '--bar': 1 };
+const TIMING = ['duration', 'ease', 'stagger', 'delay'];
+function into(tl, targets, from, pos) {
+  const start = {}, end = {};
+  for (const [k, v] of Object.entries(from)) (TIMING.includes(k) ? end : start)[k] = v;
+  for (const k of Object.keys(start)) if (k in NEUTRAL) end[k] = NEUTRAL[k];
+  return tl.fromTo(targets, start, end, pos);
+}
+
+/* ---- scene timelines: the scenes with their own motion; every other scene uses beatTimeline() ---- */
+const colorOf = (el) => getComputedStyle(el).getPropertyValue('--c').trim();
+const EASE_OUT = 'power4.out';     // ≈ cubic-bezier(.23,1,.32,1): strong ease-out for entrances
+const EASE_MOVE = 'power2.inOut';  // things that travel across the screen (the gold bar)
+const IN = { autoAlpha: 0, y: 24, duration: 0.5, ease: EASE_OUT }; // the house entrance
+const K = () => parseFloat(canvas.style.getPropertyValue('--k')) || 1;
+function local(el, root) { // a box in canvas pixels (1920x1080), whatever the window's scale
+  const a = el.getBoundingClientRect(), b = root.getBoundingClientRect(), k = K();
+  return { x: (a.left - b.left) / k, y: (a.top - b.top) / k, w: a.width / k, h: a.height / k };
+}
+function appearBeat(tl, el, b) { // everything marked data-beat="b" fades up; gold bars inside sweep in
+  const items = el.querySelectorAll(`[data-beat="${b}"]`);
+  if (items.length) into(tl, items, { ...IN, stagger: 0.08 });
+  const bars = [...items].flatMap((x) => [...x.querySelectorAll('.u-bar')]);
+  if (bars.length) into(tl, bars, { '--bar': 0, duration: 0.45, ease: EASE_MOVE }, '-=0.2');
+  return tl;
+}
+export const TIMELINES = {
+  prompt5(el) {
+    const tl = gsap.timeline({ paused: true });
+    const chips = el.querySelectorAll('.p5-chip'), segs = el.querySelectorAll('.p5-seg'), tags = el.querySelectorAll('.p5-tag');
+    tl.addLabel('b0');
+    into(tl, el.querySelector('.sc-h'), { y: 24, autoAlpha: 0, duration: 0.6, ease: EASE_OUT });
+    into(tl, el.querySelector('.sc-h .u-bar'), { '--bar': 0, duration: 0.5, ease: EASE_MOVE }, '-=0.25');
+    into(tl, chips, { y: 16, scale: 0.96, autoAlpha: 0, stagger: 0.06, duration: 0.45, ease: 'back.out(1.2)' }, '-=0.3');
+    into(tl, el.querySelector('.p5-card'), { y: 16, autoAlpha: 0, duration: 0.45, ease: EASE_OUT }, '-=0.2');
+    segs.forEach((seg, i) => {
+      const c = colorOf(chips[i]);
+      tl.addLabel('b' + (i + 1));
+      into(tl, seg, { autoAlpha: 0, duration: 0.01 }); // not .set(): a zero-length tween ON a label fires when the beat before ends
+      tl.to(chips[i], { scale: 1.06, backgroundColor: c, color: '#fff', duration: 0.25, ease: 'power2.out' });
+      into(tl, seg.querySelectorAll('.w'), { autoAlpha: 0, y: 8, stagger: 0.025, duration: 0.3, ease: EASE_OUT }, '<');
+      into(tl, tags[i], { autoAlpha: 0, scale: 0.85, duration: 0.3, ease: 'back.out(1.4)' }, '>-0.1');
+      tl.to(chips[i], { scale: 1, duration: 0.2, ease: 'power2.out' });
+    });
+    tl.addLabel('b6')
+      .to(tags, { scale: 1.08, duration: 0.16, stagger: 0.06, ease: 'power2.out', yoyo: true, repeat: 1 }); // all five, working together
+    into(tl, el.querySelector('.p5-foot'), { y: 16, autoAlpha: 0, duration: 0.5, ease: EASE_OUT }, '-=0.1');
+    return tl.addLabel('end');
+  },
+  chat(el) { // the prompt flies into the AI, the answer writes itself, the loop draws back: "make it better"
+    const ai = el.querySelector('.ch-ai'), bub = el.querySelector('.ch-bubble');
+    const b = local(ai, el), s = local(bub, el);                        // measure first: entrances move things
+    const path = el.querySelector('.ch-loop .ch-line'), head = el.querySelector('.ch-loop .ch-head'), len = path.getTotalLength();
+    const tl = gsap.timeline({ paused: true }).addLabel('b0'); appearBeat(tl, el, 0);
+    tl.fromTo(bub, { autoAlpha: 0, x: 0, y: 0, scale: 0.9 }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: EASE_OUT })
+      .to(bub, { x: b.x + b.w / 2 - (s.x + s.w / 2), y: b.y + b.h / 2 - (s.y + s.h / 2), scale: 0.35, duration: 0.9, ease: 'power2.inOut' })
+      .to(bub, { autoAlpha: 0, duration: 0.2 })
+      .to(el.querySelectorAll('.ch-dots i'), { y: -12, duration: 0.25, stagger: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    into(tl, el.querySelectorAll('.ch-ans-text .w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.2');
+    tl.addLabel('b2').fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1, ease: EASE_MOVE });
+    into(tl, head, { autoAlpha: 0, duration: 0.15 });                    // the arrowhead lands when the line arrives
+    appearBeat(tl, el, 2);
+    return tl.addLabel('end');
+  },
+  words(el) { // AI ⊃ generative AI ⊃ LLM; training data streams in; the chatbot is the app around it
+    const r = (c) => el.querySelector('.wd-ring.' + c), d = (i) => el.querySelector('.wd-def.d' + i);
+    const pop = { scale: 0.7, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.3)' };
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); into(tl, r('r1'), pop); into(tl, d(0), IN, '-=0.3');
+    tl.addLabel('b1'); into(tl, r('r2'), pop); into(tl, d(1), IN, '-=0.3');
+    tl.addLabel('b2'); into(tl, r('r3'), pop);
+    into(tl, el.querySelectorAll('.wd-page'), { x: -460, y: (i) => (i - 2.5) * 44, rotation: -20, autoAlpha: 0, duration: 0.7, stagger: 0.1, ease: 'power2.inOut' }, '-=0.1');
+    into(tl, el.querySelector('.wd-pages em'), { autoAlpha: 0, duration: 0.3 });
+    into(tl, d(2), IN, '-=0.6');
+    tl.addLabel('b3'); into(tl, el.querySelector('.wd-app'), { scale: 1.15, autoAlpha: 0, duration: 0.6, ease: EASE_OUT }); into(tl, d(3), IN, '-=0.3');
+    return tl.addLabel('end');
+  },
+  bland(el) { // a thin prompt gets gray filler; the same ask with detail gets a specific answer
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, el.querySelectorAll('.bl-card.gray .bl-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.4, ease: EASE_OUT }, '-=0.2');
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    into(tl, el.querySelectorAll('.bl-card.color .bl-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.4, ease: EASE_OUT }, '-=0.2');
+    return tl.addLabel('end');
+  },
+  steer(el) { // three follow-ups change one answer; the word count drops, the voice changes, options fan out
+    const v = (i) => el.querySelector('.st-v.v' + i), m = (i) => el.querySelector('.st-me.m' + i), n = el.querySelector('.st-n');
+    const words = (i) => v(i).textContent.trim().split(/\s+/).length;
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); into(tl, el.querySelector('.st-ans'), IN);
+    [1, 2].forEach((i) => {
+      tl.addLabel('b' + i); into(tl, m(i), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
+      tl.to(v(i - 1), { autoAlpha: 0, duration: 0.25 }).to(v(i), { autoAlpha: 1, duration: 0.35 })
+        .to(n, { textContent: words(i), snap: { textContent: 1 }, duration: 0.5 }, '<');
+    });
+    tl.addLabel('b3'); into(tl, m(3), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
+    into(tl, el.querySelectorAll('.st-opt'), { autoAlpha: 0, y: 30, rotation: (i) => (i - 1) * 6, stagger: 0.12, duration: 0.45, ease: 'back.out(1.4)' });
+    return tl.addLabel('end');
+  },
+  tokens(el) { // the sentence breaks into the pieces an AI counts
+    const box = el.querySelector('.tk-chips'), sent = el.querySelector('.tk-sentence'), n = el.querySelector('.tk-n');
+    const toks = splitTokens(box.dataset.text);
+    box.replaceChildren(...toks.map((t, i) => { const c = document.createElement('i'); c.className = 'tk-chip'; c.style.setProperty('--i', String(i % 6)); c.textContent = t.trim(); return c; }));
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, sent, IN, '-=0.2');
+    tl.addLabel('b1').to(sent, { autoAlpha: 0, y: -20, duration: 0.3 }).to(box, { autoAlpha: 1, duration: 0.01 });
+    into(tl, [...box.children], { autoAlpha: 0, y: -30, scale: 0.8, stagger: 0.07, duration: 0.35, ease: 'back.out(1.6)' });
+    tl.to(n, { textContent: toks.length, snap: { textContent: 1 }, duration: toks.length * 0.07 }, '<');
+    return tl.addLabel('end');
+  },
+  window(el) { // the box fills; the oldest words slide out the left: long chats forget the start
+    const track = el.querySelector('.wn-track'), chips = [...track.children];
+    const FIRST = 14, DROP = 8; // FIRST must match the :nth-child(n+15) rule in css/ai101-stage.css
+    const shift = chips[DROP].offsetLeft - chips[0].offsetLeft;          // measure first
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, chips.slice(0, FIRST), { autoAlpha: 0, x: 120, stagger: 0.06, duration: 0.3, ease: EASE_OUT }, '-=0.1');
+    tl.addLabel('b1').to(chips.slice(0, DROP), { autoAlpha: 0.15, duration: 0.4 })
+      .to(track, { x: -shift, duration: 1.2, ease: EASE_MOVE }, '<')
+      .to(chips.slice(FIRST), { autoAlpha: 1, stagger: 0.05, duration: 0.3 }, '<0.2');
+    into(tl, el.querySelector('.wn-tip'), IN);
+    return tl.addLabel('end');
+  },
+  check(el) { // it predicts the likeliest word, says a made-up fact with confidence, CHECK IT, never paste
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, [...el.querySelectorAll('.ck-guesses li'), el.querySelector('.ck-note')], { autoAlpha: 0, x: -20, stagger: 0.1, duration: 0.3, ease: EASE_OUT });
+    into(tl, el.querySelectorAll('.ck-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.5, ease: EASE_OUT }, '<0.1');
+    tl.to(el.querySelector('.ck-blank'), { autoAlpha: 0, duration: 0.2 }).to(el.querySelector('.ck-fill'), { autoAlpha: 1, duration: 0.3 });
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    tl.addLabel('b2').fromTo(el.querySelector('.ck-stamp'), { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -10, duration: 0.35, ease: 'power4.in' })
+      .to(el.querySelector('.ck-claim'), { x: 8, duration: 0.05, yoyo: true, repeat: 3 });
+    into(tl, el.querySelectorAll('.ck-list li'), { autoAlpha: 0, y: 20, stagger: 0.08, duration: 0.3, ease: EASE_OUT });
+    tl.addLabel('b3'); appearBeat(tl, el, 3);
+    into(tl, el.querySelectorAll('.ck-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
+    return tl.addLabel('end');
+  },
+  save(el) { // one "About me" card snaps onto every new chat
+    const card = el.querySelector('.sv-card'), wins = [...el.querySelectorAll('.sv-win')];
+    const c = local(card, el), slots = wins.map((w) => local(w.querySelector('.sv-slot'), el));   // measure first
+    const clones = slots.map(() => { const x = card.cloneNode(true); x.className = 'sv-clone'; x.removeAttribute('data-beat'); el.appendChild(x); return x; });
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    clones.forEach((x) => gsap.set(x, { left: c.x, top: c.y, width: c.w, autoAlpha: 0 }));
+    tl.addLabel('b1'); into(tl, wins, { autoAlpha: 0, y: 40, stagger: 0.12, duration: 0.4, ease: EASE_OUT });
+    clones.forEach((x, i) => tl.to(x, { autoAlpha: 1, duration: 0.01 }, i ? '>-0.4' : '>-0.2')
+      .to(x, { left: slots[i].x, top: slots[i].y, width: slots[i].w, fontSize: 17, duration: 0.5, ease: EASE_MOVE }));
+    into(tl, el.querySelectorAll('[data-beat="1"]'), IN, '-=0.3'); // the tool names land with the last card, not after it
+    return tl.addLabel('end');
+  },
+  next(el) { // redoing the work every chat → an agent doing the job on repeat → the Oct 23 workshop
+    const A = el.querySelector('.nx-a'), B = el.querySelector('.nx-b'), C = el.querySelector('.nx-c');
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); into(tl, A.querySelector('.sc-h'), IN);
+    into(tl, A.querySelectorAll('.nx-card'), { autoAlpha: 0, y: 80, stagger: 0.35, duration: 0.45, ease: EASE_OUT });
+    tl.addLabel('b1').to(A, { autoAlpha: 0, y: -30, duration: 0.35 }).fromTo(B, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
+    into(tl, B.querySelector('.sc-h'), IN);
+    into(tl, B.querySelector('.nx-agent'), { scale: 0.7, autoAlpha: 0, duration: 0.5, ease: 'back.out(1.6)' });
+    into(tl, B.querySelectorAll('.nx-job'), { autoAlpha: 0, x: 40, stagger: 0.25, duration: 0.35, ease: EASE_OUT });
+    tl.addLabel('b2').to(B, { autoAlpha: 0, y: -30, duration: 0.35 }).fromTo(C, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
+    into(tl, [...C.children], { ...IN, stagger: 0.1 });
+    return tl.addLabel('end');
+  },
+};
+function beatTimeline(el) { // every scene without its own builder: one beat per data-beat group
+  const n = +el.dataset.beats || 1, tl = gsap.timeline({ paused: true });
+  for (let b = 0; b < n; b++) { tl.addLabel('b' + b); appearBeat(tl, el, b); tl.to({}, { duration: 0.01 }); }
+  return tl.addLabel('end');
+}
+const timeline = (s) => (s.tl ||= (TIMELINES[s.id] || beatTimeline)(s.el));
+const labelAfter = (tl, beat) => (('b' + (beat + 1)) in tl.labels ? 'b' + (beat + 1) : 'end');
+
+/* ---- playback ---- */
+function finishRunning() { if (running) { running.progress(1); running = null; } }
+function show(index) {
+  if (shown === index) return;
+  scenes.forEach((s, i) => s.el.classList.toggle('on', i === index));
+  shown = index; startTimers(scenes[index].el, false);
+}
+function play(p) { // animate the beat p.beat of scene p.scene
+  finishRunning(); show(p.scene);
+  const tl = timeline(scenes[p.scene]);
+  const from = 'b' + p.beat, to = labelAfter(tl, p.beat);
+  if (REDUCED) { tl.seek(to, false); return; }
+  if (!(from in tl.labels)) { tl.seek(to, false); return; }
+  tl.seek(from, false); running = tl.tweenFromTo(from, to, { onComplete: () => { running = null; } });
+}
+function settle(p) { // jump to the END state of beat p.beat, no animation (used by back)
+  finishRunning(); show(p.scene);
+  const tl = timeline(scenes[p.scene]); tl.seek(labelAfter(tl, p.beat), false);
+}
+const next = () => { const before = deck.pos(), p = deck.next(); if (p.scene !== before.scene || p.beat !== before.beat) play(p); else finishRunning(); hud(); };
+const prev = () => { const p = deck.prev(); settle(p); hud(); };
+const go = (i) => { const p = deck.go(i); play(p); hud(); };
+
+/* ---- timers: [data-timer="seconds"] counts down from the FIRST time its scene shows and keeps counting if you
+   step away and come back (R restarts it); [data-until="iso"] counts down to a moment (the 7:00 start) ---- */
+let tick = null;
+const timerEnds = new Map();
+function startTimers(el, restart) {
+  clearInterval(tick);
+  const t = el.querySelector('[data-timer]'), u = el.querySelector('[data-until]');
+  if (!t && !u) return;
+  if (t && (restart || !timerEnds.has(el.dataset.id))) timerEnds.set(el.dataset.id, Date.now() + (+t.dataset.timer) * 1000);
+  const endAt = t ? timerEnds.get(el.dataset.id) : 0;
+  const draw = () => {
+    if (t) { const left = endAt - Date.now(); t.textContent = countdown(left); t.classList.toggle('done', left <= 0); }
+    if (u) { const left = Date.parse(u.dataset.until) - Date.now(); u.textContent = left > 0 ? untilLabel(left) : 'Starting now'; }
+  };
+  draw(); tick = setInterval(draw, 250);
+}
+
+/* ---- HUD: scene count + CT clock, gold when behind a hard time check ---- */
+const hudEl = document.getElementById('hud'), hudPos = document.getElementById('hudPos'), hudClock = document.getElementById('hudClock');
+const CLOCK = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' });
+function hud() {
+  const p = deck.pos();
+  if (location.hash !== `#${p.scene}.${p.beat}`) history.replaceState(null, '', `#${p.scene}.${p.beat}`); // a reload comes back here
+  hudPos.textContent = `${p.scene + 1} / ${scenes.length}`;
+  hudClock.textContent = CLOCK.format(new Date()) + ' CT';
+  hudClock.classList.toggle('behind', isBehind(Date.now(), p.scene, checks));
+}
+setInterval(hud, 15000);
+
+/* ---- scale the 1920x1080 canvas into the window, letterboxed ---- */
+function fit() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  canvas.style.setProperty('--k', k);
+  canvas.style.setProperty('--x', (innerWidth - 1920 * k) / 2 + 'px');
+  canvas.style.setProperty('--y', (innerHeight - 1080 * k) / 2 + 'px');
+}
+addEventListener('resize', fit); fit();
+
+/* ---- input ---- */
+addEventListener('keydown', (ev) => {
+  if (ev.metaKey || ev.ctrlKey || ev.altKey || ev.repeat) return; // a held key must not race through the beats
+  const k = ev.key;
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { ev.preventDefault(); next(); }
+  else if (k === 'ArrowLeft' || k === 'PageUp') { ev.preventDefault(); prev(); }
+  else if (k === 'f' || k === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
+  else if (k === 'r' || k === 'R') startTimers(scenes[deck.pos().scene].el, true);
+  else if (k === 'h' || k === 'H') hudEl.classList.toggle('off');
+  else if (k === 'Home') go(0);
+});
+document.getElementById('stg').addEventListener('click', next);
+
+/* ---- sign-in wall (fails open: a dead CDN or a session error must never blank Nelson's screen) ---- */
+(async () => {
+  try {
+    const CFG = window.BM_CONFIG || {};
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const { data, error } = await createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY).auth.getSession();
+    if (error) { console.warn('stage: session check failed, staying open', error); return; }
+    if (!data || !data.session) {
+      const a = document.querySelector('#stgGate a[data-next]'); // sign in, then come back to this exact slide
+      if (a) a.href = '/login/?next=' + encodeURIComponent(location.pathname + location.hash);
+      document.getElementById('stgGate').hidden = false;
+    }
+  } catch (e) { console.warn('stage: sign-in check skipped', e); }
+})();
+
+const start = /^#(\d+)\.(\d+)$/.exec(location.hash); // a reload lands on the slide it left, drawn
+if (start) settle(deck.go(+start[1], +start[2])); else play(deck.pos());
+hud();
+window.__stage = { ready: true, pos: () => deck.pos(), go, next, prev, checks, indexOf: (id) => scenes.findIndex((s) => s.id === id) };

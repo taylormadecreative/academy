@@ -108,6 +108,9 @@ def _form(form_id, source, compact=False, on_ink=False):
 </div>"""
 
 
+from build_reviews import reviews_section
+
+
 def agent_page(head, header, footer, ver):
     h = head(TITLE, DESC, "/agent/", og="assets/og-agent.png").replace(
         "</head>", f'<link rel="stylesheet" href="/css/agent.css?v={ver}">\n<link rel="preload" as="image" href="/assets/agent-nelson.webp" type="image/webp" fetchpriority="high">\n</head>')
@@ -199,6 +202,7 @@ def agent_page(head, header, footer, ver):
 <div class="ag-tiers" id="tiers"></div>
 </div></section>
 
+{reviews_section("ai101", "What people said about the free class", "From the free AI 101 class, Oct 9", ver)}
 <section class="ag-note"><div class="wrap"><div class="ag-note-grid">
 <div>
 <h2>Why I am opening this up.</h2>
