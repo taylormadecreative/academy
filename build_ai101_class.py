@@ -396,7 +396,7 @@ def shot(key):
         name, s = TOOLS[t]["name"], SHOTS[key]
         out += (f'<figure class="a1c-shot" data-for="{t}"><a href="{e(src)}" target="_blank" rel="noopener">'
                 f'<img src="{e(src)}" width="{w}" height="{h}" alt="{e(s["alt"].format(name=name))}" loading="lazy" decoding="async">'
-                f'<span class="sr"> (opens the full-size screen in a new tab)</span></a>'
+                f'<span class="sr"> (the full-size screen, opens in a new tab)</span></a>'
                 f'<figcaption>{e(s["cap"].format(name=name))} <span>{e(SHOTS_NOTE)}</span></figcaption></figure>')
     return out
 

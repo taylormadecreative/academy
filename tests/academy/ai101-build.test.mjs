@@ -219,7 +219,7 @@ print(b.shot("chat")); print("---"); print(b.shot("facts"))`;
   assert.equal((chat.match(/<figure class="a1c-shot" data-for="/g) || []).length, 2, 'Gemini has no file, so no figure');
   assert.match(chat, /data-for="claude"><a href="\/ai101\/class\/shots\/claude-chat\.webp\?v=[0-9a-f]{10}" target="_blank" rel="noopener"><img src="\/ai101\/class\/shots\/claude-chat\.webp\?v=[0-9a-f]{10}" width="1400" height="800" alt="Claude with a new chat open\./);
   assert.match(chat, /loading="lazy"/);
-  assert.match(chat, /opens the full-size screen in a new tab/);
+  assert.match(chat, /the full-size screen, opens in a new tab/);
   assert.match(chat, /A real screen from October 9, 2026\. Yours may look a little different\./);
   assert.equal(facts.trim(), '', 'no files, no markup');
 });
