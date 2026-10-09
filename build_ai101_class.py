@@ -5,12 +5,13 @@ so the class page gets the real header and footer. Both are noindex and walled b
 sign-in IN THE BROWSER: a sign-up wall, not a lock. The HTML is public, so check_public_copy() refuses to
 build a page carrying the list-only price, a room key, or anything on the private list (see _guard_rules).
 """
-import html, json, os, pathlib, re, sys, urllib.parse
+import hashlib, html, json, os, pathlib, re, sys, urllib.parse
 from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOLS, START_HERE, PARTS, DEMO, DEMO_ALT, STEPS,
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
                           WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
                           OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP,
-                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN, STAGE_STEP, STAGE_TAG_OTHER, STAGE_TRY, BADGE)
+                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN, STAGE_STEP, STAGE_TAG_OTHER, STAGE_TRY, BADGE,
+                          SHOTS, SHOTS_NOTE)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -375,6 +376,25 @@ def strengths():
 def trust():
     return f'<div class="a1c-trust" role="note"><p class="a1c-trust-h">{e(TRUST_WARN["h"])}</p><p>{e(TRUST_WARN["body"])}</p></div>'
 
+SHOT_DIR = pathlib.Path(__file__).with_name("ai101") / "class" / "shots"
+
+def shot(key):
+    """A real screen of each app (SHOTS), one figure per tool that has a file; the AI switch shows the one you picked.
+    Tap it to open it full size. ?v= is the file's hash: sw.js serves images cache-first, so a replaced screen needs a new URL."""
+    from PIL import Image
+    out = ""
+    for t in TOOL_ORDER:
+        p = SHOT_DIR / f"{t}-{key}.webp"
+        if not p.exists(): continue
+        with Image.open(p) as im: w, h = im.size
+        src = f"/ai101/class/shots/{p.name}?v={hashlib.md5(p.read_bytes()).hexdigest()[:10]}"
+        name, s = TOOLS[t]["name"], SHOTS[key]
+        out += (f'<figure class="a1c-shot" data-for="{t}"><a href="{e(src)}" target="_blank" rel="noopener">'
+                f'<img src="{e(src)}" width="{w}" height="{h}" alt="{e(s["alt"].format(name=name))}" loading="lazy" decoding="async">'
+                f'<span class="sr"> (opens the full-size screen in a new tab)</span></a>'
+                f'<figcaption>{e(s["cap"].format(name=name))} <span>{e(SHOTS_NOTE)}</span></figcaption></figure>')
+    return out
+
 def no_love():
     return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
 
@@ -508,6 +528,8 @@ def _flow(s, x):
     if kind == "do": return f"<p>{marked(s['do'][arg])}</p>"
     if kind == "prompt": label, text = s["prompts"][arg]; return prompt_box(label, text)
     if kind == "extra": return EXTRA[arg]()
+    if kind == "tool": return tool_lines(arg)
+    if kind == "shot": return shot(arg)
     raise KeyError(kind)
 
 def step(s):

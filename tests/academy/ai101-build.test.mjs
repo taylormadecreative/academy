@@ -205,3 +205,30 @@ test('/ai101/ promises the cheat sheet in class, not in the sign-up email', () =
   assert.doesNotMatch(signup, /It comes in your sign-up email/);
   assert.match(signup, /You get it in class/);
 });
+test("real app screens (Nelson 10/9): one figure per tool that has a file, switched by the AI switch, hashed for the cache-first service worker", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'a1c-shots-'));
+  const py = `
+import pathlib, build_ai101_class as b
+from PIL import Image
+d = pathlib.Path(${JSON.stringify(dir)})
+for t in ("claude", "chatgpt"): Image.new("RGB", (1400, 800), "white").save(d / f"{t}-chat.webp")
+b.SHOT_DIR = d
+print(b.shot("chat")); print("---"); print(b.shot("facts"))`;
+  const [chat, facts] = execFileSync('python3', ['-c', py], { cwd: ROOT, encoding: 'utf8' }).split('---');
+  fs.rmSync(dir, { recursive: true, force: true });
+  assert.equal((chat.match(/<figure class="a1c-shot" data-for="/g) || []).length, 2, 'Gemini has no file, so no figure');
+  assert.match(chat, /data-for="claude"><a href="\/ai101\/class\/shots\/claude-chat\.webp\?v=[0-9a-f]{10}" target="_blank" rel="noopener"><img src="\/ai101\/class\/shots\/claude-chat\.webp\?v=[0-9a-f]{10}" width="1400" height="800" alt="Claude with a new chat open\./);
+  assert.match(chat, /loading="lazy"/);
+  assert.match(chat, /opens the full-size screen in a new tab/);
+  assert.match(chat, /A real screen from October 9, 2026\. Yours may look a little different\./);
+  assert.equal(facts.trim(), '', 'no files, no markup');
+});
+test('every screen on the class page is a real file, sits in its step, and only the picked AI shows', () => {
+  const shots = [...page.matchAll(/<figure class="a1c-shot" data-for="(\w+)"><a href="\/ai101\/class\/shots\/([\w-]+\.webp)\?v=/g)];
+  for (const [, t, f] of shots) { assert.ok(fs.existsSync(ROOT + 'ai101/class/shots/' + f), f); assert.ok(f.startsWith(t + '-'), f); }
+  const where = { chat: 'words', prompt5: 'prompt5', steer: 'steer', facts: 'check', save: 'save' };
+  for (const [, , f] of shots) {
+    const key = f.replace(/^\w+-|\.webp$/g, '');
+    assert.ok(between(page, `id="step-${where[key]}"`, '<li class="a1c-step"').includes(f), `${f} sits in step ${where[key]}`);
+  }
+});

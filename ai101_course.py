@@ -252,6 +252,23 @@ GOOD = " ".join(DEMO["parts"][p["key"]] for p in PARTS)
 ABOUT_ME = ("About me: I'm [YOUR FIRST NAME]. I [WHAT YOU DO, OR WHAT YOU'LL USE AI FOR]. When you answer me, use plain "
             "words, keep it short unless I ask for more, and ask me a question if something isn't clear.")
 
+# Real screens of each app (Nelson 10/9), so a first-timer knows what they'll see. One file per tool per moment:
+# ai101/class/shots/{tool}-{key}.webp, taken in temporary chats with Nelson's name, chats and saved info hidden.
+# The AI switch shows one app's. A step flow places one with ("shot", key); a missing file renders nothing.
+SHOTS_NOTE = "A real screen from October 9, 2026. Yours may look a little different. The apps change often."
+SHOTS = {
+    "chat": {"cap": "Here's the message box in {name}. Paste your message there, then press Enter or tap the arrow to send it.",
+             "alt": "{name} with a new chat open. The Try it message is typed in the message box, ready to send."},
+    "prompt5": {"cap": "The 5-part prompt in {name}, and the caption it wrote back.",
+                "alt": "{name} showing the 5-part bakery prompt and the caption it wrote."},
+    "steer": {"cap": "The grandmother follow-up in {name}. Same chat, one short reply, a new answer.",
+              "alt": "{name} showing the follow-up “Now write it like a grandmother is talking.” and the new caption."},
+    "facts": {"cap": "Facts with links in {name}. Now open one and check that the page really says it.",
+              "alt": "{name} showing three facts about the history of Dallas, each with a link to a source."},
+    "save": {"cap": "Where your “About me” goes in {name}.",
+             "alt": "{name} settings, with the box where you paste your About me marked."},
+}
+
 STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so each instruction sits next to its action
     {"id": "hi", "n": 1, "time": "7:00", "min": 2, "title": "Say hi",
      "do": ["In the room chat, finish this sentence: “I'd love help with ______.” Pick something that takes up your time every week.",
@@ -271,18 +288,19 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
             "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("do", 3), ("extra", "words_step2")],
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2")],
      "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
             "First, paste the bland prompt into your AI chat and read the answer. It could be anybody's bakery.",
             "Then start a new AI chat and paste the 5-part prompt. Same request, now with a Role, a Task, the Context, a Format and an Example."],
      "prompts": [("The bland one", DEMO["bad"]), ("The 5-part one", GOOD)],
-     "flow": [("do", 0), ("do", 1), ("prompt", 0), ("do", 2), ("prompt", 1), ("extra", "parts"), ("extra", "parts_alt")],
+     "flow": [("do", 0), ("do", 1), ("prompt", 0), ("do", 2), ("prompt", 1), ("shot", "prompt5"), ("extra", "parts"), ("extra", "parts_alt")],
      "check": "You saw a bland answer turn into one that sounds like a real bakery, and you can name the five parts."},
     {"id": "steer", "n": 5, "time": "7:23", "min": 5, "title": "Steer it",
      "do": ["Don't start over. It's a conversation, so you steer it. A follow-up is a short reply that changes the answer. In the same AI chat, send these one at a time:"],
      "prompts": [("Follow-up 1", DEMO["follow_ups"][0]), ("Follow-up 2", DEMO["follow_ups"][1]), ("Follow-up 3", DEMO["follow_ups"][2])],
+     "flow": [("do", 0), ("prompt", 0), ("prompt", 1), ("shot", "steer"), ("prompt", 2)],
      "check": "You changed the answer three times without starting over."},
     {"id": "check", "n": 6, "time": "7:28", "min": 4, "title": "Check it, and keep it safe",
      "do": ["The context window is everything the AI keeps in mind: your whole chat. Every time you send a message, it reads the whole chat again. So a longer chat means more to read: it can get slower, it uses up your free messages faster, and it costs more to run. When the window fills up, it can forget the start. New job? Start a new chat.",
@@ -292,12 +310,13 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Keep it safe. Before you paste, swap real names, numbers and addresses for [brackets]. What you type is saved by the company that runs the AI, and depending on your settings it can be used to improve the AI. At work, ask one question: “Which AI tools can I use, and what can I put in them?”",
             "Extra, if you have time: a token is a small piece of text. A short word is often one token. A long word can be a few. AI reads, writes and counts in tokens. Type in the box to see it."],
      "prompts": [("Ask for facts and links", DEMO["check"][0]), ("Then ask what to check", DEMO["check"][1])],
-     "flow": [("do", 0), ("do", 1), ("prompt", 0), ("do", 2), ("prompt", 1), ("do", 3), ("do", 4), ("extra", "never_paste"), ("do", 5), ("extra", "token_toy")],
+     "flow": [("do", 0), ("do", 1), ("prompt", 0), ("shot", "facts"), ("do", 2), ("prompt", 1), ("do", 3), ("do", 4), ("extra", "never_paste"), ("do", 5), ("extra", "token_toy")],
      "check": "You opened one source and checked it, and you can name three things you never paste."},
     {"id": "save", "n": 7, "time": "7:32", "min": 2, "title": "Save it once",
      "do": ["Everything you tell the AI about yourself, you can save once. Then every new chat already knows you. Keep it general: your first name and what you do. No address, no account numbers, nothing private. Here's where:"],
      "tool": "save_once",
      "prompts": [("Your “About me” (fill in the brackets)", ABOUT_ME)],
+     "flow": [("do", 0), ("tool", "save_once"), ("shot", "save"), ("prompt", 0)],
      "check": "You found where your tool saves your “About me.”"},
     {"id": "yourturn", "n": 8, "time": "7:34", "min": 11, "title": "Your turn",
      "do": ["Pick one real task from your week. Use the one you named at 7:00 if you can.",
