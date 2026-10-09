@@ -560,3 +560,22 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "bye_sub": "If tonight helped, leave a review. It takes a minute.",
     "bye_thanks": "Thank you. See you on the 23rd.",
 }
+
+# The stage's corner tag (Nelson 10/9: "cues on the stage so people can try it themselves … and tag the stage scenes").
+# Every teaching scene names the class page step it goes with, so anyone who looked away can find their place. On the
+# scenes where people do the step themselves, a "Try it" line shows once the scene is fully on screen (its last beat):
+# watch first, then do. Scenes not listed (soon) show no tag.
+STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "bland": 4,
+              "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
+STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Leave a review"}
+STAGE_TRY = {
+    "title": "Tap your 1 to 5. Say hi in the room chat.",
+    "laptop": "Open your AI and sign in.",
+    "chat": "Copy the first message. Paste it in your AI. Send.",
+    "prompt5": "Paste the bland prompt, then the 5-part one. Compare.",
+    "steer": "Send the 3 follow-ups, one at a time.",
+    "check": "Ask for 3 facts with links. Open one. Is it true?",
+    "save": "Find where your AI saves your About me.",
+    "yourturn": "Fill in the five boxes. Copy. Paste. Send.",
+    "qa": "Tap your 1 to 5 again.",
+}

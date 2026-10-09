@@ -229,6 +229,33 @@ try {
   const boxes = await sm.$$eval('#hud > *:not([hidden])', (els) => els.map((e) => e.getBoundingClientRect()).map((r) => [r.left, r.right, r.bottom]));
   for (const [l, r, b] of boxes) assert.ok(l >= 0 && r <= 1280 && b <= 720, 'control on screen');
   for (let i = 1; i < boxes.length; i++) assert.ok(boxes[i][0] >= boxes[i - 1][1], 'controls do not overlap');
+  // ---- the corner tag (10/9): class page step on every teaching scene; "Try it" only once a do-scene is fully on screen ----
+  const g = await page();
+  const tagState = () => g.evaluate(() => ({ shown: !document.getElementById('stgTag').hidden, n: document.getElementById('stgTagN').textContent,
+    t: document.getElementById('stgTagT').textContent, tryShown: !document.getElementById('stgTry').hidden && getComputedStyle(document.getElementById('stgTry')).display !== 'none',
+    tryText: document.getElementById('stgTryText').textContent }));
+  assert.equal((await tagState()).shown, false, 'Starting soon: no tag');
+  await g.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5'))); await g.waitForTimeout(300);
+  let ts = await tagState();
+  assert.deepEqual([ts.shown, ts.n, ts.t, ts.tryShown], [true, 'Step 4', 'The 5-part prompt', false], 'prompt5 beat 0: the step tag, no Try it yet (watch first)');
+  const p5beats = await g.$eval('.sc-prompt5', (s) => +s.dataset.beats);
+  for (let i = 1; i < p5beats; i++) { await g.keyboard.press('ArrowRight'); await g.waitForTimeout(120); }
+  await g.waitForTimeout(700);
+  ts = await tagState();
+  assert.equal(ts.tryShown, true, 'prompt5 last beat: Try it shows');
+  assert.match(ts.tryText, /bland prompt, then the 5-part one/);
+  await g.keyboard.press('ArrowLeft'); await g.waitForTimeout(200);
+  assert.equal((await tagState()).tryShown, false, 'back off the last beat: Try it hides again');
+  await g.evaluate(() => window.__stage.go(window.__stage.indexOf('words'))); await g.waitForTimeout(300);
+  ts = await tagState();
+  assert.deepEqual([ts.n, ts.t, ts.tryShown], ['Step 3', 'What AI actually is', false], 'a watch-only scene: tag, never Try it');
+  await g.evaluate(() => window.__stage.go(window.__stage.indexOf('qa'))); await g.waitForTimeout(300);
+  ts = await tagState();
+  assert.deepEqual([ts.n, ts.t], ['Under Step 8', ''], 'Questions: the after-tap pointer');
+  assert.equal(await g.$eval('#stgTag', (t) => t.closest('[data-beat]') === null && !t.querySelector('[data-beat]')), true, 'the tag is never a beat');
+  // every teaching scene has a tag; only soon has none
+  const untagged = await g.$$eval('.scene', (els) => els.filter((s) => !s.dataset.tagN).map((s) => s.dataset.id));
+  assert.deepEqual(untagged, ['soon']);
   assert.deepEqual(fails, [], 'no page errors');
   console.log('stage e2e: PASS');
 } finally { await browser.close(); srv.kill(); }

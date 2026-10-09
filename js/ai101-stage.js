@@ -306,8 +306,30 @@ function hud() {
   hudTimer.hidden = !scenes[p.scene].el.querySelector('[data-timer]');
   hudClock.textContent = CLOCK.format(new Date()) + ' CT';
   hudClock.classList.toggle('behind', isBehind(Date.now(), p.scene, checks));
+  tag(p);
 }
 setInterval(hud, 15000);
+
+/* ---- the corner tag (10/9, Nelson: "cues on the stage so people can try it themselves … and tag the stage scenes"):
+   the class page step this scene goes with, from the scene's data-tag-n / data-tag-t; on a scene with data-try, the
+   gold "Try it" line slides in once the scene is fully on screen (its last beat): watch first, then do. It's not a
+   [data-beat] element, so the beat checks never count it. ---- */
+const tagEl = document.getElementById('stgTag'), tagN = document.getElementById('stgTagN'), tagT = document.getElementById('stgTagT');
+const tryEl = document.getElementById('stgTry'), tryText = document.getElementById('stgTryText');
+let tagKey = '';
+function tag(p) {
+  const d = scenes[p.scene].el.dataset, showTry = !!d.try && p.beat >= (+d.beats || 1) - 1, key = p.scene + '|' + showTry;
+  if (key === tagKey) return; // the 15 s clock tick must not replay the slide-in
+  tagKey = key;
+  tagEl.hidden = !d.tagN;
+  tagN.textContent = d.tagN || ''; tagT.textContent = d.tagT || ''; tagT.hidden = !d.tagT;
+  tryText.textContent = d.try || '';
+  gsap.killTweensOf(tryEl);
+  if (!showTry) { tryEl.hidden = true; return; }
+  tryEl.hidden = false;
+  if (REDUCED) gsap.set(tryEl, { autoAlpha: 1, x: 0 });
+  else gsap.fromTo(tryEl, { autoAlpha: 0, x: 24 }, { autoAlpha: 1, x: 0, duration: 0.4, ease: EASE_OUT });
+}
 
 /* ---- scale the 1920x1080 canvas into the window, letterboxed ---- */
 function fit() {

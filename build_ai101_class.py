@@ -10,7 +10,7 @@ from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOL
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
                           WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
                           OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP,
-                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN)
+                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN, STAGE_STEP, STAGE_TAG_OTHER, STAGE_TRY)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -255,14 +255,30 @@ HUD_BUTTONS = (
     f'<button type="button" class="stg-btn" id="hudFull" tabindex="-1" aria-label="Full screen" title="Full screen (F key)">{_HUD_ICON.format("M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4")}</button>'
 )
 
+_SCENE_OPEN = re.compile(r'(<section class="scene [^"]*" data-id="([^"]+)" data-beats="\d+" aria-label="[^"]*")')
+
+def _tag_scenes(markup):
+    """The corner tag's words ride on each scene: data-tag-n / data-tag-t (its class page step) and data-try (Nelson 10/9).
+    Added AFTER aria-label, which the curriculum build parses up to."""
+    def add(m):
+        id_ = m.group(2)
+        n = STAGE_STEP.get(id_)
+        tag_n, tag_t = (f"Step {n}", STEPS[n - 1]["title"]) if n else (STAGE_TAG_OTHER.get(id_, ""), "")
+        extra = (f' data-tag-n="{e(tag_n)}" data-tag-t="{e(tag_t)}"' if tag_n else "") + (f' data-try="{e(STAGE_TRY[id_])}"' if id_ in STAGE_TRY else "")
+        return m.group(1) + extra
+    out, count = _SCENE_OPEN.subn(add, markup)
+    assert count == len(STAGE_ORDER), f"tagged {count} scenes, expected {len(STAGE_ORDER)}"
+    return out
+
 def stage_page(head, ver):
     h = head("AI 101 stage — Taylormade Academy", "Nelson's screen for the AI 101 class.", "/ai101/class/stage/").replace(
         "</head>", f'<meta name="robots" content="noindex">\n<link rel="stylesheet" href="/css/ai101-class.css?v={ver}">\n'
                    f'<link rel="stylesheet" href="/css/ai101-stage.css?v={ver}">\n</head>')
-    scenes = "\n".join(SCENE_MARKUP[s]() for s in STAGE_ORDER)
+    scenes = _tag_scenes("\n".join(SCENE_MARKUP[s]() for s in STAGE_ORDER))
     page = h + f"""
 <div class="stg" id="stg" data-date="{EVENT['date']}"><div class="stg-canvas" id="canvas">
 {scenes}
+<div class="stg-tag" id="stgTag" hidden><div class="st-try" id="stgTry" hidden><b>Try it</b><span id="stgTryText"></span></div><div class="st-pill"><span class="st-k">Class page</span><b id="stgTagN"></b><span id="stgTagT"></span></div></div>
 </div></div>
 <div class="stg-hud" id="hud">{HUD_BUTTONS}<span id="hudClock" aria-hidden="true"></span></div>
 <div class="stg-gate" id="stgGate" hidden><div><h1>Sign in to open the stage.</h1><p><a class="btn gold" href="/login/?next=%2Fai101%2Fclass%2Fstage%2F" data-next>Sign in <span class="arr" aria-hidden="true">&rarr;</span></a></p></div></div>
