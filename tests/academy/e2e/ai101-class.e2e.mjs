@@ -13,8 +13,8 @@ const srv = spawn('python3', ['-m', 'http.server', String(PORT)], { cwd: ROOT, s
 await new Promise((r) => setTimeout(r, 700));
 const browser = await chromium.launch({ channel: 'chrome' });
 const results = [];
-async function open({ session = { user: { id: 'u1', email: 'a@b.c', user_metadata: { full_name: 'Test Person' } } }, rpc = {}, rows = {}, cdnDown = false, cdnFailFirst = false, cdnDelay = 0, readDelay = 0, rpcDelay = 0, authError = false, noStorage = false, noClipboard = false, hash = '', viewport = { width: 1280, height: 900 } } = {}) {
-  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block' });
+async function open({ session = { user: { id: 'u1', email: 'a@b.c', user_metadata: { full_name: 'Test Person' } } }, rpc = {}, rows = {}, cdnDown = false, cdnFailFirst = false, cdnDelay = 0, readDelay = 0, rpcDelay = 0, authError = false, noStorage = false, noClipboard = false, hash = '', viewport = { width: 1280, height: 900 }, ua = undefined } = {}) {
+  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', ...(ua ? { userAgent: ua } : {}) });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: `http://localhost:${PORT}` });
   let esmCalls = 0;
   await ctx.route(/esm\.sh\/@supabase\/supabase-js/, async (r) => {
@@ -67,11 +67,56 @@ await check('tool switch changes the lines and survives a reload', async () => {
   await page.reload(); await page.waitForSelector('#app:not([hidden])');
   assert.equal(await page.$eval('html', (h) => h.dataset.tool), 'chatgpt');
 });
+const shownInstall = (p) => p.$$eval('.a1c-install', (els) => els.filter((el) => getComputedStyle(el).display !== 'none' && el.getClientRects().length)
+  .map((el) => `${el.dataset.for}/${el.dataset.osFor}`));
+await check('Step 2 starts on Mac on a Mac, and shows exactly one install card: the tool x computer you picked', async () => {
+  const { page } = await open();
+  await page.waitForSelector('#app:not([hidden])');
+  assert.equal(await page.$eval('html', (h) => h.dataset.os), 'mac');
+  assert.deepEqual(await shownInstall(page), ['claude/mac']);
+  await page.click('[data-pick-tool="chatgpt"]');
+  assert.deepEqual(await shownInstall(page), ['chatgpt/mac']);
+  await page.click('[data-pick-os="windows"]');
+  assert.deepEqual(await shownInstall(page), ['chatgpt/windows']);
+  assert.equal(await page.$eval('[data-pick-os="windows"]', (b) => b.getAttribute('aria-pressed')), 'true');
+  assert.equal(await page.$eval('[data-pick-os="mac"]', (b) => b.getAttribute('aria-pressed')), 'false');
+  assert.equal(await page.textContent('#osSay'), 'Showing the steps for Windows.');
+  assert.match(await page.$eval('.a1c-install[data-for="chatgpt"][data-os-for="windows"]', (el) => el.textContent), /Microsoft Store/);
+  assert.equal(await page.$eval('.a1c-install[data-for="claude"][data-os-for="mac"] + .a1c-install', (el) => getComputedStyle(el).display), 'none');
+  await page.click('[data-pick-tool="gemini"]');
+  assert.deepEqual(await shownInstall(page), ['gemini/windows']);
+});
+await check('a Windows laptop opens on the Windows steps by itself', async () => {
+  const { page } = await open({ ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36' });
+  await page.waitForSelector('#app:not([hidden])');
+  assert.equal(await page.$eval('html', (h) => h.dataset.os), 'windows');
+  assert.deepEqual(await shownInstall(page), ['claude/windows']);
+  assert.equal(await page.textContent('#osSay'), '', 'the guess is silent; only a tap is announced');
+});
+await check('a tap on the computer switch survives a reload (it beats the guess), and works with storage blocked', async () => {
+  const { page } = await open();
+  await page.waitForSelector('#app:not([hidden])');
+  await page.click('[data-pick-os="windows"]');
+  await page.reload(); await page.waitForSelector('#app:not([hidden])');
+  assert.equal(await page.$eval('html', (h) => h.dataset.os), 'windows');
+  const b = await open({ noStorage: true });
+  await b.page.waitForSelector('#app:not([hidden])');
+  await b.page.click('[data-pick-os="windows"]');
+  assert.deepEqual(await shownInstall(b.page), ['claude/windows']);
+  assert.deepEqual(b.errors, []);
+});
+await check('the download button opens the vendor page in a new tab, and fits a phone', async () => {
+  const { page } = await open({ viewport: { width: 375, height: 667 } });
+  await page.waitForSelector('#app:not([hidden])');
+  const a = await page.$eval('.a1c-install[data-for="claude"][data-os-for="mac"] a.btn', (x) => ({ href: x.href, target: x.target, rel: x.rel }));
+  assert.deepEqual(a, { href: 'https://claude.ai/download', target: '_blank', rel: 'noopener' });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+});
 await check('ticking a step updates progress and survives a reload', async () => {
   const { page } = await open();
   await page.waitForSelector('#app:not([hidden])');
   await page.click('input[data-step="hi"]');
-  assert.equal(await page.textContent('#prog'), '1 of 7 steps done');
+  assert.equal(await page.textContent('#prog'), '1 of 8 steps done');
   await page.reload(); await page.waitForSelector('#app:not([hidden])');
   assert.equal(await page.$eval('input[data-step="hi"]', (i) => i.checked), true);
 });

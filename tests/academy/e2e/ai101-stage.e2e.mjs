@@ -64,7 +64,7 @@ try {
   // walk the whole deck: every scene, every beat, then check each scene's [data-beat] elements are fully drawn
   const w = await page();
   const n = await w.evaluate(() => document.querySelectorAll('.scene').length);
-  assert.equal(n, 16, 'sixteen scenes');
+  assert.equal(n, 18, 'eighteen scenes (10/8: + laptop, nolove)');
   for (let s = 0; s < n; s++) {
     await w.evaluate((i) => window.__stage.go(i), s);
     const beats = await w.evaluate((i) => +document.querySelectorAll('.scene')[i].dataset.beats, s);
@@ -111,11 +111,46 @@ try {
   const before = await w.evaluate(() => window.__stage.pos());
   await w.evaluate(() => { for (let i = 0; i < 5; i++) dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', repeat: true })); });
   assert.deepEqual(await w.evaluate(() => window.__stage.pos()), before, 'auto-repeat ignored');
-  // the time checks come from the page (the event date), and include the 7:19 early warning
+  // the time checks come from the page (the event date), and include the 7:23 early warning (10/8: +4 min for the laptop step)
   const checks = await w.evaluate(() => window.__stage.checks);
   assert.ok(checks.every((c) => c.date === '2026-10-09'));
   assert.deepEqual(checks.map((c) => c.id), ['steer', 'yourturn', 'qa', 'next']);
-  assert.equal(checks.find((c) => c.id === 'qa').at, 19 * 60 + 41);
+  assert.deepEqual(checks.map((c) => c.at), [19 * 60 + 23, 19 * 60 + 34, 19 * 60 + 45, 19 * 60 + 56]);
+  // ---- laptop + nolove (10/8) ----
+  const order = await w.evaluate(() => [...document.querySelectorAll('.scene')].map((e) => e.dataset.id).slice(0, 6));
+  assert.deepEqual(order, ['soon', 'title', 'follow', 'laptop', 'nolove', 'chat'], 'the laptop step comes right after Follow me');
+  const lp = () => w.evaluate(() => {
+    const op = (sel) => +getComputedStyle(document.querySelector(sel)).opacity;
+    return { knob: new DOMMatrix(getComputedStyle(document.querySelector('.lp-knob')).transform).m41, mac: op('.lp-steps.mac'), win: op('.lp-steps.win'),
+      winRows: [...document.querySelectorAll('.lp-steps.win li')].map((li) => +getComputedStyle(li).opacity), web: op('.lp-web'),
+      macLabel: getComputedStyle(document.querySelector('.lp-opt.mac')).color };
+  });
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('laptop'))); await w.waitForTimeout(2200);
+  let st = await lp();
+  assert.ok(st.knob === 0 && st.mac > 0.99 && st.win < 0.01 && st.web < 0.01, 'laptop, beat 0: Mac steps only, switch on Mac ' + JSON.stringify(st));
+  assert.equal(st.macLabel, 'rgb(255, 255, 255)');
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2400);
+  st = await lp();
+  assert.ok(Math.abs(st.knob - 300) < 0.5 && st.mac < 0.01 && st.win > 0.99 && st.winRows.every((o) => o > 0.99) && st.web < 0.01, 'laptop, beat 1: the switch slid, Windows steps drawn ' + JSON.stringify(st));
+  await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(300);
+  st = await lp();
+  assert.ok(st.knob === 0 && st.mac > 0.99 && st.win < 0.01, 'back from Windows lands on Mac again ' + JSON.stringify(st));
+  await w.keyboard.press('ArrowRight'); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1500); // quick double press: beat 1 finishes, beat 2 plays
+  assert.equal(await w.evaluate(() => document.querySelector('.scene.on').dataset.id), 'laptop');
+  st = await lp();
+  assert.ok(st.web > 0.99 && st.win > 0.99, 'laptop, beat 2: the website card');
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1200);
+  assert.equal(await w.evaluate(() => document.querySelector('.scene.on').dataset.id), 'nolove');
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3200);
+  const nl = await w.evaluate(() => ({ foot: +getComputedStyle(document.querySelector('.nl-foot')).opacity,
+    xs: [...document.querySelectorAll('.nl-pill')].map((p) => Math.round(new DOMMatrix(getComputedStyle(p).transform).m41)),
+    ys: [...document.querySelectorAll('.nl-pill')].map((p) => Math.round(new DOMMatrix(getComputedStyle(p).transform).m42)) }));
+  assert.deepEqual(nl.xs, [760, -380, -380], 'the three traded places twice'); assert.deepEqual(nl.ys, [0, 0, 0], 'and landed back on the line');
+  assert.ok(nl.foot > 0.99, 'Learn the skill, not the app.');
+  const rmLp = await page({ reduced: true, hash: '#' + (await w.evaluate(() => window.__stage.indexOf('laptop'))) + '.2' });
+  await rmLp.waitForTimeout(300);
+  assert.ok(await rmLp.evaluate(() => +getComputedStyle(document.querySelector('.lp-steps.win')).opacity > 0.99 && +getComputedStyle(document.querySelector('.lp-web')).opacity > 0.99),
+    'a reload on beat 2 (reduced motion) shows Windows and the website card');
   // a reload lands where you were
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(300);

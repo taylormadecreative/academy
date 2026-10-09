@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PART_KEYS, promptPieces, buildPrompt, missingParts, splitTokens, ctMinutes, ctDate, isBehind, countdown,
-  readState, writeState, displayName, createDeck } from '../../js/ai101-kit.js';
+  readState, writeState, displayName, createDeck, guessOS } from '../../js/ai101-kit.js';
 
 test('PART_KEYS is the 5-part order', () => {
   assert.deepEqual(PART_KEYS, ['role', 'task', 'context', 'format', 'example']);
@@ -135,4 +135,14 @@ test('createDeck.go(scene, beat) lands on a beat, clamped (a reload comes back t
   assert.deepEqual(d.go(1, 9), { scene: 1, beat: 2 });
   assert.deepEqual(d.go(2, -1), { scene: 2, beat: 0 });
   assert.deepEqual(d.next(), { scene: 2, beat: 1 });
+});
+
+test('guessOS: Windows when any signal says Windows, else Mac (phones, tablets, Chromebooks land on Mac)', () => {
+  assert.equal(guessOS({ uaPlatform: 'Windows' }), 'windows');
+  assert.equal(guessOS({ platform: 'Win32' }), 'windows');
+  assert.equal(guessOS({ uaPlatform: 'macOS', platform: 'MacIntel', ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }), 'windows');
+  assert.equal(guessOS({ uaPlatform: 'macOS', platform: 'MacIntel', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/140 Safari/537.36' }), 'mac');
+  assert.equal(guessOS({ ua: 'Mozilla/5.0 (Linux; Android 14) Chrome/140 Mobile' }), 'mac');
+  assert.equal(guessOS({ uaPlatform: 'Chrome OS', ua: 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0)' }), 'mac');
+  assert.equal(guessOS(), 'mac');
 });

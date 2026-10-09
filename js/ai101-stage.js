@@ -12,10 +12,10 @@ gsap.defaults({ lazy: false }); // a jump (back, reduced motion) must draw in th
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const DAY = document.getElementById('stg').dataset.date || ''; // the class date, from the course module
 const CHECKS = [ // the run of show's hard time checks (CT): the clock turns gold if you're still on an earlier scene
-  { at: 19 * 60 + 19, id: 'steer' },    // the 5-part demo should be done
-  { at: 19 * 60 + 30, id: 'yourturn' }, // practice starts, wherever you are
-  { at: 19 * 60 + 41, id: 'qa' },       // stop practice: the after tap, then questions
-  { at: 19 * 60 + 52, id: 'next' },     // the invitation
+  { at: 19 * 60 + 23, id: 'steer' },    // the 5-part demo should be done
+  { at: 19 * 60 + 34, id: 'yourturn' }, // practice starts, wherever you are
+  { at: 19 * 60 + 45, id: 'qa' },       // stop practice: the after tap, then questions
+  { at: 19 * 60 + 56, id: 'next' },     // the invitation
 ].map((c) => ({ ...c, date: DAY }));
 
 const canvas = document.getElementById('canvas');
@@ -56,6 +56,38 @@ function appearBeat(tl, el, b) { // everything marked data-beat="b" fades up; go
   return tl;
 }
 export const TIMELINES = {
+  laptop(el) { // Mac steps → the switch slides to Windows and the steps swap → "No app? The website works the same."
+    const q = (c) => el.querySelector(c), mac = q('.lp-steps.mac'), win = q('.lp-steps.win');
+    const SLIDE = 300; // one .lp-opt wide (css/ai101-stage.css)
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, mac.children, { autoAlpha: 0, y: 24, stagger: 0.12, duration: 0.45, ease: EASE_OUT }, '-=0.25');
+    tl.addLabel('b1').fromTo(q('.lp-knob'), { x: 0 }, { x: SLIDE, duration: 0.45, ease: EASE_MOVE })
+      .fromTo(q('.lp-opt.mac'), { color: '#ffffff' }, { color: '#04123a', duration: 0.3 }, '<')
+      .fromTo(q('.lp-opt.win'), { color: '#04123a' }, { color: '#ffffff', duration: 0.3 }, '<')
+      .fromTo(mac, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -16, duration: 0.25 }, '<')
+      .fromTo(win, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
+    into(tl, win.children, { autoAlpha: 0, y: 24, stagger: 0.12, duration: 0.45, ease: EASE_OUT }, '<');
+    tl.addLabel('b2'); into(tl, q('.lp-web'), { autoAlpha: 0, x: 60, duration: 0.5, ease: EASE_OUT });
+    return tl.addLabel('end');
+  },
+  nolove(el) { // "Don't fall in love with one AI." The three trade places twice: they change all the time.
+    const pills = [...el.querySelectorAll('.nl-pill')], SLOT = 380; // pill width + gap (css/ai101-stage.css)
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, pills, { autoAlpha: 0, y: 30, scale: 0.9, stagger: 0.1, duration: 0.45, ease: 'back.out(1.4)' }, '-=0.2');
+    let cur = [0, 1, 2];
+    const shuffle = (slots) => { // slots[i] = where pill i goes; the one jumping furthest arcs up over the others
+      const far = slots.reduce((m, sl, i) => (Math.abs(sl - cur[i]) > Math.abs(slots[m] - cur[m]) ? i : m), 0);
+      pills.forEach((pl, i) => tl.to(pl, { x: (slots[i] - i) * SLOT, duration: 0.6, ease: EASE_MOVE }, i ? '<' : '>'));
+      tl.to(pills[far], { y: -70, duration: 0.3, ease: 'power2.out', yoyo: true, repeat: 1 }, '<');
+      cur = slots;
+    };
+    tl.addLabel('b1'); shuffle([1, 2, 0]); shuffle([2, 0, 1]);
+    into(tl, el.querySelector('.nl-foot'), { ...IN, y: 30, duration: 0.55 }, '+=0.1');
+    into(tl, el.querySelector('.nl-small'), IN, '-=0.25');
+    return tl.addLabel('end');
+  },
   prompt5(el) {
     const tl = gsap.timeline({ paused: true });
     const chips = el.querySelectorAll('.p5-chip'), segs = el.querySelectorAll('.p5-seg'), tags = el.querySelectorAll('.p5-tag');

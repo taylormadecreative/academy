@@ -46,6 +46,19 @@
 .a1c-switch button{border:0;background:transparent;border-radius:999px;padding:10px 18px;min-height:44px;font:600 15px/1 var(--font);color:var(--ink-2);cursor:pointer}
 .a1c-switch button[aria-pressed="true"]{background:var(--navy);color:#fff}
 html:not([data-tool="claude"]) [data-for="claude"],html:not([data-tool="chatgpt"]) [data-for="chatgpt"],html:not([data-tool="gemini"]) [data-for="gemini"]{display:none!important}
+html:not([data-os="mac"]) [data-os-for="mac"],html:not([data-os="windows"]) [data-os-for="windows"]{display:none!important}
+/* Step 2: get it on your laptop (one card per tool x computer; both switches pick the one that shows) */
+.a1c-step-b>.a1c-switch{justify-self:start;margin:0}
+.a1c-install{background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;display:grid;gap:12px;justify-items:start}
+.a1c-install-h{margin:0;font:700 17px/1.25 var(--display);color:var(--navy)}
+.a1c-install ol{margin:0;padding:0;list-style:none;counter-reset:i;display:grid;gap:10px;max-width:68ch}
+.a1c-install li{counter-increment:i;display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;font-size:16.5px;line-height:1.55;color:var(--ink-2)}
+.a1c-install li::before{content:counter(i);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:var(--gold);font:700 15px/1 var(--display)}
+.a1c-install li .btn{display:flex;width:max-content;max-width:100%;margin-top:10px}
+.a1c-needs{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
+.a1c-love{background:var(--navy);border-radius:var(--r);padding:18px 20px}
+.a1c-love-h{margin:0 0 6px;font:700 20px/1.2 var(--display);letter-spacing:-.01em;color:var(--gold)}
+.a1c-love p:not(.a1c-love-h){margin:0;font-size:16.5px;line-height:1.6;color:#dbe3f7;max-width:68ch}
 .a1c-start{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:18px 0 0;padding:0;list-style:none}
 .a1c-start li{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r);padding:18px}
 .a1c-start h3{font:700 17px/1.25 var(--display);margin:0 0 6px}

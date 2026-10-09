@@ -73,6 +73,12 @@ export function writeState(storage, key, value) {
   catch (e) { return false; }
 }
 
+/* Which computer's install steps to show first on the class page: Windows if the browser says so, else Mac. Phones,
+   tablets and Chromebooks land on Mac; the page tells them to use the website, and the switch is one tap away. */
+export function guessOS({ uaPlatform = '', platform = '', ua = '' } = {}) {
+  return /^win/i.test(uaPlatform) || /^win/i.test(platform) || /\bWindows\b/.test(ua) ? 'windows' : 'mac';
+}
+
 export function displayName(fullName) { // counts characters, not UTF-16 halves, like Postgres does
   const w = clean(fullName).split(' ').filter(Boolean);
   if (!w.length) return 'Academy member';

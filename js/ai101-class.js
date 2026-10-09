@@ -5,12 +5,13 @@
    (js/ai101-proof.js) then try to reconnect on the next tap, and say plainly when they can't save. */
 const Q = new URL(import.meta.url).search;
 const kit = await import('./ai101-kit.js' + Q);
-const { PART_KEYS, promptPieces, buildPrompt, missingParts, splitTokens, readState, writeState } = kit;
+const { PART_KEYS, promptPieces, buildPrompt, missingParts, splitTokens, readState, writeState, guessOS } = kit;
 const $ = (id) => document.getElementById(id);
 const LS = (() => { try { return window.localStorage; } catch (e) { return null; } })();
-const KEY = { tool: 'a1c.tool', done: 'a1c.done', builder: 'a1c.builder' };
+const KEY = { tool: 'a1c.tool', os: 'a1c.os', done: 'a1c.done', builder: 'a1c.builder' };
 const TOOLS = ['claude', 'chatgpt', 'gemini'];
 const TOOL_NAMES = { claude: 'Claude', chatgpt: 'ChatGPT', gemini: 'Gemini' };
+const OS_NAMES = { mac: 'Mac', windows: 'Windows' };
 const NAMES = { role: 'Role', task: 'Task', context: 'Context', format: 'Format' };
 
 function show(which) { $('loading').hidden = true; $('gate').hidden = which !== 'gate'; $('app').hidden = which !== 'app'; }
@@ -49,6 +50,19 @@ function toolSwitch() {
   };
   document.querySelectorAll('[data-pick-tool]').forEach((b) => b.addEventListener('click', () => set(b.dataset.pickTool, true)));
   set(readState(LS, KEY.tool, 'claude'), false);
+}
+
+function osSwitch() { // Step 2's Mac | Windows switch: starts on the computer the browser reports, then remembers a tap
+  const say = $('osSay');
+  const set = (o, announce) => {
+    if (!OS_NAMES[o]) o = 'mac';
+    document.documentElement.dataset.os = o;
+    document.querySelectorAll('[data-pick-os]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pickOs === o)));
+    if (announce) { writeState(LS, KEY.os, o); if (say) say.textContent = `Showing the steps for ${OS_NAMES[o]}.`; }
+  };
+  document.querySelectorAll('[data-pick-os]').forEach((b) => b.addEventListener('click', () => set(b.dataset.pickOs, true)));
+  const nav = navigator, guess = guessOS({ uaPlatform: (nav.userAgentData && nav.userAgentData.platform) || '', platform: nav.platform || '', ua: nav.userAgent || '' });
+  set(readState(LS, KEY.os, guess), false);
 }
 
 function progress() {
@@ -152,7 +166,7 @@ function jumpToHash() {
 }
 
 export async function boot() {
-  toolSwitch(); progress(); copyButtons(); builder(); tokenToy();
+  toolSwitch(); osSwitch(); progress(); copyButtons(); builder(); tokenToy();
   let conn = null;
   try { conn = await connect(); } catch (e) { console.warn('class page: Supabase unreachable, showing the class anyway', e); }
   if (conn && conn.error) console.warn('class page: the session check failed, showing the class anyway', conn.error);

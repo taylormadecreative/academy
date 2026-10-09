@@ -8,10 +8,10 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const C = JSON.parse(execFileSync('python3', ['-c', 'import json, ai101_course as c; print(json.dumps({k: getattr(c, k) for k in dir(c) if k.isupper()}))'], { cwd: ROOT }).toString());
 
-test('seven steps, numbered 1-7, each with a check line and minutes that fit the hour', () => {
-  assert.deepEqual(C.STEPS.map((s) => s.n), [1, 2, 3, 4, 5, 6, 7]);
+test('eight steps, numbered 1-8, each with a check line; teaching + practice end by 7:45 (Nelson 10/8: running a few minutes long is fine)', () => {
+  assert.deepEqual(C.STEPS.map((s) => s.n), [1, 2, 3, 4, 5, 6, 7, 8]);
   assert.ok(C.STEPS.every((s) => s.check && s.title && s.do.length));
-  assert.ok(C.STEPS.reduce((a, s) => a + s.min, 0) <= 42, 'teaching + practice end by 7:42 for Q&A');
+  assert.ok(C.STEPS.reduce((a, s) => a + s.min, 0) <= 45, 'teaching + practice end by 7:45 for the after tap and Q&A');
 });
 test('the demo prompts are the run of show, verbatim', () => {
   assert.equal(C.DEMO.bad, 'Write a post about my bakery.');
@@ -104,10 +104,42 @@ test('no unsupported superlatives; fix-its that are true', () => {
   assert.match(C.FIX_IT[5][1], /Incognito or Temporary/);
   assert.match(C.LEVEL_UPS[1].why, /often works better/);
 });
-test('the hour is re-timed so the safe beat and the 7:41 tap fit; practice is 11 minutes', () => {
-  assert.deepEqual(C.STEPS.map((s) => s.time), ['7:00', '7:02', '7:08', '7:19', '7:24', '7:28', '7:30']);
+test('the hour is re-timed: the laptop step at 7:02 pushes everything after it 4 minutes; practice is still 11 minutes', () => {
+  assert.deepEqual(C.STEPS.map((s) => s.time), ['7:00', '7:02', '7:06', '7:12', '7:23', '7:28', '7:32', '7:34']);
+  for (let i = 1; i < C.STEPS.length; i++) {
+    const [h0, m0] = C.STEPS[i - 1].time.split(':').map(Number), [h1, m1] = C.STEPS[i].time.split(':').map(Number);
+    assert.equal(h1 * 60 + m1 - (h0 * 60 + m0), C.STEPS[i - 1].min, `${C.STEPS[i - 1].id} ends when ${C.STEPS[i].id} starts`);
+  }
   assert.equal(C.STEPS.find((s) => s.id === 'yourturn').min, 11);
-  assert.ok(C.STEPS.reduce((a, s) => a + s.min, 0) <= 41, 'teaching + practice end by 7:41');
+  assert.ok(C.STEPS.reduce((a, s) => a + s.min, 0) <= 45, 'teaching + practice end by 7:45');
+});
+test('Step 2 gets it on the laptop: every tool x computer has steps, a download page, what it needs, and the website fallback', () => {
+  const laptop = C.STEPS.find((s) => s.id === 'laptop');
+  assert.equal(laptop.n, 2); assert.equal(laptop.time, '7:02');
+  assert.deepEqual(C.OS_ORDER, ['mac', 'windows']);
+  for (const t of C.TOOL_ORDER) {
+    const i = C.INSTALL[t];
+    assert.match(i.get_url, /^https:\/\//, t);
+    assert.ok(i.get_url.includes(i.get.split('/')[0]), `${t} button text matches its link`);
+    for (const o of C.OS_ORDER) {
+      assert.ok(i[o].length >= 3 && i[o].length <= 4, `${t}/${o}: 3 or 4 steps`);
+      assert.match(i[o][0], new RegExp(i.get.replace(/\./g, '\\.')), `${t}/${o} starts at the download page`);
+      assert.match(i[o + '_needs'], /^Needs /, `${t}/${o} says what it needs`);
+    }
+  }
+  assert.match(C.INSTALL.chatgpt.windows.join(' '), /Microsoft Store/, 'ChatGPT on Windows installs through the Store');
+  assert.match(C.INSTALL.chatgpt.mac_needs, /macOS 14/); assert.match(C.INSTALL.gemini.mac_needs, /Apple chip/); assert.match(C.INSTALL.claude.mac_needs, /macOS 11/);
+  assert.match(C.INSTALL_WEB, /\{site\}/);
+  assert.match(laptop.do.join(' '), /Ask IT before you install/, 'work laptops: IT first');
+  assert.match(C.INSTALL_CHECKED, /^\d{4}-\d{2}-\d{2}$/);
+});
+test("his line: don't fall in love with one AI, on the class page and full screen on the stage", () => {
+  assert.equal(C.NO_LOVE.h, "Don't fall in love with one AI.");
+  assert.match(C.NO_LOVE.body, /They change all the time/);
+  assert.match(C.NO_LOVE.body, /learn the skill, not the app/);
+  assert.ok(C.STEPS.find((s) => s.id === 'laptop').flow.some((f) => f[1] === 'no_love'));
+  assert.equal(C.STAGE.nolove_foot, 'Learn the skill, not the app.');
+  assert.deepEqual(C.STAGE.nolove_tools, ['Claude', 'ChatGPT', 'Gemini']);
 });
 test('a step with a flow places each line and each prompt exactly once', () => {
   for (const s of C.STEPS.filter((x) => x.flow)) {

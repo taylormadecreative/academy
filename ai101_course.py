@@ -85,10 +85,65 @@ TOOLS = {
     },
 }
 
+# Getting the app on a laptop (Step 2, 7:02). Checked against each vendor's download and help pages on INSTALL_CHECKED:
+# Claude macOS 11+ / Windows 10+ (support.claude.com "Install Claude Desktop"); ChatGPT's new desktop app (July 2026)
+# macOS 14+, and on Windows the download hands off to the Microsoft Store (help.openai.com, learn.chatgpt.com);
+# Gemini Mac needs Apple silicon + macOS 15, Windows 10+ (gemini.google/desktop). The Mac lines say "if a window shows
+# the icon and an Applications folder" so they stay true whatever kind of installer the file is.
+INSTALL_CHECKED = "2026-10-08"
+OS_ORDER = ["mac", "windows"]
+OS_NAMES = {"mac": "Mac", "windows": "Windows"}
+OS_ON = {"mac": "on a Mac", "windows": "on Windows"}
+_MAC_OPEN = ("Open the file you downloaded. It's in your Downloads folder. If a window shows the {name} icon and an "
+             "Applications folder, drag the icon onto the folder.")
+_MAC_RUN = "Open {name} from your Applications folder. If your Mac asks if you're sure you want to open it, click Open."
+_WIN_OPEN = ("Open the file you downloaded. It's in your Downloads folder. If Windows asks if you want to allow this "
+             "app to make changes, click Yes.")
+_SIGN_IN = "Sign in, or make your free account."
+_CHATGPT_CHAT = " If you see Chat and Work at the top, stay on Chat."
+INSTALL = {
+    "claude": {
+        "get": "claude.ai/download", "get_url": "https://claude.ai/download",
+        "mac": ["Go to claude.ai/download. Under macOS, click Download.", _MAC_OPEN.format(name="Claude"),
+                _MAC_RUN.format(name="Claude"), _SIGN_IN],
+        "windows": ["Go to claude.ai/download. Under Windows, click Download.", _WIN_OPEN,
+                    "When it's done, open Claude from the Start menu.", _SIGN_IN],
+        "mac_needs": "Needs macOS 11 or newer.",
+        "windows_needs": "Needs Windows 10 or newer.",
+    },
+    "chatgpt": {
+        "get": "chatgpt.com/download", "get_url": "https://chatgpt.com/download/",
+        "mac": ["Go to chatgpt.com/download and click the download button for Mac.", _MAC_OPEN.format(name="ChatGPT"),
+                _MAC_RUN.format(name="ChatGPT"), _SIGN_IN + _CHATGPT_CHAT],
+        "windows": ["Go to chatgpt.com/download and click the download button for Windows.",
+                    "Open the file you downloaded. It opens the Microsoft Store. Click Get or Install.",
+                    "When it's done, click Open. Next time, find ChatGPT in the Start menu.", _SIGN_IN + _CHATGPT_CHAT],
+        "mac_needs": "Needs macOS 14 or newer. Older Mac? Use the website below.",
+        "windows_needs": "Needs Windows 10 or newer. If the Microsoft Store gets stuck, use the website below tonight.",
+    },
+    "gemini": {
+        "get": "gemini.google/desktop", "get_url": "https://gemini.google/desktop/",
+        "mac": ["Go to gemini.google/desktop and click Download for macOS.", _MAC_OPEN.format(name="Gemini"),
+                _MAC_RUN.format(name="Gemini"), "Sign in with your Google (Gmail) account."],
+        "windows": ["Go to gemini.google/desktop and click Download for Windows.", _WIN_OPEN,
+                    "When it's done, open Gemini from the Start menu.", "Sign in with your Google (Gmail) account."],
+        "mac_needs": "Needs a Mac with an Apple chip (M1 or newer) and macOS 15 or newer. Older Mac? Use the website below.",
+        "windows_needs": "Needs Windows 10 or newer.",
+    },
+}
+MAC_WHICH = "Not sure which Mac you have? Click the Apple menu at the top left of your screen, then About This Mac."
+INSTALL_WEB = "Can't install it? Use {site} in your web browser. It's the same {name}, with the same account."
+NO_LOVE = {"h": "Don't fall in love with one AI.",
+           "body": "They change all the time. The best one today might not be the best one next month. Even these apps "
+                   "changed this year. So learn the skill, not the app. Everything you learn tonight works in Claude, "
+                   "ChatGPT and Gemini."}
+
 START_HERE = [
     {"title": "What a chatbot is", "body": "A website or phone app where you type a question and an AI types back. Claude, ChatGPT and Gemini are three of the best known, and all three are free to start. Tonight I use Claude. Pick yours above and this page changes to match it. You'll see two chats tonight: the room chat is where we all talk to each other, and your AI chat is where you talk to the AI."},
-    {"title": "Tonight you'll have three things open", "body": "The room, where you watch me. This page, where you copy the prompts. Your AI chat, where you type to the AI. Two devices is easiest: watch the room on your phone or tablet, and use a laptop for this page and your AI chat. One device works too. Watch me first, then try it yourself in the practice time at 7:30. This page keeps every step, so nothing is lost."},
+    {"title": "Tonight you'll have three things open", "body": "The room, where you watch me. This page, where you copy the prompts. Your AI chat, where you type to the AI. Two devices is easiest: watch the room on your phone or tablet, and use a laptop for this page and your AI chat. One device works too. Watch me first, then try it yourself in the practice time at 7:34. This page keeps every step, so nothing is lost."},
     {"title": "Make a free account", "tool": "signup"},
+    {"title": "Want it on your laptop?", "body": "Step 2 shows you how to get the app on a Mac or a Windows laptop. Do it now if you're early, or with me at 7:02.",
+     "link": ("#step-laptop", "Go to Step 2")},
     {"title": "Stuck on the account?", "body": "Already have Gmail? Pick Gemini above. You sign in with the Google account you already have. Still stuck? Watch the first part and ask in the room chat. Everything tonight works in all three."},
     {"title": "Where you type", "tool": "type"},
     {"title": "Start a new chat", "tool": "new_chat"},
@@ -140,7 +195,14 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Then tap how confident you feel about using AI, from 1 to 5. Already did? You're ahead of me. There's no right answer. It helps me make the class better."],
      "extra": "pulse_before",
      "check": "You said hi in the room chat and tapped your number."},
-    {"id": "words", "n": 2, "time": "7:02", "min": 6, "title": "What AI actually is",
+    {"id": "laptop", "n": 2, "time": "7:02", "min": 4, "title": "Get it on your laptop",
+     "do": ["You can use AI in your web browser, or as an app on your laptop. The app is the same AI with its own icon, so it's always one click away. Pick your computer, and the steps change to match it:",
+            "Start the download now. While it downloads, keep going in your web browser. It's the same account, and your chats show up in both.",
+            "On a work laptop? Ask IT before you install anything, and follow your company's AI rules.",
+            "On a Chromebook, a tablet or a phone? Use the website, or get the app from your app store."],
+     "flow": [("do", 0), ("extra", "install"), ("do", 1), ("extra", "install_web"), ("do", 2), ("do", 3), ("extra", "no_love")],
+     "check": "Your AI is open on your laptop, in the app or in your web browser, and you're signed in."},
+    {"id": "words", "n": 3, "time": "7:06", "min": 6, "title": "What AI actually is",
      "do": ["AI here means a computer program that can read and write a lot like a person. It learned by reading a huge amount of writing.",
             "Look at the drawing. You type, the AI writes back, and you reply to make it better. That loop is the whole skill.",
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
@@ -148,18 +210,18 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
      "flow": [("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("do", 3), ("extra", "words_step2")],
      "check": "You sent your first message, and you can say what a chatbot is in one sentence."},
-    {"id": "prompt5", "n": 3, "time": "7:08", "min": 11, "title": "The 5-part prompt",
+    {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
             "First, paste the bland prompt into your AI chat and read the answer. It could be anybody's bakery.",
             "Then start a new AI chat and paste the 5-part prompt. Same request, now with a Role, a Task, the Context, a Format and an Example."],
      "prompts": [("The bland one", DEMO["bad"]), ("The 5-part one", GOOD)],
      "flow": [("do", 0), ("do", 1), ("prompt", 0), ("do", 2), ("prompt", 1), ("extra", "parts"), ("extra", "parts_alt")],
      "check": "You saw a bland answer turn into one that sounds like a real bakery, and you can name the five parts."},
-    {"id": "steer", "n": 4, "time": "7:19", "min": 5, "title": "Steer it",
+    {"id": "steer", "n": 5, "time": "7:23", "min": 5, "title": "Steer it",
      "do": ["Don't start over. It's a conversation, so you steer it. A follow-up is a short reply that changes the answer. In the same AI chat, send these one at a time:"],
      "prompts": [("Follow-up 1", DEMO["follow_ups"][0]), ("Follow-up 2", DEMO["follow_ups"][1]), ("Follow-up 3", DEMO["follow_ups"][2])],
      "check": "You changed the answer three times without starting over."},
-    {"id": "check", "n": 5, "time": "7:24", "min": 4, "title": "Check it, and keep it safe",
+    {"id": "check", "n": 6, "time": "7:28", "min": 4, "title": "Check it, and keep it safe",
      "do": ["The context window is how much the AI can keep in mind at once. In a very long chat it can lose the start. New job? Start a new chat.",
             "A hallucination is when the AI makes something up and says it like a fact. Names, numbers, dates and links are where it happens most. Try it (use your own town if you like):",
             "Now check one yourself. Open one of the links. Does the page really say that? Some tools search the web and show real links. Check anyway. Then paste this:",
@@ -169,12 +231,12 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "prompts": [("Ask for facts and links", DEMO["check"][0]), ("Then ask what to check", DEMO["check"][1])],
      "flow": [("do", 0), ("do", 1), ("prompt", 0), ("do", 2), ("prompt", 1), ("do", 3), ("do", 4), ("extra", "never_paste"), ("do", 5), ("extra", "token_toy")],
      "check": "You opened one source and checked it, and you can name three things you never paste."},
-    {"id": "save", "n": 6, "time": "7:28", "min": 2, "title": "Save it once",
+    {"id": "save", "n": 7, "time": "7:32", "min": 2, "title": "Save it once",
      "do": ["Everything you tell the AI about yourself, you can save once. Then every new chat already knows you. Keep it general: your first name and what you do. No address, no account numbers, nothing private. Here's where:"],
      "tool": "save_once",
      "prompts": [("Your “About me” (fill in the brackets)", ABOUT_ME)],
      "check": "You found where your tool saves your “About me.”"},
-    {"id": "yourturn", "n": 7, "time": "7:30", "min": 11, "title": "Your turn",
+    {"id": "yourturn", "n": 8, "time": "7:34", "min": 11, "title": "Your turn",
      "do": ["Pick one real task from your week. Use the one you named at 7:00 if you can.",
             "Fill in the five boxes. Use made-up names and numbers, or swap real ones for [brackets]. Your prompt builds itself.",
             "Copy it, paste it into your AI chat, and send it. Read the answer, then reply once to make it better. Ask yourself: which part of my prompt would fix what's wrong?",
@@ -339,10 +401,22 @@ ACCESS = ("The room doesn't have live captions yet. Everything I show on screen 
 
 STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't already above
     "soon_h": "AI 101 starts at 7:00 PM CT",
-    "soon_sub": "Open your class page now, and grab a free Claude account at claude.ai. Keep your phone close: it texts you a code.",
+    "soon_sub": "Open your class page now. Want Claude on your laptop? Get it at claude.ai/download. Keep your phone close: signing up texts you a code.",
     "title_kicker": "Free live class · Taylormade Academy",
-    "title_sub": "Tonight: how to ask, the words everyone uses, and your first great prompt. We end at 8:00.",
+    "title_sub": "Tonight: get it on your laptop, how to ask, the words everyone uses, and your first great prompt.",
     "title_tap": "On your class page: tap how confident you feel, 1 to 5.",
+    "laptop_h": "Get it on your laptop.",
+    "laptop_mac": ["Go to claude.ai/download", "Open the file. Drag Claude into Applications.", "Open Claude and sign in."],
+    "laptop_win": ["Go to claude.ai/download", "Open the file. If Windows asks, click Yes.", "Open Claude from the Start menu and sign in."],
+    "laptop_also": "Using ChatGPT? Same idea at chatgpt.com/download",
+    "laptop_web_h": "No app? No problem.",
+    "laptop_web": "Use claude.ai in your web browser. Same AI, same account.",
+    "laptop_work": "Work laptop? Ask IT before you install anything.",
+    "laptop_page": "Your steps are on your class page, Step 2.",
+    "nolove_sub": "They change all the time.",
+    "nolove_tools": ["Claude", "ChatGPT", "Gemini"],
+    "nolove_foot": "Learn the skill, not the app.",
+    "nolove_small": "Everything I teach tonight works in all three.",
     "chat_prompt": "Write a thank-you note to my neighbor.",
     "chat_answer": "Thank you so much for watering my plants while I was away. They look happier than ever, and so do I. You're the best neighbor on the block!",
     "chat_loop": "Reply to make it better.",

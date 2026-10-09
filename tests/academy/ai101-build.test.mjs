@@ -11,10 +11,20 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const page = fs.readFileSync(ROOT + 'ai101/class/index.html', 'utf8');
 
-test('noindex, own stylesheet, starts on Claude', () => {
+test('noindex, own stylesheet, starts on Claude and on Mac (the script switches to Windows when the browser says so)', () => {
   assert.match(page, /<meta name="robots" content="noindex">/);
   assert.match(page, /\/css\/ai101-class\.css\?v=/);
-  assert.match(page, /<html lang="en" data-tool="claude">/);
+  assert.match(page, /<html lang="en" data-tool="claude" data-os="mac">/);
+});
+test('Step 2: a Mac | Windows switch and one install card per tool x computer, each with its download button', () => {
+  assert.equal((page.match(/data-pick-os="/g) || []).length, 2);
+  assert.match(page, /role="group" aria-label="Which computer are you using\?"/);
+  assert.match(page, /id="osSay" role="status"/);
+  assert.equal((page.match(/class="a1c-install" data-for="/g) || []).length, 6);
+  for (const t of ['claude', 'chatgpt', 'gemini']) for (const o of ['mac', 'windows']) assert.match(page, new RegExp(`class="a1c-install" data-for="${t}" data-os-for="${o}"`), `${t}/${o}`);
+  assert.match(page, /href="https:\/\/claude\.ai\/download" target="_blank" rel="noopener">Open claude\.ai\/download/);
+  assert.match(page, /class="a1c-love"/);
+  assert.match(page, /<a href="#step-laptop" class="textlink">Go to Step 2<\/a>/);
 });
 test('gate and app both ship hidden; the gate signs in and comes back here', () => {
   assert.match(page, /<div id="gate" class="a1c-gate" hidden>/);
@@ -25,7 +35,8 @@ test('gate and app both ship hidden; the gate signs in and comes back here', () 
 test('the DOM contract', () => {
   for (const id of ['joinRoom', 'joinNote', 'prog', 'progBar', 'bOut', 'bMissing', 'bCopy', 'bClear', 'toyIn', 'toyOut', 'toyN', 'reviewForm', 'review'])
     assert.match(page, new RegExp(`id="${id}"`), id);
-  assert.equal((page.match(/data-step="/g) || []).length, 7);
+  assert.equal((page.match(/data-step="/g) || []).length, 8);
+  assert.match(page, /0 of 8 steps done/);
   assert.equal((page.match(/data-pick-tool="/g) || []).length, 3);
   for (const k of ['role', 'task', 'context', 'format', 'example']) assert.match(page, new RegExp(`data-b="${k}"`));
   assert.match(page, /data-pulse="before"/); assert.match(page, /data-pulse="after"/);
@@ -86,7 +97,7 @@ test('practice taps and the 3 questions sit with the after tap, before the revie
   const r = between(page, 'id="review"', '</section>');
   for (const k of ['after', 'useful', 'steered', 'chk_safe', 'chk_verify', 'chk_prompt']) assert.match(r, new RegExp(`data-pulse="${k}"`), k);
   assert.ok(r.indexOf('data-pulse="after"') < r.indexOf('id="reviewForm"'));
-  assert.match(r, /7:41/);
+  assert.match(r, /7:45/);
   assert.equal((group('useful').match(/data-score=/g) || []).length, 3);
   assert.equal((group('steered').match(/data-score=/g) || []).length, 2);
   assert.equal((group('chk_verify').match(/data-score=/g) || []).length, 3);

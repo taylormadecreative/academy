@@ -8,7 +8,8 @@ build a page carrying the list-only price, a room key, or anything on the privat
 import html, os, pathlib, re, sys
 from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOLS, START_HERE, PARTS, DEMO, DEMO_ALT, STEPS,
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
-                          WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS)
+                          WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
+                          OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -91,6 +92,30 @@ def _scene_title():
 def _scene_follow():
     return _sc("follow", 2, "Follow me", f"""<h2 class="sc-h" data-beat="0">{e(FOLLOW_LINE)}</h2>
 <div class="fo-row">{IG_QR(0, 'big')}{FB_QR(1, 'big')}</div>""")
+
+def _bar_last(text):
+    """The house headline move: the gold bar under the last word ("Get it on your laptop." → bar under "laptop")."""
+    head, _, last = text.rstrip(".").rpartition(" ")
+    return f'{e(head)} <span class="u-bar">{e(last)}</span>' + ("." if text.endswith(".") else "")
+
+def _scene_laptop():
+    """Mac, then Windows (the switch slides across, like the one on the class page), then the website fallback."""
+    rows = lambda items: "".join(f'<li><b>{i}</b><span>{e(t)}</span></li>' for i, t in enumerate(items, 1))
+    return _sc("laptop", 3, "Get it on your laptop", f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(STAGE['laptop_h'])}</h2>
+<div class="lp-grid"><div class="lp-main">
+<div class="lp-switch" data-beat="0" aria-hidden="true"><i class="lp-knob"></i><span class="lp-opt mac">Mac</span><span class="lp-opt win">Windows</span></div>
+<div class="lp-sets"><ol class="lp-steps mac">{rows(STAGE['laptop_mac'])}</ol><ol class="lp-steps win" aria-label="Windows">{rows(STAGE['laptop_win'])}</ol></div>
+<p class="lp-also" data-beat="0">{e(STAGE['laptop_also'])}</p></div>
+<div class="lp-web" data-beat="2"><h3>{e(STAGE['laptop_web_h'])}</h3><p>{e(STAGE['laptop_web'])}</p><p class="lp-work">{e(STAGE['laptop_work'])}</p><p class="lp-page">{e(STAGE['laptop_page'])}</p></div></div>""")
+
+def _scene_nolove():
+    """His line, full screen: the three tools keep trading places. Learn the skill, not the app."""
+    h = e(NO_LOVE['h']).replace(" love ", ' <span class="u-bar">love</span> ', 1)
+    pills = "".join(f'<li class="nl-pill">{e(t)}</li>' for t in STAGE["nolove_tools"])
+    return _sc("nolove", 2, NO_LOVE["h"], f"""<h2 class="sc-h nl-h" data-beat="0">{h}</h2>
+<p class="sc-sub" data-beat="0">{e(STAGE['nolove_sub'])}</p>
+<ul class="nl-pills" aria-label="Claude, ChatGPT and Gemini">{pills}</ul>
+<p class="nl-foot">{e(STAGE['nolove_foot'])}</p><p class="nl-small">{e(STAGE['nolove_small'])}</p>""")
 
 def _scene_chat():
     return _sc("chat", 3, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
@@ -187,10 +212,11 @@ def _scene_bye():
 <div class="so-follow">{IG_QR(1, 'row')}{FB_QR(1, 'row')}</div></div>
 <div class="so-qrs">{_qr_card(EVENT['class_url'] + '#review', 'QR code to leave a review', 'Leave a review', 'on your class page', 0, 'main')}</div></div>""")
 
-SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "chat": _scene_chat, "words": _scene_words,
+SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove,
+                "chat": _scene_chat, "words": _scene_words,
                 "bland": _scene_bland, "prompt5": _scene_prompt5, "steer": _scene_steer, "tokens": _scene_tokens, "window": _scene_window,
                 "check": _scene_check, "save": _scene_save, "yourturn": _scene_yourturn, "qa": _scene_qa, "next": _scene_next, "bye": _scene_bye}
-STAGE_ORDER = ["soon", "title", "follow", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
+STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
 # Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").
@@ -242,6 +268,29 @@ def tool_switch():
     return f'<div class="a1c-switch" role="group" aria-label="Which AI are you using?">{btns}</div>'
 
 NEW_TAB = '<span class="sr"> (opens in a new tab)</span>'
+
+def os_switch():
+    btns = "".join(f'<button type="button" data-pick-os="{o}" aria-pressed="{str(o == "mac").lower()}">{e(OS_NAMES[o])}</button>' for o in OS_ORDER)
+    return f'<div class="a1c-switch a1c-os" role="group" aria-label="Which computer are you using?">{btns}</div><p class="sr" id="osSay" role="status"></p>'
+
+def install():
+    """The switch, then one card per tool x computer (CSS shows the one that matches both switches)."""
+    cards = ""
+    for t in TOOL_ORDER:
+        i = INSTALL[t]
+        for o in OS_ORDER:
+            btn = f'<a class="btn gold sm" href="{e(i["get_url"])}" target="_blank" rel="noopener">Open {e(i["get"])}{NEW_TAB}</a>'
+            steps = "".join(f"<li><div>{e(x)}{btn if n == 0 else ''}</div></li>" for n, x in enumerate(i[o]))  # the button sits under "Go to…"
+            which = f'<p class="a1c-needs">{e(MAC_WHICH)}</p>' if o == "mac" else ""
+            cards += (f'<div class="a1c-install" data-for="{t}" data-os-for="{o}"><p class="a1c-install-h">{e(TOOLS[t]["name"])} {e(OS_ON[o])}</p>'
+                      f'<ol>{steps}</ol><p class="a1c-needs">{e(i[o + "_needs"])}</p>{which}</div>')
+    return os_switch() + cards
+
+def install_web():
+    return "".join(f'<p class="a1c-tool" data-for="{t}">{e(INSTALL_WEB.format(site=TOOLS[t]["site"], name=TOOLS[t]["name"]))}</p>' for t in TOOL_ORDER)
+
+def no_love():
+    return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
 
 def follow_box(where):
     ig, fb = FOLLOW["instagram"], FOLLOW["facebook"]
@@ -332,6 +381,9 @@ EXTRA = {
     "never_paste": never_paste,
     "token_toy": token_toy,
     "builder": builder,
+    "install": install,
+    "install_web": install_web,
+    "no_love": no_love,
 }
 
 def _flow(s, x):
@@ -371,7 +423,7 @@ def level_ups():
 def class_page(head, header, footer, ver):
     h = head("AI 101 class page — Taylormade Academy",
              "Follow along with AI 101: every prompt to copy, step by step, plus more to try after class.", "/ai101/class/")
-    h = h.replace('<html lang="en">', '<html lang="en" data-tool="claude">', 1).replace(
+    h = h.replace('<html lang="en">', '<html lang="en" data-tool="claude" data-os="mac">', 1).replace(
         "</head>", f'<meta name="robots" content="noindex">\n<link rel="stylesheet" href="/css/ai101-class.css?v={ver}">\n'
                    f'<noscript><style>#app{{display:block!important}}#gate,#loading{{display:none!important}}</style></noscript>\n</head>')
     nav = "".join(f'<a href="#step-{s["id"]}">{s["n"]}. {e(s["title"])}</a>' for s in STEPS)
@@ -408,7 +460,7 @@ def class_page(head, header, footer, ver):
 </section>
 
 <nav class="a1c-nav" aria-label="Class steps"><div class="wrap"><a href="#start">Start here</a>{nav}<a href="#keep-going">Keep going</a>
-<span class="a1c-prog"><span id="prog">0 of 7 steps done</span><span class="a1c-bar" aria-hidden="true"><i id="progBar"></i></span></span></div></nav>
+<span class="a1c-prog"><span id="prog">0 of {len(STEPS)} steps done</span><span class="a1c-bar" aria-hidden="true"><i id="progBar"></i></span></span></div></nav>
 
 <section class="a1c-sec" id="start"><div class="wrap">
 <span class="kicker">Before 7 PM · 5 minutes</span>
@@ -421,14 +473,14 @@ def class_page(head, header, footer, ver):
 </div></section>
 
 <section class="a1c-sec a1c-class" id="class"><div class="wrap">
-<span class="kicker">7:00 to 7:41 PM</span>
+<span class="kicker">7:00 to 7:45 PM</span>
 <h2 class="display-m">The class, <span class="u-gold">step</span> by step.</h2>
 <p class="a1c-lead">Follow along with me. Tick the box on each step when you're done. Every prompt has a Copy button under it.</p>
 <ol class="a1c-steps" role="list">{''.join(step(s) for s in STEPS)}</ol>
 </div></section>
 
 <section class="a1c-sec a1c-bye" id="review"><div class="wrap">
-<span class="kicker">7:41 PM, then before you go</span>
+<span class="kicker">7:45 PM, then before you go</span>
 <h2 class="display-m">A quick check, then a <span class="u-gold">review</span>.</h2>
 {pulse('after', PULSE_Q['after'])}
 <div class="a1c-taps">{''.join(tap_row(t) for t in PRACTICE_TAPS)}</div>
