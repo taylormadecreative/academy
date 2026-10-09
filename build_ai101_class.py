@@ -323,6 +323,7 @@ def _mountain(label):
 .fr-line-k{{fill:#fdc921;font:800 26px var(--display,'Space Grotesk',sans-serif);letter-spacing:.12em}}.fr-line-sub{{fill:#dbe4ff;font:500 24px var(--font,Inter,sans-serif)}}
 .fr-c-dot{{fill:#fff;stroke:#fdc921;stroke-width:6}}.fr-c-name{{fill:#fff;font:700 24px var(--display,'Space Grotesk',sans-serif);paint-order:stroke;stroke:#04123a;stroke-width:6px;stroke-linejoin:round}}
 .fr-cloud{{fill:#e6edff}}.fr-peak{{fill:#fdc921;font:800 46px var(--display,'Space Grotesk',sans-serif);paint-order:stroke;stroke:#04123a;stroke-width:8px;stroke-linejoin:round}}
+.fr-peak-sub{{fill:#fff;font:700 24px var(--font,Inter,sans-serif);letter-spacing:.04em;paint-order:stroke;stroke:#04123a;stroke-width:6px;stroke-linejoin:round}}
 .fr-year{{fill:#fdc921;font:800 64px var(--display,'Space Grotesk',sans-serif);letter-spacing:-.02em}}</style>
 <rect class="fr-sky" width="1080" height="720" rx="36" fill="url(#frSky)"/>
 <g class="fr-stars" fill="#fff" opacity=".55">{stars}</g>
@@ -340,7 +341,7 @@ def _mountain(label):
 {climbers}
 <g class="fr-cloud fr-cloud-l" transform="translate(-150 10)" opacity=".5"><ellipse cx="560" cy="128" rx="110" ry="46"/><ellipse cx="618" cy="96" rx="80" ry="52"/><ellipse cx="520" cy="166" rx="96" ry="34"/></g>
 <g class="fr-cloud fr-cloud-r" transform="translate(150 10)" opacity=".5"><ellipse cx="706" cy="104" rx="90" ry="50"/><ellipse cx="760" cy="140" rx="104" ry="42"/><ellipse cx="672" cy="164" rx="86" ry="32"/></g>
-<text class="fr-agi fr-peak" x="640" y="66" text-anchor="middle">{e(F['peak'])}</text>
+<text class="fr-agi fr-peak" x="640" y="58" text-anchor="middle">{e(F['peak'])}</text><text class="fr-agi fr-peak-sub" x="640" y="92" text-anchor="middle">{e(F['peak_sub'])}</text>
 </svg>"""
 
 def _scene_frontier():
@@ -349,9 +350,9 @@ def _scene_frontier():
 <div class="fr-grid"><div class="fr-side">
 <p class="fr-def" data-beat="0"><b>{e(F['frontier_k'])}:</b> {e(F['stage_frontier'])}</p>
 <p class="fr-def" data-beat="1">{e(F['stage_moving'])}</p>
-<p class="fr-def" data-beat="2"><b>{e(F['agi_k'])}:</b> {e(F['stage_agi'])}</p>
+<p class="fr-def" data-beat="2"><b>{e(F['agi_k'])}:</b> {e(F['stage_agi'])} <strong class="fr-now">{e(F['stage_now'].split(". ", 1)[0])}.</strong> {e(F['stage_now'].split(". ", 1)[1])}</p>
 <p class="fr-rule" data-beat="3">{e(F['rule'])}</p></div>
-{_mountain("A mountain at night. AI models climb it. A gold line marks the frontier, the highest any AI has climbed today, and it keeps rising. The peak above the clouds is labeled AGI, with a question mark.")}</div>""")
+{_mountain("A mountain at night. AI models climb it. A gold line marks the frontier, the highest any AI has climbed today, and it keeps rising. The peak above the clouds is labeled AGI, not built yet.")}</div>""")
 
 def _scene_words2026():
     """(10/9, Nelson: "google says these are terms everyone should know in 2026") a word storm: all 16 blow in and land in
@@ -615,7 +616,7 @@ def frontier():
     """Step 3's "Frontier models and AGI" card: the stage's mountain (its end state), then the two words in full, then the rule."""
     F = FRONTIER
     return (f'<section class="a1c-frontier" aria-label="{e(F["class_h"])}"><p class="a1c-models-h">{e(F["class_h"])}</p>'
-            f'<div class="a1c-frontier-art">{_mountain("A mountain at night. A gold line near the top marks the frontier: the highest any AI has climbed today. Claude, ChatGPT and Gemini are level at it. The peak above the clouds is labeled AGI, with a question mark.")}</div>'
+            f'<div class="a1c-frontier-art">{_mountain("A mountain at night. A gold line near the top marks the frontier: the highest any AI has climbed today. Claude, ChatGPT and Gemini are level at it. The peak above the clouds is labeled AGI, not built yet.")}</div>'
             f'<dl class="a1c-frontier-dl"><div><dt>{e(F["frontier_k"])}</dt><dd>{e(F["frontier"])} {e(F["moving"])}</dd></div>'
             f'<div><dt>{e(F["agi_k"])}</dt><dd>{e(F["agi"])} {e(F["agi_note"])}</dd></div></dl>'
             f'<p class="a1c-models-rule">{e(F["rule"])}</p></section>')

@@ -649,8 +649,8 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .keynote .sc-prompt5 .p5-chips{margin-top:28px}.keynote .sc-prompt5 .p5-card{margin-top:26px}.keynote .sc-prompt5 .p5-foot{margin-top:24px}
 /* ---- Frontier models and AGI (10/9): the mountain. The SVG styles its own drawing; this is the layout ---- */
 .fr-grid{display:grid;grid-template-columns:500px 1080px;gap:60px;margin-top:30px;align-items:start}
-.fr-side{display:grid;gap:30px;padding-top:24px}
-.fr-def{margin:0;font:500 34px/1.32 var(--font);color:var(--ink)}
+.fr-side{display:grid;gap:26px;padding-top:16px}
+.fr-def{margin:0;font:500 32px/1.32 var(--font);color:var(--ink)}
 .fr-def b{font-family:var(--display);color:var(--blue)}
 .keynote .fr-def b{color:var(--gold)}
 .fr-rule{margin:6px 0 0;padding-left:22px;border-left:6px solid var(--gold);font:700 40px/1.2 var(--display);letter-spacing:-.02em;color:var(--navy)}
@@ -737,3 +737,4 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .fo-cover{height:auto;object-fit:contain}.fo-card.fb .fo-id{height:auto}
 .sc-follow .fo-card{width:360px;box-sizing:border-box}.fo-cover{width:100%}
 .sc-follow .fo-card figcaption b{font-size:25px}.keynote .sc-follow .fo-row{align-items:stretch}
+.fr-now{font-weight:700;color:var(--ink)}.keynote .fr-now{color:#fff}

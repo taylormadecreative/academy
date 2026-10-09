@@ -292,29 +292,32 @@ MODELS = {
 }
 # Frontier models and AGI (Nelson 10/9: "explain what frontier models are and AGI is … make it creative … make it cool").
 # The mountain: AI models climb; the gold line is the frontier, the highest any AI has climbed today, and it keeps rising,
-# so last year's best is everyday now. AGI is the peak in the clouds. Facts checked 10/9: "frontier" is a moving label
-# for the most capable models at a given moment (no single legal definition); AGI has no agreed definition, and
-# experts disagree on whether and when. So no dates, no predictions, and no claim it's here or never coming.
+# so last year's best is everyday now. AGI is the peak above the clouds. Facts checked 10/9: "frontier" is a moving label
+# for the most capable models at a given moment (no single legal definition). AGI (10/9 rework, Nelson: "the AGI part was
+# kind of confusing", with Google's definition): a future AI that could learn and do any thinking task a person can; it
+# doesn't exist yet; today's AI is narrow. No dates, no predictions.
 FRONTIER = {
     "h": "The frontier keeps moving.",
     "frontier_k": "Frontier model",
     "frontier": "One of the most capable AI models right now, like the top ones behind Claude, ChatGPT and Gemini.",
     "moving": "Every few months, a newer one climbs higher, and the top spot changes hands. Last year's best is everyday now.",
     "agi_k": "AGI",
-    "agi": "Artificial general intelligence: AI as good as a person at most thinking work, not just a few jobs.",
-    "agi_note": "No one agrees on exactly what counts, or if and when it arrives. Be careful with anyone who says they know.",
+    "agi": "Artificial general intelligence: a future AI that could learn and do any thinking task a person can.",
+    "agi_note": "It doesn't exist yet. Today's AI is narrow: very good at some jobs, like writing and summing things up, but not all of them. So be careful with headlines that say it's here.",
     "rule": "Use the newest one. Ignore the hype. Check its work.",
     "line": "The frontier",      # the gold line on the mountain
     "line_sub": "today's best",
-    "peak": "AGI?",              # the summit in the clouds
+    "peak": "AGI",               # the summit above the clouds
+    "peak_sub": "not built yet",
     "everyday": "everyday now",  # where last year's best are left standing
     "years": (2023, 2026),       # the time-lapse counter
     "climbers": ("Claude", "ChatGPT", "Gemini"),
     "class_h": "Frontier models and AGI",  # class page card
     # the stage's short lines (the class page uses the full ones above)
     "stage_frontier": "one of the best AI models right now.",
-    "stage_moving": "It keeps climbing, and the top spot changes hands. Last year's best is everyday now.",
-    "stage_agi": "AI as good as a person at most thinking work. No one agrees what counts, or when.",
+    "stage_moving": "It keeps climbing, and the top spot keeps changing. Last year's best is everyday now.",
+    "stage_agi": "a future AI that could learn and do any thinking task a person can.",
+    "stage_now": "It doesn't exist yet. Today's AI is narrow: good at some jobs, not all.",
 }
 
 # More words for 2026 (Nelson 10/9: "google says these are terms everyone should know in 2026"). His list, minus the 8 the
@@ -557,7 +560,7 @@ WORDS_FULL = [  # 10/9: the three longest (Context window, Custom instructions, 
     ("Training data", "Everything the model learned from. It's why AI can be out of date."),
     ("Token", "A small piece of text: a short word, part of a longer word, or a mark like a period. AI reads, writes and counts in tokens."),
     ("Frontier model", "One of the most capable AI models right now. The top spot changes every few months."),
-    ("AGI", "Artificial general intelligence: AI as good as a person at most thinking work. No one agrees what counts, or when."),
+    ("AGI", "Artificial general intelligence: a future AI that could do any thinking task a person can. It doesn't exist yet."),
     ("Hallucination", "When AI makes something up and says it like a fact. That's why you check."),
     ("Context window", "Everything the AI keeps in mind: your whole chat. Long chats cost more and can forget the start."),
     ("Custom instructions", "Your background and rules, saved once so you don't retype them. They carry into your new chats. A Claude Project is similar, but only for chats inside that Project."),

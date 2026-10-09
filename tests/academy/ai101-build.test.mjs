@@ -255,7 +255,7 @@ test("Step 3 ends with Frontier models and AGI: the stage's mountain at its end 
   assert.match(f, /<svg class="fr-art" viewBox="0 0 1080 720"[^>]* role="img" aria-label="A mountain at night\./);
   assert.match(f, /<g class="fr-line" data-y0="470" transform="translate\(0 300\)">/, 'the line at its end height');
   assert.match(f, /<dt>Frontier model<\/dt><dd>One of the most capable AI models right now/);
-  assert.match(f, /<dt>AGI<\/dt><dd>Artificial general intelligence: AI as good as a person at most thinking work/);
+  assert.match(f, /<dt>AGI<\/dt><dd>Artificial general intelligence: a future AI that could learn and do any thinking task a person can\. It doesn&#x27;t exist yet\./);
   assert.match(f, /Use the newest one\. Ignore the hype\. Check its work\./);
   assert.match(step3, /<dt>Frontier model<\/dt>[\s\S]*<dt>AGI<\/dt>/, 'both words are in the word list too');
 });

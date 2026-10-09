@@ -133,7 +133,7 @@ try {
   assert.equal(md.menu, 1, 'models: the menu is open');
   assert.deepEqual(md.items, ['Fable 5.1 | Paid plans | 1', 'Opus 5.5 | Paid plans | 1', 'Sonnet 5.5 | Free | 1', 'Haiku 5.5 | Free | 1'], 'models: each model and its plan');
   // 10/9 (Nelson: "explain what frontier models are and AGI is … make it creative … cool"): the mountain. b0: the line starts low,
-  // the peak is in the clouds; by the end the line has climbed, the three are level at it, last year's best stay behind, AGI? shows.
+  // the peak is in the clouds; by the end the line has climbed, the three are level at it, last year's best stay behind, "AGI, not built yet" shows.
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('frontier')));
   await w.waitForTimeout(2200);
   const fr = () => w.evaluate(() => { const r = (c) => document.querySelector('.sc-frontier ' + c).getBoundingClientRect();
@@ -148,7 +148,7 @@ try {
   assert.equal(f3.year, '2026', 'frontier, end: the years ticked to 2026');
   assert.ok(f3.lineY < f0.lineY - 100, `frontier, end: the line climbed (${f0.lineY} → ${f3.lineY})`);
   assert.equal(new Set(f3.ys).size, 1, 'frontier, end: Claude, ChatGPT and Gemini level at the line ' + JSON.stringify(f3.ys));
-  assert.deepEqual([f3.agi, f3.ghost], [1, 1], 'frontier, end: AGI? shows, and last year\'s best stay behind');
+  assert.deepEqual([f3.agi, f3.ghost], [1, 1], 'frontier, end: "AGI, not built yet" shows, and last year\'s best stay behind');
   assert.ok(f3.cloud < 0.6, 'frontier, end: the clouds parted');
   // 10/9 (Nelson: "google says these are terms everyone should know in 2026"): the word storm lands all 16 in three groups;
   // by the end the four to meet first are gold and the rest are dimmed but still there

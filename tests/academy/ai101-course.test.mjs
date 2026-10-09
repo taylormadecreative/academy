@@ -246,9 +246,12 @@ test('the 48-hour deal: 9 PM tonight to Sunday 9 PM CT, $65 vs $75 on the stage 
 });
 test("frontier models and AGI (Nelson 10/9): honest words, no dates or predictions, on the stage and the class page from one dict", () => {
   const F = C.FRONTIER, all = JSON.stringify(F) + JSON.stringify(C.WORDS_FULL.filter(([w]) => /Frontier|AGI/.test(w)));
-  assert.match(F.agi, /as good as a person at most thinking work/);
-  assert.match(F.agi_note, /No one agrees/);
-  assert.match(F.stage_agi, /No one agrees what counts, or when/);
+  // 10/9 rework (Nelson: "the AGI part was kind of confusing", with Google's definition): future, any thinking task, not here yet, today's AI is narrow
+  assert.match(F.agi, /a future AI that could learn and do any thinking task a person can/);
+  assert.match(F.agi_note, /^It doesn't exist yet\. Today's AI is narrow/);
+  assert.match(F.stage_agi, /any thinking task a person can/);
+  assert.match(F.stage_now, /^It doesn't exist yet\. Today's AI is narrow/);
+  assert.equal(F.peak_sub, 'not built yet');
   assert.doesNotMatch(all, /\b(20[3-9]\d|by 20\d\d|will (arrive|come|be here)|is here|already here|never)\b/i, 'no dates, predictions or claims it is here');
   assert.deepEqual(F.climbers, ['Claude', 'ChatGPT', 'Gemini']);
   assert.ok(C.WORDS_STEP2.includes('Frontier model') && C.WORDS_STEP2.includes('AGI'));
