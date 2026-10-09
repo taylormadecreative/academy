@@ -203,6 +203,7 @@ START_HERE = [
     {"title": "What a chatbot is", "body": "A website or phone app where you type a question and an AI types back. Claude, ChatGPT and Gemini are three of the best known, and all three are free to start. Tonight I use Claude. Pick yours above and this page changes to match it. You'll see two chats tonight: the room chat is where we all talk to each other, and your AI chat is where you talk to the AI."},
     {"title": "One rule before you start", "body": "Never trust AI blindly. It can make things up and say them like facts, and it can do a job wrong and tell you it's done. Always check its work."},
     {"title": "Tonight you'll have three things open", "body": "The room, where you watch me. This page, where you copy the prompts. Your AI chat, where you type to the AI. Two devices is easiest: watch the room on your phone or tablet, and use a laptop for this page and your AI chat. One device works too. Watch me first, then try it yourself in the practice time at 7:34. This page keeps every step, so nothing is lost."},
+    {"title": "Two buttons in the room", "body": "Ask a question puts you in line to talk, and I'll bring you on when it's your turn. When I share my screen, Pop out screen floats it in a small window on top, so you can watch me and use this page at the same time. Pop out works on a laptop. Some phones don't show it."},
     {"title": "Make a free account", "tool": "signup", "link": ("#step-laptop", "Every setup step is in Step 2")},
     {"title": "Want it on your laptop?", "body": "Step 2 shows you how to get the app on a Mac or a Windows laptop. Do it now if you're early, or with me at 7:02.",
      "link": ("#step-laptop", "Go to Step 2")},
@@ -474,6 +475,7 @@ ACCESS = ("The room doesn't have live captions yet. Everything I show on screen 
 STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't already above
     "soon_h": "AI 101 starts at 7:00 PM CT",
     "soon_sub": "Open your class page now. Want Claude on your laptop? Get it at claude.ai/download. Keep your phone close: signing up texts you a code.",
+    "soon_room": "In the room: tap Ask a question to get in line to talk. On a laptop, tap Pop out screen to keep my screen on top while you use your class page.",
     "title_kicker": "Free live class · Taylormade Academy",
     "title_sub": "Tonight: get it on your laptop, how to ask, the words everyone uses, and your first great prompt.",
     "title_tap": "On your class page: tap how confident you feel, 1 to 5.",

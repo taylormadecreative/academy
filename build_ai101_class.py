@@ -84,7 +84,8 @@ def _scene_soon():
 <p class="sc-kicker" data-beat="0">Taylormade Academy · free live class</p>
 <h2 class="sc-h" data-beat="0">{e(STAGE['soon_h'])}</h2>
 <p class="so-count" data-beat="0"><span data-until="{EVENT['starts_utc']}">--:--</span></p>
-<p class="sc-sub" data-beat="0">{e(STAGE['soon_sub'])}</p></div>
+<p class="sc-sub" data-beat="0">{e(STAGE['soon_sub'])}</p>
+<p class="so-room" data-beat="0">{e(STAGE['soon_room'])}</p></div>
 <div class="so-qrs">{_qr_card(EVENT['class_url'], 'QR code for your AI 101 class page', 'Your class page', 'taylormadeacademy.com/ai101/class', 0, 'main')}</div>
 <div class="so-follow">{IG_QR(0, 'row')}{FB_QR(0, 'row')}</div></div>""")
 

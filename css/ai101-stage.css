@@ -294,3 +294,5 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .p5-chips{margin-top:40px}.p5-card{margin-top:36px}.p5-foot{margin-top:30px}.p5-text .w{white-space:nowrap}
 .sc-soon .so-grid{align-content:center;row-gap:44px}.sc-soon .so-follow{grid-column:1/-1;margin-top:0}
 .sc-check .ck-sentence{margin-top:24px}.sc-check .ck-guesses{margin-top:16px;gap:6px}.sc-check .ck-claim{margin-top:24px}.sc-check .ck-list{margin-top:22px}
+/* Starting soon (10/9): the room's two buttons, so people learn them while they wait */
+.so-room{margin:22px 0 0;padding:16px 24px;border-left:6px solid var(--gold);background:var(--gold-soft, #fff7d6);border-radius:0 16px 16px 0;font:600 26px/1.35 var(--font);color:var(--navy);max-width:900px}
