@@ -357,20 +357,36 @@ async function withWarn(fn: () => Promise<void>): Promise<string[]> {
    Every host re-entry path (Rejoin after Leave, Enter the running session, a reload, the module's own second rejoin
    after a drop) used to mint a NEW meeting here and INACTIVATE the one the guests were in — everyone thrown out,
    the host alone in a fresh room, the row still live. A host on a LIVE row always gets the SAME meeting. */
-Deno.test("room: Nelson on a live row whose live_since is 5 h old gets the SAME meeting — no POST /meetings, no INACTIVE, no row write; a guest is still not admitted", async () => {
-  const d = roomDeps({}, STALE_ROOM);
+/* Cloudflare says people are still in the meeting (the 9/15 case: a long class, guests still there) */
+function peopleIn(): Partial<JoinDeps> & { calls: { method: string; path: string; body?: unknown }[] } {
+  const calls: { method: string; path: string; body?: unknown }[] = [];
+  return {
+    calls,
+    cf: async (method, path, body) => {
+      calls.push({ method, path, body });
+      if (method === "GET" && path.endsWith("/active-session")) return { ok: true, status: 200, data: { live_participants: 3 } };
+      if (method === "POST" && path === "/meetings") return { ok: true, status: 200, data: { id: "meet-new" } };
+      if (method === "POST" && path.endsWith("/participants")) return { ok: true, status: 200, data: { token: "tok-1" } };
+      return { ok: true, status: 200, data: {} };
+    },
+  };
+}
+Deno.test("room: Nelson on a live row whose live_since is 5 h old, with people still in, gets the SAME meeting — no POST /meetings, no INACTIVE, no row write; a guest is still not admitted", async () => {
+  const pi = peopleIn();
+  const d = roomDeps(pi, STALE_ROOM);
   const r = await handleJoin({ room: true }, NELSON, d);
   assertEquals(r.status, 200);
   assertEquals((r.body as { meeting_id: string }).meeting_id, "meet-live");
-  assertEquals(paths(d), ["POST /meetings/meet-live/participants"]);
+  assertEquals(pi.calls.map((c) => c.method + " " + c.path), ["GET /meetings/meet-live/active-session", "POST /meetings/meet-live/participants"]);
   assertEquals(d.meetingSet, []);
-  assertEquals(d.calls.some((c) => c.method === "PATCH"), false);
-  /* the same for a listed host of another room, a day later */
-  const late = roomDeps({ now: () => new Date(NOW.getTime() + 26 * 3600 * 1000) }, htRow({ live_since: NOW.toISOString() }));
+  assertEquals(pi.calls.some((c) => c.method === "PATCH"), false);
+  /* the same for a listed host of another room, a day later, people still in */
+  const pl = peopleIn();
+  const late = roomDeps({ ...pl, now: () => new Date(NOW.getTime() + 26 * 3600 * 1000) }, htRow({ live_since: NOW.toISOString() }));
   const hr = await handleJoin({ room: "ht" }, HT_HOST, late);
   assertEquals(hr.status, 200);
   assertEquals((hr.body as { meeting_id: string }).meeting_id, "m-ht");
-  assertEquals(paths(late), ["POST /meetings/m-ht/participants"]);
+  assertEquals(pl.calls.map((c) => c.method + " " + c.path), ["GET /meetings/m-ht/active-session", "POST /meetings/m-ht/participants"]);
   /* the admission window is unchanged: a guest on that row is told not_open */
   const g = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, STALE_ROOM));
   assertEquals(g.status, 409); assertEquals(g.body, { error: "not_open" });
@@ -379,6 +395,40 @@ Deno.test("room: Nelson on a live row whose live_since is 5 h old gets the SAME 
   assertEquals((await handleJoin({ room: true }, NELSON, none)).status, 200);
   assertEquals(paths(none), ["POST /meetings", "POST /meetings/meet-new/participants"]);
   assertEquals(none.meetingSet, [["room-1", "meet-new"]]);
+});
+
+/* 10/8 AI 101 rehearsal: the Academy row was still live from 9/15 (nobody pressed End). Nelson's join reused that
+   dead meeting, live_since never moved, and his friend got "Nelson hasn't started yet" while he was live. Past the
+   window with NOBODY in (active-session 404), the host gets a fresh meeting, the row goes live NOW, and the old one
+   is closed, so a guest gets in. Inside the window, nothing changes: a reload still reuses the meeting. */
+Deno.test("room: Nelson on a live row past the window with nobody in gets a FRESH meeting; then a guest is admitted", async () => {
+  const d = roomDeps({}, STALE_ROOM);   /* the default mock: active-session 404 */
+  let r: Awaited<ReturnType<typeof handleJoin>> | null = null;
+  const warned = await withWarn(async () => { r = await handleJoin({ room: true }, NELSON, d); });
+  assertEquals(r!.status, 200);
+  assertEquals((r!.body as { meeting_id: string }).meeting_id, "meet-new");
+  assertEquals(paths(d), ["GET /meetings/meet-live/active-session", "POST /meetings", "POST /meetings/meet-new/participants", "PATCH /meetings/meet-live"]);
+  assertEquals(d.meetingSet, [["room-1", "meet-new"]]);
+  assertEquals(warned, ["[ea-rtk-join] live row past the window with nobody in: fresh meeting academy meet-live"]);
+  /* the row the setRoomMeeting write leaves behind: live from NOW, so the guest's 4 h window opens */
+  const g = await handleJoin({ room: true, key: KEY }, PERSON, roomDeps({}, { ...STALE_ROOM, meeting_id: "meet-new", live_since: NOW.toISOString() }));
+  assertEquals(g.status, 200);
+  assertEquals((g.body as { meeting_id?: string }).meeting_id, undefined);
+  /* an active-session answer that is neither 404 nor ok (Cloudflare blip) keeps the same meeting: never guess "empty" */
+  const blip = roomDeps({
+    cf: async (method, path, body) => {
+      blip.calls.push({ method, path, body });
+      if (method === "GET" && path.endsWith("/active-session")) return { ok: false, status: 500, data: {} };
+      return { ok: true, status: 200, data: { token: "tok-1" } };
+    },
+  }, STALE_ROOM);
+  assertEquals((await handleJoin({ room: true }, NELSON, blip)).status, 200);
+  assertEquals(paths(blip), ["GET /meetings/meet-live/active-session", "POST /meetings/meet-live/participants"]);
+  assertEquals(blip.meetingSet, []);
+  /* inside the window, a reload never asks Cloudflare and never mints: unchanged */
+  const fresh = roomDeps();
+  await handleJoin({ room: true }, NELSON, fresh);
+  assertEquals(paths(fresh), ["POST /meetings/meet-live/participants"]);
 });
 
 Deno.test("room: Nelson off air → a fresh meeting; a failed INACTIVE of the previous one is ignored but LOGGED", async () => {

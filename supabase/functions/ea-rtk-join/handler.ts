@@ -173,10 +173,21 @@ async function joinRoom(slug: string, body: JoinBody, ctx: Caller, deps: JoinDep
      never INACTIVATE the one the guests are still in (that is what happened past 4 h before 9/15). The two
      meanings of "open" are split on purpose: the window gates admission, not the host's meeting.
      The row is NOT flipped live here: that waits until the host's own participant POST succeeds (step 9), so a
-     Cloudflare failure on the second call leaves the room off air instead of open with nobody hosting it. */
+     Cloudflare failure on the second call leaves the room off air instead of open with nobody hosting it.
+     One exception (10/8 AI 101 rehearsal): a row still live from a class nobody ended (9/15) reused that dead
+     meeting forever, live_since never moved, and every guest got not_open while Nelson taught to an empty room.
+     So a host on a live row PAST the admission window gets a fresh meeting when Cloudflare says nobody is in it
+     (active-session 404). Anyone still in, or any other answer, keeps the same meeting as above. HT managed
+     classrooms keep their own atomic claim and are left out. */
   let meetingId: string | null = room.meeting_id;
   let fresh = false;
-  if (isHost && (!room.is_live || !meetingId)) {
+  let deadLive = false;
+  if (isHost && !managed && room.is_live && meetingId && !open) {
+    const s = await deps.cf("GET", `/meetings/${meetingId}/active-session`).catch(() => ({ ok: false, status: 0, data: null }));
+    deadLive = s.status === 404;
+    if (deadLive) console.warn("[ea-rtk-join] live row past the window with nobody in: fresh meeting", room.slug, meetingId);
+  }
+  if (isHost && (!room.is_live || !meetingId || deadLive)) {
     if (managed && !deps.claimClassroomMeeting) return { status: 503, body: { error: "classroom_unavailable" } };
     /* the title people see in the dashboard: room.title is cut first so the date always survives the 80-char cap */
     const prefix = (managed ? "HT classroom" : slug === "academy" ? "Academy" : slug.toUpperCase()) + " · ", suffix = " · " + CHICAGO_DAY.format(deps.now());
