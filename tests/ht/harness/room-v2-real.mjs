@@ -99,6 +99,9 @@ export async function realModuleScenarios(b, ok) {
   { const { p, errs, joins } = await open();
     await enter(p);
     ok('real module: in the class, one join, host bar', joins.length === 1 && (await p.$$('.r2-bar .r2-leave')).length === 1);
+    /* 10/8: Share my screen sits on the HOST bar (a laptop browser), next to Tools — one tap, no sheet */
+    { const st = await p.$eval('.r2-bar .r2-share', (el) => ({ hidden: el.hidden, display: getComputedStyle(el).display, text: el.textContent.trim(), gdm: !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia), secure: window.isSecureContext }));
+      ok('real module: the host bar shows Share my screen', !st.hidden && st.display !== 'none' && st.text === 'Share my screen', JSON.stringify(st)); }
     await p.evaluate(() => { window.__kit.nextJoin = 'reject'; const m = window.__kit.meetings[0]; m.self.roomState = 'disconnected'; m.emit('self', 'roomLeft', { state: 'disconnected' }); });
     await p.waitForFunction(() => { const s = document.querySelector('.r2-reconnect'); return !!s && !s.hidden; });
     ok('real drop: the Reconnecting strip, the page told reconnecting, nothing left yet', /Reconnecting/.test(await p.textContent('.r2-reconnect')) && JSON.stringify(await states(p)) === JSON.stringify(['joined', 'reconnecting:dropped']));

@@ -121,6 +121,8 @@ const OWN_BG_KEY = 'r2-own-backdrop';   /* the last photo someone chose, so it i
    The two open server-side candidates are in gotcha-rtk-room-audio-echo-cpu: the LIVE opil-host
    preset's flag, and Workers AI billing (836 Neurons/min against a 10,000/day free tier). */
 const SHOW_TRANSCRIPT = false;
+/* a laptop browser can capture a screen; most phones cannot (the kit refuses there), so the host bar shows Share only where it works */
+const CAN_SHARE_SCREEN = (() => { try { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); } catch (e) { return false; } })();
 
 /* "Use my own photo": pick an image, shrink it to 1280 wide, keep it as a data URL */
 function pickOwnPhoto() {
@@ -698,9 +700,11 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
       <div class="r2-right">
         <button type="button" class="r2-btn r2-open" data-open="chat">Chat &amp; people</button>
         <button type="button" class="r2-btn r2-files-btn">Files</button>
+        <!-- Share my screen: on the bar for the HOST on a laptop (Nelson 10/8: "i wanted to share different screens really
+             quickly … i always had to go to tools"); still in Tools for everyone. Effects and Captions live in Tools only
+             (9/16 "simplify it"); Captions stays in the DOM, hidden, because the rest of the room reads its pressed state -->
+        <button type="button" class="r2-btn r2-share" aria-pressed="false"${host && CAN_SHARE_SCREEN ? '' : ' hidden'}>Share my screen</button>
         <button type="button" class="r2-btn r2-tools">Tools</button>
-        <!-- Share my screen, Effects and Captions live in Tools (Nelson 9/16: "simplify it"); these two stay in the DOM, hidden, because the rest of the room reads their pressed state -->
-        <button type="button" class="r2-btn r2-share" aria-pressed="false" hidden>Share my screen</button>
         <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false" hidden>Captions</button>
         <button type="button" class="r2-leave">Leave</button>
       </div>
