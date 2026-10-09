@@ -175,6 +175,24 @@ await check('storage blocked → page works, switch still switches, no errors', 
   assert.equal(await page.$eval('html', (h) => h.dataset.tool), 'gemini');
   assert.deepEqual(errors, []);
 });
+await check('real app screens (Nelson 10/9): each step shows only the picked AI, and every screen loads', async () => {
+  const { page } = await open();
+  await page.waitForSelector('#app:not([hidden])');
+  const shown = () => page.$$eval('.a1c-shot', (els) => els.filter((el) => getComputedStyle(el).display !== 'none').map((el) => el.dataset.for + ':' + el.closest('.a1c-step').id));
+  const steps = ['step-words', 'step-prompt5', 'step-steer', 'step-check', 'step-save'];
+  for (const t of ['claude', 'chatgpt', 'gemini']) {
+    await page.click(`#start [data-pick-tool="${t}"]`);
+    assert.deepEqual(await shown(), steps.map((s) => `${t}:${s}`), t);
+  }
+  const imgs = await page.$$eval('.a1c-shot img', (els) => els.map((i) => i.getAttribute('src')));
+  assert.equal(imgs.length, 15);
+  for (const src of imgs) {
+    const ok = await page.evaluate((u) => new Promise((res) => { const i = new Image(); i.onload = () => res(i.naturalWidth > 0); i.onerror = () => res(false); i.src = u; }), src);
+    assert.ok(ok, `${src} loads`);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390), 'no sideways scroll with the screens');
+});
 await check('phone width: no sideways scroll', async () => {
   const { page } = await open({ viewport: { width: 390, height: 844 } });
   await page.waitForSelector('#app:not([hidden])');
