@@ -55,6 +55,8 @@ def words(text):
     """Each word in its own span so a scene can draw a sentence word by word."""
     return " ".join(f'<span class="w" data-anim>{e(w)}</span>' for w in text.split(" "))
 
+P5_ROW = ""  # filled once the app-window helpers exist (they're defined further down): Claude's + / model / send row
+
 def _scene_prompt5():
     chips = "".join(f'<li class="p5-chip" data-part="{p['key']}" data-anim><b>{p['letter']}</b><span>{e(p['name'])}</span></li>' for p in PARTS)
     segs = "".join(f'<span class="p5-seg" data-part="{p['key']}" data-anim>{words(BAKERY[p['key']])}<i class="p5-tag" data-anim>{e(p['name'])}</i></span> '
@@ -62,12 +64,12 @@ def _scene_prompt5():
     return f"""<section class="scene sc-prompt5" data-id="prompt5" data-beats="7" aria-label="The 5-part prompt">
 <h2 class="sc-h" data-anim>The <span class="u-bar">5-part</span> prompt</h2>
 <ol class="p5-chips">{chips}</ol>
-<div class="p5-card" data-anim><p class="p5-text">{segs}</p></div>
+<div class="p5-card" data-anim><p class="p5-text">{segs}</p>{P5_ROW}</div>
 <p class="p5-foot" data-anim>Five parts. One great answer.</p>
 </section>"""
 
 
-from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL
+from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -151,18 +153,50 @@ def _note(text):
         return out
     return "<br>".join(line(t) for t in text.split("\n"))
 
+# ---- real-looking app windows (10/9, Nelson: "I want the presentations to be better with real looking chat box interfaces").
+# Drawn from his own screens that morning: Claude = warm off-white, answers in a serif, your messages in a soft grey bubble,
+# the orange send button and the model under the box; ChatGPT = white, your messages in a black pill, "Ask ChatGPT".
+# No logos, no names, no chat history: just the parts of the screen people will look for.
+SVG_UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+SVG_PLUS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+SVG_MIC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+SVG_SPARK = ('<svg class="cl-spark" viewBox="0 0 24 24" aria-hidden="true">' + "".join(
+    f'<rect x="11" y="1.5" width="2" height="9" rx="1" transform="rotate({k * 30} 12 12)"/>' for k in range(12)) + '</svg>')
+SVG_ICONS = "".join(f'<i class="gp-ico">{p}</i>' for p in (  # ChatGPT's left rail: home, library, history, explore (shapes only)
+    '<svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="12" height="14" rx="2"/><path d="M8 3h10a2 2 0 0 1 2 2v12"/></svg>',
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M8 12h8M12 8v8"/></svg>'))
+
+def _bar():
+    return '<div class="aw-bar"><i></i><i></i><i></i></div>'
+
+def _cl_comp(extra_cls="", inner=""):
+    """Claude's message box: what you type, then + on the left, the model and the orange send button on the right."""
+    return (f'<div class="cl-comp {extra_cls}"><div class="cl-in">{inner}</div><div class="cl-row"><span class="cl-plus">{SVG_PLUS}</span>'
+            f'<span class="cl-model">{e(STAGE["app_model"])} <i>&#8964;</i></span><span class="cl-send">{SVG_UP}</span></div></div>')
+
+P5_ROW = (f'<div class="cl-row p5-row"><span class="cl-plus">{SVG_PLUS}</span><span class="cl-model">{e(STAGE["app_model"])} <i>&#8964;</i></span>'
+          f'<span class="cl-send">{SVG_UP}</span></div>')
+
 def _scene_chat():
-    # 10/9 (Nelson): "actually show the reply that makes it better". Five beats: you type, the AI writes back (a bland note
-    # with blanks), the loop draws, your reply types under your prompt and flies in, and the better note writes itself.
+    # 10/9: the whole loop inside a real-looking Claude window. 1 you type and send (the box drops to the bottom, like the
+    # real app), 2 Claude writes back (a note with [blanks] it can't fill), 3 "Reply to make it better" (the box lights up),
+    # 4 your reply types in and sends, 5 the better note writes itself with every new fact lit. Three steps beside it say
+    # what's happening (Nelson 10/8: every scene says why).
+    steps = (f'<li data-beat="0"><b>1</b><span>{e(STAGE["chat_s1"])}</span></li><li data-beat="1"><b>2</b><span>{e(STAGE["chat_s2"])}</span></li>'
+             f'<li data-beat="2"><b>3</b><span>{e(STAGE["chat_loop"])}</span></li>')
+    typed = (f'<span class="cl-ph">{e(STAGE["app_ph"])}</span><span class="cl-ph2">{e(STAGE["app_reply_ph"])}</span>'
+             f'<span class="ch-typed t1">{words(STAGE["chat_prompt"])}</span><span class="ch-typed t2">{words(STAGE["chat_reply"])}</span>')
     return _sc("chat", 5, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
-<div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span><p class="ch-typed">{words(STAGE['chat_prompt'])}</p>
-<span class="ch-then" data-beat="3">{e(STAGE['chat_reply_l'])}</span><p class="ch-typed ch-reply" data-beat="3">{words(STAGE['chat_reply'])}</p></div>
-<div class="ch-node ch-ai" data-beat="0"><b>The AI</b><span>reads it and writes back</span><i class="ch-dots" aria-hidden="true"><i></i><i></i><i></i></i></div>
-<div class="ch-node ch-ans" data-beat="1"><div class="ch-stack"><b class="ch-h1">The answer</b><b class="ch-h2">{e(STAGE['chat_better_h'])}</b></div>
-<div class="ch-stack"><p class="ch-ans-text v1">{_note(STAGE['chat_answer'])}</p><p class="ch-ans-text v2">{_note(STAGE['chat_better'])}</p></div></div>
-<div class="ch-bubble" aria-hidden="true">{e(STAGE['chat_prompt'])}</div><div class="ch-bubble b2" aria-hidden="true">{e(STAGE['chat_reply'])}</div></div>
-<svg class="ch-loop" viewBox="0 0 1640 150" aria-hidden="true"><path class="ch-line" d="M1370 6 V96 H270 V30" fill="none" stroke="#0b40e0" stroke-width="6" stroke-linecap="round"/><path class="ch-head" d="M254 34L270 6L286 34Z" fill="#0b40e0"/></svg>
-<p class="ch-loop-l" data-beat="2">{e(STAGE['chat_loop'])}</p>""")
+<div class="cw-grid"><div class="cw-side"><ol class="cw-steps">{steps}</ol><p class="cw-skill" data-beat="4">{e(STAGE['chat_skill'])}</p></div>
+<div class="aw cl ch-app">{_bar()}<div class="aw-body">
+<p class="cl-greet">{SVG_SPARK}<span>{e(STAGE['app_greet'])}</span></p>
+<div class="aw-thread"><p class="cl-user ch-u1">{e(STAGE['chat_prompt'])}</p>
+<div class="cl-ai ch-a1"><i class="cl-think">{SVG_SPARK}</i><p class="ch-ans-text v1">{_note(STAGE['chat_answer'])}</p></div>
+<p class="cl-user ch-u2 ch-reply">{e(STAGE['chat_reply'])}</p>
+<div class="cl-ai ch-a2"><i class="cl-think">{SVG_SPARK}</i><p class="ch-ans-text v2">{_note(STAGE['chat_better'])}</p></div></div>
+{_cl_comp("ch-comp", typed)}<p class="cw-tag">{e(STAGE['chat_loop'])}</p></div></div></div>""")
 
 def _scene_words():
     w = STAGE["words"]
@@ -180,18 +214,53 @@ def _bars(widths, cls):
     return "".join(f'<i class="bl-bar" style="--w:{w}%"></i>' for w in widths)
 
 def _scene_bland():
+    # 10/9 (Nelson: "real looking chat box interfaces"): the same request twice, in two real-looking Claude windows. Left: the
+    # thin prompt and the generic post it gets. Right: the 5-part prompt and the post that sounds like one bakery.
+    def win(cls, beat, prompt, answer, note):
+        return (f'<div class="bl-col" data-beat="{beat}"><div class="aw cl bl-win {cls}">{_bar()}<div class="aw-body"><div class="aw-thread">'
+                f'<p class="cl-user bl-q">{e(prompt)}</p><div class="cl-ai"><p class="bl-a">{words(answer)}</p></div></div></div></div>'
+                f'<p class="bl-note">{e(note)}</p></div>')
     return _sc("bland", 2, "Why answers are bland", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['bland_foot'])}</h2>
-<div class="bl-row"><div class="bl-card gray" data-beat="0"><p class="bl-q">“{e(STAGE['bland_left_h'])}”</p><div class="bl-ans">{_bars([92, 80, 86, 60], 'gray')}</div><p class="bl-note">{e(STAGE['bland_left_note'])}</p></div>
-<div class="bl-card color" data-beat="1"><p class="bl-q">“{e(STAGE['bland_left_h'])}” <b>{e(STAGE['bland_right_h'])}</b></p><div class="bl-ans">{_bars([96, 88, 94, 72, 84], 'color')}</div><p class="bl-note">{e(STAGE['bland_right_note'])}</p></div></div>""")
+<div class="bl-row">{win("gray", 0, STAGE['bland_left_h'], STAGE['bland_answer'], STAGE['bland_left_note'])}
+{win("color", 1, GOOD, STAGE['steer_answer'], STAGE['bland_right_note'])}</div>
+<p class="st-note bl-ex">{e(STAGE['steer_note'])}</p>""")
+
+def _gp_comp():
+    return (f'<div class="gp-comp"><span class="gp-plus">{SVG_PLUS}</span><span class="gp-ph">{e(STAGE["gpt_ph"])}</span>'
+            f'<span class="gp-mic">{SVG_MIC}</span><span class="gp-send">{SVG_UP}</span></div>')
 
 def _scene_steer():
+    # 10/9: the same three follow-ups inside a real-looking ChatGPT window. The chat keeps every answer (like the real
+    # thing) and scrolls; the newest answer lights up gold for a moment; the word count beside it follows the newest answer.
     fu = DEMO["follow_ups"]
     opts = "".join(f'<li class="st-opt">{e(o)}</li>' for o in STAGE["steer_options"])
+    first = GOOD  # the 5-part prompt from Step 4: steering starts from its answer
     return _sc("steer", 4, "Steer it", f"""<h2 class="sc-h sm">Steer it. <span class="u-bar">Don't</span> start over.</h2>
-<div class="st-chat"><div class="st-ans"><p class="st-v v0">{e(STAGE['steer_answer'])}</p><p class="st-v v1">{e(STAGE['steer_short'])}</p><p class="st-v v2">{e(STAGE['steer_grandma'])}</p>
-<span class="st-count"><b class="st-n">{len(STAGE['steer_answer'].split())}</b> words</span></div>
-<div class="st-mine"><p class="st-me m1">{e(fu[0])}</p><p class="st-me m2">{e(fu[1])}</p><p class="st-me m3">{e(fu[2])}</p><ul class="st-opts">{opts}</ul></div></div>
-<p class="st-note">{e(STAGE['steer_note'])}</p>""")
+<div class="sw-grid"><div class="sw-side"><p class="sw-lead">{e(STAGE['steer_lead'])}</p>
+<p class="st-count">This answer: <b class="st-n">{len(STAGE['steer_answer'].split())}</b> words</p><p class="st-note">{e(STAGE['steer_note'])}</p></div>
+<div class="aw gp st-app">{_bar()}<div class="aw-body"><div class="gp-rail">{SVG_ICONS}</div><div class="gp-top"><span class="on">Chat</span><span>Work</span></div>
+<div class="aw-thread"><p class="gp-user st-u0">{e(first)}</p>
+<div class="gp-ai st-a0"><p class="st-v v0">{e(STAGE['steer_answer'])}</p></div>
+<p class="gp-user st-me m1">{e(fu[0])}</p><div class="gp-ai st-a1"><p class="st-v v1">{e(STAGE['steer_short'])}</p></div>
+<p class="gp-user st-me m2">{e(fu[1])}</p><div class="gp-ai st-a2"><p class="st-v v2">{e(STAGE['steer_grandma'])}</p></div>
+<p class="gp-user st-me m3">{e(fu[2])}</p><div class="gp-ai st-a3"><ol class="st-opts">{opts}</ol></div></div>
+{_gp_comp()}</div></div></div>""")
+
+def _scene_models():
+    # 10/9 (Nelson: "we also didn't talk about models … sonnet and fable for claude"): Claude's real model menu (his screen,
+    # 10/9), each model with its own one-line description and which plan has it; then what bigger and smaller mean.
+    M = MODELS
+    items = "".join(f'<div class="md-it{" on" if n == M["pick"] else ""}"><div><b>{e(n)}</b><span>{e(d)}</span></div>'
+                    f'<em class="md-tag{" free" if p == "Free" else ""}">{e(p)}</em>{"<i class=md-check>&#10003;</i>" if n == M["pick"] else ""}</div>'
+                    for n, d, p in M["claude"])
+    notes = "".join(f'<p class="md-note" data-beat="2"><b>{e(k)}</b> {e(v)}</p>' for k, v in M["notes"])
+    return _sc("models", 4, "Pick a model", f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(M['h'])}</h2>
+<p class="sc-sub" data-beat="0">{e(M['sub'])}</p>
+<div class="md-grid"><div class="aw cl md-app">{_bar()}<div class="aw-body">
+<div class="md-menu">{items}<div class="md-sep"></div><div class="md-row"><span>{e(M['effort'][0])}</span><span class="md-dim">{e(M['effort'][1])} &#8250;</span></div>
+<div class="md-row"><span>{e(M['more'])}</span><span class="md-dim">&#8250;</span></div></div>
+{_cl_comp("md-comp", '<span class="cl-ph">' + e(STAGE["app_ph"]) + '</span>')}</div></div>
+<div class="md-side">{notes}<p class="md-rule" data-beat="3">{e(M['rule'])}</p><p class="md-also" data-beat="3">{e(M['also'])}</p></div></div>""")
 
 def _scene_tokens():
     return _sc("tokens", 2, "Tokens", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['tokens_h'])}</h2>
@@ -284,10 +353,10 @@ def _scene_bye():
 <script type="application/json" class="by-data">{_badge_words()}</script>""")
 
 SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove, "strengths": _scene_strengths,
-                "chat": _scene_chat, "words": _scene_words,
+                "chat": _scene_chat, "words": _scene_words, "models": _scene_models,
                 "bland": _scene_bland, "prompt5": _scene_prompt5, "steer": _scene_steer, "tokens": _scene_tokens, "window": _scene_window,
                 "check": _scene_check, "save": _scene_save, "yourturn": _scene_yourturn, "qa": _scene_qa, "next": _scene_next, "bye": _scene_bye}
-STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
+STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "models", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
 # Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").

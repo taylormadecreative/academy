@@ -64,7 +64,7 @@ try {
   // walk the whole deck: every scene, every beat, then check each scene's [data-beat] elements are fully drawn
   const w = await page();
   const n = await w.evaluate(() => document.querySelectorAll('.scene').length);
-  assert.equal(n, 19, 'nineteen scenes (10/8: + laptop, nolove, strengths)');
+  assert.equal(n, 20, 'twenty scenes (10/8: + laptop, nolove, strengths; 10/9: + models)');
   for (let s = 0; s < n; s++) {
     await w.evaluate((i) => window.__stage.go(i), s);
     const beats = await w.evaluate((i) => +document.querySelectorAll('.scene')[i].dataset.beats, s);
@@ -96,38 +96,42 @@ try {
     const early = await w.$$eval('.scene.on [data-beat]', (els) => els.filter((e) => +e.dataset.beat > 0 && +getComputedStyle(e).opacity > 0.01).map((e) => e.className));
     assert.deepEqual(early, [], `scene ${id}: a later beat is already showing at the end of beat 0`);
   }
+  // 10/9 (Nelson: "real looking chat box interfaces"): the loop runs inside a real-looking Claude window. You type and send (the
+  // box drops to the bottom), Claude writes back a note with [blanks], "Reply to make it better", the reply sends, the better note
+  // uses every fact from the reply, lit up. 10/8: the answer never appears with nothing typed; the prompt stays on screen.
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('chat')));
-  await w.waitForTimeout(2600);
-  const loop = () => w.evaluate(() => { const l = document.querySelector('.ch-line'), h = document.querySelector('.ch-head');
-    return { off: parseFloat(getComputedStyle(l).strokeDashoffset) || 0, len: l.getTotalLength(), head: +getComputedStyle(h).opacity }; });
-  let L = await loop();
-  assert.ok(L.off > L.len * 0.9 && L.head < 0.01, 'chat, beat 0: the loop is not drawn yet');
-  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2600);
-  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2000);
-  L = await loop();
-  assert.ok(L.off < 1 && L.head > 0.99, 'chat, beat 2: the loop draws back to You, arrowhead last');
-  // 10/8 (Nelson): the answer can't appear with nothing typed. The prompt stays in the You card after it flies to the AI.
-  const typed = await w.evaluate(() => { const t = document.querySelector('.sc-chat .ch-you .ch-typed');
-    return t ? { text: t.textContent.replace(/\s+/g, ' ').trim(), op: +getComputedStyle(t).opacity, words: [...t.querySelectorAll('.w')].every((x) => +getComputedStyle(x).opacity > 0.99) } : null; });
-  assert.deepEqual(typed, { text: 'Write a thank-you note to my neighbor.', op: 1, words: true }, 'chat, beat 2: the prompt is still in the You card');
-  // 10/9 (Nelson): "actually show the reply that makes it better". The first answer has blanks it can't fill; the reply types in
-  // under the prompt; the better answer uses every fact from the reply, lit up. Back steps it all away again.
+  await w.waitForTimeout(3200);
   const chatState = () => w.evaluate(() => { const q = (c) => document.querySelector('.sc-chat ' + c), vis = (el) => +getComputedStyle(el).opacity > 0.99 && getComputedStyle(el).visibility !== 'hidden';
     const shown = (el) => vis(el) && [...el.querySelectorAll('.w')].every((x) => vis(x));
-    return { reply: shown(q('.ch-reply')), v1: shown(q('.ch-ans-text.v1')), v2: shown(q('.ch-ans-text.v2')), h1: vis(q('.ch-h1')), h2: vis(q('.ch-h2')),
+    const comp = q('.ch-comp').getBoundingClientRect(), body = q('.ch-app .aw-body').getBoundingClientRect();
+    return { u1: vis(q('.ch-u1')) ? q('.ch-u1').textContent.trim() : '', reply: vis(q('.ch-reply')), v1: shown(q('.ch-ans-text.v1')), v2: shown(q('.ch-ans-text.v2')),
+      tag: vis(q('.cw-tag')), skill: vis(q('.cw-skill')), boxDown: Math.abs(body.bottom - comp.bottom) < 60, model: q('.ch-comp .cl-model').textContent.trim(),
       blanks: q('.ch-ans-text.v1').textContent.includes('[Your name]'), lit: [...document.querySelectorAll('.sc-chat .ch-new')].map((m) => getComputedStyle(m).backgroundColor !== 'rgba(253, 201, 33, 0)' && m.textContent.replace(/\s+/g, ' ').trim()) }; });
   let C = await chatState();
-  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2, C.blanks], [false, true, false, true, false, true], 'chat, beat 2: the bland note with blanks, no reply yet ' + JSON.stringify(C));
+  assert.deepEqual([C.u1, C.reply, C.v1, C.boxDown], ['Write a thank-you note to my neighbor.', false, false, true], 'chat, beat 0: typed, sent (the box dropped to the bottom), no answer yet ' + JSON.stringify(C));
+  assert.match(C.model, /^Sonnet 5\.5/, 'the box shows the free plan\'s model');
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2600);
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2000);
+  C = await chatState();
+  assert.deepEqual([C.v1, C.blanks, C.tag, C.reply, C.v2], [true, true, true, false, false], 'chat, beat 2: the note with blanks; "Reply to make it better" ' + JSON.stringify(C));
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3600);
   C = await chatState();
-  assert.deepEqual([C.reply, C.v1, C.v2], [true, true, false], 'chat, beat 3: the reply types in under the prompt; the answer has not changed yet ' + JSON.stringify(C));
-  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3200);
+  assert.deepEqual([C.reply, C.v2], [true, false], 'chat, beat 3: the reply sends; the answer has not come yet ' + JSON.stringify(C));
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3800);
   C = await chatState();
-  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2], [true, false, true, false, true], 'chat, beat 4: the better answer replaces the bland one ' + JSON.stringify(C));
+  assert.deepEqual([C.reply, C.v2, C.skill], [true, true, true], 'chat, beat 4: the better note, and "That loop is the whole skill." ' + JSON.stringify(C));
   assert.deepEqual(C.lit, ['Rosa', 'watering my plants while I was away', 'Nelson'], 'chat, beat 4: every fact from the reply is in the better answer, lit up');
   await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400); await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400);
   C = await chatState();
-  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2], [false, true, false, true, false], 'chat, back to beat 2: the reply and the better answer step away ' + JSON.stringify(C));
+  assert.deepEqual([C.reply, C.v1, C.v2], [false, true, false], 'chat, back to beat 2: the reply and the better answer step away ' + JSON.stringify(C));
+  // 10/9 (Nelson: "we also didn't talk about models … sonnet and fable"): Claude's real menu, each model with its plan
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('models')));
+  for (let i = 0; i < 3; i++) { await w.waitForTimeout(1600); await w.keyboard.press('ArrowRight'); }
+  await w.waitForTimeout(1800);
+  const md = await w.evaluate(() => ({ menu: +getComputedStyle(document.querySelector('.md-menu')).opacity,
+    items: [...document.querySelectorAll('.md-it')].map((x) => x.querySelector('b').textContent + ' | ' + x.querySelector('.md-tag').textContent + ' | ' + +getComputedStyle(x.querySelector('.md-tag')).opacity) }));
+  assert.equal(md.menu, 1, 'models: the menu is open');
+  assert.deepEqual(md.items, ['Fable 5.1 | Paid plans | 1', 'Opus 5.5 | Paid plans | 1', 'Sonnet 5.5 | Free | 1', 'Haiku 5.5 | Free | 1'], 'models: each model and its plan');
   // 10/8 (Nelson): "when it said write it as if my grandmother is talking nothing changed". The grandmother answer must SOUND like
   // a grandmother talking (not "my grandmother's recipe", which is the grandchild), and stay short after "Make it shorter".
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));

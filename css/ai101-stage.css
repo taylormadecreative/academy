@@ -524,3 +524,126 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .keynote .by-phone{box-shadow:inset 0 0 0 2px rgba(255,255,255,.16),0 40px 90px rgba(1,6,24,.55)}
 .keynote .sc-check .ck-grid{grid-template-columns:minmax(0,1fr) 520px}.keynote .sc-check .ck-left{min-width:0}
 .keynote .sc-check .sc-h{width:1640px}
+
+/* ============================================================================================================
+   REAL-LOOKING APP WINDOWS (10/9, Nelson: "I want the presentations to be better with real looking chat box
+   interfaces"). Drawn from his own Claude and ChatGPT screens that morning. Light windows on either look.
+   ============================================================================================================ */
+.aw{--sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Inter,sans-serif;position:relative;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;font-family:var(--sys);box-shadow:0 0 0 1px rgba(0,0,0,.08),0 40px 100px rgba(1,6,24,.45),0 12px 30px rgba(1,6,24,.25)}
+.aw-bar{flex:none;height:44px;display:flex;align-items:center;gap:9px;padding:0 18px}
+.aw-bar i{width:13px;height:13px;border-radius:50%;background:#ff5f57}.aw-bar i:nth-child(2){background:#febc2e}.aw-bar i:nth-child(3){background:#28c840}
+.aw-body{position:relative;flex:1;overflow:hidden}
+.aw-thread{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;gap:28px;padding:34px 64px 0}
+/* Claude */
+.aw.cl{background:#faf9f5;color:#1f1e1d}
+.cl-spark{fill:#d97757}
+.cl-greet{position:absolute;left:0;right:0;top:24%;display:flex;justify-content:center;align-items:center;gap:18px;margin:0;font:400 56px/1 Georgia,"Times New Roman",serif;letter-spacing:-.01em;color:#1f1e1d}
+.cl-greet .cl-spark{width:50px;height:50px}
+.cl-user{align-self:flex-end;max-width:68%;margin:0;padding:16px 24px;border-radius:20px;background:#f0eee6;font:400 27px/1.4 var(--sys);color:#1f1e1d}
+.cl-ai{position:relative;margin:0}
+.cl-ai .ch-ans-text{margin:0;font:400 29px/1.5 Georgia,"Times New Roman",serif;color:#1f1e1d}
+.cl-think{position:absolute;left:0;top:4px;width:36px;height:36px}.cl-think svg{width:36px;height:36px;display:block}
+.cl-comp{position:absolute;left:56px;right:56px;bottom:26px;background:#fff;border:1px solid #e2ded3;border-radius:24px;padding:20px 22px 14px;box-shadow:0 4px 20px rgba(31,30,29,.06)}
+.cl-in{display:grid;min-height:38px;font:400 27px/1.4 var(--sys);color:#1f1e1d}.cl-in>*{grid-area:1/1}
+.cl-ph,.cl-ph2{color:#8f8b80}
+.cl-row{display:flex;align-items:center;gap:14px;margin-top:12px}
+.cl-plus{width:42px;height:42px;display:grid;place-items:center;border:1px solid #e2ded3;border-radius:12px;color:#5c5a54}.cl-plus svg{width:22px;height:22px}
+.cl-model{margin-left:auto;font:500 22px/1 var(--sys);color:#3d3b36}.cl-model i{font-style:normal;color:#8f8b80;margin-left:4px}
+.cl-send{width:46px;height:46px;border-radius:12px;background:#c96442;color:#fff;display:grid;place-items:center}.cl-send svg{width:24px;height:24px}
+/* ChatGPT */
+.aw.gp{background:#fff;color:#0d0d0d}
+.aw.gp .aw-bar{background:#f9f9f9;border-bottom:1px solid #ececec}
+.gp-rail{position:absolute;left:0;top:0;bottom:0;width:72px;background:#f9f9f9;border-right:1px solid #ececec;display:flex;flex-direction:column;align-items:center;gap:28px;padding-top:26px}
+.gp-ico svg{display:block;width:28px;height:28px;fill:none;stroke:#5d5d5d;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.gp-top{position:absolute;top:16px;left:calc(50% + 36px);translate:-50% 0;display:flex;padding:4px;border-radius:999px;background:#f1f1f1;font:600 20px/1 var(--sys)}
+.gp-top span{padding:9px 22px;border-radius:999px;color:#6b6b6b}.gp-top .on{background:#fff;color:#0d0d0d;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.aw.gp .aw-thread{left:72px;padding:88px 70px 0}
+.aw.gp .gp-user{align-self:flex-end;max-width:70%;margin:0;padding:14px 24px;border-radius:26px;background:#0d0d0d;color:#fff;font:400 26px/1.4 var(--sys);box-shadow:none}
+.gp-user.st-u0{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.aw.gp .gp-ai{margin:0 0 0 -10px;padding:6px 10px;border-radius:14px;font:400 27px/1.55 var(--sys);color:#0d0d0d}
+.aw .st-v{grid-area:auto;margin:0;font:inherit;color:inherit}
+.aw.gp .st-opts{margin:0;padding:0 0 0 34px;display:grid;gap:6px;justify-items:start}
+.aw.gp .st-opt{padding:0;border:0;border-radius:0;background:none;font:inherit;color:inherit;box-shadow:none}
+.gp-comp{position:absolute;left:150px;right:78px;bottom:26px;display:flex;align-items:center;gap:16px;padding:12px 14px 12px 20px;border:1px solid #e3e3e3;border-radius:999px;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.gp-plus svg,.gp-mic svg{display:block;width:28px;height:28px;color:#5d5d5d}
+.gp-ph{flex:1;font:400 26px/1 var(--sys);color:#8f8f8f}
+.gp-send{width:48px;height:48px;border-radius:50%;background:#0d0d0d;color:#fff;display:grid;place-items:center}.gp-send svg{width:24px;height:24px}
+
+/* how a chat works: three steps beside a Claude window */
+.cw-grid{display:grid;grid-template-columns:440px 1fr;gap:60px;margin-top:40px;align-items:stretch}
+.cw-side{display:flex;flex-direction:column;justify-content:center}
+.cw-steps{list-style:none;margin:0;padding:0;display:grid;gap:30px}
+.cw-steps li{display:grid;grid-template-columns:60px 1fr;gap:20px;align-items:center;font:600 34px/1.25 var(--font)}
+.cw-steps b{display:grid;place-items:center;width:60px;height:60px;border-radius:50%;background:var(--gold);color:var(--navy);font:700 30px/1 var(--display)}
+.cw-skill{margin:44px 0 0;font:700 42px/1.15 var(--display);letter-spacing:-.02em;color:var(--blue)}
+.keynote .cw-skill{color:var(--gold)}
+.ch-app{height:690px}
+.cw-tag{position:absolute;right:64px;bottom:178px;margin:0;padding:11px 18px;border-radius:10px;background:#04123a;color:#fdc921;font:700 26px/1 var(--display);box-shadow:0 8px 24px rgba(4,18,58,.3)}
+/* steer: a ChatGPT window, the word count beside it */
+.sw-grid{display:grid;grid-template-columns:400px 1fr;gap:60px;margin-top:40px}
+.sw-side{display:flex;flex-direction:column;justify-content:center;gap:30px}
+.sw-lead{margin:0;font:700 44px/1.15 var(--display);letter-spacing:-.02em}
+.sw-side .st-count{position:static;margin:0;font:600 30px/1.3 var(--font);color:var(--ink-2)}
+.sw-side .st-count b{font:700 64px/1 var(--display);color:var(--blue);vertical-align:-6px}
+.keynote .sw-side .st-count b{color:var(--gold)}
+.sw-side .st-note{position:static;margin:0;font:500 24px/1.35 var(--font);color:var(--muted)}
+.st-app{height:690px}
+/* models: Claude's real menu, open */
+.md-grid{display:grid;grid-template-columns:1020px 1fr;gap:60px;margin-top:34px;align-items:center}
+.md-app{height:600px}
+.md-app .cl-comp{top:34px;bottom:auto}
+.md-menu{position:absolute;right:56px;top:196px;width:620px;padding:10px;background:#fff;border:1px solid #e2ded3;border-radius:18px;box-shadow:0 18px 50px rgba(31,30,29,.16);transform-origin:85% 0}
+.md-it{display:grid;grid-template-columns:1fr auto 30px;gap:14px;align-items:center;padding:12px 16px;border-radius:12px}
+.md-it b{display:block;font:500 26px/1.2 var(--sys);color:#1f1e1d}.md-it span{display:block;margin-top:4px;font:400 21px/1.3 var(--sys);color:#7b776d}
+.md-it.on{background:#f5f3ec}
+.md-tag{font:700 15px/1 var(--sys);font-style:normal;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:8px;background:#e8ecf8;color:#34457a;white-space:nowrap}
+.md-tag.free{background:#d9f3e4;color:#0b6b3a}
+.md-check{font-style:normal;font-size:24px;color:#2f6fd6;text-align:center}
+.md-sep{height:1px;margin:8px 6px;background:#ebe8df}
+.md-row{display:flex;justify-content:space-between;padding:12px 16px;font:500 23px/1 var(--sys);color:#1f1e1d}.md-dim{color:#8f8b80}
+.md-side{display:grid;gap:26px}
+.md-note{margin:0;font:500 32px/1.35 var(--font);color:var(--ink)}.md-note b{font-family:var(--display);color:var(--blue)}
+.keynote .md-note b{color:var(--gold)}
+.md-rule{margin:10px 0 0;font:700 38px/1.2 var(--display);letter-spacing:-.02em;color:var(--navy)}
+.keynote .md-rule{color:#fff}
+.md-also{margin:0;font:500 26px/1.35 var(--font);color:var(--ink-2)}
+/* the 5-part prompt sits in Claude's message box */
+.p5-row{margin-top:26px}
+.keynote .p5-card{border-radius:28px;padding:40px 48px 24px}
+/* inside a light app window, the page's ink colours come back (the night look sets them light) */
+.aw{--ink:#1f1e1d;--ink-2:#4a4740;--muted:#8f8b80}
+.cl-in .ch-typed{display:block;margin:0;padding:0;border-radius:0;background:none;color:inherit;font:inherit;box-shadow:none}
+/* the chat scrolls under each app's header, like the real thing */
+.aw-body::before{content:"";position:absolute;left:0;right:0;top:0;height:34px;z-index:2;pointer-events:none;background:linear-gradient(var(--aw-bg,#faf9f5),rgba(250,249,245,0))}
+.aw.gp{--aw-bg:#fff}
+.aw.gp .aw-body::before{left:72px;height:86px;background:linear-gradient(#fff 72%,rgba(255,255,255,0))}
+.gp-top{z-index:3}.gp-rail{z-index:3}
+.cl-comp,.gp-comp{z-index:3}
+/* models: the whole menu shows */
+.md-app{height:640px}
+.md-menu{top:172px;padding:8px}
+.md-it{padding:8px 16px}
+.md-row{padding:10px 16px;font-size:21px}
+/* bland vs 5-part: two Claude windows */
+.sc-bland .bl-row{grid-template-columns:1fr 1fr;gap:56px;margin-top:40px;align-items:start}
+.bl-win{height:560px}
+.bl-win .aw-thread{padding:28px 40px 0;gap:24px}
+.bl-win .cl-user{max-width:88%;font-size:24px}
+.bl-win.color .bl-q{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.bl-a{margin:0;font:400 28px/1.5 Georgia,"Times New Roman",serif;color:#1f1e1d}
+.bl-win.color{box-shadow:0 0 0 4px var(--gold),0 40px 100px rgba(1,6,24,.45)}
+.bl-col .bl-note{margin:22px 0 0;font:700 36px/1.2 var(--display);color:var(--ink-2)}
+.bl-col:last-child .bl-note{color:var(--blue)}
+.keynote .bl-col .bl-note{color:#8e9cc8}.keynote .bl-col:last-child .bl-note{color:var(--gold)}
+.sc-bland .bl-ex{bottom:104px}
+/* the context window's chat reads like a Claude thread */
+.keynote .wn-chat,.wn-chat{background:#faf9f5}
+.keynote .wn-chat .wn-msg.you,.wn-chat .wn-msg.you{background:#f0eee6;color:#1f1e1d}
+.keynote .wn-chat .wn-msg.ai,.wn-chat .wn-msg.ai{background:none;color:#1f1e1d;padding-left:4px;font:400 26px/1.4 Georgia,"Times New Roman",serif}
+/* the title's little chat wears Claude's colours too */
+.tc-b.you{background:#f0eee6;color:#1f1e1d;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Inter,sans-serif;font-weight:400}
+.tc-b.ai{background:#faf9f5;font:400 28px/1.45 Georgia,"Times New Roman",serif}
+.tc-dots i{background:#d97757}
+.bl-win.color .bl-q{max-height:calc(1.4em * 4 + 32px);box-sizing:border-box}
+.aw.gp .aw-body::before{height:96px;background:linear-gradient(#fff 84%,rgba(255,255,255,0))}
+.keynote .sc-prompt5 .p5-chips{margin-top:28px}.keynote .sc-prompt5 .p5-card{margin-top:26px}.keynote .sc-prompt5 .p5-foot{margin-top:24px}

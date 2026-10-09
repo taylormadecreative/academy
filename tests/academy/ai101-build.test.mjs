@@ -185,9 +185,13 @@ test('the phone diagram has a name', () => {
   assert.match(page, /<svg class="dg-v"[^>]*role="img" aria-labelledby="a1dt"/);
   assert.doesNotMatch(page, /<svg class="dg-v"[^>]*aria-hidden/);
 });
-test('stage: the chat loop line and its arrowhead are their own shapes (no marker)', () => {
-  const chat = between(stage, 'data-id="chat"', '</section>');
-  assert.match(chat, /class="ch-line"/); assert.match(chat, /class="ch-head"/); assert.doesNotMatch(chat, /<marker/);
+test('stage (10/9): the chats happen in real-looking apps: Claude for How a chat works, ChatGPT for Steer it', () => {
+  const chat = between(stage, 'data-id="chat"', '</section>'), steer = between(stage, 'data-id="steer"', '</section>');
+  assert.match(chat, /class="aw cl ch-app"/); assert.match(chat, /class="cl-send"/); assert.match(chat, /class="cl-model">Sonnet 5\.5/);
+  assert.match(steer, /class="aw gp st-app"/); assert.match(steer, /class="gp-ph">Ask ChatGPT/);
+  const models = between(stage, 'data-id="models"', '</section>');
+  for (const n of ['Fable 5.1', 'Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5']) assert.match(models, new RegExp(n.replace('.', '\\.')));
+  assert.doesNotMatch(stage, /\b(Astra|Luna)\b/, 'no ChatGPT model names on the stage until Nelson confirms them on his screen');
 });
 test('stage: QR codes for the class page, Instagram AND the Facebook group; the next workshop gets one too', () => {
   const qrs = (id) => (between(stage, `data-id="${id}"`, '</section>').match(/class="qr-card/g) || []).length;

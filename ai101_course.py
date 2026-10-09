@@ -269,6 +269,24 @@ SHOTS = {
              "alt": "{name} settings, with the box where you paste your About me marked."},
 }
 
+# 10/9 (Nelson: "we also didn't talk about models … sonnet and fable for claude"). Claude's model menu exactly as it showed
+# on his screen 10/9 (name + its own one-line description); which plan has which is from academy.claude.com ("Choosing the
+# right Claude model": Free has Haiku and Sonnet; Opus and Fable are on paid plans). ChatGPT's picker isn't named here:
+# on his account it is a "Thinking effort" slider, not a list, so nothing about it is guessed.
+MODELS = {
+    "h": "Pick a model.",
+    "sub": "The model is the brain inside the app. Each app has a few.",
+    "claude": [("Fable 5.1", "For your toughest challenges", "Paid plans"), ("Opus 5.5", "For complex work and everyday tasks", "Paid plans"),
+               ("Sonnet 5.5", "Most efficient for simpler tasks", "Free"), ("Haiku 5.5", "Fastest for quick answers", "Free")],
+    "pick": "Sonnet 5.5",
+    "effort": ("Effort", "Medium"),
+    "more": "More models",
+    "notes": [("Bigger", "thinks harder. It's slower, and it uses up your limit faster."),
+              ("Smaller", "is faster. Great for quick answers.")],
+    "rule": "Not sure? Use the one it picks for you. Big, important job? Try a bigger one.",
+    "also": "ChatGPT and Gemini let you choose too. Look next to the message box.",
+    "step": "One more word: the model. It's the brain inside the app, and each app has a few. In Claude, Sonnet is the everyday one and Haiku is the fastest. Both are free. Opus and Fable think harder and are on paid plans. Not sure? Use the one it picks for you. ChatGPT and Gemini let you choose too, next to the message box.",
+}
 STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so each instruction sits next to its action
     {"id": "hi", "n": 1, "time": "7:00", "min": 2, "title": "Say hi",
      "do": ["In the room chat, finish this sentence: “I'd love help with ______.” Pick something that takes up your time every week.",
@@ -286,9 +304,10 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "do": ["AI here means a computer program that can read and write a lot like a person. It learned by reading a huge amount of writing.",
             "Look at the drawing. You type, the AI writes back, and you reply to make it better. That loop is the whole skill.",
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
-            "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
+            "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet.",
+            MODELS["step"]],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2")],
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("do", 4)],
      "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
@@ -522,6 +541,17 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     # every one of them (*new* = highlighted). \n = a line break, [x] = a blank, *x* = a part the reply added.
     "chat_answer": "Dear [Neighbor's name],\nThank you for being such a great neighbor. It means a lot.\nWarmly, [Your name]",
     "chat_loop": "Reply to make it better.",
+    # 10/9 (Nelson: "real looking chat box interfaces"): the chat happens inside a real-looking Claude window; three steps
+    # beside it say what's happening; steer happens inside a real-looking ChatGPT window
+    "chat_s1": "You type a prompt and send it.",
+    "chat_s2": "The AI reads it and writes back.",
+    "chat_skill": "That loop is the whole skill.",
+    "app_greet": "Good evening",
+    "app_model": "Sonnet 5.5",            # Claude's free-plan default (academy.claude.com, 10/9)
+    "app_ph": "How can I help you today?",  # Claude's new-chat box, as on his screen 10/9
+    "app_reply_ph": "Reply…",
+    "gpt_ph": "Ask ChatGPT",
+    "steer_lead": "It's a conversation. Reply to steer it.",
     "chat_reply_l": "then reply",
     "chat_reply": "Her name is Rosa. She watered my plants while I was away. Sign it Nelson.",
     "chat_better_h": "The better answer",
@@ -536,6 +566,8 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "words_warn_rule": "Never trust it blindly. Check its work.",
     "bland_left_h": "Write a post about my bakery.",
     "bland_left_note": "Could be anybody's bakery.",
+    # 10/9: the bland prompt's answer, shown in a real-looking Claude window (an example of the generic kind it writes)
+    "bland_answer": "Fresh from our oven to your table! Stop by our bakery for delicious breads, cakes and treats, made with love every day. #bakery #freshbaked",
     "bland_right_h": "+ who it's for · what's special · how long · an example",
     "bland_right_note": "Sounds like YOUR bakery.",
     "bland_foot": "The AI only knows what you tell it.",
@@ -645,11 +677,12 @@ BADGE = {
 # Every teaching scene names the class page step it goes with, so anyone who looked away can find their place. On the
 # scenes where people do the step themselves, a "Try it" line shows once the scene is fully on screen (its last beat):
 # watch first, then do. Scenes not listed (soon) show no tag.
-STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "bland": 4,
+STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "models": 3, "bland": 4,
               "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
 STAGE_RAIL = ["Say hi", "Your laptop", "What AI is", "5 parts", "Steer it", "Check it", "Save it", "Your turn"]  # v2's bottom rail, Steps 1-8
 STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Review, then your badge"}
 STAGE_TRY = {
+    "models": "Find the model menu next to your message box.",
     "title": "Tap your 1 to 5. Say hi in the room chat.",
     "laptop": "Open your AI and sign in.",
     "chat": "Copy the first message. Paste it in your AI. Send.",

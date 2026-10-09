@@ -132,41 +132,51 @@ export const TIMELINES = {
     into(tl, el.querySelector('.p5-foot'), { y: 16, autoAlpha: 0, duration: 0.5, ease: EASE_OUT }, '-=0.1');
     return tl.addLabel('end');
   },
-  chat(el) { // the prompt types itself into You and STAYS there; a copy flies into the AI, the answer writes itself,
-    // the loop draws back: "make it better". (10/8, Nelson: an answer with nothing typed "doesn't make sense".)
-    // 10/9 (Nelson: "actually show the reply that makes it better"): the first answer is a bland note with blanks; your
-    // reply types in under your prompt and flies in the same way; the better answer writes itself with the new parts lit.
-    const q = (c) => el.querySelector(c), ai = q('.ch-ai'), typed = q('.ch-typed'), reply = q('.ch-reply');
-    const bub = q('.ch-bubble'), bub2 = q('.ch-bubble.b2'), dots = el.querySelectorAll('.ch-dots i');
-    const t = local(typed, el), r = local(reply, el);                  // measure first: entrances move things
-    gsap.set(bub, { boxSizing: 'border-box', width: t.w, maxWidth: 'none' }); // each copy wraps exactly like its message
-    gsap.set(bub2, { boxSizing: 'border-box', width: r.w, maxWidth: 'none' });
-    const b = local(ai, el), s = local(bub, el), s2 = local(bub2, el);
-    const path = q('.ch-loop .ch-line'), head = q('.ch-loop .ch-head'), len = path.getTotalLength();
+  chat(el) { // (10/9, Nelson: "real looking chat box interfaces") the whole loop inside a real-looking Claude window: you type
+    // and send (the box drops to the bottom, like the real app), Claude "thinks" (its star turns) and writes back a note with
+    // [blanks], "Reply to make it better" (the box lights up), your reply sends, the better note writes itself with every
+    // new fact lit. The three steps beside it say what's happening. (10/8: an answer never appears with nothing typed.)
+    const q = (c) => el.querySelector(c), app = q('.ch-app'), body = q('.ch-app .aw-body'), thread = q('.ch-app .aw-thread');
+    const comp = q('.ch-comp'), greet = q('.cl-greet'), send = q('.ch-comp .cl-send'), ph = q('.cl-ph'), ph2 = q('.cl-ph2');
+    const t1 = q('.ch-typed.t1'), t2 = q('.ch-typed.t2'), u1 = q('.ch-u1'), u2 = q('.ch-u2'), a1 = q('.ch-a1'), a2 = q('.ch-a2');
+    const v1 = q('.ch-ans-text.v1'), v2 = q('.ch-ans-text.v2'), tag = q('.cw-tag');
+    const B = local(body, el), C = local(comp, el);                      // measure first: everything is laid out, shown or not
+    const lift = (B.y + B.h * 0.5 - C.h / 2) - C.y;                       // a new chat: the box sits mid-window
+    const room = C.y - 28, off = (m) => { const r = local(m, el); return Math.max(0, r.y + r.h - room); };
+    const RING = '0 0 0 4px #fdc921, 0 4px 20px rgba(31,30,29,.06)', FLAT = '0 0 0 0px #fdc921, 0 4px 20px rgba(31,30,29,.06)';
     const tl = gsap.timeline({ paused: true });
-    const send = (copy, from, at) => tl // lift a copy off the message, fly it into the AI, the AI "thinks"
-      .fromTo(copy, { autoAlpha: 0, x: from.x - at.x, y: from.y - at.y, scale: 1 }, { autoAlpha: 1, duration: 0.01 })
-      .to(copy, { x: b.x + b.w / 2 - (at.x + at.w / 2), y: b.y + b.h / 2 - (at.y + at.h / 2), scale: 0.35, duration: 0.9, ease: 'power2.inOut' })
-      .to(copy, { autoAlpha: 0, duration: 0.2 })
-      .to(dots, { y: -12, duration: 0.25, stagger: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');
-    tl.addLabel('b0'); appearBeat(tl, el, 0);
-    into(tl, typed.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.06 }, '-=0.1'); // you type it
-    send(bub, t, s);
-    tl.addLabel('b1'); appearBeat(tl, el, 1);
-    into(tl, q('.ch-ans-text.v1').querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.2');
-    tl.addLabel('b2').fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1, ease: EASE_MOVE });
-    into(tl, head, { autoAlpha: 0, duration: 0.15 });                    // the arrowhead lands when the line arrives
-    appearBeat(tl, el, 2);
-    tl.addLabel('b3'); appearBeat(tl, el, 3);                             // "then reply": it types in under the prompt
-    into(tl, reply.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.05 }, '-=0.1');
-    send(bub2, r, s2);
-    const v1 = q('.ch-ans-text.v1'), v2 = q('.ch-ans-text.v2');
-    tl.addLabel('b4')                                                     // the better answer replaces the bland one
-      .fromTo([q('.ch-h1'), v1], { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.25, immediateRender: false })
-      .fromTo([q('.ch-h2'), v2], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, '<');
-    into(tl, v2.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.1');
+    const show = (x, pos) => tl.fromTo(x, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 }, pos);
+    const hide = (x, pos, d = 0.15) => tl.fromTo(x, { autoAlpha: 1 }, { autoAlpha: 0, duration: d, immediateRender: false }, pos);
+    const think = (a) => { const s = a.querySelector('.cl-think'); // Claude's star turns while it writes
+      tl.fromTo(s, { autoAlpha: 0, rotation: 0 }, { autoAlpha: 1, duration: 0.12 }).to(s, { rotation: 120, duration: 0.5, ease: 'none' }).to(s, { autoAlpha: 0, duration: 0.12 }); };
+    const press = () => tl.to(send, { scale: 0.86, duration: 0.08, yoyo: true, repeat: 1 });
+    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, app, IN, '<');
+    tl.fromTo(comp, { y: lift, boxShadow: FLAT }, { y: lift, boxShadow: FLAT, duration: 0.01 }, 0);
+    [t1, t2, ph2, tag, u1, u2, a1, a2, v2].forEach((x) => tl.fromTo(x, { autoAlpha: 0 }, { autoAlpha: 0, duration: 0.01 }, 0));
+    hide(ph, '+=0.35', 0.1); show(t1, '<');
+    into(tl, t1.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.07 });           // you type it
+    press(); hide(t1, '>'); hide(greet, '<', 0.3);
+    tl.to(comp, { y: 0, duration: 0.6, ease: EASE_MOVE }, '<');                                       // the box drops to the bottom
+    tl.fromTo(u1, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: EASE_OUT, immediateRender: false }, '<0.25');
+    show(ph2, '<');
+    tl.addLabel('b1'); appearBeat(tl, el, 1); show(a1, '<'); think(a1);                               // Claude writes back
+    if (off(a1)) tl.to(thread, { y: -off(a1), duration: 0.5, ease: EASE_MOVE }, '<');
+    into(tl, v1.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.035 }, '>-0.05');
+    tl.addLabel('b2'); appearBeat(tl, el, 2);                                                         // reply to make it better
+    tl.fromTo(comp, { boxShadow: FLAT }, { boxShadow: RING, duration: 0.4, immediateRender: false }, '<');
+    tl.fromTo(tag, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: EASE_OUT, immediateRender: false }, '<');
+    tl.addLabel('b3'); hide(ph2, '<', 0.1); show(t2, '<');
+    into(tl, t2.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.05 });
+    press(); hide(t2, '>'); hide(tag, '<', 0.25);
+    tl.fromTo(comp, { boxShadow: RING }, { boxShadow: FLAT, duration: 0.3, immediateRender: false }, '<');
+    tl.fromTo(u2, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.45, ease: EASE_OUT, immediateRender: false }, '<0.1');
+    if (off(u2)) tl.to(thread, { y: -off(u2), duration: 0.5, ease: EASE_MOVE }, '<');
+    show(ph2, '<');
+    tl.addLabel('b4'); appearBeat(tl, el, 4); show(a2, '<'); show(v2, '<'); think(a2);              // the better note
+    if (off(a2)) tl.to(thread, { y: -off(a2), duration: 0.6, ease: EASE_MOVE }, '<');
+    into(tl, v2.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.024 }, '>-0.05');
     tl.fromTo(v2.querySelectorAll('.ch-new'), { backgroundColor: 'rgba(253,201,33,0)' },  // light up what the reply added
-      { backgroundColor: 'rgba(253,201,33,0.55)', duration: 0.35, stagger: 0.18, ease: 'power1.out' });
+      { backgroundColor: 'rgba(253,201,33,0.55)', duration: 0.3, stagger: 0.12, ease: 'power1.out' });
     return tl.addLabel('end');
   },
   words(el) { // AI ⊃ generative AI ⊃ LLM; training data streams in; the chatbot is the app around it; then: it can hallucinate
@@ -183,27 +193,49 @@ export const TIMELINES = {
     tl.addLabel('b4'); into(tl, el.querySelector('.wd-warn'), { autoAlpha: 0, y: 30, scale: 0.96, duration: 0.5, ease: 'back.out(1.3)' }); // 10/8: never trust it blindly
     return tl.addLabel('end');
   },
-  bland(el) { // a thin prompt gets gray filler; the same ask with detail gets a specific answer
+  bland(el) { // (10/9) the same request in two real-looking Claude windows: the thin prompt gets a generic post; the 5-part
+    // prompt gets one that sounds like this bakery. Each answer writes itself.
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); appearBeat(tl, el, 0);
-    into(tl, el.querySelectorAll('.bl-card.gray .bl-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.4, ease: EASE_OUT }, '-=0.2');
+    into(tl, el.querySelectorAll('.bl-win.gray .bl-a .w'), { autoAlpha: 0, duration: 0.05, stagger: 0.03 }, '-=0.2');
     tl.addLabel('b1'); appearBeat(tl, el, 1);
-    into(tl, el.querySelectorAll('.bl-card.color .bl-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.4, ease: EASE_OUT }, '-=0.2');
+    into(tl, el.querySelectorAll('.bl-win.color .bl-a .w'), { autoAlpha: 0, duration: 0.05, stagger: 0.025 }, '-=0.2');
     return tl.addLabel('end');
   },
-  steer(el) { // three follow-ups change one answer; the word count drops, the voice changes, options fan out
-    const v = (i) => el.querySelector('.st-v.v' + i), m = (i) => el.querySelector('.st-me.m' + i), n = el.querySelector('.st-n'), ans = el.querySelector('.st-ans');
+  steer(el) { // (10/9) the three follow-ups in a real-looking ChatGPT window. The chat keeps every answer and scrolls (like the
+    // real thing); the newest answer flashes gold; the word count beside it follows the newest answer.
+    const q = (c) => el.querySelector(c), app = q('.st-app'), thread = q('.st-app .aw-thread'), comp = q('.st-app .gp-comp'), n = q('.st-n');
+    const v = (i) => q('.st-v.v' + i), m = (i) => q('.st-me.m' + i), a = (i) => q('.st-a' + i);
     const words = (i) => v(i).textContent.trim().split(/\s+/).length;
+    const room = local(comp, el).y - 26, off = (x) => { const r = local(x, el); return Math.max(0, r.y + r.h - room); }; // measure first
     const tl = gsap.timeline({ paused: true });
-    tl.addLabel('b0'); into(tl, el.querySelector('.st-ans'), IN);
-    [1, 2].forEach((i) => {
-      tl.addLabel('b' + i); into(tl, m(i), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
-      tl.to(v(i - 1), { autoAlpha: 0, duration: 0.25 }).to(v(i), { autoAlpha: 1, duration: 0.35 })
-        .to(n, { textContent: words(i), snap: { textContent: 1 }, duration: 0.5 }, '<')
-        .fromTo(ans, { backgroundColor: '#fff6da' }, { backgroundColor: '#ffffff', duration: 0.9, immediateRender: false }, '<'); // a gold flash: it changed
+    tl.addLabel('b0'); into(tl, app, IN); into(tl, q('.sw-side'), IN, '<0.1');
+    tl.fromTo(thread, { y: -off(a(0)) }, { y: -off(a(0)), duration: 0.01 }, 0);
+    [1, 2, 3].forEach((i) => {
+      tl.addLabel('b' + i);
+      into(tl, m(i), { autoAlpha: 0, y: 30, duration: 0.35, ease: EASE_OUT });                       // your follow-up
+      tl.to(thread, { y: -off(a(i)), duration: 0.6, ease: EASE_MOVE }, '<');
+      into(tl, a(i), { autoAlpha: 0, y: 12, duration: 0.4, ease: EASE_OUT }, '>-0.15');             // the new answer
+      if (i < 3) {
+        tl.fromTo(v(i), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 }, '<')
+          .fromTo(a(i), { backgroundColor: 'rgba(253,201,33,0.35)' }, { backgroundColor: 'rgba(253,201,33,0)', duration: 0.9, immediateRender: false }, '<')
+          .to(n, { textContent: words(i), snap: { textContent: 1 }, duration: 0.5 }, '<');
+      } else into(tl, a(3).querySelectorAll('.st-opt'), { autoAlpha: 0, x: -16, stagger: 0.12, duration: 0.35, ease: EASE_OUT }, '<');
     });
-    tl.addLabel('b3'); into(tl, m(3), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
-    into(tl, el.querySelectorAll('.st-opt'), { autoAlpha: 0, y: 30, rotation: (i) => (i - 1) * 6, stagger: 0.12, duration: 0.45, ease: 'back.out(1.4)' });
+    return tl.addLabel('end');
+  },
+  models(el) { // (10/9, Nelson: "we also didn't talk about models") Claude's real model menu opens from the model name under
+    // the box; each model gets which plan has it; then what bigger and smaller mean, and the rule
+    const q = (c) => el.querySelector(c), menu = q('.md-menu'), chip = q('.md-comp .cl-model');
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, q('.md-app'), IN, '<0.1');
+    tl.fromTo(menu, { autoAlpha: 0 }, { autoAlpha: 0, duration: 0.01 }, 0);
+    tl.addLabel('b1').to(chip, { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 })              // tap the model name
+      .fromTo(menu, { autoAlpha: 0, scale: 0.96, y: -10 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.35, ease: EASE_OUT, immediateRender: false });
+    into(tl, menu.querySelectorAll('.md-it'), { autoAlpha: 0, x: -12, stagger: 0.06, duration: 0.3, ease: EASE_OUT }, '<0.05');
+    tl.addLabel('b2'); into(tl, menu.querySelectorAll('.md-tag'), { autoAlpha: 0, scale: 0.8, stagger: 0.08, duration: 0.3, ease: 'back.out(1.6)' });
+    appearBeat(tl, el, 2);
+    tl.addLabel('b3'); appearBeat(tl, el, 3);
     return tl.addLabel('end');
   },
   tokens(el) { // the sentence breaks into the pieces an AI counts
