@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/assets/logo-nav.webp" type="image/webp">
 
-<link rel="stylesheet" href="/css/build-mode.css?v=3e8ba7d38c">
+<link rel="stylesheet" href="/css/build-mode.css?v=a5b0fbf41a">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -32,12 +32,12 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=3e8ba7d38c" defer></script>
-<script src="/js/native.js?v=3e8ba7d38c" defer></script>
-<script src="/js/meta-pixel.js?v=3e8ba7d38c" defer></script>
+<script src="/js/pwa.js?v=a5b0fbf41a" defer></script>
+<script src="/js/native.js?v=a5b0fbf41a" defer></script>
+<script src="/js/meta-pixel.js?v=a5b0fbf41a" defer></script>
 <script>document.documentElement.classList.add('js')</script>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="/css/ai101-class.css?v=3e8ba7d38c">
+<link rel="stylesheet" href="/css/ai101-class.css?v=a5b0fbf41a">
 <noscript><style>#app{display:block!important}#gate,#loading{display:none!important}</style></noscript>
 </head><body><header class="site-header"><div class="wrap"><div class="bar">
 <a class="brand" href="/"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"><span class="mark">Taylormade Academy</span></a>
@@ -174,6 +174,24 @@
 </form>
 </div></section>
 
+<section class="a1c-sec a1c-badge" id="badge" data-starts="2026-10-10T00:00:00Z" data-unlock-min="56"><div class="wrap">
+<span class="kicker">Before you go</span>
+<h2 class="display-m">Your AI 101 <span class="u-gold">badge</span></h2>
+<p class="a1c-lead">You took AI 101. Share it to your story and tag @taylormade_creative so I can cheer you on.</p>
+<p class="a1c-badge-locked" id="badgeLocked">Your badge unlocks at 7:56 PM CT, at the end of class. It will have your name on it.</p>
+<div class="a1c-badge-box" id="badgeBox" hidden>
+<div class="a1c-badge-prev"><img id="badgeImg" alt="Your AI 101 badge: your name, AI 101: Learn to talk to AI, Taylormade Academy, October 9, 2026" width="1080" height="1920"></div>
+<div class="a1c-badge-side">
+<label class="a1c-f">Name on your badge<input id="badgeName" maxlength="40" autocomplete="name" placeholder="Your name"></label>
+<p class="a1c-badge-msg" id="badgeMsg" role="status" aria-live="polite"></p>
+<div class="a1c-badge-acts"><button class="btn gold" type="button" id="badgeShare">Share to your story</button>
+<a class="btn ghost" id="badgeSave" href="#badge" download="AI-101-badge.png">Save the image</a>
+<a class="btn ghost" id="badgeLinkedIn" href="https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&amp;name=AI+101%3A+Learn+to+talk+to+AI&amp;organizationName=Taylormade+Academy&amp;issueYear=2026&amp;issueMonth=10&amp;certUrl=https%3A%2F%2Ftaylormadeacademy.com%2Fai101%2F" target="_blank" rel="noopener">Add to LinkedIn<span class="sr"> (opens in a new tab)</span></a></div>
+<p class="a1c-badge-note">Add to LinkedIn lists AI 101 under Licenses &amp; certifications on your profile. On a laptop, Save puts the image in your Downloads.</p>
+</div></div>
+<script type="application/json" id="badgeData">{"name_needed": "Type your name first, so it's on your badge.", "file": "AI-101-badge.png", "img_alt": "Your AI 101 badge: your name, AI 101: Learn to talk to AI, Taylormade Academy, October 9, 2026", "img_kicker": "Free live class \u00b7 October 9, 2026", "img_took": "took AI 101:", "img_title": "Learn to talk\nto AI.", "img_bar_word": "talk", "img_parts": "Role \u00b7 Task \u00b7 Context \u00b7 Format \u00b7 Example", "img_learned": "I learned to write a 5-part prompt, steer it, and check its work.", "img_site": "taylormadeacademy.com", "img_handle": "@taylormade_creative", "parts": [{"letter": "R", "key": "role"}, {"letter": "T", "key": "task"}, {"letter": "C", "key": "context"}, {"letter": "F", "key": "format"}, {"letter": "E", "key": "example"}]}</script>
+</div></section>
+
 <section class="a1c-sec" id="keep-going"><div class="wrap">
 <span class="kicker">After class</span>
 <h2 class="display-m">Keep going. <span class="u-gold">30</span> prompts to try.</h2>
@@ -205,7 +223,7 @@
 </div></section>
 </div>
 </main>
-<script type="module">import("/js/ai101-class.js?v=3e8ba7d38c").then((m) => m.boot()).catch((err) => { console.error(err); document.getElementById("gate").hidden = true; document.getElementById("app").hidden = false; });</script>
+<script type="module">import("/js/ai101-class.js?v=a5b0fbf41a").then((m) => m.boot()).catch((err) => { console.error(err); document.getElementById("gate").hidden = true; document.getElementById("app").hidden = false; });</script>
 <footer class="site-footer"><div class="wrap">
 <div class="foot-top">
 <div class="foot-brand"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px"><img class="logo" src="/assets/logo-nav.webp" alt="" width="40" height="40" decoding="async"></div><div class="mark">Taylormade Academy</div></div>
@@ -233,4 +251,4 @@
 <div class="cart-up"><div class="h">Want everything?</div><p>A membership unlocks all the courses and ebooks for one price.</p><a class="btn ghost sm" href="/pricing/" style="width:100%">See membership</a></div>
 </div></aside>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script src="/js/config.js?v=3e8ba7d38c"></script><script src="/js/site.js?v=3e8ba7d38c"></script></body></html>
+<script src="/js/config.js?v=a5b0fbf41a"></script><script src="/js/site.js?v=a5b0fbf41a"></script></body></html>

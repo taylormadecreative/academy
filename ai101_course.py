@@ -563,13 +563,46 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "bye_thanks": "Thank you. See you on the 23rd.",
 }
 
+# The end-of-class badge on the class page (Nelson 10/9: "something cool at the end to show they took my course that they
+# can share on their story or page", then "Story badge + LinkedIn", unlocked "At the end of class for everyone"). A 9:16
+# story image with their name, drawn in the browser (js/ai101-badge.js). It says they TOOK the class, never "certified".
+BADGE = {
+    "kicker": "Before you go",
+    "h": "Your AI 101 badge",
+    "lead": "You took AI 101. Share it to your story and tag @taylormade_creative so I can cheer you on.",
+    "locked": "Your badge unlocks at 7:56 PM CT, at the end of class. It will have your name on it.",
+    "unlock_min": 56,
+    "name_label": "Name on your badge",
+    "name_ph": "Your name",
+    "name_needed": "Type your name first, so it's on your badge.",
+    "share": "Share to your story",
+    "save": "Save the image",
+    "linkedin": "Add to LinkedIn",
+    "linkedin_note": "Add to LinkedIn lists AI 101 under Licenses & certifications on your profile. On a laptop, Save puts the image in your Downloads.",
+    "file": "AI-101-badge.png",
+    "img_alt": "Your AI 101 badge: your name, AI 101: Learn to talk to AI, Taylormade Academy, October 9, 2026",
+    "img_kicker": "Free live class · October 9, 2026",
+    "img_took": "took AI 101:",
+    "img_title": "Learn to talk\nto AI.",  # \n = the line break, like the stage title
+    "img_bar_word": "talk",
+    "img_parts": "Role · Task · Context · Format · Example",
+    "img_learned": "I learned to write a 5-part prompt, steer it, and check its work.",
+    "img_site": "taylormadeacademy.com",
+    "img_handle": "@taylormade_creative",
+    "cert_name": "AI 101: Learn to talk to AI",
+    "org": "Taylormade Academy",
+    "issue_year": 2026,
+    "issue_month": 10,
+    "cert_url": "https://taylormadeacademy.com/ai101/",
+}
+
 # The stage's corner tag (Nelson 10/9: "cues on the stage so people can try it themselves … and tag the stage scenes").
 # Every teaching scene names the class page step it goes with, so anyone who looked away can find their place. On the
 # scenes where people do the step themselves, a "Try it" line shows once the scene is fully on screen (its last beat):
 # watch first, then do. Scenes not listed (soon) show no tag.
 STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "bland": 4,
               "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
-STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Leave a review"}
+STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Review, then your badge"}
 STAGE_TRY = {
     "title": "Tap your 1 to 5. Say hi in the room chat.",
     "laptop": "Open your AI and sign in.",
@@ -580,4 +613,5 @@ STAGE_TRY = {
     "save": "Find where your AI saves your About me.",
     "yourturn": "Fill in the five boxes. Copy. Paste. Send.",
     "qa": "Tap your 1 to 5 again.",
+    "bye": "Leave a review. Then share your badge.",
 }

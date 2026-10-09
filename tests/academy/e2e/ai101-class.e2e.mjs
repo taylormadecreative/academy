@@ -13,7 +13,7 @@ const srv = spawn('python3', ['-m', 'http.server', String(PORT)], { cwd: ROOT, s
 await new Promise((r) => setTimeout(r, 700));
 const browser = await chromium.launch({ channel: 'chrome' });
 const results = [];
-async function open({ session = { user: { id: 'u1', email: 'a@b.c', user_metadata: { full_name: 'Test Person' } } }, rpc = {}, rows = {}, cdnDown = false, cdnFailFirst = false, cdnDelay = 0, readDelay = 0, rpcDelay = 0, authError = false, noStorage = false, noClipboard = false, hash = '', viewport = { width: 1280, height: 900 }, ua = undefined } = {}) {
+async function open({ session = { user: { id: 'u1', email: 'a@b.c', user_metadata: { full_name: 'Test Person' } } }, rpc = {}, rows = {}, cdnDown = false, cdnFailFirst = false, cdnDelay = 0, readDelay = 0, rpcDelay = 0, authError = false, noStorage = false, noClipboard = false, hash = '', viewport = { width: 1280, height: 900 }, ua = undefined, nowIso = '', search = '' } = {}) {
   const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', ...(ua ? { userAgent: ua } : {}) });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: `http://localhost:${PORT}` });
   let esmCalls = 0;
@@ -29,9 +29,10 @@ async function open({ session = { user: { id: 'u1', email: 'a@b.c', user_metadat
     if (noStorage) Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
     if (noClipboard) Object.defineProperty(navigator, 'clipboard', { get() { return undefined; } });
   }, { session, rpc, rows, noStorage, noClipboard, authError, readDelay, rpcDelay });
+  if (nowIso) await ctx.addInitScript((t) => { const fixed = Date.parse(t); Date.now = () => fixed + performance.now(); }, nowIso); // the clock the badge reads, from a fixed moment
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(URL0 + hash);
+  await page.goto(URL0 + search + hash);
   return { page, ctx, errors };
 }
 async function check(name, fn) { try { await fn(); results.push(['PASS', name]); } catch (e) { results.push(['FAIL', name, e.message]); } }
@@ -366,6 +367,51 @@ await check('every button on the class page is at least 44px tall (an older crow
   await page.waitForSelector('#app:not([hidden])');
   const small = await page.$$eval('.a1c .btn, .a1c button', (els) => els.filter((b) => b.getClientRects().length && b.getBoundingClientRect().height < 43.5)
     .map((b) => `${(b.id || b.className || b.tagName)} ${Math.round(b.getBoundingClientRect().height)}px`));
+  assert.deepEqual(small, []);
+});
+
+// ---- the end-of-class badge (10/9): locked until 7:56 PM CT for everyone, ?badge=preview early; the image has their name ----
+const badgeReady = (page) => page.waitForFunction(() => { const i = document.getElementById('badgeImg'); return i && i.src.startsWith('blob:') && i.complete && i.naturalWidth > 0; }, null, { timeout: 15000 });
+await check('badge: locked before 7:56 PM CT — the note shows, the badge does not', async () => {
+  const { page, errors } = await open({ nowIso: '2026-10-10T00:30:00Z' });
+  await page.waitForSelector('#app:not([hidden])'); await page.waitForTimeout(800);
+  assert.equal(await visible(page, '#badgeLocked'), true);
+  assert.equal(await page.$eval('#badgeBox', (b) => b.hidden), true);
+  assert.deepEqual(errors, []);
+});
+await check('badge: unlocked at 7:56 — a 1080x1920 image with their name; Save downloads it; Add to LinkedIn is a certification link', async () => {
+  const { page, errors } = await open({ nowIso: '2026-10-10T00:57:00Z' });
+  await page.waitForSelector('#badgeBox:not([hidden])'); await badgeReady(page);
+  assert.deepEqual(await page.$eval('#badgeImg', (i) => [i.naturalWidth, i.naturalHeight]), [1080, 1920]);
+  assert.equal(await page.$eval('#badgeName', (i) => i.value), 'Test Person');
+  assert.equal(await visible(page, '#badgeLocked'), false);
+  const save = await page.$eval('#badgeSave', (a) => ({ dl: a.getAttribute('download'), href: a.getAttribute('href') }));
+  assert.equal(save.dl, 'AI-101-badge.png'); assert.match(save.href, /^blob:/);
+  const li = new URL(await page.$eval('#badgeLinkedIn', (a) => a.href));
+  assert.equal(li.origin + li.pathname, 'https://www.linkedin.com/profile/add');
+  assert.equal(li.searchParams.get('startTask'), 'CERTIFICATION_NAME');
+  assert.equal(li.searchParams.get('name'), 'AI 101: Learn to talk to AI');
+  assert.equal(li.searchParams.get('organizationName'), 'Taylormade Academy');
+  assert.equal(li.searchParams.get('issueYear'), '2026'); assert.equal(li.searchParams.get('issueMonth'), '10');
+  // a new name redraws the image
+  const before = await page.$eval('#badgeImg', (i) => i.src);
+  await page.fill('#badgeName', 'Sha’Kiyla Johnson'); await page.waitForFunction((b) => document.getElementById('badgeImg').src !== b, before, { timeout: 5000 });
+  // no name: Share asks for one instead of sharing a blank badge
+  await page.fill('#badgeName', ''); await page.click('#badgeShare');
+  assert.match(await page.$eval('#badgeMsg', (m) => m.textContent), /Type your name first/);
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), 'badgeName');
+  assert.deepEqual(errors, []);
+});
+await check('badge: ?badge=preview shows it early (Nelson\'s check), with no name it draws a placeholder', async () => {
+  const { page } = await open({ nowIso: '2026-10-09T15:00:00Z', search: '?badge=preview', session: { user: { id: 'u2', email: 'x@y.z', user_metadata: {} } } });
+  await page.waitForSelector('#badgeBox:not([hidden])'); await badgeReady(page);
+  assert.equal(await page.$eval('#badgeName', (i) => i.value), '');
+});
+await check('badge: phone width — no sideways scroll, every badge button at least 44px tall', async () => {
+  const { page } = await open({ nowIso: '2026-10-10T01:10:00Z', viewport: { width: 375, height: 667 } });
+  await page.waitForSelector('#badgeBox:not([hidden])'); await badgeReady(page);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 375));
+  const small = await page.$$eval('#badge .btn', (els) => els.filter((b) => b.getBoundingClientRect().height < 43.5).map((b) => b.id));
   assert.deepEqual(small, []);
 });
 

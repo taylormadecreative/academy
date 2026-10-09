@@ -181,4 +181,8 @@ export async function boot() {
       reconnect: async () => { const c = await connect(); return c.session && !c.error ? c : null; },
     });
   } catch (e) { console.warn('class page: proof forms unavailable', e); }
+  try { // the end-of-class badge (Nelson 10/9): unlocks at 7:56 PM CT for everyone, ?badge=preview to check it early
+    const badge = await import('./ai101-badge.js' + Q);
+    badge.mountBadge({ sb: signedIn ? conn.sb : null, session: signedIn ? conn.session : null });
+  } catch (e) { console.warn('class page: badge unavailable', e); }
 }

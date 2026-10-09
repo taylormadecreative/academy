@@ -5,12 +5,12 @@ so the class page gets the real header and footer. Both are noindex and walled b
 sign-in IN THE BROWSER: a sign-up wall, not a lock. The HTML is public, so check_public_copy() refuses to
 build a page carrying the list-only price, a room key, or anything on the private list (see _guard_rules).
 """
-import html, os, pathlib, re, sys
+import html, json, os, pathlib, re, sys, urllib.parse
 from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOLS, START_HERE, PARTS, DEMO, DEMO_ALT, STEPS,
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
                           WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
                           OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP,
-                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN, STAGE_STEP, STAGE_TAG_OTHER, STAGE_TRY)
+                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN, STAGE_STEP, STAGE_TAG_OTHER, STAGE_TRY, BADGE)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -425,6 +425,34 @@ def builder():
             f'<div class="a1c-b-acts"><button class="btn gold sm" type="button" id="bCopy">Copy my prompt</button>'
             f'<button class="btn ghost sm" type="button" id="bClear">Start over</button></div></div></div>')
 
+def badge_section():
+    """The end-of-class badge (Nelson 10/9). The page carries the words and the colours as JSON; js/ai101-badge.js draws
+    the 1080x1920 image, unlocks it at the end of class, and wires Share / Save / Add to LinkedIn."""
+    b = BADGE
+    li = "https://www.linkedin.com/profile/add?" + urllib.parse.urlencode({
+        "startTask": "CERTIFICATION_NAME", "name": b["cert_name"], "organizationName": b["org"],
+        "issueYear": b["issue_year"], "issueMonth": b["issue_month"], "certUrl": b["cert_url"]})
+    data = json.dumps({k: v for k, v in b.items() if k.startswith("img_") or k in ("name_needed", "file")}
+                      | {"parts": [{"letter": p["letter"], "key": p["key"]} for p in PARTS]}).replace("</", "<\\/")
+    h = e(b["h"]).replace("badge", '<span class="u-gold">badge</span>', 1)
+    return f"""<section class="a1c-sec a1c-badge" id="badge" data-starts="{EVENT['starts_utc']}" data-unlock-min="{b['unlock_min']}"><div class="wrap">
+<span class="kicker">{e(b['kicker'])}</span>
+<h2 class="display-m">{h}</h2>
+<p class="a1c-lead">{e(b['lead'])}</p>
+<p class="a1c-badge-locked" id="badgeLocked">{e(b['locked'])}</p>
+<div class="a1c-badge-box" id="badgeBox" hidden>
+<div class="a1c-badge-prev"><img id="badgeImg" alt="{e(b['img_alt'])}" width="1080" height="1920"></div>
+<div class="a1c-badge-side">
+<label class="a1c-f">{e(b['name_label'])}<input id="badgeName" maxlength="40" autocomplete="name" placeholder="{e(b['name_ph'])}"></label>
+<p class="a1c-badge-msg" id="badgeMsg" role="status" aria-live="polite"></p>
+<div class="a1c-badge-acts"><button class="btn gold" type="button" id="badgeShare">{e(b['share'])}</button>
+<a class="btn ghost" id="badgeSave" href="#badge" download="{e(b['file'])}">{e(b['save'])}</a>
+<a class="btn ghost" id="badgeLinkedIn" href="{e(li)}" target="_blank" rel="noopener">{e(b['linkedin'])}{NEW_TAB}</a></div>
+<p class="a1c-badge-note">{e(b['linkedin_note'])}</p>
+</div></div>
+<script type="application/json" id="badgeData">{data}</script>
+</div></section>"""
+
 def review_form():
     stars = "".join(f'<input type="radio" name="stars" id="st{i}" value="{i}"><label for="st{i}" title="{i} star{"s" if i > 1 else ""}"><span aria-hidden="true">★</span><span class="sr">{i} star{"s" if i > 1 else ""}</span></label>' for i in range(1, 6))
     return f"""<form class="a1c-review" id="reviewForm" novalidate>
@@ -557,6 +585,8 @@ def class_page(head, header, footer, ver):
 <p class="a1c-lead">Tell me how tonight went. I read every review before it goes on the site.</p>
 {review_form()}
 </div></section>
+
+{badge_section()}
 
 <section class="a1c-sec" id="keep-going"><div class="wrap">
 <span class="kicker">After class</span>

@@ -288,3 +288,14 @@ html{scroll-padding-top:132px}
 /* the 48-hour deal line in What's next (no number on this page) */
 .a1c-deal{background:rgba(253,201,33,.14);border:1px solid rgba(253,201,33,.5);border-radius:var(--r-sm);padding:12px 14px;color:#fff}
 .a1c-deal b{color:var(--gold)}
+/* the end-of-class badge (10/9): the story image beside its name box and buttons; stacked on a phone */
+.a1c-badge-locked{margin:18px 0 0;padding:16px 20px;border-left:6px solid var(--gold);background:#fff8dc;border-radius:0 14px 14px 0;font-weight:600;color:var(--navy);max-width:60ch}
+.a1c-badge-locked[hidden],.a1c-badge-box[hidden]{display:none}
+.a1c-badge-box{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:32px;align-items:start;margin-top:24px}
+.a1c-badge-prev img{display:block;width:100%;height:auto;aspect-ratio:9/16;border-radius:22px;background:#eef1f7;box-shadow:0 18px 50px rgba(4,18,58,.16)}
+.a1c-badge-side{display:grid;gap:14px;align-content:start;max-width:440px}
+.a1c-badge-msg{min-height:1.2em;margin:0;color:#b4451f;font-weight:600}
+.a1c-badge-acts{display:grid;gap:12px}
+.a1c-badge-acts .btn{width:100%;justify-content:center;min-height:48px}
+.a1c-badge-note{margin:0;color:var(--ink-2);font-size:14px;line-height:1.5}
+@media (max-width:640px){.a1c-badge-box{grid-template-columns:1fr}.a1c-badge-prev{max-width:240px;margin:0 auto}}
