@@ -183,3 +183,16 @@ test('setup is taught: three things open, two chats, copy and paste, the first t
   assert.match(C.START_HERE[0].body, /room chat .* AI chat/);
 });
 test('an access line that promises only what is true', () => { assert.match(C.ACCESS, /doesn't have live captions/); });
+
+test('account setup: Claude = Google or the emailed link, then the texted code, no password; ChatGPT = sign up, emailed code, name + birthday, no phone', () => {
+  assert.deepEqual(Object.keys(C.SETUP), C.TOOL_ORDER);
+  for (const t of C.TOOL_ORDER) { assert.ok(C.SETUP[t].steps.length >= 3 && C.SETUP[t].steps.length <= 4, t); assert.ok(C.SETUP[t].note, t); }
+  const cl = C.SETUP.claude.steps.join(' ');
+  assert.match(cl, /Continue with Google/); assert.match(cl, /Secure link to log in to Claude\.ai/); assert.match(cl, /texts you a code/); assert.match(cl, /Verify code/);
+  assert.match(C.SETUP.claude.note, /no password/i);
+  const gpt = C.SETUP.chatgpt.steps.join(' ');
+  assert.match(gpt, /Sign up/); assert.match(gpt, /Google, Microsoft or Apple/); assert.match(gpt, /birthday/); assert.match(gpt, /skip it/);
+  assert.equal(C.SETUP.chatgpt.note, 'No phone number needed.');
+  assert.ok(C.STEPS.find((s) => s.id === 'laptop').flow.some((f) => f[1] === 'setup'));
+  assert.match(C.SETUP_CHECKED, /^\d{4}-\d{2}-\d{2}$/);
+});

@@ -9,7 +9,7 @@ import html, os, pathlib, re, sys
 from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOLS, START_HERE, PARTS, DEMO, DEMO_ALT, STEPS,
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
                           WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
-                          OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE)
+                          OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -271,7 +271,12 @@ NEW_TAB = '<span class="sr"> (opens in a new tab)</span>'
 
 def os_switch():
     btns = "".join(f'<button type="button" data-pick-os="{o}" aria-pressed="{str(o == "mac").lower()}">{e(OS_NAMES[o])}</button>' for o in OS_ORDER)
-    return f'<div class="a1c-switch a1c-os" role="group" aria-label="Which computer are you using?">{btns}</div><p class="sr" id="osSay" role="status"></p>'
+    return f'<div class="a1c-switch a1c-os" role="group" aria-label="Which computer are you using?">{btns}</div>'
+
+def picks():
+    """Step 2's two switches side by side: the AI (the same switch as Start here, kept in step by the script) and the computer."""
+    return (f'<div class="a1c-picks"><div><span class="a1c-pick-l" aria-hidden="true">Your AI</span>{tool_switch()}</div>'
+            f'<div><span class="a1c-pick-l" aria-hidden="true">Your computer</span>{os_switch()}</div></div><p class="sr" id="osSay" role="status"></p>')
 
 def install():
     """The switch, then one card per tool x computer (CSS shows the one that matches both switches)."""
@@ -284,7 +289,12 @@ def install():
             which = f'<p class="a1c-needs">{e(MAC_WHICH)}</p>' if o == "mac" else ""
             cards += (f'<div class="a1c-install" data-for="{t}" data-os-for="{o}"><p class="a1c-install-h">{e(TOOLS[t]["name"])} {e(OS_ON[o])}</p>'
                       f'<ol>{steps}</ol><p class="a1c-needs">{e(i[o + "_needs"])}</p>{which}</div>')
-    return os_switch() + cards
+    return picks() + cards
+
+def setup():
+    """Setting up the free account, one card per tool (the AI switch shows one). The same steps work in the app or the website."""
+    return "".join(f'<div class="a1c-setup" data-for="{t}"><p class="a1c-install-h">Set up your free {e(TOOLS[t]["name"])} account</p>'
+                   f'<ol>{"".join(f"<li>{e(x)}</li>" for x in SETUP[t]["steps"])}</ol><p class="a1c-needs">{e(SETUP[t]["note"])}</p></div>' for t in TOOL_ORDER)
 
 def install_web():
     return "".join(f'<p class="a1c-tool" data-for="{t}">{e(INSTALL_WEB.format(site=TOOLS[t]["site"], name=TOOLS[t]["name"]))}</p>' for t in TOOL_ORDER)
@@ -383,6 +393,7 @@ EXTRA = {
     "builder": builder,
     "install": install,
     "install_web": install_web,
+    "setup": setup,
     "no_love": no_love,
 }
 

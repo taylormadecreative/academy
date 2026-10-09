@@ -86,6 +86,22 @@ await check('Step 2 starts on Mac on a Mac, and shows exactly one install card: 
   await page.click('[data-pick-tool="gemini"]');
   assert.deepEqual(await shownInstall(page), ['gemini/windows']);
 });
+await check('the AI switch in Step 2 picks the setup card, and stays in step with the one in Start here', async () => {
+  const { page } = await open();
+  await page.waitForSelector('#app:not([hidden])');
+  const setup = () => page.$$eval('.a1c-setup', (els) => els.filter((el) => getComputedStyle(el).display !== 'none').map((el) => el.dataset.for));
+  assert.deepEqual(await setup(), ['claude']);
+  await page.click('#step-laptop [data-pick-tool="chatgpt"]');
+  assert.deepEqual(await setup(), ['chatgpt']);
+  assert.deepEqual(await shownInstall(page), ['chatgpt/mac']);
+  assert.equal(await page.$eval('#start [data-pick-tool="chatgpt"]', (b) => b.getAttribute('aria-pressed')), 'true', 'Start here shows ChatGPT picked too');
+  assert.equal(await page.$eval('#step-laptop [data-pick-tool="claude"]', (b) => b.getAttribute('aria-pressed')), 'false');
+  assert.match(await page.$eval('.a1c-setup[data-for="chatgpt"]', (el) => el.textContent), /No phone number needed/);
+  await page.click('#start [data-pick-tool="claude"]');
+  assert.deepEqual(await setup(), ['claude']);
+  assert.match(await page.$eval('.a1c-setup[data-for="claude"]', (el) => el.textContent), /texts you a code/);
+  assert.equal(await page.$eval('#step-laptop [data-pick-tool="claude"]', (b) => b.getAttribute('aria-pressed')), 'true');
+});
 await check('a Windows laptop opens on the Windows steps by itself', async () => {
   const { page } = await open({ ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36' });
   await page.waitForSelector('#app:not([hidden])');

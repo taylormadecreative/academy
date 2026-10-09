@@ -99,7 +99,7 @@ _MAC_OPEN = ("Open the file you downloaded. It's in your Downloads folder. If a 
 _MAC_RUN = "Open {name} from your Applications folder. If your Mac asks if you're sure you want to open it, click Open."
 _WIN_OPEN = ("Open the file you downloaded. It's in your Downloads folder. If Windows asks if you want to allow this "
              "app to make changes, click Yes.")
-_SIGN_IN = "Sign in, or make your free account."
+_SIGN_IN = "Sign in, or set up your free account. The steps are just below."
 _CHATGPT_CHAT = " If you see Chat and Work at the top, stay on Chat."
 INSTALL = {
     "claude": {
@@ -131,6 +131,33 @@ INSTALL = {
         "windows_needs": "Needs Windows 10 or newer.",
     },
 }
+# Setting up the free account, right after the install card in Step 2. Checked 2026-10-08: Claude = Google or an emailed
+# "Secure link to log in to Claude.ai" (a code if opened on another device), then a required text-message code, and no
+# password (support.claude.com "Log in to your Claude account", "Verify your phone number"); ChatGPT = Sign up with
+# email or Google/Microsoft/Apple, an emailed code, name + birthday, no phone needed (help.openai.com).
+SETUP = {
+    "claude": {
+        "steps": ["Open Claude, in the app or at claude.ai. Click “Continue with Google,” or type your email and click “Continue with email.”",
+                  "Using email? Open the email called “Secure link to log in to Claude.ai” and click the link. Opened it on your phone? It shows a code. Type that code on your laptop.",
+                  "Claude asks for your phone number and texts you a code. Use a regular mobile number. Google Voice and landlines don't work.",
+                  "Type the code and click “Verify code.” You're in."],
+        "note": "There's no password. Next time, Claude emails you a new link. No email? Check your spam folder for one from Anthropic.",
+    },
+    "chatgpt": {
+        "steps": ["Open ChatGPT, in the app or at chatgpt.com, and click Sign up. Use your email, or continue with Google, Microsoft or Apple.",
+                  "Using email? Make a password if it asks, then type the code OpenAI emails you. Don't see it? Check your spam folder.",
+                  "Enter your name and your birthday.",
+                  "If it offers a paid plan, skip it. Free is all you need tonight."],
+        "note": "No phone number needed.",
+    },
+    "gemini": {
+        "steps": ["Open Gemini, in the app or at gemini.google.com, and click Sign in.",
+                  "Pick your Google (Gmail) account, or type your Gmail address and password.",
+                  "That's it. You're in."],
+        "note": "No Gmail? You can make a free Google account at accounts.google.com.",
+    },
+}
+SETUP_CHECKED = "2026-10-08"
 MAC_WHICH = "Not sure which Mac you have? Click the Apple menu at the top left of your screen, then About This Mac."
 INSTALL_WEB = "Can't install it? Use {site} in your web browser. It's the same {name}, with the same account."
 NO_LOVE = {"h": "Don't fall in love with one AI.",
@@ -141,7 +168,7 @@ NO_LOVE = {"h": "Don't fall in love with one AI.",
 START_HERE = [
     {"title": "What a chatbot is", "body": "A website or phone app where you type a question and an AI types back. Claude, ChatGPT and Gemini are three of the best known, and all three are free to start. Tonight I use Claude. Pick yours above and this page changes to match it. You'll see two chats tonight: the room chat is where we all talk to each other, and your AI chat is where you talk to the AI."},
     {"title": "Tonight you'll have three things open", "body": "The room, where you watch me. This page, where you copy the prompts. Your AI chat, where you type to the AI. Two devices is easiest: watch the room on your phone or tablet, and use a laptop for this page and your AI chat. One device works too. Watch me first, then try it yourself in the practice time at 7:34. This page keeps every step, so nothing is lost."},
-    {"title": "Make a free account", "tool": "signup"},
+    {"title": "Make a free account", "tool": "signup", "link": ("#step-laptop", "Every setup step is in Step 2")},
     {"title": "Want it on your laptop?", "body": "Step 2 shows you how to get the app on a Mac or a Windows laptop. Do it now if you're early, or with me at 7:02.",
      "link": ("#step-laptop", "Go to Step 2")},
     {"title": "Stuck on the account?", "body": "Already have Gmail? Pick Gemini above. You sign in with the Google account you already have. Still stuck? Watch the first part and ask in the room chat. Everything tonight works in all three."},
@@ -196,11 +223,11 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "extra": "pulse_before",
      "check": "You said hi in the room chat and tapped your number."},
     {"id": "laptop", "n": 2, "time": "7:02", "min": 4, "title": "Get it on your laptop",
-     "do": ["You can use AI in your web browser, or as an app on your laptop. The app is the same AI with its own icon, so it's always one click away. Pick your computer, and the steps change to match it:",
+     "do": ["You can use AI in your web browser, or as an app on your laptop. The app is the same AI with its own icon, so it's always one click away. Pick your AI and your computer, and the steps change to match:",
             "Start the download now. While it downloads, keep going in your web browser. It's the same account, and your chats show up in both.",
             "On a work laptop? Ask IT before you install anything, and follow your company's AI rules.",
             "On a Chromebook, a tablet or a phone? Use the website, or get the app from your app store."],
-     "flow": [("do", 0), ("extra", "install"), ("do", 1), ("extra", "install_web"), ("do", 2), ("do", 3), ("extra", "no_love")],
+     "flow": [("do", 0), ("extra", "install"), ("do", 1), ("extra", "setup"), ("extra", "install_web"), ("do", 2), ("do", 3), ("extra", "no_love")],
      "check": "Your AI is open on your laptop, in the app or in your web browser, and you're signed in."},
     {"id": "words", "n": 3, "time": "7:06", "min": 6, "title": "What AI actually is",
      "do": ["AI here means a computer program that can read and write a lot like a person. It learned by reading a huge amount of writing.",

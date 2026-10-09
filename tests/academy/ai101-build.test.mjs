@@ -26,6 +26,15 @@ test('Step 2: a Mac | Windows switch and one install card per tool x computer, e
   assert.match(page, /class="a1c-love"/);
   assert.match(page, /<a href="#step-laptop" class="textlink">Go to Step 2<\/a>/);
 });
+test('Step 2 also sets up the account: one card per AI, with the AI switch right there', () => {
+  const step2 = between(page, 'id="step-laptop"', '</li>\n<li class="a1c-step"');
+  assert.match(step2, /class="a1c-picks"/);
+  assert.equal((step2.match(/data-pick-tool="/g) || []).length, 3, 'the AI switch sits in Step 2');
+  for (const t of ['claude', 'chatgpt', 'gemini']) assert.match(step2, new RegExp(`class="a1c-setup" data-for="${t}"`), t);
+  assert.match(step2, /Set up your free Claude account/); assert.match(step2, /Set up your free ChatGPT account/);
+  assert.ok(step2.indexOf('class="a1c-install"') < step2.indexOf('class="a1c-setup"'), 'install first, then setup');
+  assert.match(page, /<a href="#step-laptop" class="textlink">Every setup step is in Step 2<\/a>/);
+});
 test('gate and app both ship hidden; the gate signs in and comes back here', () => {
   assert.match(page, /<div id="gate" class="a1c-gate" hidden>/);
   assert.match(page, /<div id="app" hidden>/);
@@ -37,7 +46,7 @@ test('the DOM contract', () => {
     assert.match(page, new RegExp(`id="${id}"`), id);
   assert.equal((page.match(/data-step="/g) || []).length, 8);
   assert.match(page, /0 of 8 steps done/);
-  assert.equal((page.match(/data-pick-tool="/g) || []).length, 3);
+  assert.equal((page.match(/data-pick-tool="/g) || []).length, 6, 'the AI switch in Start here, and again in Step 2');
   for (const k of ['role', 'task', 'context', 'format', 'example']) assert.match(page, new RegExp(`data-b="${k}"`));
   assert.match(page, /data-pulse="before"/); assert.match(page, /data-pulse="after"/);
   assert.equal((page.match(/name="stars"/g) || []).length, 5);
