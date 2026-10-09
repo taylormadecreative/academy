@@ -925,3 +925,4 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .aw.gp.wv-app .aw-body::before{height:18px;background:linear-gradient(#fff,rgba(255,255,255,0))}
 .aw.gp.wv-app{height:745px}
 .aw.gp.wv-app .aw-thread{gap:10px}
+.kq-right>*{align-self:start} /* each card fits its own words (Never paste ended in empty white) */
