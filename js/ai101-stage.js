@@ -244,6 +244,27 @@ export const TIMELINES = {
     into(tl, el.querySelectorAll('.ck-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
     return tl.addLabel('end');
   },
+  bye(el) { // (10/9, Nelson: "not very creative or colorful") the cards pop in, the phone with the badge rises and a light
+    // sweeps across it; last click: thank you, the follow codes, and confetti in the five part colours off the phone
+    const q = (c) => el.querySelector(c), phone = q('.by-phone-in');
+    const p = local(q('.by-phone'), el), cx = p.x + p.w / 2, cy = p.y + p.h * 0.3; // measure first
+    const COLS = ['#0b40e0', '#a16207', '#0b7a53', '#c2410c', '#7048e8', '#fdc921'];  // Role Task Context Format Example + gold
+    const bits = Array.from({ length: 42 }, (_, i) => {
+      const b = document.createElement('i'); b.className = 'by-bit'; b.style.background = COLS[i % COLS.length]; el.appendChild(b); return b; });
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, phone, { autoAlpha: 0, y: 160, duration: 0.8, ease: 'back.out(1.2)' }, '-=0.35');
+    tl.fromTo(q('.by-shine'), { x: 0 }, { x: p.w * 1.9, duration: 1.1, ease: 'power2.inOut' }); // a light across the badge
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    bits.forEach((b, i) => { // a fixed spread (no Math.random), so back / reduced motion always land the same
+      const a = (i / bits.length) * Math.PI * 2 + (i % 3) * 0.21, r = 240 + ((i * 47) % 260);
+      tl.fromTo(b, { autoAlpha: 1, x: cx, y: cy, rotation: 0, scale: 0.5 },
+        { x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r * 0.85 + 160, rotation: (i % 2 ? 1 : -1) * (200 + i * 23), scale: 1,
+          duration: 1.5, ease: 'power3.out', immediateRender: false }, 'b1')
+        .to(b, { autoAlpha: 0, duration: 0.5 }, 'b1+=1.2');
+    });
+    return tl.addLabel('end');
+  },
   save(el) { // one "About me" card snaps onto every new chat
     const card = el.querySelector('.sv-card'), wins = [...el.querySelectorAll('.sv-win')];
     const c = local(card, el), slots = wins.map((w) => local(w.querySelector('.sv-slot'), el));   // measure first
@@ -405,4 +426,17 @@ document.addEventListener('fullscreenchange', () => { const on = !!document.full
 const start = /^#(\d+)\.(\d+)$/.exec(location.hash); // a reload lands on the slide it left, drawn
 if (start) settle(deck.go(+start[1], +start[2])); else play(deck.pos());
 hud();
+// the last scene's phone shows the real badge: the same drawing as the class page (js/ai101-badge.js), reading "Your name"
+(async () => {
+  const cv = document.querySelector('.by-badge'), data = document.querySelector('.by-data');
+  if (!cv || !data) return;
+  try {
+    const { drawBadge } = await import('./ai101-badge.js' + new URL(import.meta.url).search);
+    const logo = await new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = '/assets/logo-mark.png'; });
+    if (document.fonts && document.fonts.load) await Promise.all(['700 120px "Space Grotesk"', '600 46px "Space Grotesk"', '800 30px Inter', '500 54px Inter', '600 32px Inter']
+      .map((f) => document.fonts.load(f))).catch(() => {});
+    drawBadge(cv.getContext('2d'), { words: JSON.parse(data.textContent), name: cv.dataset.name, logo });
+    cv.dataset.drawn = '1';
+  } catch (e) { console.warn('[stage] badge', e); }
+})();
 window.__stage = { ready: true, pos: () => deck.pos(), go, next, prev, checks, indexOf: (id) => scenes.findIndex((s) => s.id === id) };

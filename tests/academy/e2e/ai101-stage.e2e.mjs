@@ -170,6 +170,18 @@ try {
   assert.deepEqual((await ex()).slice(2), [0, 0, 1], 'check, last beat: then Never paste');
   await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400);
   assert.deepEqual((await ex()).slice(2), [0, 1, 0], 'check, back one: Use search again');
+  // 10/9 (Nelson: the last scene was "not very creative or colorful"): two bright cards, the offer, and the real badge on a
+  // phone, drawn by the class page's own code; the last click's confetti is gone again once it lands
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('bye')));
+  await w.waitForFunction(() => document.querySelector('.by-badge').dataset.drawn === '1', null, { timeout: 8000 });
+  await w.waitForTimeout(2600); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3200);
+  const bye = await w.evaluate(() => { const c = document.querySelector('.by-badge'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let ink = 0; for (let i = 0; i < d.length; i += 4 * 97) if (d[i] + d[i + 1] + d[i + 2] < 600) ink++;
+    return { ink, cards: [...document.querySelectorAll('.by-card, .by-deal-row')].map((x) => +getComputedStyle(x).opacity), bits: document.querySelectorAll('.by-bit').length,
+      bitsShown: [...document.querySelectorAll('.by-bit')].filter((b) => +getComputedStyle(b).opacity > 0.01).length, thanks: +getComputedStyle(document.querySelector('.by-thanks')).opacity }; });
+  assert.ok(bye.ink > 500, 'bye: the badge is drawn on the phone ' + JSON.stringify(bye));
+  assert.deepEqual(bye.cards, [1, 1, 1], 'bye: review, badge and the offer');
+  assert.ok(bye.bits > 30 && bye.bitsShown === 0 && bye.thanks === 1, 'bye, last click: thank you, and the confetti has landed and gone ' + JSON.stringify(bye));
   // a held key (auto-repeat) never skips beats
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5')));
   const before = await w.evaluate(() => window.__stage.pos());

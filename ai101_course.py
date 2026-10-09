@@ -597,6 +597,14 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "bye_h": "Before you go",
     "bye_sub": "If tonight helped, leave a review. It takes a minute.",
     "bye_thanks": "Thank you. See you on the 23rd.",
+    # 10/9 (Nelson: "not very creative or colorful"): the two things to do as bright cards, and their badge on a phone
+    "bye_review_t": "Leave a review",
+    "bye_review_s": "It takes a minute. I read every one.",
+    "bye_badge_t": "Share your badge",
+    "bye_badge_s": "It has your name on it. It's on your class page, right under the review.",
+    "bye_badge_tag": "Tag @taylormade_creative. I'll repost you.",
+    "bye_badge_name": "Your name",
+    "bye_badge_alt": "The AI 101 badge on a phone: your name, took AI 101: Learn to talk to AI, Taylormade Academy",
 }
 
 # The end-of-class badge on the class page (Nelson 10/9: "something cool at the end to show they took my course that they

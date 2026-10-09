@@ -258,12 +258,20 @@ def _scene_next():
 {_qr_card('https://taylormadeacademy.com' + EVENT['next_href'], 'QR code for the Build Your First AI Agent page', 'See the workshop', 'taylormadeacademy.com/agent', 0, 'big')}</div>""")
 
 def _scene_bye():
-    return _sc("bye", 2, "Before you go", f"""<div class="by-grid"><div>
-<h2 class="sc-h" data-beat="0">{e(STAGE['bye_h'])}</h2><p class="sc-sub" data-beat="0">{e(STAGE['bye_sub'])}</p>
-<p class="by-deal" data-beat="0">{e(STAGE_DEAL['bye'])}</p>
+    # 10/9 (Nelson: "not very creative or colorful"): the two things to do as bright cards (1 review, 2 your badge), the
+    # 9 PM offer as a navy strip, and their badge on a phone, drawn by js/ai101-badge.js (the class page's own drawing).
+    # Last click: thank you, the follow codes, and confetti in the five part colours off the phone.
+    review = qr_svg(EVENT['class_url'] + '#review', 'QR code to leave a review')
+    return _sc("bye", 2, "Before you go", f"""<div class="by-grid"><div class="by-left">
+<h2 class="sc-h" data-beat="0">{e(STAGE['bye_h'])}</h2>
+<div class="by-cards"><div class="by-card by-review" data-beat="0"><div><i class="by-n">1</i><b>{e(STAGE['bye_review_t'])}</b><p>{e(STAGE['bye_review_s'])}</p></div><div class="by-qr">{review}</div></div>
+<div class="by-card by-share" data-beat="0"><i class="by-n">2</i><b>{e(STAGE['bye_badge_t'])}</b><p>{e(STAGE['bye_badge_s'])}</p><p class="by-tag">{e(STAGE['bye_badge_tag'])}</p></div>
+<div class="by-deal-row" data-beat="0"><i class="by-n">3</i><p class="by-deal">{e(STAGE_DEAL['bye'])}</p></div></div>
 <p class="by-thanks" data-beat="1">{e(STAGE['bye_thanks'])}</p>
 <div class="so-follow">{IG_QR(1, 'row')}{FB_QR(1, 'row')}</div></div>
-<div class="so-qrs">{_qr_card(EVENT['class_url'] + '#review', 'QR code to leave a review', 'Leave a review', 'on your class page', 0, 'main')}</div></div>""")
+<div class="by-right"><div class="by-disc" aria-hidden="true"></div><div class="by-phone"><div class="by-phone-in">
+<canvas class="by-badge" width="1080" height="1920" role="img" aria-label="{e(STAGE['bye_badge_alt'])}" data-name="{e(STAGE['bye_badge_name'])}"></canvas><i class="by-shine" aria-hidden="true"></i></div></div></div></div>
+<script type="application/json" class="by-data">{_badge_words()}</script>""")
 
 SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove, "strengths": _scene_strengths,
                 "chat": _scene_chat, "words": _scene_words,
@@ -471,6 +479,11 @@ def builder():
             f'<div class="a1c-b-acts"><button class="btn gold sm" type="button" id="bCopy">Copy my prompt</button>'
             f'<button class="btn ghost sm" type="button" id="bClear">Start over</button></div></div></div>')
 
+def _badge_words():
+    """The badge's words and part colours as JSON, for js/ai101-badge.js (the class page, and the stage's last scene)."""
+    return json.dumps({k: v for k, v in BADGE.items() if k.startswith("img_") or k in ("name_needed", "file")}
+                      | {"parts": [{"letter": p["letter"], "key": p["key"]} for p in PARTS]}).replace("</", "<\\/")
+
 def badge_section():
     """The end-of-class badge (Nelson 10/9). The page carries the words and the colours as JSON; js/ai101-badge.js draws
     the 1080x1920 image, unlocks it at the end of class, and wires Share / Save / Add to LinkedIn."""
@@ -478,8 +491,7 @@ def badge_section():
     li = "https://www.linkedin.com/profile/add?" + urllib.parse.urlencode({
         "startTask": "CERTIFICATION_NAME", "name": b["cert_name"], "organizationName": b["org"],
         "issueYear": b["issue_year"], "issueMonth": b["issue_month"], "certUrl": b["cert_url"]})
-    data = json.dumps({k: v for k, v in b.items() if k.startswith("img_") or k in ("name_needed", "file")}
-                      | {"parts": [{"letter": p["letter"], "key": p["key"]} for p in PARTS]}).replace("</", "<\\/")
+    data = _badge_words()
     h = e(b["h"]).replace("badge", '<span class="u-gold">badge</span>', 1)
     return f"""<section class="a1c-sec a1c-badge" id="badge" data-starts="{EVENT['starts_utc']}" data-unlock-min="{b['unlock_min']}"><div class="wrap">
 <span class="kicker">{e(b['kicker'])}</span>

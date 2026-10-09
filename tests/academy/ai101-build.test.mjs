@@ -191,7 +191,7 @@ test('stage: the chat loop line and its arrowhead are their own shapes (no marke
 });
 test('stage: QR codes for the class page, Instagram AND the Facebook group; the next workshop gets one too', () => {
   const qrs = (id) => (between(stage, `data-id="${id}"`, '</section>').match(/class="qr-card/g) || []).length;
-  assert.equal(qrs('soon'), 3); assert.equal(qrs('follow'), 2); assert.equal(qrs('bye'), 3); assert.equal(qrs('next'), 1);
+  assert.equal(qrs('soon'), 3); assert.equal(qrs('follow'), 2); assert.equal(qrs('bye'), 2); assert.match(between(stage, 'data-id="bye"', '</section>'), /class="by-qr"><svg role="img" aria-label="QR code to leave a review"/); // 10/9: the review QR sits in its gold card assert.equal(qrs('next'), 1);
   assert.match(between(stage, 'data-id="bye"', '</section>'), /QR code for the Taylormade Academy Facebook group/);
   assert.doesNotMatch(stage, /and join the Facebook group<\/figcaption>/, 'an Instagram QR never promises the Facebook group');
 });
