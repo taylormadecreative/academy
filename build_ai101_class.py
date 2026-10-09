@@ -433,14 +433,28 @@ def _scene_qa():
 <p class="yt-timer" data-beat="0" data-timer="600">10:00</p><p class="sc-sub" data-beat="0">{e(STAGE['qa_sub'])}</p>""")
 
 def _scene_next():
-    jobs = "".join(f'<li class="nx-job"><i>✓</i>{e(j)}</li>' for j in STAGE["next_jobs"])
-    cards = "".join(f'<div class="nx-card c{i}">{e(STAGE["next_card"])}</div>' for i in range(3))
-    return _sc("next", 3, "What's next", f"""<div class="nx-a"><h2 class="sc-h sm">{e(STAGE['next_h1'])}</h2><div class="nx-stack">{cards}</div></div>
-<div class="nx-b"><h2 class="sc-h sm">{e(STAGE['next_h2'])}</h2><div class="nx-agent"><span class="nx-spin" aria-hidden="true">↻</span><b>Your agent</b></div><ul class="nx-jobs">{jobs}</ul></div>
-<div class="nx-c"><div class="nx-c-t"><p class="sc-kicker">The next workshop</p><h2 class="sc-h">{e(EVENT['next_title'])}</h2>
-<p class="nx-when">{e(EVENT['next_when'])}<br>{e(EVENT['next_where'])}</p><p class="nx-url">taylormadeacademy.com/agent</p>
-<p class="nx-deal"><b>{e(STAGE_DEAL['next_h'])}</b>{e(STAGE_DEAL['next_p'])}</p></div>
-{_qr_card('https://taylormadeacademy.com' + EVENT['next_href'], 'QR code for the Build Your First AI Agent page', 'See the workshop', 'taylormadeacademy.com/agent', 0, 'big')}</div>""")
+    # 10/9 (Nelson: "this is a very bland way to sale my next workshop … the goal is to sell my next workshop and make them want
+    # to come … something magnificent to get those bookings"). Three acts, three clicks (his invitation still fits):
+    # A, the grind: the same three jobs fill a whole week. B, the agent: every card gets checked and flies into the agent, which
+    # reads, decides and acts (the /agent/ page's own example), and a gold ring closes on "Your time, back." C, the offer: the
+    # workshop, what you walk out with, who it was first taught for, $75 struck to $65 (STAGE_DEAL), and the seat QR.
+    S = STAGE
+    days = "".join(f'<div class="nx-day"><p class="nx-dl">{e(d)}</p>' + "".join(f'<p class="nx-t">{e(t)}</p>' for t in S["next_tasks"]) + '</div>'
+                   for d in S["next_days"])
+    steps = "".join(f'<div class="nx-step"><i>{e(k)}</i><span>{e(v)}</span></div>' for k, v in S["next_agent_steps"])
+    outs = "".join(f'<li><i>&#10003;</i>{e(o)}</li>' for o in S["next_outcomes"])
+    ring = ('<svg class="nx-ring" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="180" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="16"/>'
+            '<circle class="nx-arc" cx="200" cy="200" r="180" fill="none" stroke="#fdc921" stroke-width="16" stroke-linecap="round" transform="rotate(-90 200 200)"/></svg>')
+    qr = _qr_card('https://taylormadeacademy.com' + EVENT['next_href'], 'QR code for the Build Your First AI Agent page', S['next_cta'], 'taylormadeacademy.com/agent', 0, 'big nx-qr')
+    return _sc("next", 3, "What's next", f"""<div class="nx-a"><h2 class="sc-h sm">{e(S['next_grind_h'])}</h2>
+<div class="nx-week">{days}</div><p class="nx-note">{e(S['next_week_note'])}</p></div>
+<div class="nx-b"><h2 class="sc-h sm">{e(S['next_agent_h'])}</h2><div class="nx-bg"><div class="nx-agent"><p class="nx-ah"><span class="nx-orb" aria-hidden="true"></span>Your agent</p>{steps}</div>
+<div class="nx-pay">{ring}<p class="nx-rt">{e(S['next_ring'])}</p><p class="nx-chk">{e(S['next_check'])}</p></div></div></div>
+<div class="nx-c"><div class="nx-c-t"><p class="sc-kicker">{e(S['next_kicker'])}</p><h2 class="sc-h nx-title">{e(EVENT['next_title'])}</h2>
+<p class="nx-when">{e(EVENT['next_when'])} · {e(EVENT['next_where'])}</p><ul class="nx-outs">{outs}</ul><p class="nx-cred">{e(S['next_cred'])}</p>
+<div class="nx-price"><span class="nx-was" aria-hidden="true">{e(STAGE_DEAL['was'])}</span><span class="nx-now" aria-hidden="true">{e(STAGE_DEAL['now'])}</span>
+<p class="nx-deal"><b>{e(STAGE_DEAL['next_h'])}</b>{e(STAGE_DEAL['next_p'])}</p></div></div>
+<div class="nx-cta">{qr}</div></div>""")
 
 def _scene_bye():
     # 10/9 (Nelson: "not very creative or colorful"): the two things to do as bright cards (1 review, 2 your badge), the

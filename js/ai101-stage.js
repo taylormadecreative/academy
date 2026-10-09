@@ -410,17 +410,36 @@ export const TIMELINES = {
     into(tl, el.querySelectorAll('.sv-shot'), { autoAlpha: 0, y: 30, scale: 0.96, stagger: 0.12, duration: 0.6, ease: 'expo.out' }, '-=0.1');
     return tl.addLabel('end');
   },
-  next(el) { // redoing the work every chat → an agent doing the job on repeat → the Oct 23 workshop
-    const A = el.querySelector('.nx-a'), B = el.querySelector('.nx-b'), C = el.querySelector('.nx-c');
+  next(el) { // (10/9, Nelson: "make something magnificent to get those bookings") A: the same three jobs pile up across a whole
+    // week; B: every card gets checked and flies into the agent, which reads, decides and acts, and a gold ring closes on
+    // "Your time, back."; C: the workshop, $75 struck to $65, the seat QR breathing gold
+    const q = (c) => el.querySelector(c), A = q('.nx-a'), B = q('.nx-b'), C = q('.nx-c');
+    const cards = [...el.querySelectorAll('.nx-t')], agent = q('.nx-agent'), arc = q('.nx-arc'), L = arc.getTotalLength();
+    const G = local(agent, el), boxes = cards.map((c) => local(c, el));                       // measure first
     const tl = gsap.timeline({ paused: true });
+    tl.fromTo([B, C], { autoAlpha: 0 }, { autoAlpha: 0, duration: 0.01 }, 0);
     tl.addLabel('b0'); into(tl, A.querySelector('.sc-h'), IN);
-    into(tl, A.querySelectorAll('.nx-card'), { autoAlpha: 0, y: 80, stagger: 0.35, duration: 0.45, ease: EASE_OUT });
-    tl.addLabel('b1').to(A, { autoAlpha: 0, y: -30, duration: 0.35 }).fromTo(B, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
-    into(tl, B.querySelector('.sc-h'), IN);
-    into(tl, B.querySelector('.nx-agent'), { scale: 0.7, autoAlpha: 0, duration: 0.5, ease: 'back.out(1.6)' });
-    into(tl, B.querySelectorAll('.nx-job'), { autoAlpha: 0, x: 40, stagger: 0.25, duration: 0.35, ease: EASE_OUT });
-    tl.addLabel('b2').to(B, { autoAlpha: 0, y: -30, duration: 0.35 }).fromTo(C, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
-    into(tl, [...C.children], { ...IN, stagger: 0.1 });
+    into(tl, el.querySelectorAll('.nx-dl'), { autoAlpha: 0, y: -16, stagger: 0.08, duration: 0.35, ease: EASE_OUT }, '-=0.4');
+    into(tl, cards, { autoAlpha: 0, y: -60, rotation: (i) => (i % 2 ? 3 : -3), stagger: 0.06, duration: 0.45, ease: 'back.out(1.5)' }, '-=0.1');
+    into(tl, q('.nx-note'), { autoAlpha: 0, y: 12, duration: 0.4, ease: EASE_OUT }, '-=0.2');
+    tl.addLabel('b1');                                                                          // the agent takes the week
+    tl.to(cards, { backgroundColor: '#d9f3e4', color: '#0b6b3a', duration: 0.2, stagger: 0.025 })
+      .to(cards, { x: (i) => G.x + G.w * 0.5 - (boxes[i].x + boxes[i].w / 2), y: (i) => G.y + G.h * 0.5 - (boxes[i].y + boxes[i].h / 2) + 120,
+        scale: 0.3, autoAlpha: 0, duration: 0.6, stagger: 0.02, ease: 'power2.in' }, '>-0.1')
+      .to([A.querySelector('.sc-h'), q('.nx-note'), ...el.querySelectorAll('.nx-dl')], { autoAlpha: 0, duration: 0.3 }, '<')
+      .fromTo(B, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, immediateRender: false }, '<0.15');
+    into(tl, B.querySelector('.sc-h'), IN, '<');
+    into(tl, agent, { autoAlpha: 0, scale: 0.92, duration: 0.5, ease: EASE_OUT }, '<0.1');
+    into(tl, el.querySelectorAll('.nx-step'), { autoAlpha: 0, x: -24, stagger: 0.28, duration: 0.35, ease: EASE_OUT }, '>-0.1');
+    tl.fromTo(arc, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, '>-0.2');
+    into(tl, q('.nx-rt'), { autoAlpha: 0, scale: 0.85, duration: 0.45, ease: 'back.out(1.6)' }, '>-0.25');
+    into(tl, q('.nx-chk'), { autoAlpha: 0, y: 12, duration: 0.35, ease: EASE_OUT }, '<0.15');
+    tl.addLabel('b2').to(B, { autoAlpha: 0, y: -30, duration: 0.3 }).fromTo(C, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, immediateRender: false });
+    into(tl, [...C.querySelector('.nx-c-t').children].filter((x) => !x.classList.contains('nx-price')), { ...IN, stagger: 0.08 });
+    into(tl, q('.nx-price'), { autoAlpha: 0, y: 20, duration: 0.45, ease: EASE_OUT }, '-=0.2');
+    tl.fromTo(q('.nx-was'), { '--strike': 0 }, { '--strike': 1, duration: 0.35, ease: 'power2.out' })    // $75 struck through
+      .fromTo(q('.nx-now'), { autoAlpha: 0, scale: 1.6 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(1.8)' });
+    into(tl, q('.nx-cta'), { autoAlpha: 0, scale: 0.9, duration: 0.5, ease: 'back.out(1.5)' }, '<');
     return tl.addLabel('end');
   },
 };

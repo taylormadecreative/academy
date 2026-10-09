@@ -583,6 +583,7 @@ STAGE_DEAL = {
     "next_h": "Because you came tonight",
     "next_p": "$65 instead of $75, for 48 hours only. Your link comes by email at 9 PM tonight. It ends Sunday at 9 PM CT.",
     "bye": "Watch your email at 9 PM tonight: your $65 price for October 23, good for 48 hours.",
+    "was": "$75", "now": "$65",  # the same two numbers as next_p, set big on the What's next scene (10/9)
 }
 
 ACCESS = ("The room doesn't have live captions yet. Everything I show on screen is also on this page as text, and you can use "
@@ -712,6 +713,20 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "next_h1": "Doing the same job again and again?",
     "next_jobs": ["Follow-up sent", "Caption written", "Question answered"],
     "next_h2": "An agent saves the whole job. You hand it the details.",
+    # 10/9 (Nelson: "a very bland way to sale my next workshop … make something magnificent to get those bookings"). Three acts,
+    # in his approved Story's words (10/7) and the live /agent/ page's: the grind, the agent, the offer. No invented numbers.
+    "next_grind_h": "Same questions. Same emails. Every single week.",
+    "next_days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "next_tasks": ["Answer “How much is it?”", "Follow up with a new lead", "Write this week's caption"],
+    "next_week_note": "An example week: the same three jobs, fifteen times.",
+    "next_agent_h": "Build it once. It does the job every time.",
+    "next_agent_steps": [("Reads", "New inquiry from Danielle"), ("Decides", "Pricing question, consult not booked"), ("Acts", "Replied and offered Thursday at 2")],
+    "next_ring": "Your time, back.",
+    "next_check": "You check it in a minute, not an afternoon.",
+    "next_kicker": "The next workshop",
+    "next_outcomes": ["Leave with an agent you built, doing a real job for you", "The playbook to build the next one", "No code. No experience needed."],
+    "next_cred": "First taught for the AUC Data Science Initiative and Johns Hopkins.",
+    "next_cta": "Get my seat",
     "bye_h": "Before you go",
     "bye_sub": "If tonight helped, leave a review. It takes a minute.",
     "bye_thanks": "Thank you. See you on the 23rd.",

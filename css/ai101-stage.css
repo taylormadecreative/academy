@@ -738,3 +738,48 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .sc-follow .fo-card{width:360px;box-sizing:border-box}.fo-cover{width:100%}
 .sc-follow .fo-card figcaption b{font-size:25px}.keynote .sc-follow .fo-row{align-items:stretch}
 .fr-now{font-weight:700;color:var(--ink)}.keynote .fr-now{color:#fff}
+
+/* ---- What's next (10/9, Nelson: "make something magnificent to get those bookings"): the grind, the agent, the offer ---- */
+.sc-next .nx-a,.sc-next .nx-b{inset:104px 140px 130px}
+.nx-week{display:grid;grid-template-columns:repeat(5,1fr);gap:22px;margin-top:44px}
+.nx-day{display:grid;gap:14px;align-content:start}
+.nx-dl{margin:0 0 4px;font:700 26px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.nx-t{margin:0;padding:18px 20px;border-radius:16px;background:#fff;color:#0b1430;font:600 24px/1.25 var(--font);box-shadow:0 18px 40px rgba(1,6,24,.4)}
+.nx-note{margin:30px 0 0;font:500 28px/1.3 var(--font);color:#b9c5e8}
+.nx-bg{display:grid;grid-template-columns:860px 1fr;gap:70px;align-items:center;margin-top:46px}
+.nx-agent{padding:34px 38px;border-radius:32px;background:linear-gradient(165deg,#2a5cff 0%,#0b40e0 50%,#0a2a9e 100%);box-shadow:0 0 0 1.5px rgba(255,255,255,.14) inset,0 40px 100px rgba(11,64,224,.45);display:grid;gap:18px}
+.nx-ah{display:flex;align-items:center;gap:16px;margin:0 0 6px;font:700 40px/1 var(--display);color:#fff}
+.nx-orb{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff7c2,#fdc921 55%,#f2b705);box-shadow:0 0 24px rgba(253,201,33,.8);animation:nx-pulse 1.8s ease-in-out infinite}
+@keyframes nx-pulse{50%{transform:scale(.82);box-shadow:0 0 10px rgba(253,201,33,.5)}}
+.nx-step{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;padding:18px 22px;border-radius:18px;background:rgba(255,255,255,.12)}
+.nx-step i{font:700 22px/1 var(--font);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.nx-step span{font:600 30px/1.25 var(--font);color:#fff}
+.nx-pay{position:relative;display:grid;justify-items:center;text-align:center}
+.nx-ring{width:400px;height:400px;display:block}
+.nx-rt{position:absolute;top:0;left:0;right:0;height:400px;display:grid;place-items:center;margin:0;padding:0 80px;font:700 58px/1.05 var(--display);letter-spacing:-.02em;color:#fff}
+.nx-chk{margin:22px 0 0;font:600 30px/1.3 var(--font);color:var(--gold);max-width:520px}
+.sc-next .nx-c{align-items:center;padding:104px 140px 130px}
+.nx-c-t{max-width:1080px}
+.nx-title{font-size:112px!important;line-height:1}
+.sc-next .nx-when{margin:22px 0 0;font:500 34px/1.35 var(--font);color:#c9d3ee}
+.nx-outs{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:14px}
+.nx-outs li{display:flex;align-items:center;gap:16px;font:600 32px/1.25 var(--font);color:#fff}
+.nx-outs i{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;background:var(--gold);color:var(--navy);font-style:normal;font-weight:800}
+.nx-cred{margin:22px 0 0;font:500 26px/1.35 var(--font);color:#9aa8d6}
+.nx-price{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:26px;margin-top:30px}
+.nx-was{position:relative;font:700 64px/1 var(--display);color:#8e9cc8;--strike:1}
+.nx-was::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;height:7px;border-radius:4px;background:#ff6b5a;transform:scaleX(var(--strike));transform-origin:left center;rotate:-8deg}
+.nx-now{font:700 128px/1 var(--display);letter-spacing:-.03em;color:var(--gold);text-shadow:0 0 60px rgba(253,201,33,.35)}
+.sc-next .nx-deal{margin:0;max-width:none;padding:18px 22px;font-size:24px}
+.sc-next .nx-deal b{font-size:28px}
+.nx-cta .qr-card{box-shadow:0 0 0 5px var(--gold),0 0 80px rgba(253,201,33,.35),0 40px 90px rgba(1,6,24,.55);animation:nx-glow 2.4s ease-in-out infinite}
+@keyframes nx-glow{50%{box-shadow:0 0 0 5px var(--gold),0 0 120px rgba(253,201,33,.55),0 40px 90px rgba(1,6,24,.55)}}
+.nx-cta .qr-card figcaption b{font-size:34px;color:#04123a}
+@media (prefers-reduced-motion:reduce){.nx-orb,.nx-cta .qr-card{animation:none}}
+.nx-week{margin-top:56px;gap:22px}.nx-day{gap:18px}
+.nx-dl{font-size:30px;margin-bottom:8px}
+.nx-t{padding:26px 24px;font-size:28px;line-height:1.25;min-height:76px}
+.nx-note{margin-top:40px;font-size:30px}
+.nx-ring{width:440px;height:440px}
+.nx-rt{height:440px;padding:0 105px;font-size:54px;text-wrap:balance}
+.nx-rt{left:50%;right:auto;width:440px;box-sizing:border-box;translate:-50% 0;padding:0 80px}
