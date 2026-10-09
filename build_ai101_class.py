@@ -67,7 +67,7 @@ def _scene_prompt5():
 </section>"""
 
 
-from ai101_course import STAGE, STAGE_DEAL
+from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -93,9 +93,11 @@ def _scene_soon():
 def _scene_title():
     return _sc("title", 2, "AI 101", f"""<div class="ti-lock" data-beat="0"><img src="/assets/logo-mark.webp" alt="" width="84" height="84"><span>Taylormade <b>Academy</b></span></div>
 <p class="sc-kicker" data-beat="0">{e(STAGE['title_kicker'])}</p>
-<h1 class="ti-h" data-beat="0">AI 101.<br>Learn to <span class="u-bar">talk</span> to AI.</h1>
+<h1 class="ti-h" data-beat="0"><span class="ti-line"><span>AI 101.</span></span><span class="ti-line"><span>Learn to <span class="u-bar">talk</span> to AI.</span></span></h1>
 <p class="sc-sub" data-beat="1">{e(STAGE['title_sub'])}</p>
-<p class="ti-tap" data-beat="1">{e(STAGE['title_tap'])}</p>""")
+<p class="ti-tap" data-beat="1">{e(STAGE['title_tap'])}</p>
+<div class="ti-chat" aria-hidden="true"><p class="tc-b you">{e(STAGE['chat_prompt'])}</p><p class="tc-b ai"><i class="tc-dots"><i></i><i></i><i></i></i></p>
+<p class="tc-b ai tc-ans">{e(STAGE['chat_better'].replace('*', '').replace(chr(10), ' '))}</p><p class="tc-b you">{e(STAGE['title_chat_reply'])}</p></div>""")
 
 def _scene_follow():
     return _sc("follow", 2, "Follow me", f"""<h2 class="sc-h" data-beat="0">{e(FOLLOW_LINE)}</h2>
@@ -232,8 +234,16 @@ def _scene_check():
 
 def _scene_save():
     tools = "".join(f'<p><b>{e(TOOLS[t]["name"])}</b><span>{e(TOOLS[t]["save_short"])}</span></p>' for t in TOOL_ORDER)
-    wins = "".join(f'<div class="sv-win"><span class="sv-bar"><i></i><i></i><i></i></span><span class="sv-new">New chat</span><div class="sv-slot"></div></div>' for _ in range(3))
-    return _sc("save", 2, "Save it once", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['save_h'])}</h2>
+    # 10/9 (Nelson: "show the real dashboards on this part but remove my personal information"): a 3rd click turns each
+    # new-chat window into that app's real settings screen (ai101/class/shots/{tool}-save.webp, the class page's own files)
+    def real(t):
+        p = SHOT_DIR / f"{t}-save.webp"
+        src = f"/ai101/class/shots/{p.name}?v={hashlib.md5(p.read_bytes()).hexdigest()[:10]}"
+        return (f'<figure class="sv-shot {t}" data-beat="2"><img src="{e(src)}" alt="{e(SHOTS["save"]["alt"].format(name=TOOLS[t]["name"]))}"'
+                f' loading="lazy" decoding="async"></figure>')
+    wins = "".join(f'<div class="sv-cell"><div class="sv-win"><span class="sv-bar"><i></i><i></i><i></i></span><span class="sv-new">New chat</span><div class="sv-slot"></div></div>{real(t)}</div>'
+                   for t in TOOL_ORDER)
+    return _sc("save", 3, "Save it once", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['save_h'])}</h2>
 <div class="sv-card" data-beat="0">{e(STAGE['save_card'])}</div><div class="sv-wins">{wins}</div>
 <div class="sv-tools" data-beat="1">{tools}</div>""")
 
@@ -306,14 +316,23 @@ def _tag_scenes(markup):
     assert count == len(STAGE_ORDER), f"tagged {count} scenes, expected {len(STAGE_ORDER)}"
     return out
 
+def _rail():
+    """v2 (the keynote look): the class's eight steps along the bottom; the step on screen is gold. Decoration for the
+    room (the corner tag says the same in words), so it's hidden from screen readers. Plus three small brand sparkles."""
+    steps = "".join(f'<li data-n="{i}"><i></i><span>{e(t)}</span></li>' for i, t in enumerate(STAGE_RAIL, 1))
+    spark = '<svg viewBox="0 0 24 24"><path d="M12 0c.8 6.4 5.6 11.2 12 12-6.4.8-11.2 5.6-12 12-.8-6.4-5.6-11.2-12-12C6.4 11.2 11.2 6.4 12 0z"/></svg>'
+    return (f'<div class="stg-rail" id="stgRail" aria-hidden="true"><span class="sr-brand"><img src="/assets/logo-mark.webp" alt="" width="34" height="34">AI 101</span>'
+            f'<ol>{steps}</ol></div><div class="stg-spark" aria-hidden="true">{spark * 3}</div>')
+
 def stage_page(head, ver):
     h = head("AI 101 stage — Taylormade Academy", "Nelson's screen for the AI 101 class.", "/ai101/class/stage/").replace(
         "</head>", f'<meta name="robots" content="noindex">\n<link rel="stylesheet" href="/css/ai101-class.css?v={ver}">\n'
                    f'<link rel="stylesheet" href="/css/ai101-stage.css?v={ver}">\n</head>')
     scenes = _tag_scenes("\n".join(SCENE_MARKUP[s]() for s in STAGE_ORDER))
     page = h + f"""
-<div class="stg" id="stg" data-date="{EVENT['date']}"><div class="stg-canvas" id="canvas">
+<div class="stg" id="stg" data-date="{EVENT['date']}"><div class="stg-canvas keynote" id="canvas">
 {scenes}
+{_rail()}
 <div class="stg-tag" id="stgTag" hidden><div class="st-try" id="stgTry" hidden><b>Try it</b><span id="stgTryText"></span></div><div class="st-pill"><span class="st-k">Class page</span><b id="stgTagN"></b><span id="stgTagT"></span></div></div>
 </div></div>
 <div class="stg-hud" id="hud">{HUD_BUTTONS}<span id="hudClock" aria-hidden="true"></span></div>

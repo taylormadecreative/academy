@@ -1,4 +1,4 @@
-// tests/academy/e2e/ai101-stage.e2e.mjs — run: python3 build_site.py && node tests/academy/e2e/ai101-stage.e2e.mjs
+// tests/academy/e2e/ai101-stage.e2e.mjs — run: python3 build_site.py && node tests/academy/e2e/ai101-stage.e2e.mjs (and again with STAGE_LOOK=v1)
 // Serves the worktree, opens /ai101/class/stage/ signed in (fake supabase), and checks the engine:
 // scaling, keys, rapid presses never leave a half-drawn scene, reduced motion shows the end state.
 import { chromium } from './pw.mjs';
@@ -19,7 +19,7 @@ async function page(opts = {}) {
     { session: 'session' in opts ? opts.session : { user: { id: 'u1', email: 'a@b.c', user_metadata: { full_name: 'Test Person' } } }, authError: !!opts.authError });
   const p = await ctx.newPage();
   p.on('pageerror', (e) => fails.push('pageerror: ' + e.message));
-  await p.goto(`http://localhost:${PORT}/ai101/class/stage/` + (opts.hash || ''));
+  await p.goto(`http://localhost:${PORT}/ai101/class/stage/` + (process.env.STAGE_LOOK ? '?look=' + process.env.STAGE_LOOK : '') + (opts.hash || '')); // STAGE_LOOK=v1: the original look
   await p.waitForFunction(() => window.__stage && window.__stage.ready);
   return p;
 }

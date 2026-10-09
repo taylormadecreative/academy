@@ -339,3 +339,163 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .by-badge{display:block;width:100%;height:auto;aspect-ratio:1080/1920}
 .by-shine{position:absolute;top:-10%;bottom:-10%;left:-60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);pointer-events:none}
 .by-bit{position:absolute;left:0;top:0;width:18px;height:10px;border-radius:3px;opacity:0;visibility:hidden;pointer-events:none;z-index:2}
+
+/* ============================================================================================================
+   THE KEYNOTE LOOK (10/9, Nelson: "redesign the whole stage … so when people see it they are blown away").
+   The page ships with .keynote on the canvas (the default from 10/9); ?look=v1 takes it off. A night stage (navy, a soft light from the top right, a faint dot grid),
+   white type at keynote sizes, white cards that float, gold as the one accent, the class's eight steps along the
+   bottom. Everything above stays the original look, untouched, as the ?look=v1 fallback.
+   ============================================================================================================ */
+.stg-rail,.stg-spark,.ti-chat{display:none}
+.stg-canvas.keynote{background:radial-gradient(1500px 1000px at 85% -15%,#143a9a 0%,rgba(20,58,154,0) 62%),radial-gradient(1100px 800px at -10% 115%,#0b2a7a 0%,rgba(11,42,122,0) 60%),#04123a;color:#fff}
+.keynote::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.075) 1.3px,transparent 1.5px);background-size:40px 40px;-webkit-mask-image:radial-gradient(1300px 900px at 55% 35%,#000 20%,transparent 80%);mask-image:radial-gradient(1300px 900px at 55% 35%,#000 20%,transparent 80%)}
+.keynote .scene{--ink:#eef2ff;--ink-2:#b9c5e8;--muted:#8e9cc8;--hair:rgba(255,255,255,.14);color:#fff;padding:104px 140px 140px;background:none}
+.keynote .scene.leaving{display:block;pointer-events:none}
+/* type: one scale, keynote sizes, tight tracking, white with gold for the one word that matters */
+.keynote .sc-h{color:#fff;font-size:108px;letter-spacing:-.045em;line-height:1}
+.keynote .sc-h.sm{font-size:86px}
+.keynote .sc-kicker{color:var(--gold)}
+.keynote .sc-sub{color:#b9c5e8}
+/* white cards float on the night: no hairlines (they vanish in a video call), a deep soft shadow instead */
+.keynote :is(.qr-card,.ch-node:not(.ch-ai),.p5-card,.lp-switch,.lp-steps li,.sg-col,.bl-card.color,.st-ans,.wn-costs,.wn-rules,.ck-claim,.ck-safe,.sv-win,.yt-parts li,.nx-card){--ink:#0b1430;--ink-2:#33415b;--muted:#66718f;--hair:#e4e9f1;background:#fff;border-color:transparent;color:var(--ink);box-shadow:0 2px 0 rgba(255,255,255,.06) inset,0 40px 90px rgba(1,6,24,.55),0 10px 24px rgba(1,6,24,.35)}
+/* the corner tag, glass on the night */
+.keynote .st-pill{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.16)}
+.keynote .st-try{box-shadow:0 14px 40px rgba(253,201,33,.25)}
+/* the eight steps along the bottom */
+.keynote .stg-rail{display:flex;align-items:flex-end;gap:36px;position:absolute;left:140px;right:440px;bottom:30px;z-index:2;pointer-events:none}
+.sr-brand{display:flex;align-items:center;gap:12px;flex:none;font:700 22px/1 var(--display);letter-spacing:-.01em;color:rgba(255,255,255,.85)}
+.stg-rail ol{flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin:0;padding:0;list-style:none}
+.stg-rail li{display:grid;gap:9px}
+.stg-rail li::before{content:"";height:5px;border-radius:3px;background:rgba(255,255,255,.14);grid-area:1/1}
+.stg-rail li i{grid-area:1/1;height:5px;border-radius:3px;background:transparent}
+.stg-rail li span{font:700 14px/1 var(--font);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap}
+.stg-rail li.done i{background:rgba(255,255,255,.62)}.stg-rail li.done span{color:rgba(255,255,255,.62)}
+.stg-rail li.now i{background:var(--gold)}.stg-rail li.now span{color:var(--gold)}
+/* three small brand sparkles that breathe (the brand allows a few, sparingly) */
+.keynote .stg-spark{display:block;position:absolute;inset:0;pointer-events:none;z-index:1}
+.stg-spark svg{position:absolute;width:26px;height:26px;fill:var(--gold);opacity:.75;animation:kn-twinkle 4.2s ease-in-out infinite}
+.stg-spark svg:nth-child(1){left:1838px;top:300px}
+.stg-spark svg:nth-child(2){left:62px;top:250px;width:16px;height:16px;fill:#7ea0ff;animation-delay:-1.6s}
+.stg-spark svg:nth-child(3){left:72px;top:930px;width:18px;height:18px;animation-delay:-2.8s}
+@keyframes kn-twinkle{0%,100%{transform:scale(.7) rotate(0);opacity:.35}50%{transform:scale(1) rotate(45deg);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.stg-spark svg{animation:none}}
+
+/* ---- title ---- */
+.keynote .sc-title{background:none}
+.keynote .sc-title.on{display:grid;grid-template-columns:1fr 600px;grid-template-rows:auto auto auto auto 1fr;column-gap:60px;align-content:center}
+.keynote .sc-title>*:not(.ti-chat){grid-column:1}
+.keynote .ti-lock{font-size:30px;margin-bottom:46px}.keynote .ti-lock img{width:60px;height:60px}
+.keynote .ti-h{font-size:200px;line-height:.98;letter-spacing:-.055em}
+.ti-line{display:block}
+.keynote .ti-line{overflow:hidden;padding:.04em 0 .1em;margin:-.04em 0 -.1em}
+.keynote .ti-line>span{display:inline-block}
+.keynote .ti-line:last-child{font-size:.6em;margin-top:.12em;letter-spacing:-.04em}
+.keynote .sc-title .sc-sub{max-width:1000px}
+.keynote .ti-chat{display:flex;flex-direction:column;gap:18px;grid-column:2;grid-row:1/-1;align-self:center;transform:perspective(2000px) rotateY(-7deg) rotateX(2deg);transform-origin:left center}
+.tc-b{margin:0;max-width:470px;padding:22px 28px;border-radius:30px;font:600 28px/1.35 var(--font);box-shadow:0 30px 70px rgba(1,6,24,.5)}
+.tc-b.you{align-self:flex-end;background:var(--gold);color:var(--navy);border-bottom-right-radius:8px}
+.tc-b.ai{align-self:flex-start;background:#fff;color:#0b1430;font-weight:500;border-bottom-left-radius:8px}
+.tc-dots{display:flex;gap:10px;padding:6px 2px}.tc-dots i{width:14px;height:14px;border-radius:50%;background:#9aa6c4;animation:kn-dot 1.2s ease-in-out infinite}
+.tc-dots i:nth-child(2){animation-delay:.15s}.tc-dots i:nth-child(3){animation-delay:.3s}
+@keyframes kn-dot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-8px);opacity:1}}
+@media (prefers-reduced-motion:reduce){.tc-dots i{animation:none}}
+
+/* ---- how a chat works ---- */
+.keynote .ch-row{margin-top:64px}
+.keynote .ch-node{border:0;border-radius:36px}
+.keynote .ch-node b{color:#04123a}
+.keynote .ch-ai{background:linear-gradient(165deg,#2a5cff 0%,#0b40e0 48%,#0a2a9e 100%);box-shadow:0 0 0 1.5px rgba(255,255,255,.14) inset,0 40px 100px rgba(11,64,224,.5),0 0 120px rgba(42,92,255,.25)}
+.keynote .ch-ai b{color:#fff}.keynote .ch-ai span{color:var(--gold)}
+.keynote .ch-then{color:#66718f}
+.keynote .ch-line{stroke:var(--gold)}.keynote .ch-head{fill:var(--gold)}
+.keynote .ch-loop-l{color:var(--gold)}
+
+/* ---- the 5-part prompt ---- */
+.keynote .p5-chip{background:rgba(255,255,255,.06);color:#fff;border-width:2.5px;box-shadow:0 14px 34px rgba(1,6,24,.35)}
+.keynote .p5-card{border:0;border-radius:40px;padding:48px 56px}
+.keynote .p5-foot{color:#fff}
+
+/* ---- every other scene on the night (10/9). Light cards keep dark ink (the :is() list above); type on the night is
+   white; the one blue accent per scene becomes gold or a lighter blue that reads on navy. ---- */
+.keynote :is(.so-count,.tk-count b,.yt-timer){color:var(--gold)}
+.keynote .yt-timer.done{color:#ff8a5b}
+.keynote .so-room{background:rgba(255,255,255,.07);color:#fff;border-left-color:var(--gold)}
+/* follow: the line on the left, the two codes big on the right */
+.keynote .sc-follow.on{display:grid;grid-template-columns:1fr auto;gap:90px;align-items:center}
+.keynote .sc-follow .fo-row{margin-top:0}
+.keynote .fo-fb{background:rgba(255,255,255,.07);color:#c9d3ee}.keynote .fo-fb b{color:#fff}
+/* laptop: the switch and the steps are white; the "no app" card glows blue */
+.keynote .lp-knob{background:#04123a}
+.keynote .lp-also{color:#b9c5e8}
+.keynote .lp-web{background:linear-gradient(165deg,#2a5cff 0%,#0b40e0 50%,#0a2a9e 100%);box-shadow:0 0 0 1.5px rgba(255,255,255,.14) inset,0 40px 100px rgba(11,64,224,.45)}
+.keynote .lp-web p{color:#e3eaff}
+/* strengths */
+.keynote .sg-n{color:#04123a}
+.keynote .sg-foot{color:#b9c5e8}
+/* the words: the rings glow on the night */
+.keynote .r1{background:rgba(126,160,255,.16);color:#9db7ff;box-shadow:inset 0 0 0 2px rgba(126,160,255,.35)}
+.keynote .r2{background:rgba(126,160,255,.22);color:#fff}
+.keynote .r3{background:#0b40e0;color:var(--gold);box-shadow:0 20px 60px rgba(11,64,224,.5)}
+.keynote .wd-pages em{color:#fff}
+.keynote .wd-def b{color:#fff}
+.keynote .wd-def.d3{color:#9db7ff}
+.keynote .wd-warn{background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 2px rgba(253,201,33,.55)}
+/* bland vs 5-part: the bland one is dim, the 5-part one is lit */
+.keynote .bl-card.gray{background:rgba(255,255,255,.08);filter:none}
+.keynote .bl-card.gray .bl-q{color:#c9d3ee}.keynote .bl-card.gray .bl-bar{background:rgba(255,255,255,.22)}.keynote .bl-card.gray .bl-note{color:#8e9cc8}
+.keynote .bl-card.color{border:0;box-shadow:0 0 0 3px var(--gold),0 40px 100px rgba(1,6,24,.55)}
+.keynote .bl-note{color:#04123a}
+/* steer: your follow-ups are blue bubbles (navy would vanish on the night) */
+.keynote .st-me{background:#0b40e0;box-shadow:0 14px 34px rgba(1,6,24,.4)}
+.keynote .st-ans{border:0}
+.keynote .st-note{color:#8e9cc8}
+/* tokens */
+.keynote .tk-sentence{color:#fff}
+.keynote .tk-count{color:#b9c5e8}
+/* context window */
+.keynote .wn-chat{border-color:#5b83ff;background:rgba(255,255,255,.03)}
+.keynote .wn-msg.you{background:#0b40e0}
+.keynote .wn-meter-l{color:var(--gold)}
+.keynote :is(.wn-n,.wn-line,.wn-tip){color:#fff}
+.keynote .wn-num{color:#b9c5e8}
+.keynote .wn-bar{background:rgba(255,255,255,.12)}
+.keynote .wn-ex{color:#8e9cc8}
+/* next word */
+.keynote .ck-fill{color:var(--gold)}
+.keynote .ck-bar{background:#5b83ff}
+.keynote :is(.ck-how,.ck-why,.ck-right .ck-search){background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12),0 30px 80px rgba(1,6,24,.4)}
+.keynote .ck-claim span{color:#4a5675}
+/* save */
+.keynote .sv-tools b{color:#fff}.keynote .sv-tools p{color:#b9c5e8}
+/* the last scene */
+.keynote .by-deal-row{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.14)}
+.keynote .sc-bye .by-thanks{color:#fff}
+.keynote .by-disc{background:radial-gradient(circle,rgba(42,92,255,.55) 0%,rgba(42,92,255,0) 70%)}
+.keynote .by-card{box-shadow:0 30px 80px rgba(1,6,24,.5)}
+/* save (10/9): the three real settings screens take the windows' place on the 3rd click (both looks) */
+.sv-cell{display:grid}.sv-cell>*{grid-area:1/1}
+.sv-shot{margin:0;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 18px 50px rgba(4,18,58,.18);line-height:0}
+.sv-shot img{display:block;width:100%;height:320px;object-fit:cover;object-position:50% 0}
+.sv-shot.claude img{object-fit:contain;object-position:50% 50%}
+.sv-shot.gemini{background:#1b1c1d}.sv-shot.gemini img{object-position:50% 45%}
+/* keynote fixes from the full-deck pass: nothing runs into the step rail, nothing sits in a corner */
+.stg-rail.off{display:none}
+.keynote .sc-soon{padding-top:80px;padding-bottom:80px}
+.keynote .sc-follow.on{grid-template-columns:760px auto}
+.keynote .st-note{bottom:104px}
+.keynote .wn-ex{bottom:100px}
+.keynote .sc-check{padding-top:96px}
+.keynote .sc-check .sc-h{font-size:74px}
+.keynote .sc-check .ck-claim{padding-top:22px;padding-bottom:22px}
+.keynote .sc-check .ck-list{margin-top:14px}
+.keynote .sc-qa.on{align-items:center;text-align:center}
+.keynote .sc-qa .sc-sub{margin-left:auto;margin-right:auto}
+.keynote .sv-shot{box-shadow:0 40px 90px rgba(1,6,24,.55),0 0 0 3px rgba(253,201,33,.0)}
+.keynote .sc-soon{padding-top:96px;padding-bottom:70px}
+.keynote .sc-soon .so-grid{height:auto;min-height:100%;align-content:center}
+.keynote .sc-soon .so-count{font-size:132px;margin-top:22px}
+.keynote .sc-follow .fo-row{gap:36px}
+.keynote .sc-follow .qr-card.big .qr{width:300px;height:300px}
+.keynote .sc-soon .sc-h{font-size:84px}
+.keynote .sc-soon .qr-card.row .qr{width:120px;height:120px}
+.keynote .sc-soon .so-grid{row-gap:34px}

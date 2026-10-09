@@ -19,6 +19,11 @@ const CHECKS = [ // the run of show's hard time checks (CT): the clock turns gol
 ].map((c) => ({ ...c, date: DAY }));
 
 const canvas = document.getElementById('canvas');
+// (10/9, Nelson: "redesign the whole stage … so people are blown away") the keynote look is the default (the page ships
+// with .keynote, so it never flashes white); ?look=v1 is the original, kept as the fallback. Set before any timeline is
+// built: they measure layout.
+const KEYNOTE = new URLSearchParams(location.search).get('look') !== 'v1';
+canvas.classList.toggle('keynote', KEYNOTE);
 const scenes = [...canvas.querySelectorAll('.scene')].map((el) => ({ el, id: el.dataset.id, beats: +el.dataset.beats || 1, tl: null }));
 const deck = createDeck(scenes.map((s) => s.beats));
 const checks = CHECKS.map((c) => ({ ...c, scene: scenes.findIndex((s) => s.id === c.id) })).filter((c) => c.scene >= 0);
@@ -42,20 +47,37 @@ function into(tl, targets, from, pos) {
 const colorOf = (el) => getComputedStyle(el).getPropertyValue('--c').trim();
 const EASE_OUT = 'power4.out';     // ≈ cubic-bezier(.23,1,.32,1): strong ease-out for entrances
 const EASE_MOVE = 'power2.inOut';  // things that travel across the screen (the gold bar)
-const IN = { autoAlpha: 0, y: 24, duration: 0.5, ease: EASE_OUT }; // the house entrance
+const IN = KEYNOTE ? { autoAlpha: 0, y: 40, scale: 0.97, duration: 0.75, ease: 'expo.out' } // the keynote entrance: further, longer, softer landing
+  : { autoAlpha: 0, y: 24, duration: 0.5, ease: EASE_OUT }; // the house entrance
 const K = () => parseFloat(canvas.style.getPropertyValue('--k')) || 1;
 function local(el, root) { // a box in canvas pixels (1920x1080), whatever the window's scale
   const a = el.getBoundingClientRect(), b = root.getBoundingClientRect(), k = K();
   return { x: (a.left - b.left) / k, y: (a.top - b.top) / k, w: a.width / k, h: a.height / k };
 }
+const HEADS = '.sc-h,.ti-h,.nl-h';
 function appearBeat(tl, el, b) { // everything marked data-beat="b" fades up; gold bars inside sweep in
-  const items = el.querySelectorAll(`[data-beat="${b}"]`);
-  if (items.length) into(tl, items, { ...IN, stagger: 0.08 });
+  let items = el.querySelectorAll(`[data-beat="${b}"]`), heads = [];
+  if (KEYNOTE) { // keynote: a headline wipes down out of nothing as it rises (its own clip), then the rest lands
+    heads = [...items].filter((x) => x.matches(HEADS) && !x.querySelector('.ti-line'));
+    if (heads.length) tl.fromTo(heads, { autoAlpha: 0, y: 50, clipPath: 'inset(-10% -5% 100% -5%)' },
+      { autoAlpha: 1, y: 0, clipPath: 'inset(-10% -5% -30% -5%)', duration: 0.9, ease: 'expo.out', stagger: 0.1 });
+    items = [...items].filter((x) => !heads.includes(x));
+  }
+  if (items.length) into(tl, items, { ...IN, stagger: 0.08 }, heads.length ? '<0.15' : undefined); // with its headline, not after it
   const bars = [...items].flatMap((x) => [...x.querySelectorAll('.u-bar')]);
   if (bars.length) into(tl, bars, { '--bar': 0, duration: 0.45, ease: EASE_MOVE }, '-=0.2');
   return tl;
 }
 export const TIMELINES = {
+  title(el) { // keynote: each headline line rises out of its own mask, then the little chat on the right writes itself
+    const tl = gsap.timeline({ paused: true }).addLabel('b0'); appearBeat(tl, el, 0);
+    if (KEYNOTE) {
+      tl.fromTo(el.querySelectorAll('.ti-line > span'), { yPercent: 115 }, { yPercent: 0, duration: 1, stagger: 0.14, ease: 'expo.out' }, 0.05);
+      into(tl, el.querySelectorAll('.ti-chat .tc-b'), { autoAlpha: 0, y: 34, scale: 0.94, duration: 0.7, stagger: 0.42, ease: 'expo.out' }, 0.55);
+    }
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    return tl.addLabel('end');
+  },
   laptop(el) { // Mac steps → the switch slides to Windows and the steps swap → "No app? The website works the same."
     const q = (c) => el.querySelector(c), mac = q('.lp-steps.mac'), win = q('.lp-steps.win');
     const SLIDE = 300; // one .lp-opt wide (css/ai101-stage.css)
@@ -276,6 +298,9 @@ export const TIMELINES = {
     clones.forEach((x, i) => tl.to(x, { autoAlpha: 1, duration: 0.01 }, i ? '>-0.4' : '>-0.2')
       .to(x, { left: slots[i].x, top: slots[i].y, width: slots[i].w, fontSize: 17, duration: 0.5, ease: EASE_MOVE }));
     into(tl, el.querySelectorAll('[data-beat="1"]'), IN, '-=0.3'); // the tool names land with the last card, not after it
+    // (10/9) 3rd click: each window gives way to that app's real settings screen, the box to paste into ringed in gold
+    tl.addLabel('b2').fromTo([...wins, ...clones], { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.3, immediateRender: false });
+    into(tl, el.querySelectorAll('.sv-shot'), { autoAlpha: 0, y: 30, scale: 0.96, stagger: 0.12, duration: 0.6, ease: 'expo.out' }, '-=0.1');
     return tl.addLabel('end');
   },
   next(el) { // redoing the work every chat → an agent doing the job on repeat → the Oct 23 workshop
@@ -302,13 +327,41 @@ const labelAfter = (tl, beat) => (('b' + (beat + 1)) in tl.labels ? 'b' + (beat 
 
 /* ---- playback ---- */
 function finishRunning() { if (running) { running.progress(1); running = null; } }
-function show(index) {
+function show(index, animate = false) {
   if (shown === index) return;
+  const was = shown >= 0 ? scenes[shown].el : null, el = scenes[index].el;
+  scenes.forEach((s) => { // a fast clicker can start a new change mid-transition: land the last one first
+    if (!s.el.classList.contains('leaving') && !gsap.isTweening(s.el)) return;
+    gsap.killTweensOf(s.el); s.el.classList.remove('leaving'); gsap.set(s.el, { clearProps: 'opacity,visibility,transform,filter' });
+  });
   scenes.forEach((s, i) => s.el.classList.toggle('on', i === index));
-  shown = index; startTimers(scenes[index].el, false);
+  if (KEYNOTE && animate && was && !REDUCED) { // keynote: the old scene slides off and softens; the new one arrives sharp
+    was.classList.add('leaving');
+    gsap.fromTo(was, { autoAlpha: 1, x: 0, filter: 'blur(0px)' }, { autoAlpha: 0, x: -90, filter: 'blur(6px)', duration: 0.32, ease: 'power2.inOut',
+      onComplete: () => { was.classList.remove('leaving'); gsap.set(was, { clearProps: 'opacity,visibility,transform,filter' }); } });
+    gsap.fromTo(el, { autoAlpha: 0, x: 110, filter: 'blur(8px)' },
+      { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.75, delay: 0.08, ease: 'expo.out', clearProps: 'opacity,visibility,transform,filter' });
+  }
+  shown = index; startTimers(el, false); rail(index, animate);
+}
+
+/* ---- keynote: the eight steps along the bottom. The step on screen is gold; the ones behind you are white. ---- */
+const railEl = document.getElementById('stgRail');
+const LAST_STEP = scenes.findIndex((s) => s.id === 'yourturn');
+let railAt = -1;
+function rail(index, animate) {
+  if (!railEl || !KEYNOTE) return;
+  const m = /(\d+)/.exec(scenes[index].el.dataset.tagN || ''), n = m ? +m[1] : (index > LAST_STEP ? 9 : 0);
+  if (n === railAt) return;
+  railAt = n;
+  railEl.classList.toggle('off', n === 0); // before class (the countdown) there's no step yet
+  railEl.querySelectorAll('li').forEach((li) => {
+    const k = +li.dataset.n; li.classList.toggle('done', k < n); li.classList.toggle('now', k === n);
+    if (k === n && animate && !REDUCED) gsap.fromTo(li.querySelector('i'), { scaleX: 0 }, { scaleX: 1, duration: 0.9, delay: 0.25, ease: 'expo.out', transformOrigin: 'left center' });
+  });
 }
 function play(p) { // animate the beat p.beat of scene p.scene
-  finishRunning(); show(p.scene);
+  finishRunning(); show(p.scene, true);
   const tl = timeline(scenes[p.scene]);
   const from = 'b' + p.beat, to = labelAfter(tl, p.beat);
   if (REDUCED) { tl.seek(to, false); return; }

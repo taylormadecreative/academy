@@ -498,6 +498,7 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "title_kicker": "Free live class · Taylormade Academy",
     "title_sub": "Tonight: get it on your laptop, how to ask, the words everyone uses, and your first great prompt.",
     "title_tap": "On your class page: tap how confident you feel, 1 to 5.",
+    "title_chat_reply": "Make it shorter.",  # the keynote title's little chat (the How a chat works example)
     "laptop_h": "Get it on your laptop.",
     "laptop_mac": ["Go to claude.ai/download", "Open the file. Drag Claude into Applications.", "Open Claude and sign in."],
     "laptop_win": ["Go to claude.ai/download", "Open the file. If Windows asks, click Yes.", "Open Claude from the Start menu and sign in."],
@@ -646,6 +647,7 @@ BADGE = {
 # watch first, then do. Scenes not listed (soon) show no tag.
 STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "bland": 4,
               "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
+STAGE_RAIL = ["Say hi", "Your laptop", "What AI is", "5 parts", "Steer it", "Check it", "Save it", "Your turn"]  # v2's bottom rail, Steps 1-8
 STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Review, then your badge"}
 STAGE_TRY = {
     "title": "Tap your 1 to 5. Say hi in the room chat.",
