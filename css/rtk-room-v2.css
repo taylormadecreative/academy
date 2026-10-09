@@ -118,6 +118,11 @@
 .r2-cc-btn[aria-pressed="true"]{background:#fdc921;color:#04123a;border-color:#fdc921}
 /* Share my screen reads as on while it is on; the Reconnecting strip sits over the video, gold so it is seen, never in the way of a tap */
 .r2-share[aria-pressed="true"]{background:#fdc921;color:#04123a;border-color:#fdc921}
+/* Pop out (10/9): gold while the screen floats; the source video is a 2 px, near-invisible copy that must stay
+   in view (a browser pauses a muted video it thinks nobody sees) */
+.r2-pip[aria-pressed="true"]{background:#fdc921;color:#04123a;border-color:#fdc921}
+.r2-pip[hidden]{display:none}
+.r2-pip-src{position:fixed;right:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1}
 .r2-reconnect{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;max-width:calc(100% - 32px);background:#fdc921;color:#04123a;font:700 14px Inter,system-ui,sans-serif;padding:10px 18px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r2-reconnect[hidden]{display:none}
 .r2-panel{border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;min-height:0;overflow:hidden;background:#0a1733}

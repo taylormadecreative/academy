@@ -704,6 +704,7 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
              quickly … i always had to go to tools"); still in Tools for everyone. Effects and Captions live in Tools only
              (9/16 "simplify it"); Captions stays in the DOM, hidden, because the rest of the room reads its pressed state -->
         <button type="button" class="r2-btn r2-share" aria-pressed="false"${host && CAN_SHARE_SCREEN ? '' : ' hidden'}>Share my screen</button>
+        <button type="button" class="r2-btn r2-pip" aria-pressed="false" hidden>Pop out screen</button>
         <button type="button" class="r2-btn r2-tools">Tools</button>
         <button type="button" class="r2-btn r2-cc-btn" aria-pressed="false" hidden>Captions</button>
         <button type="button" class="r2-leave">Leave</button>
@@ -997,6 +998,53 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     syncShare();
   }
   if (shareBtn) shareBtn.addEventListener('click', toggleShare);
+
+  /* Pop out (Nelson 10/9: students "look at what i'm sharing … and also follow along on the page"): while someone ELSE
+     shares, a student can float that screen in the browser's picture-in-picture window, which stays on top while they
+     use the class page or their AI chat. The button shows only where the browser can do it (Chrome, Edge, Safari on a
+     laptop; phones vary). A 2 px muted copy of the shared track stays ready so the tap itself opens the window (a
+     browser only allows it straight from the tap). A gap under 6 s (the host re-sharing) keeps the window open. */
+  const pipBtn = q('.r2-pip');
+  const pipVideo = document.createElement('video');
+  pipVideo.className = 'r2-pip-src'; pipVideo.muted = true; pipVideo.playsInline = true; pipVideo.setAttribute('playsinline', ''); pipVideo.setAttribute('aria-hidden', 'true');
+  node.appendChild(pipVideo);
+  const pipCan = () => { try { return (!!document.pictureInPictureEnabled && typeof pipVideo.requestPictureInPicture === 'function') || (typeof pipVideo.webkitSupportsPresentationMode === 'function' && pipVideo.webkitSupportsPresentationMode('picture-in-picture')); } catch (e) { return false; } };
+  const inPip = () => document.pictureInPictureElement === pipVideo || pipVideo.webkitPresentationMode === 'picture-in-picture';
+  let pipTrack = null, pipLastSeen = 0, pipTold = false;
+  const sharedScreen = () => {
+    try { for (const p of m.participants.joined.toArray()) { const t = p.screenShareEnabled && p.screenShareTracks && p.screenShareTracks.video; if (t && t.readyState !== 'ended') return { t, name: p.name }; } } catch (e) {}
+    return null;
+  };
+  async function pipExit() { try { if (document.pictureInPictureElement === pipVideo) await document.exitPictureInPicture(); else if (pipVideo.webkitPresentationMode === 'picture-in-picture') pipVideo.webkitSetPresentationMode('inline'); } catch (e) {} }
+  function pipSync() {
+    const s = host ? null : sharedScreen();
+    if (s) {
+      pipLastSeen = Date.now();
+      if (s.t !== pipTrack) { pipTrack = s.t; pipVideo.srcObject = new MediaStream([s.t]); pipVideo.play().catch(() => {}); }
+      if (!pipTold && pipCan()) { pipTold = true; toast((s.name || copy.capFirst(words.host)) + ' is sharing. Tap Pop out screen to keep it on top while you follow along in another tab.', 8000); }
+    } else if (pipTrack && Date.now() - pipLastSeen > 6000) {
+      pipTrack = null; if (inPip()) pipExit(); pipVideo.srcObject = null;
+    }
+    if (pipBtn) { const on = inPip(); pipBtn.hidden = !pipTrack || !pipCan(); pipBtn.textContent = on ? 'Close pop-out' : 'Pop out screen'; pipBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  }
+  async function togglePip() {
+    if (inPip()) { await pipExit(); pipSync(); return; }
+    try {
+      if (document.pictureInPictureEnabled && typeof pipVideo.requestPictureInPicture === 'function') await pipVideo.requestPictureInPicture();
+      else pipVideo.webkitSetPresentationMode('picture-in-picture');
+    } catch (e) { console.warn('[pip]', e); toast('This browser couldn’t pop the screen out. Switch back to this tab to watch.', 6000); }
+    pipSync();
+  }
+  if (pipBtn) pipBtn.addEventListener('click', togglePip);
+  ['enterpictureinpicture', 'leavepictureinpicture', 'webkitpresentationmodechanged'].forEach((ev) => pipVideo.addEventListener(ev, pipSync));
+  const pipTimer = setInterval(pipSync, 1000);
+  /* the two buttons a student should know (Nelson 10/9: "let the student know about the pop up button and the question
+     button"): once, a few seconds after they're in. Pop out is named only where this browser can do it, and not again
+     if the share tip above already said it. */
+  if (!host && !handsAt.off) setTimeout(() => {
+    if (!node.isConnected) return;
+    toast('Have a question? Tap Ask a question to get in line.' + (pipCan() && !pipTold ? ' When a screen is shared, Pop out screen keeps it on top while you follow along in another tab.' : ''), 10000);
+  }, 3000);
   const fxBtn = q('.r2-fx-btn'); if (fxBtn) fxBtn.addEventListener('click', () => openSheet('Effects', effectsPane()));
   const toolsPane = () => {
     const p = el(`<div class="r2-tools">
@@ -1108,6 +1156,6 @@ function classRoom({ meeting, ui, host, isRoom, title, hands: handsAt, words, fa
     });
     return ctx;
   }
-  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); try { if (sg) sg.stop(); } catch (e) {} try { if (res) res.stop(); } catch (e) {} (hooks.plugins || []).forEach(p => { try { p.stop && p.stop(); } catch (e) {} }); hooks.plugins = []; }
+  function destroy() { try { handsChan && sb.removeChannel(handsChan); } catch (e) {} clearInterval(ccTick); clearInterval(handsTimer); clearInterval(pipTimer); pipExit(); try { pipVideo.srcObject = null; pipVideo.remove(); } catch (e) {} try { if (sg) sg.stop(); } catch (e) {} try { if (res) res.stop(); } catch (e) {} (hooks.plugins || []).forEach(p => { try { p.stop && p.stop(); } catch (e) {} }); hooks.plugins = []; }
   return { node, bind, destroy, setRecording, toast, reconnecting, hooks, pluginCtx };
 }

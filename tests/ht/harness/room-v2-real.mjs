@@ -162,4 +162,46 @@ export async function realModuleScenarios(b, ok) {
     await p.waitForSelector('.r2-files-head', { timeout: 5000 }).catch(() => {});
     ok('real room: a host sees Add a file with the room wording', /everyone in the room/.test(await p.evaluate(() => (document.querySelector('.r2-file-add') || {}).textContent || '')), await p.evaluate(() => (document.querySelector('.r2-files') || {}).innerHTML || '').then((h) => h.slice(0, 200)));
     ok('real room Files: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+
+  /* R5 Pop out (10/9): a STUDENT gets "Pop out screen" only while someone else shares; the tap opens picture-in-picture;
+     a short gap (the host re-sharing) keeps it open; a stopped share closes it and hides the button */
+  { const { p, errs } = await open();
+    await p.unroute(TEST_BASE_URL + '/__fn/ea-rtk-join');
+    await p.route(TEST_BASE_URL + '/__fn/ea-rtk-join', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'tok-s', meeting_id: 'meet-1', preset: 'ht-class-guest', host: false, name: 'Sam' }) }));
+    await p.evaluate(() => { window.__mountReal('student'); });
+    await p.waitForSelector('.r2-enter'); await p.click('.r2-enter');
+    await p.waitForSelector('.r2-bar'); await p.waitForFunction(() => window.__states.includes('joined'));
+    const pipShown = () => p.$eval('.r2-bar .r2-pip', (b) => !b.hidden && getComputedStyle(b).display !== 'none');
+    await p.waitForTimeout(1200);
+    ok('real pop out: no share, no button', !(await pipShown()));
+    await p.waitForTimeout(2200);
+    ok('real pop out: the welcome tip names Ask a question and Pop out screen', /Have a question\? Tap Ask a question to get in line\. When a screen is shared, Pop out screen/.test(await p.evaluate(() => document.body.textContent)));
+    await p.evaluate(() => {
+      const c = document.createElement('canvas'); c.width = 320; c.height = 180; const g = c.getContext('2d');
+      setInterval(() => { g.fillStyle = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0'); g.fillRect(0, 0, 320, 180); }, 100);
+      const t = c.captureStream(10).getVideoTracks()[0]; window.__shareTrack = t;
+      window.__kit.meetings[0].participants.joined.toArray = () => [{ id: 'p-gray', name: 'Dr. Gray', customParticipantId: 'u-gray', isPinned: false, audioEnabled: false, videoEnabled: false, screenShareEnabled: true, screenShareTracks: { video: t } }];
+    });
+    await p.waitForTimeout(1500);
+    ok('real pop out: a share shows Pop out screen', await pipShown());
+    ok('real pop out: the share tip tells them, once', /Dr\. Gray is sharing\. Tap Pop out screen/.test(await p.evaluate(() => document.body.textContent)));
+    ok('real pop out: the source video carries the shared track', await p.evaluate(() => { const v = document.querySelector('.r2-pip-src'); return !!(v && v.srcObject && v.srcObject.getVideoTracks()[0] === window.__shareTrack); }));
+    await p.click('.r2-bar .r2-pip'); await p.waitForTimeout(800);
+    const inPip = await p.evaluate(() => document.pictureInPictureElement === document.querySelector('.r2-pip-src'));
+    ok('real pop out: the tap opens picture-in-picture; the button reads Close pop-out', inPip && (await p.textContent('.r2-bar .r2-pip')).trim() === 'Close pop-out', 'inPip=' + inPip);
+    await p.evaluate(() => { window.__kit.meetings[0].participants.joined.toArray = () => []; });
+    await p.waitForTimeout(2000);
+    ok('real pop out: a short gap (re-share) keeps the window open', await p.evaluate(() => !!document.pictureInPictureElement));
+    await p.waitForTimeout(6000);
+    ok('real pop out: after the gap the window closes and the button hides', !(await p.evaluate(() => !!document.pictureInPictureElement)) && !(await pipShown()));
+    ok('real pop out: no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
+  /* the host never gets Pop out, even while someone shares */
+  { const { p, errs } = await open();
+    await enter(p);
+    await p.evaluate(() => { const c = document.createElement('canvas'); const t = c.captureStream(5).getVideoTracks()[0]; window.__kit.meetings[0].participants.joined.toArray = () => [{ id: 'p-s', name: 'Sam', customParticipantId: 'u-s', isPinned: false, screenShareEnabled: true, screenShareTracks: { video: t } }]; });
+    await p.waitForTimeout(1500);
+    ok('real pop out: never on the host bar', await p.$eval('.r2-bar .r2-pip', (b) => b.hidden));
+    await p.waitForTimeout(2000);
+    ok('real pop out: the host never gets the student tip', !/Have a question\? Tap Ask a question/.test(await p.evaluate(() => document.body.textContent)));
+    ok('real pop out (host): no page errors', errs.length === 0, errs.join(' | ')); await p.close(); }
 }
