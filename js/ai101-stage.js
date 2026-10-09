@@ -73,7 +73,7 @@ export const TIMELINES = {
     const tl = gsap.timeline({ paused: true }).addLabel('b0'); appearBeat(tl, el, 0);
     if (KEYNOTE) {
       tl.fromTo(el.querySelectorAll('.ti-line > span'), { yPercent: 115 }, { yPercent: 0, duration: 1, stagger: 0.14, ease: 'expo.out' }, 0.05);
-      into(tl, el.querySelectorAll('.ti-chat .tc-b'), { autoAlpha: 0, y: 34, scale: 0.94, duration: 0.7, stagger: 0.42, ease: 'expo.out' }, 0.55);
+      into(tl, el.querySelector('.ti-me'), { autoAlpha: 0, y: 70, duration: 1.1, ease: 'expo.out' }, 0.35); // 10/9: Nelson rises in beside his title
     }
     tl.addLabel('b1'); appearBeat(tl, el, 1);
     return tl.addLabel('end');
@@ -271,6 +271,20 @@ export const TIMELINES = {
       .fromTo(agi, { autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, transformOrigin: '50% 50%', duration: 0.6, ease: 'back.out(1.8)', immediateRender: false }, 'b2+=0.45');
     appearBeat(tl, el, 2);
     tl.addLabel('b3'); appearBeat(tl, el, 3);
+    return tl.addLabel('end');
+  },
+  words2026(el) { // (10/9, Nelson: "google says these are terms everyone should know in 2026") a word storm: all 16 blow in from
+    // all over and land in their three groups; then the four a beginner meets first light up gold, with a line each; then the tip
+    const chips = [...el.querySelectorAll('.w6-chip')], pick = chips.filter((c) => c.classList.contains('pick')), rest = chips.filter((c) => !pick.includes(c));
+    const rnd = (i, k) => (Math.sin((i + 1) * k) * 10000) % 1; // a fixed scatter in -1..1, so every rebuild blows the same storm
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, chips, { autoAlpha: 0, x: (i) => rnd(i, 12.9898) * 520, y: (i) => rnd(i, 78.233) * 320, rotation: (i) => rnd(i, 37.719) * 28,
+      scale: 0.6, duration: 0.75, stagger: 0.035, ease: 'expo.out' }, '<0.15');
+    tl.addLabel('b1').to(rest, { opacity: 0.4, duration: 0.4 }, 'b1')
+      .to(pick, { backgroundColor: '#fdc921', borderColor: '#fdc921', color: '#04123a', scale: 1.06, duration: 0.45, stagger: 0.08, ease: 'back.out(2)' }, 'b1');
+    appearBeat(tl, el, 1);
+    tl.addLabel('b2'); appearBeat(tl, el, 2);
     return tl.addLabel('end');
   },
   tokens(el) { // the sentence breaks into the pieces an AI counts

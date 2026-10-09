@@ -254,3 +254,16 @@ test("frontier models and AGI (Nelson 10/9): honest words, no dates or predictio
   assert.ok(C.WORDS_STEP2.includes('Frontier model') && C.WORDS_STEP2.includes('AGI'));
   assert.equal(C.STAGE_STEP.frontier, 3);
 });
+test("the 2026 words (Nelson 10/9): his 16 new ones, in plain English, none repeating a word the class teaches", () => {
+  const G = C.GLOSSARY, terms = G.groups.flatMap(([, items]) => items.map(([t]) => t));
+  assert.equal(terms.length, 16);
+  const taught = new Set(C.WORDS_FULL.map(([w]) => w.toLowerCase()));
+  assert.deepEqual(terms.filter((t) => taught.has(t.split(' (')[0].toLowerCase())), [], 'no repeats of the class words');
+  assert.ok(G.pick.every((p) => terms.includes(p) && G.stage_short[p]), 'the stage lights up four real terms, each with its line');
+  for (const [, items] of G.groups) for (const [t, d] of items) {
+    assert.ok(d.length <= 140, `${t}: one short sentence or two`);
+    assert.doesNotMatch(d, /\u2014|vector(s)? of|high-dimensional|parameter|neural network/i, `${t}: plain English, no em dash`);
+  }
+  assert.match(G.stage_tip, /Explain \[the word\] like I'm brand new to it/);
+  assert.equal(C.STAGE_STEP.words2026, 3);
+});

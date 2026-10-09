@@ -657,3 +657,31 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .keynote .fr-rule{color:#fff}
 .fr-art{display:block;width:1080px;height:720px;border-radius:36px;box-shadow:0 40px 100px rgba(1,6,24,.5)}
 .keynote .sc-frontier .sc-h{font-size:88px}
+/* ---- Words you'll hear in 2026 (10/9): a word storm that lands in three groups; the four to meet first light up gold ---- */
+.w6-grid{display:grid;grid-template-columns:1000px 580px;gap:60px;margin-top:40px;align-items:start}
+.w6-cloud{display:grid;gap:26px}
+.w6-g{margin:0 0 12px;font:800 22px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.w6-chips{display:flex;flex-wrap:wrap;gap:12px}
+.w6-chip{display:inline-block;padding:12px 22px;border-radius:999px;background:#f1f4fb;border:2px solid #d7def0;color:var(--navy);font:600 27px/1.1 var(--display);will-change:transform}
+.w6-side{display:grid;gap:18px;padding-top:6px}
+.w6-pick-h{margin:0;font:700 30px/1.2 var(--display);color:var(--ink)}
+.w6-def{margin:0;font:500 28px/1.35 var(--font);color:var(--ink-2)}
+.w6-def b{font-family:var(--display);color:var(--ink)}
+.w6-tip{margin:10px 0 0;padding:18px 22px;border-radius:20px;background:var(--gold);color:#04123a;font:700 28px/1.3 var(--display)}
+.keynote .w6-g{color:#9db7ff}
+.keynote .g1 .w6-g{color:var(--gold)}
+.keynote .g2 .w6-g{color:#d5e0ff}
+.keynote .w6-chip{background:rgba(255,255,255,.07);border-color:rgba(157,183,255,.45);color:#fff}
+.keynote .g1 .w6-chip{border-color:rgba(253,201,33,.5)}
+.keynote .g2 .w6-chip{border-color:rgba(255,255,255,.3)}
+.keynote .w6-pick-h{color:#fff}
+.keynote .w6-def{color:#b9c5e8}.keynote .w6-def b{color:var(--gold)}
+.keynote .sc-words2026 .sc-h{font-size:88px}
+/* ---- Nelson on the title (10/9, "the image of me is nowhere to be found on the stage"): his real photo, well cropped, on a clean
+   light card; no effect on the photo itself (no fade, scrim or glow: feedback_avoid_ai_tell_elements). The cut at his hips sits on
+   the card's bottom edge, and the card stays above the step rail (y <= 1000) ---- */
+.ti-me{position:absolute;right:130px;bottom:80px;width:574px;height:860px;border-radius:36px;overflow:hidden;background:#eef2ff;box-shadow:0 40px 100px rgba(1,6,24,.45);pointer-events:none}
+.ti-me img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom center;padding-top:28px;box-sizing:border-box}
+.keynote .sc-title.on{grid-template-columns:1fr 600px}
+.stg-canvas:not(.keynote) .ti-me{right:60px;width:520px;height:790px}
+.stg-canvas:not(.keynote) .sc-title .ti-h{font-size:128px} /* v1: "Learn to talk to AI." ends before the card */

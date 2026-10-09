@@ -380,7 +380,7 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
             "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("extra", "models"), ("extra", "frontier")],
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("extra", "models"), ("extra", "frontier"), ("extra", "glossary")],
      "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
@@ -752,7 +752,7 @@ BADGE = {
 # Every teaching scene names the class page step it goes with, so anyone who looked away can find their place. On the
 # scenes where people do the step themselves, a "Try it" line shows once the scene is fully on screen (its last beat):
 # watch first, then do. Scenes not listed (soon) show no tag.
-STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "models": 3, "frontier": 3, "bland": 4,
+STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "models": 3, "frontier": 3, "words2026": 3, "bland": 4,
               "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
 STAGE_RAIL = ["Say hi", "Your laptop", "What AI is", "5 parts", "Steer it", "Check it", "Save it", "Your turn"]  # v2's bottom rail, Steps 1-8
 STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Review, then your badge"}

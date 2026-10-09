@@ -69,7 +69,7 @@ def _scene_prompt5():
 </section>"""
 
 
-from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD, FRONTIER
+from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD, FRONTIER, GLOSSARY
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -98,8 +98,9 @@ def _scene_title():
 <h1 class="ti-h" data-beat="0"><span class="ti-line"><span>AI 101.</span></span><span class="ti-line"><span>Learn to <span class="u-bar">talk</span> to AI.</span></span></h1>
 <p class="sc-sub" data-beat="1">{e(STAGE['title_sub'])}</p>
 <p class="ti-tap" data-beat="1">{e(STAGE['title_tap'])}</p>
-<div class="ti-chat" aria-hidden="true"><p class="tc-b you">{e(STAGE['chat_prompt'])}</p><p class="tc-b ai"><i class="tc-dots"><i></i><i></i><i></i></i></p>
-<p class="tc-b ai tc-ans">{e(STAGE['chat_better'].replace('*', '').replace(chr(10), ' '))}</p><p class="tc-b you">{e(STAGE['title_chat_reply'])}</p></div>""")
+<div class="ti-me"><img src="/assets/agent-nelson.webp" alt="Nelson Taylor in his navy and gold Taylormade Creative jacket" width="715" height="1100" decoding="async"></div>""")
+# 10/9 (Nelson: "the image of me is nowhere to be found on the stage"): his photo on the title, where he says who he is. It takes
+# the spot the little chat had; the chat itself is scene 7.
 
 def _scene_follow():
     return _sc("follow", 2, "Follow me", f"""<h2 class="sc-h" data-beat="0">{e(FOLLOW_LINE)}</h2>
@@ -320,6 +321,20 @@ def _scene_frontier():
 <p class="fr-rule" data-beat="3">{e(F['rule'])}</p></div>
 {_mountain("A mountain at night. AI models climb it. A gold line marks the frontier, the highest any AI has climbed today, and it keeps rising. The peak above the clouds is labeled AGI, with a question mark.")}</div>""")
 
+def _scene_words2026():
+    """(10/9, Nelson: "google says these are terms everyone should know in 2026") a word storm: all 16 blow in and land in
+    their three groups; then the four a beginner meets first light up gold, with one line each; then the tip."""
+    G = GLOSSARY
+    short = lambda t: t.split(" (")[0]
+    groups = "".join(f'<div class="w6-grp g{i}"><p class="w6-g" data-beat="0">{e(g)}</p><div class="w6-chips">'
+                     + "".join(f'<span class="w6-chip{" pick" if t in G["pick"] else ""}">{e(short(t))}</span>' for t, _ in items) + "</div></div>"
+                     for i, (g, items) in enumerate(G["groups"]))
+    defs = "".join(f'<p class="w6-def" data-beat="1"><b>{e(short(t))}</b> {e(G["stage_short"][t])}</p>' for t in G["pick"])
+    return _sc("words2026", 3, "Words you'll hear in 2026", f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(G['stage_h'])}</h2>
+<p class="sc-sub" data-beat="0">{e(G['stage_sub'])}</p>
+<div class="w6-grid"><div class="w6-cloud">{groups}</div>
+<div class="w6-side"><p class="w6-pick-h" data-beat="1">{e(G['stage_pick_h'])}</p>{defs}<p class="w6-tip" data-beat="2">{e(G['stage_tip'])}</p></div></div>""")
+
 def _scene_tokens():
     return _sc("tokens", 2, "Tokens", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['tokens_h'])}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['tokens_sub'])}</p>
@@ -411,10 +426,10 @@ def _scene_bye():
 <script type="application/json" class="by-data">{_badge_words()}</script>""")
 
 SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove, "strengths": _scene_strengths,
-                "chat": _scene_chat, "words": _scene_words, "models": _scene_models, "frontier": _scene_frontier,
+                "chat": _scene_chat, "words": _scene_words, "models": _scene_models, "frontier": _scene_frontier, "words2026": _scene_words2026,
                 "bland": _scene_bland, "prompt5": _scene_prompt5, "steer": _scene_steer, "tokens": _scene_tokens, "window": _scene_window,
                 "check": _scene_check, "save": _scene_save, "yourturn": _scene_yourturn, "qa": _scene_qa, "next": _scene_next, "bye": _scene_bye}
-STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "models", "frontier", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
+STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "models", "frontier", "words2026", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
 # Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").
@@ -573,6 +588,15 @@ def frontier():
             f'<div><dt>{e(F["agi_k"])}</dt><dd>{e(F["agi"])} {e(F["agi_note"])}</dd></div></dl>'
             f'<p class="a1c-models-rule">{e(F["rule"])}</p></section>')
 
+def glossary():
+    """After the frontier card: the 2026 words Nelson found (GLOSSARY), folded closed so it never crowds the class."""
+    G = GLOSSARY
+    n = sum(len(items) for _, items in G["groups"])
+    groups = "".join(f'<div class="a1c-gloss-g"><h4>{e(g)}</h4><dl>' + "".join(f"<div><dt>{e(t)}</dt><dd>{e(d)}</dd></div>" for t, d in items)
+                     + "</dl></div>" for g, items in G["groups"])
+    return (f'<details class="a1c-gloss"><summary>{e(G["h"])} <span>{n} words</span></summary><div class="a1c-gloss-b">'
+            f'<p>{e(G["sub"])}</p>{groups}<p class="a1c-gloss-tip">{marked(G["stage_tip"])}</p></div></details>')
+
 def no_love():
     return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
 
@@ -705,6 +729,7 @@ EXTRA = {
     "no_love": no_love,
     "models": models,
     "frontier": frontier,
+    "glossary": glossary,
 }
 
 def _flow(s, x):

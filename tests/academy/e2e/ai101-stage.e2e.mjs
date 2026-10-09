@@ -64,7 +64,7 @@ try {
   // walk the whole deck: every scene, every beat, then check each scene's [data-beat] elements are fully drawn
   const w = await page();
   const n = await w.evaluate(() => document.querySelectorAll('.scene').length);
-  assert.equal(n, 21, 'twenty-one scenes (10/8: + laptop, nolove, strengths; 10/9: + models, frontier)');
+  assert.equal(n, 22, 'twenty-two scenes (10/8: + laptop, nolove, strengths; 10/9: + models, frontier, words2026)');
   for (let s = 0; s < n; s++) {
     await w.evaluate((i) => window.__stage.go(i), s);
     const beats = await w.evaluate((i) => +document.querySelectorAll('.scene')[i].dataset.beats, s);
@@ -150,6 +150,15 @@ try {
   assert.equal(new Set(f3.ys).size, 1, 'frontier, end: Claude, ChatGPT and Gemini level at the line ' + JSON.stringify(f3.ys));
   assert.deepEqual([f3.agi, f3.ghost], [1, 1], 'frontier, end: AGI? shows, and last year\'s best stay behind');
   assert.ok(f3.cloud < 0.6, 'frontier, end: the clouds parted');
+  // 10/9 (Nelson: "google says these are terms everyone should know in 2026"): the word storm lands all 16 in three groups;
+  // by the end the four to meet first are gold and the rest are dimmed but still there
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('words2026')));
+  await w.waitForTimeout(2000); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1600); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1600);
+  const w6 = await w.evaluate(() => [...document.querySelectorAll('.sc-words2026 .w6-chip')].map((c) => ({ t: c.textContent, pick: c.classList.contains('pick'),
+    op: +getComputedStyle(c).opacity, gold: getComputedStyle(c).backgroundColor === 'rgb(253, 201, 33)' })));
+  assert.equal(w6.length, 16, 'words2026: all 16');
+  assert.deepEqual(w6.filter((c) => c.gold).map((c) => c.t), ['Multimodal', 'Prompt engineering', 'Vibe coding', 'RAG'], 'words2026: the four to meet first are gold');
+  assert.ok(w6.filter((c) => !c.pick).every((c) => c.op > 0.3 && c.op < 0.5), 'words2026: the rest are dimmed, still readable');
   // 10/8 (Nelson): "when it said write it as if my grandmother is talking nothing changed". The grandmother answer must SOUND like
   // a grandmother talking (not "my grandmother's recipe", which is the grandchild), and stay short after "Make it shorter".
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));

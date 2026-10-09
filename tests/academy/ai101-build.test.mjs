@@ -259,3 +259,14 @@ test("Step 3 ends with Frontier models and AGI: the stage's mountain at its end 
   assert.match(f, /Use the newest one\. Ignore the hype\. Check its work\./);
   assert.match(step3, /<dt>Frontier model<\/dt>[\s\S]*<dt>AGI<\/dt>/, 'both words are in the word list too');
 });
+test('the 2026 words fold closed after the frontier card: 16 terms in three groups, and the ask-your-AI tip', () => {
+  const step3 = between(page, 'id="step-words"', '<li class="a1c-step"');
+  const g = between(step3, '<details class="a1c-gloss">', '</details>');
+  assert.ok(g, 'in Step 3, closed by default (no open attribute)');
+  assert.ok(step3.indexOf('class="a1c-gloss"') > step3.indexOf('class="a1c-frontier"'), 'after the frontier card');
+  assert.match(g, /<summary>More AI words for 2026 <span>16 words<\/span><\/summary>/);
+  assert.equal((g.match(/<dt>/g) || []).length, 16);
+  assert.deepEqual([...g.matchAll(/<h4>([^<]+)<\/h4>/g)].map((m) => m[1]), ['The big ideas', 'Working with AI', 'Under the hood']);
+  assert.match(g, /<dt>MCP \(Model Context Protocol\)<\/dt><dd>An open standard that lets AI apps plug into other tools and data\./);
+  assert.match(g, /Explain <mark class="ph">\[the word\]<\/mark> like I&#x27;m brand new to it/);
+});
