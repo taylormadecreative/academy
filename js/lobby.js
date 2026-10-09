@@ -167,24 +167,24 @@ export const LESSONS = [
   { v: 'tokens', h: 'AI reads in {u}tokens{/u}.', why: 'A token is a small piece of text: a short word, part of a longer word, or a mark like a period. AI reads, writes and counts in tokens.' },
   { v: 'window', h: 'It re-reads the {u}whole{/u} chat.', why: 'Every reply re-reads your whole chat. A longer chat is slower, uses up your limit faster and costs more. When it’s full, it can forget the start.' },
   { v: 'prompt', h: 'Vague in, {u}vague{/u} out.', why: 'Say who it’s for, what matters and how it should sound. A good prompt has 5 parts, and they’re the difference between these two answers.' },
-  { v: 'stat', h: '{u}2 out of 3{/u} leaders won’t hire without AI skills.', why: '66% of business leaders say they wouldn’t hire someone without AI skills. (Microsoft and LinkedIn, 2024 Work Trend Index.) That’s why you’re here.' },
+  { v: 'stat', h: '{u}2 out of 3{/u} leaders won’t hire without AI skills.', why: '66% of business leaders say they wouldn’t hire someone without AI skills. That’s why you’re here.', src: 'Microsoft and LinkedIn, 2024 Work Trend Index', logos: ['microsoft.svg', 'linkedin.svg'], url: 'https://blogs.microsoft.com/blog/2024/05/08/microsoft-and-linkedin-release-the-2024-work-trend-index-on-the-state-of-ai-at-work/' },
   { v: 'apps', h: 'Learn the {u}skill{/u}, not the app.', why: 'Don’t fall in love with one AI. A good prompt works in all of them, and each one has a strong suit.' },
 ];
 /* Real numbers, checked at the source on 10/9/26 (OpenAI via TechCrunch 2/27/26; Pew 2026 appendix; PwC 2026
    AI Jobs Barometer press release; Microsoft + LinkedIn 2024 Work Trend Index; WEF Future of Jobs 2025; Reuters on
    the UBS note, 2/2/23). Every slide names its source on screen. */
 export const STATS = [
-  { v: 's-weekly', viz: 'count', to: 900, unit: 'million', h: 'people use ChatGPT every {u}week{/u}.', why: 'ChatGPT launched on November 30, 2022. A little over three years later, it’s part of everyday life.', src: 'OpenAI, February 2026' },
-  { v: 's-work', viz: 'dots', to: 75, unit: '%', h: 'of knowledge workers already use AI at {u}work{/u}.', why: 'Knowledge workers are people who work with information: email, documents, spreadsheets. And 78% of the ones using AI bring their own tools.', src: 'Microsoft and LinkedIn, 2024 Work Trend Index' },
-  { v: 's-pay', viz: 'bars', to: 62, unit: '%', h: 'more pay, on average, for people with AI {u}skills{/u}.', why: 'For every dollar a job pays without AI skills, the same kind of job asking for AI skills pays about $1.62. It was 57% the year before.', src: 'PwC, 2026 Global AI Jobs Barometer', bars: [['Without AI skills', 100, '$1.00'], ['With AI skills', 162, '$1.62']] },
-  { v: 's-adults', viz: 'dots', to: 44, unit: '%', h: 'of U.S. adults say they use {u}ChatGPT{/u}.', why: 'Almost half of adults already use it. Knowing how to talk to it is becoming a basic skill, like email.', src: 'Pew Research Center, February 2026 survey' },
-  { v: 's-jobs', viz: 'bars', to: 170, unit: 'million', h: 'new jobs by 2030, while 92 million {u}go away{/u}.', why: 'AI and machine learning specialists are among the fastest-growing jobs. Employers say the skills gap is their biggest barrier to change.', src: 'World Economic Forum, Future of Jobs Report 2025', bars: [['New jobs', 170, '170M'], ['Jobs that go away', 92, '92M']] },
-  { v: 's-fast', viz: 'count', to: 100, unit: 'million', h: 'users in about two {u}months{/u}.', why: 'That was ChatGPT’s start in 2023. At the time, analysts called it the fastest-growing consumer app ever.', src: 'UBS study, reported by Reuters, February 2023' },
+  { v: 's-weekly', viz: 'count', to: 900, unit: 'million', h: 'people use ChatGPT every {u}week{/u}.', why: 'ChatGPT launched on November 30, 2022. A little over three years later, it’s part of everyday life.', src: 'OpenAI, February 2026', logos: ['openai.svg'], url: 'https://techcrunch.com/2026/02/27/chatgpt-reaches-900m-weekly-active-users' },
+  { v: 's-work', viz: 'dots', to: 75, unit: '%', h: 'of knowledge workers already use AI at {u}work{/u}.', why: 'Knowledge workers are people who work with information: email, documents, spreadsheets. And 78% of the ones using AI bring their own tools.', src: 'Microsoft and LinkedIn, 2024 Work Trend Index', logos: ['microsoft.svg', 'linkedin.svg'], url: 'https://blogs.microsoft.com/blog/2024/05/08/microsoft-and-linkedin-release-the-2024-work-trend-index-on-the-state-of-ai-at-work/' },
+  { v: 's-pay', viz: 'bars', to: 62, unit: '%', h: 'more pay, on average, for people with AI {u}skills{/u}.', why: 'For every dollar a job pays without AI skills, the same kind of job asking for AI skills pays about $1.62. It was 57% the year before.', src: 'PwC, 2026 Global AI Jobs Barometer', logos: ['pwc.svg'], url: 'https://www.pwc.com/gx/en/news-room/press-releases/2026/pwc-2026-ai-jobs-barometer.html', bars: [['Without AI skills', 100, '$1.00'], ['With AI skills', 162, '$1.62']] },
+  { v: 's-adults', viz: 'dots', to: 44, unit: '%', h: 'of U.S. adults say they use {u}ChatGPT{/u}.', why: 'Almost half of adults already use it. Knowing how to talk to it is becoming a basic skill, like email.', src: 'Pew Research Center, February 2026 survey', logos: ['pew.svg'], url: 'https://www.pewresearch.org/internet/2026/06/17/americans-and-ai-appendix-detailed-chart-and-tables/' },
+  { v: 's-jobs', viz: 'bars', to: 170, unit: 'million', h: 'new jobs by 2030, while 92 million {u}go away{/u}.', why: 'AI and machine learning specialists are among the fastest-growing jobs. Employers say the skills gap is their biggest barrier to change.', src: 'World Economic Forum, Future of Jobs Report 2025', logos: ['wef.svg'], url: 'https://www.weforum.org/press/2025/01/future-of-jobs-report-2025-78-million-new-job-opportunities-by-2030-but-urgent-upskilling-needed-to-prepare-workforces/', bars: [['New jobs', 170, '170M'], ['Jobs that go away', 92, '92M']] },
+  { v: 's-fast', viz: 'count', to: 100, unit: 'million', h: 'users in about two {u}months{/u}.', why: 'That was ChatGPT’s start in 2023. A UBS study called it the fastest-growing consumer app in history.', src: 'UBS study, reported by Reuters, February 2023', logos: ['reuters.svg'], url: 'https://www.reuters.com/technology/chatgpt-sets-record-fastest-growing-user-base-analyst-note-2023-02-01/' },
 ];
 export const FACTS = [
-  { v: 'f-1955', year: 1955, h: 'The name “artificial {u}intelligence{/u}” dates to 1955.', why: 'John McCarthy and three colleagues coined it in a proposal for a summer research workshop at Dartmouth College, held in 1956.' },
-  { v: 'f-robot', year: 1920, h: 'The word “{u}robot{/u}” comes from a 1920 play.', why: 'Czech writer Karel Čapek’s play R.U.R. gave us the word. “Robota” means forced labor in Czech.' },
-  { v: 'f-chess', year: 1997, h: 'A computer beat the world chess {u}champion{/u}.', why: 'In 1997, IBM’s Deep Blue beat Garry Kasparov in a six-game match. Today, free chess apps on a phone play stronger than Deep Blue did.' },
+  { v: 'f-1956', year: 1956, h: 'The term “artificial {u}intelligence{/u}” was coined at Dartmouth.', why: 'It named a 1956 summer research project at Dartmouth College, organized by John McCarthy: the meeting known as the birth of the field.', src: 'Dartmouth College', logos: ['dartmouth.svg'], url: 'https://home.dartmouth.edu/about/artificial-intelligence-ai-coined-dartmouth' },
+  { v: 'f-robot', year: 1920, h: 'The word “{u}robot{/u}” comes from a 1920 play.', why: 'Czech writer Karel Čapek invented the word for his play R.U.R. He built it from the Czech word for forced labor.', src: 'Encyclopaedia Britannica', logos: ['britannica.png'], mono: true, url: 'https://www.britannica.com/topic/RUR' },
+  { v: 'f-chess', year: 1997, h: 'A computer beat the world chess {u}champion{/u}.', why: 'In May 1997, IBM’s Deep Blue beat Garry Kasparov in a six-game match: the first computer to defeat a reigning world champion under standard tournament rules.', src: 'IBM', logos: ['ibm.svg'], url: 'https://www.ibm.com/history/deep-blue' },
 ];
 /* Play: be the AI. Everyday sentences, four next words; the lobby's picks are tallied live from presence. */
 export const GAME = [
@@ -195,7 +195,7 @@ export const GAME = [
   { s: 'My favorite part of the weekend is', opts: ['sleeping in', 'brunch', 'family time', 'football'] },
 ];
 /* what plays on the screen, in order: a lesson, a number, a lesson, the game … (the game comes up twice a loop) */
-export const SEQUENCE = ['halluc', 's-weekly', 'next', 'game', 'tokens', 's-work', 'f-1955', 'window', 's-pay', 'prompt', 'f-robot', 'stat', 'apps', 's-adults', 'game', 'f-chess', 's-jobs', 's-fast'];
+export const SEQUENCE = ['halluc', 's-weekly', 'next', 'game', 'tokens', 's-work', 'f-1956', 'window', 's-pay', 'prompt', 'f-robot', 'stat', 'apps', 's-adults', 'game', 'f-chess', 's-jobs', 's-fast'];
 export function slideKind(id) { return id === 'game' ? 'game' : id.startsWith('s-') ? 'number' : id.startsWith('f-') ? 'fact' : 'lesson'; }
 export function slideLabel(id) { return ({ game: 'Play: be the AI', number: 'Real numbers', fact: 'Did you know?', lesson: 'AI in ten seconds' })[slideKind(id)]; }
 /* the lobby's picks for one sentence: counts, how many played, the favorite (ties go to the earlier option) */
@@ -227,6 +227,13 @@ export function wallRows(rows, max = 3) {
     .filter(r => (seen.has(r.user_id) ? false : (seen.add(r.user_id), true)))
     .slice(0, max);
 }
+const LOGO_ALT = { 'openai.svg': 'OpenAI', 'microsoft.svg': 'Microsoft', 'linkedin.svg': 'LinkedIn', 'pwc.svg': 'PwC', 'pew.svg': 'Pew Research Center', 'wef.svg': 'World Economic Forum', 'reuters.svg': 'Reuters', 'dartmouth.svg': 'Dartmouth College', 'britannica.png': 'Encyclopaedia Britannica', 'ibm.svg': 'IBM' };
+/* where a number or a fact comes from: the organization's own logo, its name, and a link to the page */
+export function sourceRow(x) {
+  if (!x || !x.src) return '';
+  const logos = (x.logos || []).map(f => `<img class="src-logo${x.mono ? ' mono' : ''}" src="/assets/logos/sources/${escHtml(f)}" alt="${escHtml(LOGO_ALT[f] || '')}" loading="lazy" decoding="async">`).join('');
+  return `<p class="sn-src">${logos ? `<span class="src-logos">${logos}</span>` : ''}<span class="src-name">Source: ${escHtml(x.src)}</span>${x.url ? `<a class="src-link" href="${escHtml(x.url)}" target="_blank" rel="noopener noreferrer">See the source<span aria-hidden="true"> ↗</span><span class="vh"> (opens a new tab)</span></a>` : ''}</p>`;
+}
 function numberDemo(st) {
   const fig = `<p class="sn-num"><b>0</b><span>${st.unit === '%' ? '%' : ' ' + escHtml(st.unit)}</span></p>`;
   let viz = '';
@@ -236,9 +243,9 @@ function numberDemo(st) {
 }
 function slideHtml(id) {
   const kind = slideKind(id);
-  if (kind === 'lesson') { const l = LESSONS.find(x => x.v === id); return `<article class="lb-vig" data-v="${l.v}"><h2 class="lb-vh">${markU(l.h)}</h2><div class="lb-demo">${lessonDemo(l.v)}</div><p class="lb-why">${escHtml(l.why)}</p></article>`; }
-  if (kind === 'number') { const st = STATS.find(x => x.v === id); return `<article class="lb-vig lb-sn" data-v="${st.v}"><div class="lb-demo">${numberDemo(st)}</div><h2 class="lb-vh">${markU(st.h)}</h2><p class="lb-why">${escHtml(st.why)}</p><p class="sn-src">Source: ${escHtml(st.src)}</p></article>`; }
-  if (kind === 'fact') { const f = FACTS.find(x => x.v === id); return `<article class="lb-vig lb-fc" data-v="${f.v}"><div class="lb-demo"><p class="fc-year"><span>Rewind to</span><b data-year="${f.year}">${f.year}</b></p></div><h2 class="lb-vh">${markU(f.h)}</h2><p class="lb-why">${escHtml(f.why)}</p></article>`; }
+  if (kind === 'lesson') { const l = LESSONS.find(x => x.v === id); return `<article class="lb-vig" data-v="${l.v}"><h2 class="lb-vh">${markU(l.h)}</h2><div class="lb-demo">${lessonDemo(l.v)}</div><p class="lb-why">${escHtml(l.why)}</p>${sourceRow(l)}</article>`; }
+  if (kind === 'number') { const st = STATS.find(x => x.v === id); return `<article class="lb-vig lb-sn" data-v="${st.v}"><div class="lb-demo">${numberDemo(st)}</div><h2 class="lb-vh">${markU(st.h)}</h2><p class="lb-why">${escHtml(st.why)}</p>${sourceRow(st)}</article>`; }
+  if (kind === 'fact') { const f = FACTS.find(x => x.v === id); return `<article class="lb-vig lb-fc" data-v="${f.v}"><div class="lb-demo"><p class="fc-year"><span>Rewind to</span><b data-year="${f.year}">${f.year}</b></p></div><h2 class="lb-vh">${markU(f.h)}</h2><p class="lb-why">${escHtml(f.why)}</p>${sourceRow(f)}</article>`; }
   return `<article class="lb-vig lb-game" data-v="game"><h2 class="lb-vh">You’re the {AI}. Pick the next word.</h2><div class="lb-demo gm-body" aria-live="polite"></div><p class="lb-why">That’s how AI writes. It learned which word usually comes next from billions of sentences people wrote, and picks the likely one. You and the lobby are doing the same thing.</p></article>`.replace('{AI}', '<span class="lb-u">AI</span>');
 }
 function lessonDemo(v) {
@@ -269,7 +276,7 @@ function lessonDemo(v) {
     case 'stat': return `<div class="st">
         <div class="st-dial"><svg class="st-ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" class="st-track"/><circle cx="60" cy="60" r="50" class="st-fill" pathLength="100"/></svg>
         <p class="st-num"><span><b>66</b>%</span></p></div>
-        <p class="st-src">Microsoft and LinkedIn<br>2024 Work Trend Index</p></div>`;
+        </div>`;
     case 'apps': return `<div class="ap">
         <p class="ap-core">Your prompt</p>
         <ul class="ap-list"><li data-i="0"><b>Claude</b><span>Coding and building apps</span></li><li data-i="1"><b>ChatGPT</b><span>Images and planning content</span></li><li data-i="2"><b>Gemini</b><span>Videos, images and music</span></li></ul></div>`;
@@ -347,12 +354,11 @@ function lessonTimeline(gsap, node, v) {
     });
   } else if (v === 'stat') {
     const fill = q('.st-fill'), num = q('.st-num b'), n = { v: 0 };
-    gsap.set(fill, { strokeDashoffset: 100 }); gsap.set([q('.st-num'), q('.st-src')], { autoAlpha: 0 });
+    gsap.set(fill, { strokeDashoffset: 100 }); gsap.set(q('.st-num'), { autoAlpha: 0 });
     num.textContent = '0';
     tl.to(q('.st-num'), { autoAlpha: 1, duration: .3 }, .8);
     tl.to(fill, { strokeDashoffset: 34, duration: 1.8, ease: 'power2.out' }, .9);
     tl.to(n, { v: 66, duration: 1.8, ease: 'power2.out', onUpdate: () => { num.textContent = String(Math.round(n.v)); } }, .9);
-    tl.to(q('.st-src'), { autoAlpha: 1, duration: .4 }, 2.6);
   } else if (v === 'apps') {
     const items = qa('.ap-list li');
     gsap.set(q('.ap-core'), { autoAlpha: 0, scale: .9 }); gsap.set(items, { autoAlpha: 0, y: 10 });

@@ -2,10 +2,10 @@
 // The lobby's pure decisions (js/lobby.js): who holds the doors, when a guest goes in, and the words.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import {
   GRACE_MS, NO_CHANNEL_MS, HOST_GONE_MS, hostView, topicOf, roomKeyOf, openKey, shortName, initials, cityWord, readPresence, gate, isSettled,
-  STATS, FACTS, GAME, SEQUENCE, slideKind, slideLabel, tallyRound, cleanPicks, bubbleText, wallRows,
+  STATS, FACTS, GAME, SEQUENCE, sourceRow, slideKind, slideLabel, tallyRound, cleanPicks, bubbleText, wallRows,
   crowdLine, hostCount, namesLine, citiesLine, startsLine, phaseCopy, hostDoorsLine, markU, LESSONS, holdPref,
 } from '../../js/lobby.js';
 
@@ -150,7 +150,7 @@ test('the lessons: seven, each says why, one gold word, hallucination first, no 
     assert.doesNotMatch(l.h + l.why, /\$|—/, l.v + ': no price, no em dash');
   }
   const stat = LESSONS.find(l => l.v === 'stat');
-  assert.match(stat.why, /66%/); assert.match(stat.why, /Microsoft and LinkedIn, 2024 Work Trend Index/);
+  assert.match(stat.why, /66%/); assert.match(stat.src, /Microsoft and LinkedIn, 2024 Work Trend Index/);
 });
 
 test('holdPref: ?lobby=off turns holding off for that page', () => {
@@ -205,6 +205,13 @@ test('real numbers: the checked figures, a source on every one, one gold word, n
     assert.doesNotMatch(st.h + st.why + st.src, /—/);
   });
   FACTS.forEach(f => { assert.ok(f.year >= 1900 && f.year <= 2026); assert.doesNotMatch(f.h + f.why, /—/); assert.equal((f.h.match(/\{u\}/g) || []).length, 1, f.v); });
+  /* every number and fact names its source, links to it, and shows the organization's real logo (assets/logos/sources) */
+  [...STATS, ...FACTS, LESSONS.find(l => l.v === 'stat')].forEach(x => {
+    assert.ok(x.src, x.v + ' has a source'); assert.match(x.url, /^https:\/\//, x.v + ' links to it');
+    assert.ok(x.logos && x.logos.length, x.v + ' shows a logo');
+    x.logos.forEach(f => assert.ok(existsSync(new URL('../../assets/logos/sources/' + f, import.meta.url)), f + ' is in the repo'));
+    const row = sourceRow(x); assert.match(row, /See the source/); assert.match(row, /rel="noopener noreferrer"/); assert.match(row, /alt="[A-Z]/);
+  });
   assert.match(STATS.find(s => s.v === 's-pay').why, /\$1\.62/);
 });
 
