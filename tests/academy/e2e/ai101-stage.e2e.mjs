@@ -126,6 +126,21 @@ try {
   await w.waitForTimeout(1400);
   assert.equal(await w.evaluate(() => +getComputedStyle(document.querySelector('.wd-warn')).opacity), 1, 'words, last click: the hallucination warning');
   assert.match(await w.textContent('.wd-warn'), /Never trust it blindly/);
+  // 10/8 (Nelson): the context window, rebuilt. End: the first message (Ann's name) has fallen out, the window says Full.
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('window')));
+  for (let i = 0; i < 2; i++) { await w.waitForTimeout(2600); await w.keyboard.press('ArrowRight'); }
+  await w.waitForTimeout(3000);
+  const wn = await w.evaluate(() => { const m = [...document.querySelectorAll('.wn-msg')].map((x) => +getComputedStyle(x).opacity);
+    return { first: m[0], last: m.at(-1), full: +getComputedStyle(document.querySelector('.wn-full')).opacity, n: +document.querySelector('.wn-n').textContent,
+      costs: +getComputedStyle(document.querySelector('.wn-costs')).opacity }; });
+  assert.ok(wn.first < 0.2 && wn.last > 0.99 && wn.full > 0.99 && wn.n > 40 && wn.costs > 0.99, 'window, end: the start fell out, Full, the costs showing ' + JSON.stringify(wn));
+  // 10/8 (Nelson): the next-word scene explains itself, then turns into Never paste
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('check')));
+  await w.waitForTimeout(3200); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
+  const ex = () => w.evaluate(() => ['.ck-how', '.ck-why', '.ck-explain', '.ck-safe'].map((q) => +(+getComputedStyle(document.querySelector(q)).opacity).toFixed(2)));
+  assert.deepEqual(await ex(), [1, 1, 1, 0], 'check, beat 2: how it guesses + why it goes wrong');
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1500); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
+  assert.deepEqual((await ex()).slice(2), [0, 1], 'check, last beat: the explanation gives way to Never paste');
   // a held key (auto-repeat) never skips beats
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5')));
   const before = await w.evaluate(() => window.__stage.pos());

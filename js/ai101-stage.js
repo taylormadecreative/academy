@@ -178,30 +178,46 @@ export const TIMELINES = {
     tl.to(n, { textContent: toks.length, snap: { textContent: 1 }, duration: toks.length * 0.07 }, '<');
     return tl.addLabel('end');
   },
-  window(el) { // the box fills; the oldest words slide out the left: long chats forget the start
-    const track = el.querySelector('.wn-track'), chips = [...track.children];
-    const FIRST = 14, DROP = 8; // FIRST must match the :nth-child(n+15) rule in css/ai101-stage.css
-    const shift = chips[DROP].offsetLeft - chips[0].offsetLeft;          // measure first
+  window(el) { // (10/8 rebuild) your whole chat, re-read for every reply; longer = slower, uses your limit, costs more;
+    // full = the start falls out (the AI can't see Ann's name any more). The meter counts the words actually on screen.
+    const chat = el.querySelector('.wn-chat'), stack = el.querySelector('.wn-stack'), msgs = [...stack.children];
+    const n = el.querySelector('.wn-n'), bar = el.querySelector('.wn-bar i'), full = el.querySelector('.wn-full');
+    const wc = (k) => msgs.slice(0, k).reduce((a, m) => a + m.textContent.trim().split(/\s+/).length, 0);
+    const SEEN = 6, cap = wc(SEEN) / 0.85;                                     // 6 messages fill it to 85%
+    const inner = chat.clientHeight - parseFloat(getComputedStyle(chat).paddingTop) - parseFloat(getComputedStyle(chat).paddingBottom);
+    const last = msgs[msgs.length - 1], shift = Math.max(0, last.offsetTop + last.offsetHeight - stack.offsetTop - inner); // measure first
+    const gone = msgs.filter((m) => m.offsetTop - stack.offsetTop + m.offsetHeight <= shift + 4);
+    const count = (k, d) => tl.to(n, { textContent: wc(k), snap: { textContent: 1 }, duration: d }, '<')
+      .to(bar, { scaleX: Math.min(1, wc(k) / cap), duration: d, ease: EASE_MOVE }, '<');
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); appearBeat(tl, el, 0);
-    into(tl, chips.slice(0, FIRST), { autoAlpha: 0, x: 120, stagger: 0.06, duration: 0.3, ease: EASE_OUT }, '-=0.1');
-    tl.addLabel('b1').to(chips.slice(0, DROP), { autoAlpha: 0.15, duration: 0.4 })
-      .to(track, { x: -shift, duration: 1.2, ease: EASE_MOVE }, '<')
-      .to(chips.slice(FIRST), { autoAlpha: 1, stagger: 0.05, duration: 0.3 }, '<0.2');
-    into(tl, el.querySelector('.wn-tip'), IN);
+    msgs.slice(0, 2).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>' : '-=0.1'); count(i + 1, 0.35); });
+    tl.addLabel('b1');
+    msgs.slice(2, SEEN).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.3, ease: EASE_OUT }, i ? '>-0.05' : '>'); count(i + 3, 0.3); });
+    appearBeat(tl, el, 1);
+    tl.addLabel('b2');
+    msgs.slice(SEEN).forEach((m, i) => {
+      into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>+0.15' : '>');
+      if (i === 0) tl.to(stack, { y: -shift, duration: 0.7, ease: EASE_MOVE }, '<').to(gone, { autoAlpha: 0.12, duration: 0.5 }, '<')
+        .to(bar, { scaleX: 1, backgroundColor: '#fdc921', duration: 0.5 }, '<').to(full, { autoAlpha: 1, duration: 0.3 }, '<0.2');
+    });
+    appearBeat(tl, el, 2);
     return tl.addLabel('end');
   },
   check(el) { // it predicts the likeliest word, says a made-up fact with confidence, CHECK IT, never paste
+    // (10/8) the right side says HOW it guesses (beat 1) and WHY that goes wrong (beat 2), then turns into Never paste (beat 4)
+    const how = el.querySelector('.ck-how'), why = el.querySelector('.ck-why'), explain = el.querySelector('.ck-explain');
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); appearBeat(tl, el, 0);
     into(tl, [...el.querySelectorAll('.ck-guesses li'), el.querySelector('.ck-note')], { autoAlpha: 0, x: -20, stagger: 0.1, duration: 0.3, ease: EASE_OUT });
     into(tl, el.querySelectorAll('.ck-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.5, ease: EASE_OUT }, '<0.1');
     tl.to(el.querySelector('.ck-blank'), { autoAlpha: 0, duration: 0.2 }).to(el.querySelector('.ck-fill'), { autoAlpha: 1, duration: 0.3 });
-    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    into(tl, how, { autoAlpha: 0, x: 40, duration: 0.45, ease: EASE_OUT });
+    tl.addLabel('b1'); appearBeat(tl, el, 1); into(tl, why, { autoAlpha: 0, x: 40, duration: 0.45, ease: EASE_OUT }, '-=0.2');
     tl.addLabel('b2').fromTo(el.querySelector('.ck-stamp'), { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -10, duration: 0.35, ease: 'power4.in' })
       .to(el.querySelector('.ck-claim'), { x: 8, duration: 0.05, yoyo: true, repeat: 3 });
     into(tl, el.querySelectorAll('.ck-list li'), { autoAlpha: 0, y: 20, stagger: 0.08, duration: 0.3, ease: EASE_OUT });
-    tl.addLabel('b3'); appearBeat(tl, el, 3);
+    tl.addLabel('b3').to(explain, { autoAlpha: 0, x: -30, duration: 0.3 }); appearBeat(tl, el, 3);
     into(tl, el.querySelectorAll('.ck-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
     return tl.addLabel('end');
   },

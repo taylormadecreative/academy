@@ -48,7 +48,7 @@ test('nothing a public page must never carry (the build guard, with its private 
   execFileSync('python3', ['-c', 'import json, ai101_course as c\nfrom build_ai101_class import check_public_copy\ncheck_public_copy(json.dumps({k: getattr(c, k) for k in dir(c) if k.isupper()}, ensure_ascii=False))'], { cwd: ROOT, stdio: 'pipe' });
 });
 test('the stage text is complete and the guesses are labelled as an illustration in code', () => {
-  for (const k of ['soon_h', 'chat_prompt', 'steer_answer', 'tokens_sentence', 'window_words', 'check_claim', 'save_card', 'bye_thanks']) assert.ok(C.STAGE[k], k);
+  for (const k of ['soon_h', 'chat_prompt', 'steer_answer', 'tokens_sentence', 'window_msgs', 'check_claim', 'save_card', 'bye_thanks']) assert.ok(C.STAGE[k], k);
   assert.match(C.STAGE.check_claim_note, /made-up example/i, 'the fake fact is called a made-up example on screen');
   assert.equal(C.STAGE.safe_items.length, 6);
 });
@@ -217,4 +217,17 @@ test("never trust AI blindly, up front (Nelson 10/8): Step 3 opens with it, Star
   assert.deepEqual(C.STEPS.find((s) => s.id === 'words').flow[0], ['extra', 'trust'], 'the warning is the first thing in Step 3');
   assert.ok(C.START_HERE.some((x) => x.title === 'One rule before you start' && /Never trust AI blindly/.test(x.body)));
   assert.match(C.STAGE.words_warn_rule, /Never trust it blindly/);
+});
+
+test('context window (Nelson 10/8): your whole chat, re-read every reply, so longer costs more; when full the start falls out', () => {
+  const st = C.STEPS.find((s) => s.id === 'check').do[0];
+  assert.match(st, /reads the whole chat again/); assert.match(st, /costs more to run/); assert.match(st, /uses up your free messages faster/); assert.match(st, /New job\? Start a new chat\./);
+  assert.match(Object.fromEntries(C.WORDS_FULL)['Context window'], /cost more/);
+  assert.equal(C.STAGE.window_costs.length, 3); assert.match(C.STAGE.window_costs[2], /costs more/);
+  assert.match(C.STAGE.window_msgs[0][1], /Ann/); assert.match(C.STAGE.window_msgs.at(-1)[1], /don't see your name/);
+  assert.match(C.STAGE.window_example, /^Example chat/);
+});
+test('the next-word scene explains itself: how it guesses, and why that can be wrong', () => {
+  assert.match(C.STAGE.check_how, /doesn't look anything up/); assert.match(C.STAGE.check_why, /not what's true/); assert.match(C.STAGE.check_why, /hallucination/);
+  assert.match(C.STAGE.check_guess_note, /Example numbers/);
 });

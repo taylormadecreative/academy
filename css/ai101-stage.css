@@ -161,14 +161,33 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .tk-count{margin:70px 0 0;font:600 40px var(--font);color:var(--muted)}
 .tk-count b{font:700 120px/1 var(--display);color:var(--blue);vertical-align:-14px;font-variant-numeric:tabular-nums}
 /* 9 window */
-.wn-box{position:relative;margin-top:70px;border:6px dashed var(--blue);border-radius:30px;padding:70px 30px 40px;overflow:hidden}
-.wn-l{position:absolute;top:18px;left:30px;font:700 24px/1 var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
-.wn-track{display:flex;gap:14px;white-space:nowrap}
-.wn-chip{flex:none;font-style:normal;padding:16px 20px;border-radius:14px;background:var(--blue-soft);color:var(--navy);font:700 40px/1 var(--font)}
-.wn-chip:nth-child(n+15){opacity:0;visibility:hidden}
-.wn-tip{margin:44px 0 0;font:700 40px/1.3 var(--display);color:var(--navy);max-width:1400px}
 /* 10 check */
 .ck-grid{display:grid;grid-template-columns:1fr 520px;gap:60px;height:100%}
+/* the right side explains the guess (beats 1-2), then turns into Never paste (beat 4) */
+.ck-right{display:grid;align-self:center}.ck-explain,.ck-right .ck-safe{grid-area:1/1}
+.ck-explain{display:grid;gap:24px;align-content:center}
+.ck-how,.ck-why{background:var(--navy);border-radius:28px;padding:28px 32px}
+.ck-how b,.ck-why b{display:block;margin-bottom:10px;font:700 24px/1 var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.ck-how p,.ck-why p{margin:0;font:500 30px/1.4 var(--font);color:#fff}
+/* the context window (10/8 rebuild): the chat on the left, what it costs on the right */
+.wn-grid{display:grid;grid-template-columns:900px 1fr;gap:60px;margin-top:34px}
+.wn-chat{height:600px;box-sizing:border-box;border:6px dashed var(--blue);border-radius:30px;padding:22px 26px;overflow:hidden}
+.wn-stack{display:flex;flex-direction:column;gap:12px}
+.wn-msg{margin:0;max-width:640px;padding:14px 20px;border-radius:22px;font:500 26px/1.3 var(--font)}
+.wn-msg.you{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:6px}
+.wn-msg.ai{align-self:flex-start;background:var(--blue-soft);color:var(--navy);border-bottom-left-radius:6px}
+.wn-meter-l{margin:0;font:700 24px/1.2 var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.wn-num{margin:10px 0 0;font:500 30px/1 var(--font);color:var(--ink-2)}.wn-n{font:700 76px/1 var(--display);color:var(--navy);font-variant-numeric:tabular-nums}
+.wn-bar{position:relative;margin-top:14px;height:30px;border-radius:15px;background:var(--blue-soft);overflow:hidden}
+.wn-bar i{position:absolute;inset:0 auto 0 0;width:100%;transform-origin:left;transform:scaleX(0);background:var(--blue);border-radius:15px}
+.wn-full{position:absolute;right:14px;top:50%;transform:translateY(-50%);font:700 20px/1 var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--navy);opacity:0;visibility:hidden}
+.wn-line{margin:16px 0 0;font:600 30px/1.35 var(--font);color:var(--navy)}
+.wn-costs{margin-top:28px;background:#fff4ef;border:3px solid #f6cbb7;border-radius:26px;padding:22px 26px}
+.wn-costs p{margin:0;font:700 28px/1.3 var(--font);color:#9a3412}
+.wn-costs ul{margin:10px 0 0;padding-left:28px;display:grid;gap:4px;font:600 28px/1.35 var(--font);color:var(--ink)}
+.wn-costs .wn-cost-note{margin-top:10px;font:500 22px/1.35 var(--font);color:var(--ink-2)}
+.wn-tip{margin:24px 0 0;font:700 34px/1.25 var(--display);color:var(--navy)}
+.wn-ex{position:absolute;left:140px;bottom:40px;margin:0;font:500 22px/1.3 var(--font);color:var(--muted)}
 .ck-sentence{margin:36px 0 0;font:600 44px/1.3 var(--font)}
 .ck-slot{display:inline-grid}.ck-blank,.ck-fill{grid-area:1/1}
 .ck-fill{color:var(--blue);opacity:0;visibility:hidden}
@@ -231,7 +250,7 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .sv-tools p{font-size:30px}.sv-tools b{font-size:36px}
 .ck-claim span,.st-note{font-size:28px;color:var(--ink-2)}
 .ti-tap{font-size:34px;padding:18px 30px}
-.wn-l,.st-count{font-size:28px}.yt-parts li,.ch-node,.ch-bubble,.ch-typed{font-size:30px}.sc-kicker{font-size:30px}
+.st-count{font-size:28px}.yt-parts li,.ch-node,.ch-bubble,.ch-typed{font-size:30px}.sc-kicker{font-size:30px}
 .p5-tag{font-size:24px;padding:6px 16px}
 .sc-h,.sc-sub,.wn-tip,.nx-when{text-wrap:balance}
 /* QR codes: the class page big; Instagram and the Facebook group side by side, QR left, words right */

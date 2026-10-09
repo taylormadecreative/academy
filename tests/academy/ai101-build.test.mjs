@@ -186,7 +186,7 @@ test('stage: QR codes for the class page, Instagram AND the Facebook group; the 
 test('stage: the time checks come from the event date; practice is 11:00; the guesses are labelled', () => {
   assert.match(stage, /<div class="stg" id="stg" data-date="2026-10-09">/);
   assert.match(stage, /data-timer="660">11:00</);
-  assert.match(stage, /Example guesses, not real numbers\./);
+  assert.match(stage, /How likely each next word is\. Example numbers, not real ones\./);
 });
 test('/ai101/ promises the cheat sheet in class, not in the sign-up email', () => {
   const signup = fs.readFileSync(ROOT + 'ai101/index.html', 'utf8');

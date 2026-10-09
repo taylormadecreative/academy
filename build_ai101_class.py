@@ -170,11 +170,18 @@ def _scene_tokens():
 <p class="tk-count"><b class="tk-n">0</b> tokens <span>(about)</span></p>""")
 
 def _scene_window():
-    chips = "".join(f'<i class="wn-chip">{e(w)}</i>' for w in STAGE["window_words"].split(" "))
-    return _sc("window", 2, "The context window", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['window_h'])}</h2>
+    """(10/8 rebuild) 1: it's your whole chat, re-read for every reply (the meter counts the words on screen).
+    2: a longer chat = more to read: slower, uses up your limit, costs more. 3: full, so the start (Ann's name) falls out."""
+    msgs = "".join(f'<p class="wn-msg {who}">{e(t)}</p>' for who, t in STAGE["window_msgs"])
+    costs = "".join(f"<li>{e(c)}</li>" for c in STAGE["window_costs"])
+    return _sc("window", 3, "The context window", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['window_h'])}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['window_sub'])}</p>
-<div class="wn-box" data-beat="0"><span class="wn-l">What the AI can keep in mind</span><div class="wn-track">{chips}</div></div>
-<p class="wn-tip">{e(STAGE['window_tip'])}</p>""")
+<div class="wn-grid"><div class="wn-chat" data-beat="0"><div class="wn-stack">{msgs}</div></div>
+<div class="wn-side"><div class="wn-meter" data-beat="0"><p class="wn-meter-l">{e(STAGE['window_meter'])}</p>
+<p class="wn-num"><b class="wn-n">0</b> words</p><div class="wn-bar"><i></i><span class="wn-full">Full</span></div><p class="wn-line">{e(STAGE['window_line1'])}</p></div>
+<div class="wn-costs" data-beat="1"><p>{e(STAGE['window_more'])}</p><ul>{costs}</ul><p class="wn-cost-note">{e(STAGE['window_cost_note'])}</p></div>
+<p class="wn-tip" data-beat="2">{e(STAGE['window_tip'])}</p></div></div>
+<p class="wn-ex">{e(STAGE['window_example'])}</p>""")
 
 def _scene_check():
     g = "".join(f'<li><span>{e(w)}</span><i class="ck-bar" style="--w:{v}%"></i></li>' for w, v in STAGE["check_guesses"])
@@ -186,7 +193,9 @@ def _scene_check():
 <ol class="ck-guesses">{g}</ol><p class="ck-note">{e(STAGE['check_guess_note'])}</p>
 <div class="ck-claim" data-beat="1"><p>{e(STAGE['check_claim'])}</p><span>{e(STAGE['check_claim_note'])}</span><b class="ck-stamp">Check it</b></div>
 <ul class="ck-list">{ck}</ul></div>
-<div class="ck-safe" data-beat="3"><h3>{e(STAGE['safe_h'])}</h3><ul>{safe}</ul><p>{e(STAGE['safe_foot'])}</p></div></div>""")
+<div class="ck-right"><div class="ck-explain"><div class="ck-how"><b>{e(STAGE['check_how_k'])}</b><p>{e(STAGE['check_how'])}</p></div>
+<div class="ck-why"><b>{e(STAGE['check_why_k'])}</b><p>{e(STAGE['check_why'])}</p></div></div>
+<div class="ck-safe" data-beat="3"><h3>{e(STAGE['safe_h'])}</h3><ul>{safe}</ul><p>{e(STAGE['safe_foot'])}</p></div></div></div>""")
 
 def _scene_save():
     tools = "".join(f'<p><b>{e(TOOLS[t]["name"])}</b><span>{e(TOOLS[t]["save_short"])}</span></p>' for t in TOOL_ORDER)
