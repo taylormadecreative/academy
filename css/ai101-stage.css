@@ -296,3 +296,11 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .sc-check .ck-sentence{margin-top:24px}.sc-check .ck-guesses{margin-top:16px;gap:6px}.sc-check .ck-claim{margin-top:24px}.sc-check .ck-list{margin-top:22px}
 /* Starting soon (10/9): the room's two buttons, so people learn them while they wait */
 .so-room{margin:22px 0 0;padding:16px 24px;border-left:6px solid var(--gold);background:var(--gold-soft, #fff7d6);border-radius:0 16px 16px 0;font:600 26px/1.35 var(--font);color:var(--navy);max-width:900px}
+/* chat (10/9): the reply that makes it better. Your reply sits under your prompt; the two answers (and the two card
+   titles) share one grid cell, so the card is sized for the longer one and nothing jumps when they swap. */
+.ch-then{display:block;margin-top:22px;font:500 26px/1.2 var(--font);color:var(--muted)}
+.ch-typed.ch-reply{margin-top:10px}
+.ch-stack{display:grid}.ch-stack>*{grid-area:1/1}
+.ch-h2,.ch-ans-text.v2{opacity:0;visibility:hidden}
+.ch-blank{color:var(--muted)}
+.ch-new{background:rgba(253,201,33,0);color:inherit;border-radius:6px;padding:0 4px;margin:0 -4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}

@@ -109,7 +109,25 @@ try {
   // 10/8 (Nelson): the answer can't appear with nothing typed. The prompt stays in the You card after it flies to the AI.
   const typed = await w.evaluate(() => { const t = document.querySelector('.sc-chat .ch-you .ch-typed');
     return t ? { text: t.textContent.replace(/\s+/g, ' ').trim(), op: +getComputedStyle(t).opacity, words: [...t.querySelectorAll('.w')].every((x) => +getComputedStyle(x).opacity > 0.99) } : null; });
-  assert.deepEqual(typed, { text: 'Write a thank-you note to my neighbor.', op: 1, words: true }, 'chat, end: the prompt is still in the You card');
+  assert.deepEqual(typed, { text: 'Write a thank-you note to my neighbor.', op: 1, words: true }, 'chat, beat 2: the prompt is still in the You card');
+  // 10/9 (Nelson): "actually show the reply that makes it better". The first answer has blanks it can't fill; the reply types in
+  // under the prompt; the better answer uses every fact from the reply, lit up. Back steps it all away again.
+  const chatState = () => w.evaluate(() => { const q = (c) => document.querySelector('.sc-chat ' + c), vis = (el) => +getComputedStyle(el).opacity > 0.99 && getComputedStyle(el).visibility !== 'hidden';
+    const shown = (el) => vis(el) && [...el.querySelectorAll('.w')].every((x) => vis(x));
+    return { reply: shown(q('.ch-reply')), v1: shown(q('.ch-ans-text.v1')), v2: shown(q('.ch-ans-text.v2')), h1: vis(q('.ch-h1')), h2: vis(q('.ch-h2')),
+      blanks: q('.ch-ans-text.v1').textContent.includes('[Your name]'), lit: [...document.querySelectorAll('.sc-chat .ch-new')].map((m) => getComputedStyle(m).backgroundColor !== 'rgba(253, 201, 33, 0)' && m.textContent.replace(/\s+/g, ' ').trim()) }; });
+  let C = await chatState();
+  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2, C.blanks], [false, true, false, true, false, true], 'chat, beat 2: the bland note with blanks, no reply yet ' + JSON.stringify(C));
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3600);
+  C = await chatState();
+  assert.deepEqual([C.reply, C.v1, C.v2], [true, true, false], 'chat, beat 3: the reply types in under the prompt; the answer has not changed yet ' + JSON.stringify(C));
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(3200);
+  C = await chatState();
+  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2], [true, false, true, false, true], 'chat, beat 4: the better answer replaces the bland one ' + JSON.stringify(C));
+  assert.deepEqual(C.lit, ['Rosa', 'watering my plants while I was away', 'Nelson'], 'chat, beat 4: every fact from the reply is in the better answer, lit up');
+  await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400); await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400);
+  C = await chatState();
+  assert.deepEqual([C.reply, C.v1, C.v2, C.h1, C.h2], [false, true, false, true, false], 'chat, back to beat 2: the reply and the better answer step away ' + JSON.stringify(C));
   // 10/8 (Nelson): "when it said write it as if my grandmother is talking nothing changed". The grandmother answer must SOUND like
   // a grandmother talking (not "my grandmother's recipe", which is the grandchild), and stay short after "Make it shorter".
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));

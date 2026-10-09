@@ -497,8 +497,15 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
                   ("Gemini", "Videos, images and music", ["Breaks down YouTube videos", "Makes songs (18 and up)"])],
     "strengths_foot": "My picks today. They change all the time.",
     "chat_prompt": "Write a thank-you note to my neighbor.",
-    "chat_answer": "Thank you so much for watering my plants while I was away. They look happier than ever, and so do I. You're the best neighbor on the block!",
+    # 10/9 (Nelson): "actually show the reply that makes it better". The first answer is what a real AI writes when it
+    # only has the one line: [blanks] it can't fill. The reply gives it the facts, and the better answer visibly uses
+    # every one of them (*new* = highlighted). \n = a line break, [x] = a blank, *x* = a part the reply added.
+    "chat_answer": "Dear [Neighbor's name],\nThank you for being such a great neighbor. It means a lot.\nWarmly, [Your name]",
     "chat_loop": "Reply to make it better.",
+    "chat_reply_l": "then reply",
+    "chat_reply": "Her name is Rosa. She watered my plants while I was away. Sign it Nelson.",
+    "chat_better_h": "The better answer",
+    "chat_better": "Dear *Rosa*,\nThank you so much for *watering my plants while I was away*. They look happier than ever, and so do I. You're the best neighbor on the block!\n*Nelson*",
     "words": [("AI", "Programs that read and write a lot like a person."),
               ("Generative AI", "AI that makes something new: words, pictures, video, music."),
               ("LLM", "Large Language Model. It learned from a huge amount of writing.")],

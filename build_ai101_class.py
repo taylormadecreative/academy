@@ -131,12 +131,33 @@ def _scene_strengths():
     return _sc("strengths", 3, STAGE["strengths_h"], f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(STAGE['strengths_h'])}</h2>
 <div class="sg-row">{cols}</div><p class="sg-foot" data-beat="2">{e(STAGE['strengths_foot'])}</p>""")
 
+def _note(text):
+    """A chat answer, word by word: \\n = a line break, [x] = a blank the AI can't fill, *x* = a part the reply added."""
+    def seg(part):
+        if part.startswith("[") and part.endswith("]"): return f'<span class="ch-blank">{words(part)}</span>'
+        if part.startswith("*") and part.endswith("*"): return f'<mark class="ch-new">{words(part[1:-1])}</mark>'
+        return words(part.strip()) if part.strip() else ""
+    def line(t):
+        out = ""
+        for part in re.split(r"(\[[^\]]*\]|\*[^*]*\*)", t):
+            if not part: continue
+            h = seg(part)
+            if not h: continue
+            glue = "" if not out or part[:1] in ",.!" else " "
+            out += glue + h
+        return out
+    return "<br>".join(line(t) for t in text.split("\n"))
+
 def _scene_chat():
-    return _sc("chat", 3, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
-<div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span><p class="ch-typed">{words(STAGE['chat_prompt'])}</p></div>
+    # 10/9 (Nelson): "actually show the reply that makes it better". Five beats: you type, the AI writes back (a bland note
+    # with blanks), the loop draws, your reply types under your prompt and flies in, and the better note writes itself.
+    return _sc("chat", 5, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
+<div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span><p class="ch-typed">{words(STAGE['chat_prompt'])}</p>
+<span class="ch-then" data-beat="3">{e(STAGE['chat_reply_l'])}</span><p class="ch-typed ch-reply" data-beat="3">{words(STAGE['chat_reply'])}</p></div>
 <div class="ch-node ch-ai" data-beat="0"><b>The AI</b><span>reads it and writes back</span><i class="ch-dots" aria-hidden="true"><i></i><i></i><i></i></i></div>
-<div class="ch-node ch-ans" data-beat="1"><b>The answer</b><p class="ch-ans-text">{words(STAGE['chat_answer'])}</p></div>
-<div class="ch-bubble" aria-hidden="true">{e(STAGE['chat_prompt'])}</div></div>
+<div class="ch-node ch-ans" data-beat="1"><div class="ch-stack"><b class="ch-h1">The answer</b><b class="ch-h2">{e(STAGE['chat_better_h'])}</b></div>
+<div class="ch-stack"><p class="ch-ans-text v1">{_note(STAGE['chat_answer'])}</p><p class="ch-ans-text v2">{_note(STAGE['chat_better'])}</p></div></div>
+<div class="ch-bubble" aria-hidden="true">{e(STAGE['chat_prompt'])}</div><div class="ch-bubble b2" aria-hidden="true">{e(STAGE['chat_reply'])}</div></div>
 <svg class="ch-loop" viewBox="0 0 1640 150" aria-hidden="true"><path class="ch-line" d="M1370 6 V96 H270 V30" fill="none" stroke="#0b40e0" stroke-width="6" stroke-linecap="round"/><path class="ch-head" d="M254 34L270 6L286 34Z" fill="#0b40e0"/></svg>
 <p class="ch-loop-l" data-beat="2">{e(STAGE['chat_loop'])}</p>""")
 

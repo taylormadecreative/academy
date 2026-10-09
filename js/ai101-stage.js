@@ -112,22 +112,39 @@ export const TIMELINES = {
   },
   chat(el) { // the prompt types itself into You and STAYS there; a copy flies into the AI, the answer writes itself,
     // the loop draws back: "make it better". (10/8, Nelson: an answer with nothing typed "doesn't make sense".)
-    const ai = el.querySelector('.ch-ai'), bub = el.querySelector('.ch-bubble'), typed = el.querySelector('.ch-typed');
-    const t = local(typed, el);                                        // measure first: entrances move things
-    gsap.set(bub, { boxSizing: 'border-box', width: t.w, maxWidth: 'none' }); // the copy wraps exactly like the prompt
-    const b = local(ai, el), s = local(bub, el);
-    const path = el.querySelector('.ch-loop .ch-line'), head = el.querySelector('.ch-loop .ch-head'), len = path.getTotalLength();
-    const tl = gsap.timeline({ paused: true }).addLabel('b0'); appearBeat(tl, el, 0);
+    // 10/9 (Nelson: "actually show the reply that makes it better"): the first answer is a bland note with blanks; your
+    // reply types in under your prompt and flies in the same way; the better answer writes itself with the new parts lit.
+    const q = (c) => el.querySelector(c), ai = q('.ch-ai'), typed = q('.ch-typed'), reply = q('.ch-reply');
+    const bub = q('.ch-bubble'), bub2 = q('.ch-bubble.b2'), dots = el.querySelectorAll('.ch-dots i');
+    const t = local(typed, el), r = local(reply, el);                  // measure first: entrances move things
+    gsap.set(bub, { boxSizing: 'border-box', width: t.w, maxWidth: 'none' }); // each copy wraps exactly like its message
+    gsap.set(bub2, { boxSizing: 'border-box', width: r.w, maxWidth: 'none' });
+    const b = local(ai, el), s = local(bub, el), s2 = local(bub2, el);
+    const path = q('.ch-loop .ch-line'), head = q('.ch-loop .ch-head'), len = path.getTotalLength();
+    const tl = gsap.timeline({ paused: true });
+    const send = (copy, from, at) => tl // lift a copy off the message, fly it into the AI, the AI "thinks"
+      .fromTo(copy, { autoAlpha: 0, x: from.x - at.x, y: from.y - at.y, scale: 1 }, { autoAlpha: 1, duration: 0.01 })
+      .to(copy, { x: b.x + b.w / 2 - (at.x + at.w / 2), y: b.y + b.h / 2 - (at.y + at.h / 2), scale: 0.35, duration: 0.9, ease: 'power2.inOut' })
+      .to(copy, { autoAlpha: 0, duration: 0.2 })
+      .to(dots, { y: -12, duration: 0.25, stagger: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
     into(tl, typed.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.06 }, '-=0.1'); // you type it
-    tl.fromTo(bub, { autoAlpha: 0, x: t.x - s.x, y: t.y - s.y, scale: 1 }, { autoAlpha: 1, duration: 0.01 }) // lift a copy off it
-      .to(bub, { x: b.x + b.w / 2 - (s.x + s.w / 2), y: b.y + b.h / 2 - (s.y + s.h / 2), scale: 0.35, duration: 0.9, ease: 'power2.inOut' })
-      .to(bub, { autoAlpha: 0, duration: 0.2 })
-      .to(el.querySelectorAll('.ch-dots i'), { y: -12, duration: 0.25, stagger: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');
+    send(bub, t, s);
     tl.addLabel('b1'); appearBeat(tl, el, 1);
-    into(tl, el.querySelectorAll('.ch-ans-text .w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.2');
+    into(tl, q('.ch-ans-text.v1').querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.2');
     tl.addLabel('b2').fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1, ease: EASE_MOVE });
     into(tl, head, { autoAlpha: 0, duration: 0.15 });                    // the arrowhead lands when the line arrives
     appearBeat(tl, el, 2);
+    tl.addLabel('b3'); appearBeat(tl, el, 3);                             // "then reply": it types in under the prompt
+    into(tl, reply.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.05 }, '-=0.1');
+    send(bub2, r, s2);
+    const v1 = q('.ch-ans-text.v1'), v2 = q('.ch-ans-text.v2');
+    tl.addLabel('b4')                                                     // the better answer replaces the bland one
+      .fromTo([q('.ch-h1'), v1], { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.25, immediateRender: false })
+      .fromTo([q('.ch-h2'), v2], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, '<');
+    into(tl, v2.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.04 }, '-=0.1');
+    tl.fromTo(v2.querySelectorAll('.ch-new'), { backgroundColor: 'rgba(253,201,33,0)' },  // light up what the reply added
+      { backgroundColor: 'rgba(253,201,33,0.55)', duration: 0.35, stagger: 0.18, ease: 'power1.out' });
     return tl.addLabel('end');
   },
   words(el) { // AI ⊃ generative AI ⊃ LLM; training data streams in; the chatbot is the app around it; then: it can hallucinate
