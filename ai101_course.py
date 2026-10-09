@@ -267,6 +267,8 @@ SHOTS = {
               "alt": "{name} showing three facts about the history of Dallas, each with a link to a source."},
     "save": {"cap": "Where your “About me” goes in {name}.",
              "alt": "{name} settings, with the box where you paste your About me marked."},
+    "models": {"cap": "The model menu in {name}. Click the model name just under the message box to open it.",
+               "alt": "{name}'s model menu open, listing its models with a one-line description of each."},
 }
 
 # 10/9 (Nelson: "we also didn't talk about models … sonnet and fable for claude"). Claude's model menu exactly as it showed
@@ -285,6 +287,7 @@ MODELS = {
               ("Smaller", "is faster. Great for quick answers.")],
     "rule": "Not sure? Use the one it picks for you. Big, important job? Try a bigger one.",
     "also": "ChatGPT and Gemini let you choose too. Look next to the message box.",
+    "list_h": "The models in Claude, from the one that thinks hardest to the fastest:",  # class page only
     "step": "One more word: the model. It's the brain inside the app, and each app has a few. In Claude, Sonnet is the everyday one and Haiku is the fastest. Both are free. Opus and Fable think harder and are on paid plans. Not sure? Use the one it picks for you. ChatGPT and Gemini let you choose too, next to the message box.",
 }
 STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so each instruction sits next to its action
@@ -304,10 +307,9 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "do": ["AI here means a computer program that can read and write a lot like a person. It learned by reading a huge amount of writing.",
             "Look at the drawing. You type, the AI writes back, and you reply to make it better. That loop is the whole skill.",
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
-            "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet.",
-            MODELS["step"]],
+            "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("do", 4)],
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("extra", "models")],
      "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",

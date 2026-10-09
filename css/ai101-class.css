@@ -306,3 +306,18 @@ html{scroll-padding-top:132px}
 .a1c-shot img{display:block;width:100%;height:auto}
 .a1c-shot figcaption{font-size:15.5px;line-height:1.5;color:var(--ink-2)}
 .a1c-shot figcaption span{display:block;font-size:13.5px;color:var(--muted)}
+/* Step 3 "Pick a model" (MODELS, 10/9): Claude's models with their plan, bigger vs smaller, the rule */
+.a1c-models{background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px}
+.a1c-models>p{margin:0;font-size:16.5px;line-height:1.55;color:var(--ink-2)}
+.a1c-models .a1c-models-h{font:700 20px/1.25 var(--display);color:var(--ink)}
+.a1c-models .a1c-models-in{font-weight:600;color:var(--ink)}
+.a1c-models-list,.a1c-models-notes{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.a1c-models-list li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 12px;border:1px solid var(--hair);border-radius:12px;font-size:16px;line-height:1.45;color:var(--ink-2)}
+.a1c-models-list b{color:var(--ink);font-weight:700}
+.a1c-models-list span{flex:1 1 200px}
+.a1c-models-list em{font-style:normal;font-size:13px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.a1c-models-list em.free{background:#e6f4ec;color:#0b5e3c}
+.a1c-models-list em.paid{background:#eef1f7;color:#33415b}
+.a1c-models-notes li{font-size:16px;line-height:1.5;color:var(--ink-2)}
+.a1c-models-notes b{color:var(--ink)}
+.a1c-models .a1c-models-rule{font-weight:600;color:var(--ink)}

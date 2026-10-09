@@ -496,6 +496,16 @@ def shot(key):
                 f'<figcaption>{e(s["cap"].format(name=name))} <span>{e(SHOTS_NOTE)}</span></figcaption></figure>')
     return out
 
+def models():
+    """Step 3's "Pick a model" (MODELS, the same words as the stage's models scene): Claude's real menu screen when the
+    AI switch is on Claude, Claude's four models with their own one-line descriptions and plans, bigger vs smaller, the rule."""
+    M = MODELS
+    items = "".join(f'<li><b>{e(n)}</b> <span>{e(d)}</span> <em class="{"free" if p == "Free" else "paid"}">{e(p)}</em></li>' for n, d, p in M["claude"])
+    notes = "".join(f"<li><b>{e(k)}</b> {e(v)}</li>" for k, v in M["notes"])
+    return (f'<section class="a1c-models" aria-label="{e(M["h"])}"><p class="a1c-models-h">{e(M["h"])}</p><p>{e(M["sub"])}</p>'
+            f'{shot("models")}<p class="a1c-models-in">{e(M["list_h"])}</p><ul class="a1c-models-list">{items}</ul>'
+            f'<ul class="a1c-models-notes">{notes}</ul><p class="a1c-models-rule">{e(M["rule"])}</p><p class="a1c-needs">{e(M["also"])}</p></section>')
+
 def no_love():
     return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
 
@@ -626,6 +636,7 @@ EXTRA = {
     "strengths": strengths,
     "trust": trust,
     "no_love": no_love,
+    "models": models,
 }
 
 def _flow(s, x):

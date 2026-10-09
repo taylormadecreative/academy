@@ -182,10 +182,11 @@ await check('real app screens (Nelson 10/9): each step shows only the picked AI,
   const steps = ['step-words', 'step-prompt5', 'step-steer', 'step-check', 'step-save'];
   for (const t of ['claude', 'chatgpt', 'gemini']) {
     await page.click(`#start [data-pick-tool="${t}"]`);
-    assert.deepEqual(await shown(), steps.map((s) => `${t}:${s}`), t);
+    const want = steps.map((s) => `${t}:${s}`); if (t === 'claude') want.splice(1, 0, 'claude:step-words'); // + Claude's model menu in Pick a model
+    assert.deepEqual(await shown(), want, t);
   }
   const imgs = await page.$$eval('.a1c-shot img', (els) => els.map((i) => i.getAttribute('src')));
-  assert.equal(imgs.length, 15);
+  assert.equal(imgs.length, 16);
   for (const src of imgs) {
     const ok = await page.evaluate((u) => new Promise((res) => { const i = new Image(); i.onload = () => res(i.naturalWidth > 0); i.onerror = () => res(false); i.src = u; }), src);
     assert.ok(ok, `${src} loads`);

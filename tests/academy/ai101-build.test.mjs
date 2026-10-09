@@ -230,9 +230,20 @@ print(b.shot("chat")); print("---"); print(b.shot("facts"))`;
 test('every screen on the class page is a real file, sits in its step, and only the picked AI shows', () => {
   const shots = [...page.matchAll(/<figure class="a1c-shot" data-for="(\w+)"><a href="\/ai101\/class\/shots\/([\w-]+\.webp)\?v=/g)];
   for (const [, t, f] of shots) { assert.ok(fs.existsSync(ROOT + 'ai101/class/shots/' + f), f); assert.ok(f.startsWith(t + '-'), f); }
-  const where = { chat: 'words', prompt5: 'prompt5', steer: 'steer', facts: 'check', save: 'save' };
+  const where = { chat: 'words', prompt5: 'prompt5', steer: 'steer', facts: 'check', save: 'save', models: 'words' };
   for (const [, , f] of shots) {
     const key = f.replace(/^\w+-|\.webp$/g, '');
     assert.ok(between(page, `id="step-${where[key]}"`, '<li class="a1c-step"').includes(f), `${f} sits in step ${where[key]}`);
   }
+});
+test("Step 3 ends with Pick a model (MODELS, the stage's words): Claude's four models with their plan, bigger vs smaller, the rule, and Claude's real menu", () => {
+  const step3 = between(page, 'id="step-words"', '<li class="a1c-step"');
+  const m = between(step3, '<section class="a1c-models"', '</section>');
+  assert.ok(m, 'the block is in Step 3');
+  assert.ok(step3.indexOf('class="a1c-models"') > step3.indexOf('<dl'), 'after the word list (Model is one of the words)');
+  for (const [n, plan] of [['Fable 5.1', 'Paid plans'], ['Opus 5.5', 'Paid plans'], ['Sonnet 5.5', 'Free'], ['Haiku 5.5', 'Free']]) assert.match(m, new RegExp(`<b>${n.replace('.', '\\.')}</b> <span>[^<]+</span> <em class="(free|paid)">${plan}</em>`), n);
+  assert.match(m, /<b>Bigger<\/b> thinks harder/);
+  assert.match(m, /Not sure\? Use the one it picks for you\./);
+  assert.match(m, /<figure class="a1c-shot" data-for="claude"><a href="\/ai101\/class\/shots\/claude-models\.webp\?v=/);
+  assert.doesNotMatch(m, /Astra|Luna|\bSol\b/, 'no ChatGPT model names: his ChatGPT shows a Thinking effort slider');
 });
