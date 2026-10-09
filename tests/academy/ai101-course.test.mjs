@@ -87,6 +87,10 @@ test('checking means a second source you find yourself, not "are you sure?"', ()
   assert.match(C.STAGE.check_claim, /Bluebonnet Business AI Index/);
   assert.match(C.STAGE.check_claim_note, /both fake/);
   assert.ok(C.STAGE.check_guess_note, 'the guess bars are called an example on screen');
+  // 10/9 (Nelson): most chatbots come with a search or research tool now; trust real sources, not Reddit or opinions
+  assert.match(C.STAGE.check_how, /^On its own, it doesn't look anything up/);
+  assert.match(C.STAGE.check_search, /search or research tool/); assert.match(C.STAGE.check_skip[1], /Reddit/);
+  assert.match(step.do.join(' '), /search or research tool now[\s\S]*Not Reddit, forums or people's opinions/);
 });
 test('safe use: the swap, the slip, the why, and who to ask at work', () => {
   assert.ok(C.NEVER_PASTE.some((x) => /^Employee information/.test(x)));
@@ -222,11 +226,14 @@ test("never trust AI blindly, up front (Nelson 10/8): Step 3 opens with it, Star
 
 test('context window (Nelson 10/8): your whole chat, re-read every reply, so longer costs more; when full the start falls out', () => {
   const st = C.STEPS.find((s) => s.id === 'check').do[0];
-  assert.match(st, /reads the whole chat again/); assert.match(st, /costs more to run/); assert.match(st, /uses up your free messages faster/); assert.match(st, /New job\? Start a new chat\./);
+  assert.match(st, /reads the whole chat again/); assert.match(st, /costs more to run/); assert.match(st, /uses up your free messages faster/); assert.match(st, /stay in the same chat while you're on the same subject/); assert.match(st, /New subject\? Start a new chat\./); assert.match(st, /Sum up this chat/);
   assert.match(Object.fromEntries(C.WORDS_FULL)['Context window'], /cost more/);
   assert.equal(C.STAGE.window_costs.length, 3); assert.match(C.STAGE.window_costs[2], /costs more/);
   assert.match(C.STAGE.window_msgs[0][1], /Ann/); assert.match(C.STAGE.window_msgs.at(-1)[1], /don't see your name/);
   assert.match(C.STAGE.window_example, /^Example chat/);
+  // 10/9 (Nelson): same subject = same chat (a new chat starts from zero); a long one gets summed up into a new chat
+  assert.deepEqual(C.STAGE.window_rules.map((r) => r[0]), ['Same subject?', 'New subject?', 'Too long?']);
+  assert.doesNotMatch(JSON.stringify(C.STAGE) + C.STEPS.find((s) => s.id === 'check').do[0], /New job/);
 });
 test('the next-word scene explains itself: how it guesses, and why that can be wrong', () => {
   assert.match(C.STAGE.check_how, /doesn't look anything up/); assert.match(C.STAGE.check_why, /not what's true/); assert.match(C.STAGE.check_why, /hallucination/);

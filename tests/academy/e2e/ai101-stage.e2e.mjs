@@ -151,14 +151,25 @@ try {
   const wn = await w.evaluate(() => { const m = [...document.querySelectorAll('.wn-msg')].map((x) => +getComputedStyle(x).opacity);
     return { first: m[0], last: m.at(-1), full: +getComputedStyle(document.querySelector('.wn-full')).opacity, n: +document.querySelector('.wn-n').textContent,
       costs: +getComputedStyle(document.querySelector('.wn-costs')).opacity }; });
-  assert.ok(wn.first < 0.2 && wn.last > 0.99 && wn.full > 0.99 && wn.n > 40 && wn.costs > 0.99, 'window, end: the start fell out, Full, the costs showing ' + JSON.stringify(wn));
+  assert.ok(wn.first < 0.2 && wn.last > 0.99 && wn.full > 0.99 && wn.n > 40 && wn.costs > 0.99, 'window, beat 3: the start fell out, Full, the costs showing ' + JSON.stringify(wn));
+  // 10/9 (Nelson): same subject = same chat. The last click swaps the costs for "which chat?" in the same spot.
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2200);
+  const rules = await w.evaluate(() => ({ costs: +getComputedStyle(document.querySelector('.wn-costs')).opacity, rules: +getComputedStyle(document.querySelector('.wn-rules')).opacity,
+    rows: [...document.querySelectorAll('.wn-rules p')].map((p) => +getComputedStyle(p).opacity > 0.99 && p.querySelector('b').textContent) }));
+  assert.deepEqual(rules, { costs: 0, rules: 1, rows: ['Same subject?', 'New subject?', 'Too long?'] }, 'window, last beat: which chat to use');
   // 10/8 (Nelson): the next-word scene explains itself, then turns into Never paste
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('check')));
   await w.waitForTimeout(3200); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
-  const ex = () => w.evaluate(() => ['.ck-how', '.ck-why', '.ck-explain', '.ck-safe'].map((q) => +(+getComputedStyle(document.querySelector(q)).opacity).toFixed(2)));
-  assert.deepEqual(await ex(), [1, 1, 1, 0], 'check, beat 2: how it guesses + why it goes wrong');
+  const ex = () => w.evaluate(() => ['.ck-how', '.ck-why', '.ck-explain', '.ck-search', '.ck-safe'].map((q) => +(+getComputedStyle(document.querySelector(q)).opacity).toFixed(2)));
+  assert.deepEqual(await ex(), [1, 1, 1, 0, 0], 'check, beat 2: how it guesses + why it goes wrong');
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1500); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
-  assert.deepEqual((await ex()).slice(2), [0, 1], 'check, last beat: the explanation gives way to Never paste');
+  // 10/9 (Nelson): most chatbots come with a search or research tool now; trust real sources, not Reddit or opinions
+  assert.deepEqual((await ex()).slice(2), [0, 1, 0], 'check, beat 4: the explanation gives way to Use search');
+  assert.match(await w.textContent('.ck-src.no'), /Reddit/);
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
+  assert.deepEqual((await ex()).slice(2), [0, 0, 1], 'check, last beat: then Never paste');
+  await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400);
+  assert.deepEqual((await ex()).slice(2), [0, 1, 0], 'check, back one: Use search again');
   // a held key (auto-repeat) never skips beats
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5')));
   const before = await w.evaluate(() => window.__stage.pos());

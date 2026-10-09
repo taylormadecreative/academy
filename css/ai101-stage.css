@@ -304,3 +304,15 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .ch-h2,.ch-ans-text.v2{opacity:0;visibility:hidden}
 .ch-blank{color:var(--muted)}
 .ch-new{background:rgba(253,201,33,0);color:inherit;border-radius:6px;padding:0 4px;margin:0 -4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+/* context window (10/9): the costs box gives way to "which chat?" in the same spot, so nothing below it moves */
+.wn-swap{display:grid;margin-top:28px}.wn-swap>*{grid-area:1/1}.wn-swap .wn-costs{margin-top:0}
+.wn-rules{display:grid;gap:10px;align-content:center;background:var(--blue-soft);border:3px solid #c7d5ff;border-radius:26px;padding:22px 26px}
+.wn-rules p{margin:0;font:600 28px/1.35 var(--font);color:var(--ink)}.wn-rules b{font-weight:800;color:var(--blue)}
+/* next word (10/9): use search, and which sources to trust; same spot as the explanation and Never paste */
+.ck-right .ck-search{grid-area:1/1;align-self:center;background:var(--navy);border-radius:30px;padding:32px 34px;color:#fff}
+.ck-search>b{display:block;margin-bottom:12px;font:700 24px/1.25 var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.ck-search p{margin:0;font:500 28px/1.4 var(--font)}
+.ck-search .ck-src{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;margin-top:16px;padding:14px 18px;border-radius:18px;background:rgba(255,255,255,.08);font-weight:600}
+.ck-src i{font:700 22px/1 var(--font);font-style:normal;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border-radius:10px}
+.ck-src.ok i{background:#d1fae5;color:#065f46}.ck-src.no i{background:#fee2e2;color:#991b1b}
+.ck-search .ck-search-foot{margin-top:18px;font:700 28px/1.3 var(--font);color:var(--gold)}

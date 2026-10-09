@@ -211,7 +211,7 @@ export const TIMELINES = {
     msgs.slice(0, 2).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>' : '-=0.1'); count(i + 1, 0.35); });
     tl.addLabel('b1');
     msgs.slice(2, SEEN).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.3, ease: EASE_OUT }, i ? '>-0.05' : '>'); count(i + 3, 0.3); });
-    appearBeat(tl, el, 1);
+    into(tl, el.querySelector('.wn-costs'), IN); // not a data-beat: the last click swaps it out (and every data-beat ends drawn)
     tl.addLabel('b2');
     msgs.slice(SEEN).forEach((m, i) => {
       into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>+0.15' : '>');
@@ -219,11 +219,15 @@ export const TIMELINES = {
         .to(bar, { scaleX: 1, backgroundColor: '#fdc921', duration: 0.5 }, '<').to(full, { autoAlpha: 1, duration: 0.3 }, '<0.2');
     });
     appearBeat(tl, el, 2);
+    tl.addLabel('b3').fromTo(el.querySelector('.wn-costs'), { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false });
+    appearBeat(tl, el, 3); // (10/9, Nelson) so which chat? Same subject: stay. New subject: new chat. Too long: sum it up.
+    into(tl, el.querySelectorAll('.wn-rules p'), { autoAlpha: 0, x: 30, stagger: 0.12, duration: 0.35, ease: EASE_OUT }, '-=0.3');
     return tl.addLabel('end');
   },
   check(el) { // it predicts the likeliest word, says a made-up fact with confidence, CHECK IT, never paste
-    // (10/8) the right side says HOW it guesses (beat 1) and WHY that goes wrong (beat 2), then turns into Never paste (beat 4)
-    const how = el.querySelector('.ck-how'), why = el.querySelector('.ck-why'), explain = el.querySelector('.ck-explain');
+    // (10/8) the right side says HOW it guesses (beat 1) and WHY that goes wrong (beat 2); (10/9) then USE SEARCH, and which
+    // sources to trust (beat 4); then it turns into Never paste (beat 5)
+    const how = el.querySelector('.ck-how'), why = el.querySelector('.ck-why'), explain = el.querySelector('.ck-explain'), search = el.querySelector('.ck-search');
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); appearBeat(tl, el, 0);
     into(tl, [...el.querySelectorAll('.ck-guesses li'), el.querySelector('.ck-note')], { autoAlpha: 0, x: -20, stagger: 0.1, duration: 0.3, ease: EASE_OUT });
@@ -234,7 +238,9 @@ export const TIMELINES = {
     tl.addLabel('b2').fromTo(el.querySelector('.ck-stamp'), { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -10, duration: 0.35, ease: 'power4.in' })
       .to(el.querySelector('.ck-claim'), { x: 8, duration: 0.05, yoyo: true, repeat: 3 });
     into(tl, el.querySelectorAll('.ck-list li'), { autoAlpha: 0, y: 20, stagger: 0.08, duration: 0.3, ease: EASE_OUT });
-    tl.addLabel('b3').to(explain, { autoAlpha: 0, x: -30, duration: 0.3 }); appearBeat(tl, el, 3);
+    tl.addLabel('b3').fromTo(explain, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false }); into(tl, search, IN);
+    into(tl, el.querySelectorAll('.ck-src'), { autoAlpha: 0, x: 30, stagger: 0.15, duration: 0.35, ease: EASE_OUT }, '-=0.2');
+    tl.addLabel('b4').fromTo(search, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false }); appearBeat(tl, el, 4);
     into(tl, el.querySelectorAll('.ck-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
     return tl.addLabel('end');
   },

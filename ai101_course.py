@@ -303,9 +303,9 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
      "flow": [("do", 0), ("prompt", 0), ("prompt", 1), ("shot", "steer"), ("prompt", 2)],
      "check": "You changed the answer three times without starting over."},
     {"id": "check", "n": 6, "time": "7:28", "min": 4, "title": "Check it, and keep it safe",
-     "do": ["The context window is everything the AI keeps in mind: your whole chat. Every time you send a message, it reads the whole chat again. So a longer chat means more to read: it can get slower, it uses up your free messages faster, and it costs more to run. When the window fills up, it can forget the start. New job? Start a new chat.",
+     "do": ["The context window is everything the AI keeps in mind: your whole chat. Every time you send a message, it reads the whole chat again. So a longer chat means more to read: it can get slower, it uses up your free messages faster, and it costs more to run. When the window fills up, it can forget the start. So stay in the same chat while you're on the same subject. It remembers what you told it, and a new chat starts from zero. New subject? Start a new chat. Chat getting too long? Ask it: “Sum up this chat so I can start a new one.” Then paste that summary into a new chat.",
             "A hallucination is when the AI makes something up and says it like a fact. Names, numbers, dates and links are where it happens most. Try it (use your own town if you like):",
-            "Now check one yourself. Open one of the links. Does the page really say that? Some tools search the web and show real links. Check anyway. Then paste this:",
+            "Most AI chatbots come with a search or research tool now. It pulls real information from the web and shows you its sources. Look at where each fact came from. Trust government sites, schools, the news and the company's own website. Not Reddit, forums or people's opinions. Now check one yourself. Open one of the links. Does the page really say that? Then paste this:",
             "Asking the AI “Are you sure?” helps, but it isn't proof. Proof is a second source you find yourself.",
             "Keep it safe. Before you paste, swap real names, numbers and addresses for [brackets]. What you type is saved by the company that runs the AI, and depending on your settings it can be used to improve the AI. At work, ask one question: “Which AI tools can I use, and what can I put in them?”",
             "Extra, if you have time: a token is a small piece of text. A short word is often one token. A long word can be a few. AI reads, writes and counts in tokens. Type in the box to see it."],
@@ -440,7 +440,7 @@ FIX_IT = [
     ("It made something up.", "Ask: “Which parts should I check, and where?” Don't trust a “yes, I'm sure.” Check names, numbers, dates and links in a second source you find yourself."),
     ("I hit a limit.", "Free plans have limits. It can be how much you send, or extras like photos, images and voice. The tool tells you when it resets. Wait a bit, or switch tools. Your prompts work in all three."),
     ("It says it can't help.", "Say what you need and why, in plain words. It may say no on purpose to anything harmful. For medical, legal or money questions, it can help you get ready, but don't rely on it as professional advice."),
-    ("It forgot what I said earlier.", "Long chats can lose the start. Open a new chat and paste a short summary of what matters."),
+    ("It forgot what I said earlier.", "Long chats can lose the start. Ask it: “Sum up this chat so I can start a new one.” Then open a new chat and paste that summary."),
     ("I lost my chat.", "Your old chats are listed in the menu on the left. On the phone, open the menu first. Chats you start in Incognito or Temporary mode are not saved. Keep your best prompts in a note on your phone so you can reuse them."),
 ]
 
@@ -557,7 +557,11 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "window_more": "Longer chat = more to read, every time:",
     "window_costs": ["It can get slower.", "It uses up your free messages faster.", "It costs more to run."],
     "window_cost_note": "Businesses that use AI pay for every token it reads.",
-    "window_tip": "When it's full, the start falls out. New job? New chat.",
+    "window_tip": "When it's full, the start falls out.",
+    # 10/9 (Nelson): "i keep talking about the same subject in the same chat … when you switch to a new chat you have to tell
+    # it all over again". So the rule is about the subject, not the job. It swaps in where the costs were.
+    "window_rules": [("Same subject?", "Stay in that chat. It remembers what you said."), ("New subject?", "Start a new chat."),
+                     ("Too long?", "Ask it to sum up the chat. Paste that into a new chat.")],
     "window_example": "Example chat. Real context windows hold much more, but they work the same way.",
     "check_h": "A chatbot predicts the next word.",
     "check_sentence": "The best pie in Texas is made in",
@@ -565,7 +569,13 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "check_guesses": [("Dallas", 62), ("Austin", 48), ("Houston", 40), ("my kitchen", 22)],  # bar lengths only: an illustration, not real odds
     "check_guess_note": "How likely each next word is. Example numbers, not real ones.",
     "check_how_k": "How it works",
-    "check_how": "It doesn't look anything up. It picks the word most likely to come next, one word at a time.",
+    "check_how": "On its own, it doesn't look anything up. It picks the word most likely to come next, one word at a time.",
+    # 10/9 (Nelson): most chatbots come with a research tool now that pulls real data from sources, but only trust trusted ones
+    "check_search_k": "Need facts? Use search.",
+    "check_search": "Most AI chatbots come with a search or research tool now. It pulls real information from the web and shows you its sources.",
+    "check_trust": ("Trust", "Government sites, schools, the news, the company's own website"),
+    "check_skip": ("Skip", "Reddit, forums and people's opinions"),
+    "check_search_foot": "Open the source. Does it really say that?",
     "check_why_k": "Why it gets things wrong",
     "check_why": "It picks what sounds right, not what's true. So it can sound sure and still be wrong. That's a hallucination.",
     "check_claim": "73% of small businesses used AI last year, according to the Bluebonnet Business AI Index.",
