@@ -347,8 +347,7 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
    bottom. Everything above stays the original look, untouched, as the ?look=v1 fallback.
    ============================================================================================================ */
 .stg-rail,.stg-spark,.ti-chat{display:none}
-.stg-canvas.keynote{background:radial-gradient(1500px 1000px at 85% -15%,#143a9a 0%,rgba(20,58,154,0) 62%),radial-gradient(1100px 800px at -10% 115%,#0b2a7a 0%,rgba(11,42,122,0) 60%),#04123a;color:#fff}
-.keynote::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.075) 1.3px,transparent 1.5px);background-size:40px 40px;-webkit-mask-image:radial-gradient(1300px 900px at 55% 35%,#000 20%,transparent 80%);mask-image:radial-gradient(1300px 900px at 55% 35%,#000 20%,transparent 80%)}
+.stg-canvas.keynote{background:radial-gradient(1500px 1000px at 85% -15%,#143a9a 0%,rgba(20,58,154,0) 62%),#04123a;color:#fff} /* one soft glow; no texture (a fine pattern turns to blocks on a compressed call) */
 .keynote .scene{--ink:#eef2ff;--ink-2:#b9c5e8;--muted:#8e9cc8;--hair:rgba(255,255,255,.14);color:#fff;padding:104px 140px 140px;background:none}
 .keynote .scene.leaving{display:block;pointer-events:none}
 /* type: one scale, keynote sizes, tight tracking, white with gold for the one word that matters */
@@ -368,8 +367,8 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .stg-rail li{display:grid;gap:9px}
 .stg-rail li::before{content:"";height:5px;border-radius:3px;background:rgba(255,255,255,.14);grid-area:1/1}
 .stg-rail li i{grid-area:1/1;height:5px;border-radius:3px;background:transparent}
-.stg-rail li span{font:700 14px/1 var(--font);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap}
-.stg-rail li.done i{background:rgba(255,255,255,.62)}.stg-rail li.done span{color:rgba(255,255,255,.62)}
+.stg-rail li span{font:600 19px/1 var(--font);color:rgba(255,255,255,.55);white-space:nowrap}
+.stg-rail li.done i{background:rgba(255,255,255,.62)}.stg-rail li.done span{color:#c9d1ee}
 .stg-rail li.now i{background:var(--gold)}.stg-rail li.now span{color:var(--gold)}
 /* three small brand sparkles that breathe (the brand allows a few, sparingly) */
 .keynote .stg-spark{display:block;position:absolute;inset:0;pointer-events:none;z-index:1}
@@ -499,3 +498,29 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .keynote .sc-soon .sc-h{font-size:84px}
 .keynote .sc-soon .qr-card.row .qr{width:120px;height:120px}
 .keynote .sc-soon .so-grid{row-gap:34px}
+/* ---- critique pass (10/9, a second reviewer on a 720p compressed sim) ---- */
+.keynote .nx-c,.keynote .sc-nolove{background:none} /* the same night as every other scene */
+/* one bubble system on every scene: you = gold (as on the title and the chat scene), the AI = white, on the left */
+.keynote .st-me,.keynote .wn-msg.you{background:var(--gold);color:#04123a}
+.keynote .st-opts{justify-items:start;padding-left:60px}
+.keynote .st-opt{background:#fff;border-color:#fff;color:#04123a;border-radius:20px 20px 20px 6px}
+/* one headline size on the teaching scenes (the display moments keep their own: title, don't fall in love, your turn, questions, the next workshop) */
+.keynote :is(.sc-follow,.sc-laptop,.sc-strengths,.sc-chat,.sc-words,.sc-bland,.sc-prompt5,.sc-steer,.sc-tokens,.sc-window,.sc-save,.sc-bye) .sc-h{font-size:88px}
+.keynote .sc-check .sc-h{font-size:84px;white-space:nowrap;position:relative;z-index:1}
+.keynote .sc-check .sc-h br{display:none}
+/* footnotes readable on a call */
+.keynote :is(.st-note,.wn-ex){font-size:26px;color:#a9b4dc}
+/* the AI card: the idea, not the loudest thing on screen */
+.keynote .ch-ai{align-self:center;min-height:330px;background:rgba(11,64,224,.22);box-shadow:inset 0 0 0 2px #2f63ff,0 30px 80px rgba(11,64,224,.25)}
+/* the badge phone stands straight (tilted text breaks up on a call) */
+.keynote .by-phone{transform:none}
+.keynote .sg-pick{font-size:26px;white-space:nowrap}
+/* save: crop each real screen to its settings panel so the box and its label read bigger */
+.keynote .sv-shot img{height:330px;object-fit:cover}
+.keynote .sv-shot.claude img{object-view-box:inset(0% 0% 0% 15%);object-fit:contain;background:#fff}
+.keynote .sv-shot.chatgpt img{object-view-box:inset(0% 0% 18% 28%);object-position:50% 30%}
+.keynote .sv-shot.gemini img{object-view-box:inset(0% 10% 22% 22%);object-position:50% 50%}
+.keynote .sv-shot{box-shadow:inset 0 0 0 2px rgba(255,255,255,.18),0 40px 90px rgba(1,6,24,.55)}
+.keynote .by-phone{box-shadow:inset 0 0 0 2px rgba(255,255,255,.16),0 40px 90px rgba(1,6,24,.55)}
+.keynote .sc-check .ck-grid{grid-template-columns:minmax(0,1fr) 520px}.keynote .sc-check .ck-left{min-width:0}
+.keynote .sc-check .sc-h{width:1640px}

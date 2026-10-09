@@ -337,10 +337,10 @@ function show(index, animate = false) {
   scenes.forEach((s, i) => s.el.classList.toggle('on', i === index));
   if (KEYNOTE && animate && was && !REDUCED) { // keynote: the old scene slides off and softens; the new one arrives sharp
     was.classList.add('leaving');
-    gsap.fromTo(was, { autoAlpha: 1, x: 0, filter: 'blur(0px)' }, { autoAlpha: 0, x: -90, filter: 'blur(6px)', duration: 0.32, ease: 'power2.inOut',
+    gsap.fromTo(was, { autoAlpha: 1, x: 0, filter: 'blur(0px)' }, { autoAlpha: 0, x: -70, filter: 'blur(6px)', duration: 0.2, ease: 'power2.in',
       onComplete: () => { was.classList.remove('leaving'); gsap.set(was, { clearProps: 'opacity,visibility,transform,filter' }); } });
     gsap.fromTo(el, { autoAlpha: 0, x: 110, filter: 'blur(8px)' },
-      { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.75, delay: 0.08, ease: 'expo.out', clearProps: 'opacity,visibility,transform,filter' });
+      { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.7, delay: 0.17, ease: 'expo.out', clearProps: 'opacity,visibility,transform,filter' }); // starts as the old one is nearly gone: two text scenes never sit on top of each other (they smear on a call)
   }
   shown = index; startTimers(el, false); rail(index, animate);
 }
