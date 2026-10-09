@@ -238,6 +238,41 @@ export const TIMELINES = {
     tl.addLabel('b3'); appearBeat(tl, el, 3);
     return tl.addLabel('end');
   },
+  frontier(el) { // (10/9, Nelson: "explain frontier models and AGI … make it creative … cool") the mountain. The markup is the END
+    // state (the class page shows it as is). b0: the climbers and the gold frontier line. b1: the years tick, the line climbs, the
+    // three overtake each other on the way up and land level, last year's best stay behind. b2: the clouds part on "AGI?". b3: the rule.
+    const q = (c) => el.querySelector(c), qa = (c) => [...el.querySelectorAll(c)];
+    const line = q('.fr-line'), draw = q('.fr-line-draw'), year = q('.fr-year'), climbers = qa('.fr-c'), ghosts = qa('.fr-ghost');
+    const clouds = qa('.fr-cloud'), agi = qa('.fr-agi'), from = +year.dataset.from, to = +year.textContent;
+    const endOf = (g) => { // the END translation from the markup, kept before GSAP rewrites the transform (and reused on a rebuild)
+      if (!g.dataset.end) g.dataset.end = g.getAttribute('transform') || 'translate(0 0)';
+      const m = g.dataset.end.match(/-?[\d.]+/g); return { x: +m[0], y: +m[1] };
+    };
+    const lineEnd = endOf(line), climbEnd = climbers.map(endOf);
+    const at0 = (t, v) => tl.fromTo(t, v, { ...v, duration: 0.01 }, 0); // the start state, written at time 0
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel('b0');
+    at0(line, { y: +line.dataset.y0 }); climbers.forEach((c) => at0(c, { x: +c.dataset.x0, y: +c.dataset.y0 }));
+    at0(ghosts, { autoAlpha: 0 }); at0(agi, { autoAlpha: 0 }); at0(clouds, { x: 0, y: 0, opacity: 0.96 }); at0(year, { textContent: from });
+    appearBeat(tl, el, 0); into(tl, q('.fr-art'), IN, '<0.1');
+    into(tl, qa('.fr-dot'), { autoAlpha: 0, scale: 0.3, transformOrigin: '50% 50%', stagger: 0.04, duration: 0.3, ease: 'back.out(2)' }, '<0.25');
+    into(tl, climbers, { autoAlpha: 0, scale: 0.3, transformOrigin: '50% 50%', stagger: 0.08, duration: 0.35, ease: 'back.out(2)' }, '<0.1');
+    tl.fromTo(draw, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, transformOrigin: '0% 50%', duration: 0.5, ease: EASE_MOVE }, '<0.1');
+    into(tl, [q('.fr-line-glow'), q('.fr-line-k'), q('.fr-line-sub')], { autoAlpha: 0, duration: 0.3 }, '<0.25');
+    tl.addLabel('b1');
+    tl.to(year, { textContent: to, snap: { textContent: 1 }, duration: 1.3, ease: 'none' }, 'b1')
+      .to(line, { y: lineEnd.y, duration: 1.3, ease: EASE_MOVE }, 'b1')
+      .fromTo(ghosts, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, immediateRender: false }, 'b1+=0.25');
+    const paces = ['power3.out', 'power2.in', 'sine.inOut']; // different speeds, so they pass each other on the way up
+    climbers.forEach((c, i) => tl.to(c, { x: climbEnd[i].x, y: climbEnd[i].y, duration: 1.15 + i * 0.08, ease: paces[i % 3] }, 'b1'));
+    appearBeat(tl, el, 1);
+    tl.addLabel('b2');
+    tl.to(clouds[0], { x: -150, y: 10, opacity: 0.5, duration: 1, ease: EASE_MOVE }, 'b2').to(clouds[1], { x: 150, y: 10, opacity: 0.5, duration: 1, ease: EASE_MOVE }, 'b2')
+      .fromTo(agi, { autoAlpha: 0, scale: 0.6, transformOrigin: '50% 50%' }, { autoAlpha: 1, scale: 1, transformOrigin: '50% 50%', duration: 0.6, ease: 'back.out(1.8)', immediateRender: false }, 'b2+=0.45');
+    appearBeat(tl, el, 2);
+    tl.addLabel('b3'); appearBeat(tl, el, 3);
+    return tl.addLabel('end');
+  },
   tokens(el) { // the sentence breaks into the pieces an AI counts
     const box = el.querySelector('.tk-chips'), sent = el.querySelector('.tk-sentence'), n = el.querySelector('.tk-n');
     const toks = splitTokens(box.dataset.text);

@@ -64,7 +64,7 @@ try {
   // walk the whole deck: every scene, every beat, then check each scene's [data-beat] elements are fully drawn
   const w = await page();
   const n = await w.evaluate(() => document.querySelectorAll('.scene').length);
-  assert.equal(n, 20, 'twenty scenes (10/8: + laptop, nolove, strengths; 10/9: + models)');
+  assert.equal(n, 21, 'twenty-one scenes (10/8: + laptop, nolove, strengths; 10/9: + models, frontier)');
   for (let s = 0; s < n; s++) {
     await w.evaluate((i) => window.__stage.go(i), s);
     const beats = await w.evaluate((i) => +document.querySelectorAll('.scene')[i].dataset.beats, s);
@@ -132,6 +132,24 @@ try {
     items: [...document.querySelectorAll('.md-it')].map((x) => x.querySelector('b').textContent + ' | ' + x.querySelector('.md-tag').textContent + ' | ' + +getComputedStyle(x.querySelector('.md-tag')).opacity) }));
   assert.equal(md.menu, 1, 'models: the menu is open');
   assert.deepEqual(md.items, ['Fable 5.1 | Paid plans | 1', 'Opus 5.5 | Paid plans | 1', 'Sonnet 5.5 | Free | 1', 'Haiku 5.5 | Free | 1'], 'models: each model and its plan');
+  // 10/9 (Nelson: "explain what frontier models are and AGI is … make it creative … cool"): the mountain. b0: the line starts low,
+  // the peak is in the clouds; by the end the line has climbed, the three are level at it, last year's best stay behind, AGI? shows.
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('frontier')));
+  await w.waitForTimeout(2200);
+  const fr = () => w.evaluate(() => { const r = (c) => document.querySelector('.sc-frontier ' + c).getBoundingClientRect();
+    const op = (c) => +getComputedStyle(document.querySelector('.sc-frontier ' + c)).opacity;
+    return { lineY: Math.round(r('.fr-line-draw').top), year: document.querySelector('.sc-frontier .fr-year').textContent, agi: op('.fr-peak'),
+      ghost: op('circle.fr-ghost'), cloud: op('.fr-cloud-l'), ys: [...document.querySelectorAll('.sc-frontier .fr-c-dot')].map((d) => Math.round(d.getBoundingClientRect().top)) }; });
+  const f0 = await fr();
+  assert.deepEqual([f0.year, f0.agi, f0.ghost], ['2023', 0, 0], 'frontier, beat 0: 2023, no AGI label, nobody left behind yet ' + JSON.stringify(f0));
+  assert.ok(f0.cloud > 0.9, 'frontier, beat 0: the peak is in the clouds');
+  for (let i = 0; i < 3; i++) { await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800); }
+  const f3 = await fr();
+  assert.equal(f3.year, '2026', 'frontier, end: the years ticked to 2026');
+  assert.ok(f3.lineY < f0.lineY - 100, `frontier, end: the line climbed (${f0.lineY} → ${f3.lineY})`);
+  assert.equal(new Set(f3.ys).size, 1, 'frontier, end: Claude, ChatGPT and Gemini level at the line ' + JSON.stringify(f3.ys));
+  assert.deepEqual([f3.agi, f3.ghost], [1, 1], 'frontier, end: AGI? shows, and last year\'s best stay behind');
+  assert.ok(f3.cloud < 0.6, 'frontier, end: the clouds parted');
   // 10/8 (Nelson): "when it said write it as if my grandmother is talking nothing changed". The grandmother answer must SOUND like
   // a grandmother talking (not "my grandmother's recipe", which is the grandchild), and stay short after "Make it shorter".
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));

@@ -69,7 +69,7 @@ def _scene_prompt5():
 </section>"""
 
 
-from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD
+from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD, FRONTIER
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -262,6 +262,64 @@ def _scene_models():
 {_cl_comp("md-comp", '<span class="cl-ph">' + e(STAGE["app_ph"]) + '</span>')}</div></div>
 <div class="md-side">{notes}<p class="md-rule" data-beat="3">{e(M['rule'])}</p><p class="md-also" data-beat="3">{e(M['also'])}</p></div></div>""")
 
+# The frontier mountain (10/9, Nelson: "explain what frontier models are and AGI is … make it creative … cool"), shared by the
+# stage scene and the class page. The markup is the END state: the gold line high up, Claude, ChatGPT and Gemini level at it,
+# last year's best left lower ("everyday now"), the clouds parted on the "AGI?" peak. The stage climbs into it from data-x0/y0.
+_FR_F0, _FR_F1 = 470, 300   # the frontier line: where it starts, where it ends (SVG y; the SVG is drawn 1:1 on the stage)
+_FR_CLIMB = (("Claude", (430, 482), (812, 312)), ("ChatGPT", (600, 470), (566, 312)), ("Gemini", (786, 486), (690, 312)))
+_FR_STARS = ((70, 160), (150, 70), (250, 200), (330, 110), (430, 60), (860, 70), (930, 180), (1010, 110), (980, 250), (200, 300))
+_FR_LOW = ((360, 600), (500, 646), (660, 586), (820, 628), (950, 672), (570, 700), (420, 690))
+
+def _mountain(label):
+    F = FRONTIER
+    stars = "".join(f'<circle cx="{x}" cy="{y}" r="2.6"/>' for x, y in _FR_STARS)
+    low = "".join(f'<circle class="fr-dot" cx="{x}" cy="{y}" r="9"/>' for x, y in _FR_LOW)
+    ghosts = "".join(f'<circle class="fr-ghost" cx="{x0}" cy="{y0}" r="12"/>' for _, (x0, y0), _ in _FR_CLIMB)
+    gx, gy = _FR_CLIMB[0][1]
+    climbers = "".join(
+        f'<g class="fr-c" data-x0="{x0}" data-y0="{y0}" transform="translate({x1} {y1})"><circle r="15" class="fr-c-dot"/>'
+        f'<text y="-28" text-anchor="middle" class="fr-c-name">{e(n)}</text></g>' for n, (x0, y0), (x1, y1) in _FR_CLIMB)
+    return f"""<svg class="fr-art" viewBox="0 0 1080 720" width="1080" height="720" role="img" aria-label="{e(label)}">
+<defs><linearGradient id="frSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d2f86"/><stop offset="1" stop-color="#04123a"/></linearGradient>
+<linearGradient id="frRock" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a55c4"/><stop offset=".55" stop-color="#143a9a"/><stop offset="1" stop-color="#0a2366"/></linearGradient>
+<radialGradient id="frGlow"><stop offset="0" stop-color="#fdc921" stop-opacity=".75"/><stop offset="1" stop-color="#fdc921" stop-opacity="0"/></radialGradient></defs>
+<style>.fr-back{{fill:#0c2a78;opacity:.8}}.fr-rock{{fill:url(#frRock);stroke:rgba(255,255,255,.22);stroke-width:2;stroke-linejoin:round}}
+.fr-snow{{fill:#eef3ff}}.fr-trail{{fill:none;stroke:rgba(255,255,255,.32);stroke-width:3;stroke-dasharray:2 12;stroke-linecap:round;stroke-linejoin:round}}
+.fr-dot{{fill:#8aa2e0;opacity:.8}}circle.fr-ghost{{fill:#9db7ff;opacity:.9}}text.fr-ghost{{fill:#d5e0ff;font:600 24px var(--font,Inter,sans-serif)}}
+.fr-line-glow{{stroke:#fdc921;stroke-opacity:.28;stroke-width:16;stroke-linecap:round}}.fr-line-draw{{stroke:#fdc921;stroke-width:5;stroke-linecap:round}}
+.fr-line-k{{fill:#fdc921;font:800 26px var(--display,'Space Grotesk',sans-serif);letter-spacing:.12em}}.fr-line-sub{{fill:#dbe4ff;font:500 24px var(--font,Inter,sans-serif)}}
+.fr-c-dot{{fill:#fff;stroke:#fdc921;stroke-width:6}}.fr-c-name{{fill:#fff;font:700 24px var(--display,'Space Grotesk',sans-serif);paint-order:stroke;stroke:#04123a;stroke-width:6px;stroke-linejoin:round}}
+.fr-cloud{{fill:#e6edff}}.fr-peak{{fill:#fdc921;font:800 46px var(--display,'Space Grotesk',sans-serif);paint-order:stroke;stroke:#04123a;stroke-width:8px;stroke-linejoin:round}}
+.fr-year{{fill:#fdc921;font:800 64px var(--display,'Space Grotesk',sans-serif);letter-spacing:-.02em}}</style>
+<rect class="fr-sky" width="1080" height="720" rx="36" fill="url(#frSky)"/>
+<g class="fr-stars" fill="#fff" opacity=".55">{stars}</g>
+<text class="fr-year" x="56" y="104" data-from="{F['years'][0]}">{F['years'][1]}</text>
+<circle class="fr-agi fr-glow" cx="640" cy="112" r="120" fill="url(#frGlow)"/>
+<path class="fr-back" d="M0 720 L0 520 L120 430 L230 488 L330 330 L430 400 L520 720 Z"/>
+<path class="fr-rock" d="M0 720 L170 520 L250 560 L380 380 L450 420 L560 230 L640 112 L720 210 L790 170 L900 380 L980 350 L1080 520 L1080 720 Z"/>
+<path class="fr-snow" d="M596 196 L640 112 L694 200 L668 186 L646 204 L622 186 Z"/>
+<path class="fr-trail" d="M360 720 L430 640 L520 612 L470 540 L600 486 L560 410 L660 340 L600 268 L652 196"/>
+<g class="fr-low">{low}</g>
+<g class="fr-ghosts">{ghosts}<text class="fr-ghost fr-ghost-l" x="{gx - 24}" y="{gy + 46}" text-anchor="end">{e(F['everyday'])}</text></g>
+<g class="fr-line" data-y0="{_FR_F0}" transform="translate(0 {_FR_F1})"><line class="fr-line-glow" x1="40" y1="0" x2="1040" y2="0"/>
+<line class="fr-line-draw" x1="40" y1="0" x2="1040" y2="0"/><text class="fr-line-k" x="40" y="-22">{e(F['line'].upper())}</text>
+<text class="fr-line-sub" x="40" y="34">{e(F['line_sub'])}</text></g>
+{climbers}
+<g class="fr-cloud fr-cloud-l" transform="translate(-150 10)" opacity=".5"><ellipse cx="560" cy="128" rx="110" ry="46"/><ellipse cx="618" cy="96" rx="80" ry="52"/><ellipse cx="520" cy="166" rx="96" ry="34"/></g>
+<g class="fr-cloud fr-cloud-r" transform="translate(150 10)" opacity=".5"><ellipse cx="706" cy="104" rx="90" ry="50"/><ellipse cx="760" cy="140" rx="104" ry="42"/><ellipse cx="672" cy="164" rx="86" ry="32"/></g>
+<text class="fr-agi fr-peak" x="640" y="66" text-anchor="middle">{e(F['peak'])}</text>
+</svg>"""
+
+def _scene_frontier():
+    F = FRONTIER
+    return _sc("frontier", 4, "Frontier models and AGI", f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(F['h'])}</h2>
+<div class="fr-grid"><div class="fr-side">
+<p class="fr-def" data-beat="0"><b>{e(F['frontier_k'])}:</b> {e(F['stage_frontier'])}</p>
+<p class="fr-def" data-beat="1">{e(F['stage_moving'])}</p>
+<p class="fr-def" data-beat="2"><b>{e(F['agi_k'])}:</b> {e(F['stage_agi'])}</p>
+<p class="fr-rule" data-beat="3">{e(F['rule'])}</p></div>
+{_mountain("A mountain at night. AI models climb it. A gold line marks the frontier, the highest any AI has climbed today, and it keeps rising. The peak above the clouds is labeled AGI, with a question mark.")}</div>""")
+
 def _scene_tokens():
     return _sc("tokens", 2, "Tokens", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['tokens_h'])}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['tokens_sub'])}</p>
@@ -353,10 +411,10 @@ def _scene_bye():
 <script type="application/json" class="by-data">{_badge_words()}</script>""")
 
 SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove, "strengths": _scene_strengths,
-                "chat": _scene_chat, "words": _scene_words, "models": _scene_models,
+                "chat": _scene_chat, "words": _scene_words, "models": _scene_models, "frontier": _scene_frontier,
                 "bland": _scene_bland, "prompt5": _scene_prompt5, "steer": _scene_steer, "tokens": _scene_tokens, "window": _scene_window,
                 "check": _scene_check, "save": _scene_save, "yourturn": _scene_yourturn, "qa": _scene_qa, "next": _scene_next, "bye": _scene_bye}
-STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "models", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
+STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "models", "frontier", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
 # Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").
@@ -506,6 +564,15 @@ def models():
             f'{shot("models")}<p class="a1c-models-in">{e(M["list_h"])}</p><ul class="a1c-models-list">{items}</ul>'
             f'<ul class="a1c-models-notes">{notes}</ul><p class="a1c-models-rule">{e(M["rule"])}</p><p class="a1c-needs">{e(M["also"])}</p></section>')
 
+def frontier():
+    """Step 3's "Frontier models and AGI" card: the stage's mountain (its end state), then the two words in full, then the rule."""
+    F = FRONTIER
+    return (f'<section class="a1c-frontier" aria-label="{e(F["class_h"])}"><p class="a1c-models-h">{e(F["class_h"])}</p>'
+            f'<div class="a1c-frontier-art">{_mountain("A mountain at night. A gold line near the top marks the frontier: the highest any AI has climbed today. Claude, ChatGPT and Gemini are level at it. The peak above the clouds is labeled AGI, with a question mark.")}</div>'
+            f'<dl class="a1c-frontier-dl"><div><dt>{e(F["frontier_k"])}</dt><dd>{e(F["frontier"])} {e(F["moving"])}</dd></div>'
+            f'<div><dt>{e(F["agi_k"])}</dt><dd>{e(F["agi"])} {e(F["agi_note"])}</dd></div></dl>'
+            f'<p class="a1c-models-rule">{e(F["rule"])}</p></section>')
+
 def no_love():
     return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
 
@@ -637,6 +704,7 @@ EXTRA = {
     "trust": trust,
     "no_love": no_love,
     "models": models,
+    "frontier": frontier,
 }
 
 def _flow(s, x):

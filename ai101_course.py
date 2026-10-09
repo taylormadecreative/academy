@@ -290,6 +290,77 @@ MODELS = {
     "list_h": "The models in Claude, from the one that thinks hardest to the fastest:",  # class page only
     "step": "One more word: the model. It's the brain inside the app, and each app has a few. In Claude, Sonnet is the everyday one and Haiku is the fastest. Both are free. Opus and Fable think harder and are on paid plans. Not sure? Use the one it picks for you. ChatGPT and Gemini let you choose too, next to the message box.",
 }
+# Frontier models and AGI (Nelson 10/9: "explain what frontier models are and AGI is … make it creative … make it cool").
+# The mountain: AI models climb; the gold line is the frontier, the highest any AI has climbed today, and it keeps rising,
+# so last year's best is everyday now. AGI is the peak in the clouds. Facts checked 10/9: "frontier" is a moving label
+# for the most capable models at a given moment (no single legal definition); AGI has no agreed definition, and
+# experts disagree on whether and when. So no dates, no predictions, and no claim it's here or never coming.
+FRONTIER = {
+    "h": "The frontier keeps moving.",
+    "frontier_k": "Frontier model",
+    "frontier": "One of the most capable AI models right now, like the top ones behind Claude, ChatGPT and Gemini.",
+    "moving": "Every few months, a newer one climbs higher, and the top spot changes hands. Last year's best is everyday now.",
+    "agi_k": "AGI",
+    "agi": "Artificial general intelligence: AI as good as a person at most thinking work, not just a few jobs.",
+    "agi_note": "No one agrees on exactly what counts, or if and when it arrives. Be careful with anyone who says they know.",
+    "rule": "Use the newest one. Ignore the hype. Check its work.",
+    "line": "The frontier",      # the gold line on the mountain
+    "line_sub": "today's best",
+    "peak": "AGI?",              # the summit in the clouds
+    "everyday": "everyday now",  # where last year's best are left standing
+    "years": (2023, 2026),       # the time-lapse counter
+    "climbers": ("Claude", "ChatGPT", "Gemini"),
+    "class_h": "Frontier models and AGI",  # class page card
+    # the stage's short lines (the class page uses the full ones above)
+    "stage_frontier": "one of the best AI models right now.",
+    "stage_moving": "It keeps climbing, and the top spot changes hands. Last year's best is everyday now.",
+    "stage_agi": "AI as good as a person at most thinking work. No one agrees what counts, or when.",
+}
+
+# More words for 2026 (Nelson 10/9: "google says these are terms everyone should know in 2026"). His list, minus the 8 the
+# class already teaches (AI, Generative AI, Prompt, Token, Context window, Hallucination, LLM, Agent), rewritten in plain
+# English for first-timers: one sentence, and an everyday example where it helps. Class page: a folded glossary after the
+# frontier card. Stage: the "words2026" scene flashes all 16, then lights up the four a beginner will meet first ("pick").
+GLOSSARY = {
+    "h": "More AI words for 2026",
+    "sub": "You'll hear these at work and in the news. You don't need them tonight. Come back here when you hear one.",
+    "groups": [
+        ("The big ideas", [
+            ("Machine learning", "How AI learns: it finds patterns in lots of examples, instead of following rules a person wrote."),
+            ("Deep learning", "Machine learning with many layers of math, loosely inspired by the brain. It's behind today's chatbots."),
+            ("Foundation model", "A big, general model trained on a huge amount of data, then adapted to many jobs. LLMs are one kind."),
+            ("Multimodal", "AI that works with more than words: pictures, sound and video too. Snap a photo and ask about it."),
+        ]),
+        ("Working with AI", [
+            ("Prompt engineering", "Getting better answers by how you ask. The 5-part prompt is prompt engineering."),
+            ("Temperature", "A setting for how creative or predictable the answers are. Higher is more varied, lower is steadier. Mostly for builders."),
+            ("Inference", "The AI working out an answer for you, right now. Training is the learning; inference is the using."),
+            ("Fine-tuning", "Extra training on a smaller set of examples, so a model gets good at one job, like a company's own style."),
+            ("Vibe coding", "Describing an app or website in plain English and letting AI write the code."),
+        ]),
+        ("Under the hood", [
+            ("Small language model (SLM)", "A smaller, lighter model that can run on a phone or laptop. Faster and more private, but it knows less."),
+            ("RAG (retrieval-augmented generation)", "The AI looks things up first, in your documents or on the web, then answers from what it found."),
+            ("Embeddings", "Words or pictures turned into numbers, so a computer can tell which ones are close in meaning."),
+            ("Vector database", "A database built to store those numbers and find the closest matches fast. It's what RAG searches."),
+            ("MCP (Model Context Protocol)", "An open standard that lets AI apps plug into other tools and data. Think of it as a USB port for AI."),
+            ("Mixture of experts (MoE)", "A model made of many smaller specialist parts. Only the parts that fit your question do the work."),
+            ("RLHF (reinforcement learning from human feedback)", "Training where people rate the AI's answers, so it learns to be more helpful and safer."),
+        ]),
+    ],
+    "pick": ["Multimodal", "Prompt engineering", "Vibe coding", "RAG (retrieval-augmented generation)"],  # the stage lights these up
+    "stage_h": "Words you'll hear in 2026.",
+    "stage_sub": "You don't need them tonight. All of them are on your class page, in plain English.",
+    "stage_pick_h": "The four you'll meet first:",
+    "stage_short": {  # the stage's one-liners for the four it lights up
+        "Multimodal": "Works with photos, sound and video, not just words.",
+        "Prompt engineering": "Getting better answers by how you ask. You did it tonight.",
+        "Vibe coding": "Describe an app in plain English. AI writes the code.",
+        "RAG (retrieval-augmented generation)": "It looks things up first, then answers from what it found.",
+    },
+    "stage_tip": "Hear a new word? Ask your AI: “Explain [the word] like I'm brand new to it.”",
+}
+
 STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so each instruction sits next to its action
     {"id": "hi", "n": 1, "time": "7:00", "min": 2, "title": "Say hi",
      "do": ["In the room chat, finish this sentence: “I'd love help with ______.” Pick something that takes up your time every week.",
@@ -309,7 +380,7 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
             "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("extra", "models")],
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("shot", "chat"), ("do", 3), ("extra", "words_step2"), ("extra", "models"), ("extra", "frontier")],
      "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
@@ -475,7 +546,7 @@ NEVER_PASTE = [
 ]
 NEVER_PASTE_SLIP = "Pasted something by mistake? Delete that chat. At work, tell your manager or IT right away."
 
-WORDS_FULL = [
+WORDS_FULL = [  # 10/9: the three longest (Context window, Custom instructions, Agent) share the cheat sheet's last row
     ("AI", "Computer programs that do things that used to take a person, like writing, answering questions and summing things up."),
     ("Generative AI", "AI that makes something new: words, pictures, video or music."),
     ("Chatbot", "An AI you talk to by typing. Claude, ChatGPT and Gemini are chatbots."),
@@ -485,12 +556,14 @@ WORDS_FULL = [
     ("LLM", "Large Language Model. The kind of model behind chatbots. It learned from a huge amount of writing."),
     ("Training data", "Everything the model learned from. It's why AI can be out of date."),
     ("Token", "A small piece of text: a short word, part of a longer word, or a mark like a period. AI reads, writes and counts in tokens."),
-    ("Context window", "Everything the AI keeps in mind: your whole chat. Long chats cost more and can forget the start."),
+    ("Frontier model", "One of the most capable AI models right now. The top spot changes every few months."),
+    ("AGI", "Artificial general intelligence: AI as good as a person at most thinking work. No one agrees what counts, or when."),
     ("Hallucination", "When AI makes something up and says it like a fact. That's why you check."),
+    ("Context window", "Everything the AI keeps in mind: your whole chat. Long chats cost more and can forget the start."),
     ("Custom instructions", "Your background and rules, saved once so you don't retype them. They carry into your new chats. A Claude Project is similar, but only for chats inside that Project."),
     ("Agent", "An AI set up to do a whole job for you. It can use tools and take steps on its own. Set it up once, and it can do the job again and again. That's the October 23 workshop."),
 ]
-WORDS_STEP2 = ["AI", "Generative AI", "Chatbot", "Prompt", "Model", "LLM", "Hallucination"]  # 10/8: hallucination up front (Nelson)
+WORDS_STEP2 = ["AI", "Generative AI", "Chatbot", "Prompt", "Model", "LLM", "Frontier model", "AGI", "Hallucination"]  # 10/8: hallucination up front (Nelson)
 
 WHATS_NEXT = {
     "agent_h": "Next: build an AI that does the job for you.",
@@ -679,7 +752,7 @@ BADGE = {
 # Every teaching scene names the class page step it goes with, so anyone who looked away can find their place. On the
 # scenes where people do the step themselves, a "Try it" line shows once the scene is fully on screen (its last beat):
 # watch first, then do. Scenes not listed (soon) show no tag.
-STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "models": 3, "bland": 4,
+STAGE_STEP = {"title": 1, "follow": 1, "laptop": 2, "nolove": 2, "strengths": 2, "chat": 3, "words": 3, "models": 3, "frontier": 3, "bland": 4,
               "prompt5": 4, "steer": 5, "tokens": 6, "window": 6, "check": 6, "save": 7, "yourturn": 8}
 STAGE_RAIL = ["Say hi", "Your laptop", "What AI is", "5 parts", "Steer it", "Check it", "Save it", "Your turn"]  # v2's bottom rail, Steps 1-8
 STAGE_TAG_OTHER = {"qa": "Under Step 8", "next": "What's next", "bye": "Review, then your badge"}

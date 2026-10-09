@@ -309,7 +309,7 @@ html{scroll-padding-top:132px}
 /* Step 3 "Pick a model" (MODELS, 10/9): Claude's models with their plan, bigger vs smaller, the rule */
 .a1c-models{background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px}
 .a1c-models>p{margin:0;font-size:16.5px;line-height:1.55;color:var(--ink-2)}
-.a1c-models .a1c-models-h{font:700 20px/1.25 var(--display);color:var(--ink)}
+.a1c-models .a1c-models-h,.a1c-frontier .a1c-models-h{font:700 20px/1.25 var(--display);color:var(--ink)}
 .a1c-models .a1c-models-in{font-weight:600;color:var(--ink)}
 .a1c-models-list,.a1c-models-notes{margin:0;padding:0;list-style:none;display:grid;gap:8px}
 .a1c-models-list li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 12px;border:1px solid var(--hair);border-radius:12px;font-size:16px;line-height:1.45;color:var(--ink-2)}
@@ -320,4 +320,10 @@ html{scroll-padding-top:132px}
 .a1c-models-list em.paid{background:#eef1f7;color:#33415b}
 .a1c-models-notes li{font-size:16px;line-height:1.5;color:var(--ink-2)}
 .a1c-models-notes b{color:var(--ink)}
-.a1c-models .a1c-models-rule{font-weight:600;color:var(--ink)}
+.a1c-models .a1c-models-rule,.a1c-frontier .a1c-models-rule{font-weight:600;color:var(--ink)}
+/* Step 3 "Frontier models and AGI" (FRONTIER, 10/9): the stage's mountain at its end state, the two words, the rule */
+.a1c-frontier{background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;display:grid;gap:12px}
+.a1c-frontier-art svg{display:block;width:100%;height:auto;border-radius:14px}
+.a1c-frontier-dl{margin:0;display:grid;gap:12px}
+.a1c-frontier-dl dt{font:700 17px/1.3 var(--display);color:var(--ink)}
+.a1c-frontier-dl dd{margin:3px 0 0;font-size:16.5px;line-height:1.55;color:var(--ink-2)}

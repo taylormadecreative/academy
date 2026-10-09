@@ -247,3 +247,15 @@ test("Step 3 ends with Pick a model (MODELS, the stage's words): Claude's four m
   assert.match(m, /<figure class="a1c-shot" data-for="claude"><a href="\/ai101\/class\/shots\/claude-models\.webp\?v=/);
   assert.doesNotMatch(m, /Astra|Luna|\bSol\b/, 'no ChatGPT model names: his ChatGPT shows a Thinking effort slider');
 });
+test("Step 3 ends with Frontier models and AGI: the stage's mountain at its end state, both words in full, the rule", () => {
+  const step3 = between(page, 'id="step-words"', '<li class="a1c-step"');
+  const f = between(step3, '<section class="a1c-frontier"', '</section>');
+  assert.ok(f, 'the card is in Step 3');
+  assert.ok(step3.indexOf('class="a1c-frontier"') > step3.indexOf('class="a1c-models"'), 'after Pick a model');
+  assert.match(f, /<svg class="fr-art" viewBox="0 0 1080 720"[^>]* role="img" aria-label="A mountain at night\./);
+  assert.match(f, /<g class="fr-line" data-y0="470" transform="translate\(0 300\)">/, 'the line at its end height');
+  assert.match(f, /<dt>Frontier model<\/dt><dd>One of the most capable AI models right now/);
+  assert.match(f, /<dt>AGI<\/dt><dd>Artificial general intelligence: AI as good as a person at most thinking work/);
+  assert.match(f, /Use the newest one\. Ignore the hype\. Check its work\./);
+  assert.match(step3, /<dt>Frontier model<\/dt>[\s\S]*<dt>AGI<\/dt>/, 'both words are in the word list too');
+});

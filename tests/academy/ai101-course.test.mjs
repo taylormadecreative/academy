@@ -33,10 +33,10 @@ test('every tool has every line, and all three tools have the same keys', () => 
   for (const t of C.TOOL_ORDER) for (const k of keys) assert.ok(C.TOOLS[t][k], `${t}.${k}`);
   assert.match(C.TOOLS_CHECKED, /^\d{4}-\d{2}-\d{2}$/);
 });
-test('counts: 6 outcomes, 10 follow-ups, 6 level-ups, 10 things, 6 fixes, 6 never-paste, 13 words', () => {
+test('counts: 6 outcomes, 10 follow-ups, 6 level-ups, 10 things, 6 fixes, 6 never-paste, 15 words', () => {
   assert.equal(C.OUTCOMES.length, 6); assert.equal(C.FOLLOW_UPS.length, 10); assert.equal(C.LEVEL_UPS.length, 6);
   assert.equal(C.TEN_THINGS.length, 10); assert.equal(C.FIX_IT.length, 6); assert.equal(C.NEVER_PASTE.length, 6);
-  assert.equal(C.WORDS_FULL.length, 13);
+  assert.equal(C.WORDS_FULL.length, 15); // 10/9: + Frontier model, AGI
   const words = C.WORDS_FULL.map((w) => w[0]);
   for (const w of C.WORDS_STEP2) assert.ok(words.includes(w), w);
 });
@@ -243,4 +243,14 @@ test('the next-word scene explains itself: how it guesses, and why that can be w
 test('the 48-hour deal: 9 PM tonight to Sunday 9 PM CT, $65 vs $75 on the stage only', () => {
   assert.match(C.STAGE_DEAL.next_p, /^\$65 instead of \$75, for 48 hours only\./); assert.match(C.STAGE_DEAL.next_p, /Sunday at 9 PM CT/);
   assert.match(C.WHATS_NEXT.deal_p, /48 hours/); assert.doesNotMatch(C.WHATS_NEXT.deal_p, /\$/);
+});
+test("frontier models and AGI (Nelson 10/9): honest words, no dates or predictions, on the stage and the class page from one dict", () => {
+  const F = C.FRONTIER, all = JSON.stringify(F) + JSON.stringify(C.WORDS_FULL.filter(([w]) => /Frontier|AGI/.test(w)));
+  assert.match(F.agi, /as good as a person at most thinking work/);
+  assert.match(F.agi_note, /No one agrees/);
+  assert.match(F.stage_agi, /No one agrees what counts, or when/);
+  assert.doesNotMatch(all, /\b(20[3-9]\d|by 20\d\d|will (arrive|come|be here)|is here|already here|never)\b/i, 'no dates, predictions or claims it is here');
+  assert.deepEqual(F.climbers, ['Claude', 'ChatGPT', 'Gemini']);
+  assert.ok(C.WORDS_STEP2.includes('Frontier model') && C.WORDS_STEP2.includes('AGI'));
+  assert.equal(C.STAGE_STEP.frontier, 3);
 });

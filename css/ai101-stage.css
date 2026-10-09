@@ -647,3 +647,13 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .bl-win.color .bl-q{max-height:calc(1.4em * 4 + 32px);box-sizing:border-box}
 .aw.gp .aw-body::before{height:96px;background:linear-gradient(#fff 84%,rgba(255,255,255,0))}
 .keynote .sc-prompt5 .p5-chips{margin-top:28px}.keynote .sc-prompt5 .p5-card{margin-top:26px}.keynote .sc-prompt5 .p5-foot{margin-top:24px}
+/* ---- Frontier models and AGI (10/9): the mountain. The SVG styles its own drawing; this is the layout ---- */
+.fr-grid{display:grid;grid-template-columns:500px 1080px;gap:60px;margin-top:30px;align-items:start}
+.fr-side{display:grid;gap:30px;padding-top:24px}
+.fr-def{margin:0;font:500 34px/1.32 var(--font);color:var(--ink)}
+.fr-def b{font-family:var(--display);color:var(--blue)}
+.keynote .fr-def b{color:var(--gold)}
+.fr-rule{margin:6px 0 0;padding-left:22px;border-left:6px solid var(--gold);font:700 40px/1.2 var(--display);letter-spacing:-.02em;color:var(--navy)}
+.keynote .fr-rule{color:#fff}
+.fr-art{display:block;width:1080px;height:720px;border-radius:36px;box-shadow:0 40px 100px rgba(1,6,24,.5)}
+.keynote .sc-frontier .sc-h{font-size:88px}

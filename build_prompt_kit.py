@@ -41,7 +41,7 @@ header.slim .hsub{margin-top:3px}
 .p2 .kp-fu{font-size:7.6pt;padding:1px 6px}
 .fix3 dd{font-size:7.6pt}
 .p2 .box h2{margin-bottom:2px}
-.save-cell{grid-column:span 2}
+.save-cell{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);column-gap:14px}.save-cell>b,.save-cell>span{grid-column:1/-1} /* 10/9: 15 words fill 5 rows, so Save it once runs full width with the three tools side by side */
 .save-cell p{margin:1px 0 0;font-size:8.2pt;color:var(--ink)}
 .save-cell p b{display:inline;font:700 8.2pt 'IN'}
 .band{display:block}
@@ -221,7 +221,7 @@ def kit_html():
 <div class="after"><span class="tag">After</span>{segs}</div></div></section>
 <section class="mid"><div><h2>3 rules that fix most answers</h2><ol class="rules">{rules}</ol></div>
 <div class="loop"><h2>How a chat works</h2>{_loop_svg()}</div></section>
-<section><h2>{len(WORDS_FULL)} AI words, in plain English</h2><div class="words">{words}<div class="w save-cell"><b>Save it once</b><span>Save your “About me” so every chat knows you.</span>{save}</div></div></section>
+<section><h2>{len(WORDS_FULL)} AI words, in plain English</h2><div class="words">{words}<div class="w save-cell"><b>Save it once: your “About me,” so every chat knows you</b>{save}</div></div></section>
 </main>{_footer('taylormade<b>academy</b>.com', more=True)}</div>
 
 <div class="page p2"><div class="hair"></div>
