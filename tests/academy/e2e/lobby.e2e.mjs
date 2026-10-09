@@ -32,6 +32,7 @@ async function person(ctx, { id, name, role = 'guest', url = URL0, grace, live, 
     if (grace) { window.__lobbyGraceMs = grace; window.__lobbyNoChannelMs = grace; }
     if (live !== undefined) localStorage.setItem('fake-live', live ? '1' : '0');
     if (rtFail) window.FAKE_RT_FAIL = true;
+    const names = JSON.parse(localStorage.getItem('fake-names') || '{}'); names[id] = name; localStorage.setItem('fake-names', JSON.stringify(names));
   }, { id, name, role, grace, live, rtFail });
   p.on('pageerror', (e) => fails.push(name + ' pageerror: ' + e.message));
   p.on('console', (m) => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) fails.push(name + ' console: ' + m.text()); });
@@ -66,6 +67,37 @@ try {
   await jamal.waitForFunction(() => document.querySelector('.lb-count').textContent === '2', null, { timeout: 4000 });
   assert.match(await text(meme, '.lb-crowd-t'), /You and 1 other person/);
   await meme.waitForFunction(() => /Jamal just arrived/.test(document.querySelector('.lb-arrive').textContent), null, { timeout: 3000 });
+
+  /* L2b — the wall: Meme answers, Jamal sees it on the card */
+  step = 'L2b';
+  await meme.fill('.lb-warm-a', 'my emails'); await meme.fill('.lb-warm-c', 'Atlanta, GA'); await meme.click('.lb-warm-go');
+  await meme.waitForFunction(() => /on the wall/.test(document.querySelector('.lb-warm-said').textContent));
+  await jamal.waitForFunction(() => /my emails/.test(document.querySelector('.lb-wall').textContent), null, { timeout: 5000 });
+  assert.match(await text(jamal, '.lb-wall'), /Meme/);
+  assert.match(await text(meme, '.lb-wall li:first-child b'), /^You$/);
+
+  /* L2c — Play: be the AI. Both pick a word; the lobby's bars move live */
+  step = 'L2c';
+  for (const pg of [meme, jamal]) {
+    for (let i = 0; i < 6 && !/Play/.test(await text(pg, '.lb-screen-k')); i++) { await pg.click('.lb-navb[data-d="1"]'); await pg.waitForTimeout(250); }
+    assert.equal(await text(pg, '.lb-screen-k'), 'Play: be the AI');
+  }
+  await meme.click('.gm-opt[data-w="time"]');
+  await meme.waitForSelector('.gm-res');
+  assert.match(await text(meme, '.gm-meta'), /Just you so far/);
+  await jamal.click('.gm-opt[data-w="time"]');
+  await meme.waitForFunction(() => /2 people in the lobby picked/.test(document.querySelector('.gm-meta').textContent), null, { timeout: 5000 });
+  assert.match(await meme.$eval('.gm-res li.top', (l) => l.textContent), /time.*100%/);
+  await shot(meme, 'L2c-game.png');
+
+  /* L2d — a wave: Jamal taps Meme's node; Meme hears about it */
+  step = 'L2d';
+  const at = await jamal.evaluate(() => document.querySelector('.lb').__net.pos('g-meme'));
+  assert.ok(at, 'Meme is on Jamal\'s canvas');
+  await jamal.mouse.click(at.x, at.y);
+  await meme.waitForFunction(() => /Jamal waved at you/.test(document.querySelector('.lb-arrive').textContent), null, { timeout: 4000 });
+  await meme.waitForTimeout(400);
+  await shot(meme, 'L2d-wave.png');
 
   /* L3 — Nelson's page: the panel counts them, holding is on */
   step = 'L3';
@@ -153,7 +185,10 @@ try {
   const prev = await person(ctx3, { id: 'h-prev', name: 'Nelson Taylor', role: 'host', url: URL0 + '&lobby=preview' });
   await prev.waitForSelector('.lb');
   await prev.waitForFunction(() => Number(document.querySelector('.lb-count').textContent) >= 4, null, { timeout: 9000 });
-  await prev.waitForTimeout(2500);
+  await prev.waitForFunction(() => document.querySelectorAll('.lb-wall li:not(.empty)').length >= 3, null, { timeout: 12000 });
+  await prev.waitForTimeout(1500);
+  const fit9 = await prev.evaluate(() => { const lb = document.querySelector('.lb'); const f = document.querySelector('.lb-field').getBoundingClientRect(); return { over: lb.scrollHeight - lb.clientHeight, fieldBottom: f.bottom, vh: innerHeight }; });
+  assert.ok(fit9.over <= 2 && fit9.fieldBottom <= fit9.vh + 1, 'a full wall still fits a 1440x900 laptop: ' + JSON.stringify(fit9));
   await shot(prev, 'L9-preview-1440.png');
   const prevHold = await person(ctx3, { id: 'h-prev2', name: 'Nelson Taylor', role: 'host', url: URL0 + '&lobby=preview&phase=hold' });
   await prevHold.waitForSelector('.lb[data-phase="hold"]');

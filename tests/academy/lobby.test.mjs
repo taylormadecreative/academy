@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   GRACE_MS, NO_CHANNEL_MS, HOST_GONE_MS, hostView, topicOf, roomKeyOf, openKey, shortName, initials, cityWord, readPresence, gate, isSettled,
+  STATS, FACTS, GAME, SEQUENCE, slideKind, slideLabel, tallyRound, cleanPicks, bubbleText, wallRows,
   crowdLine, hostCount, namesLine, citiesLine, startsLine, phaseCopy, hostDoorsLine, markU, LESSONS, holdPref,
 } from '../../js/lobby.js';
 
@@ -183,4 +184,60 @@ test('hostView: a host who blinks off the channel keeps the doors held for HOST_
   assert.equal(hostView({ now: 200000 + GRACE_MS, channelOn: false, offAt: 200000, host: holding, lastHost: holding, lastHostAt: 199000 }).seen, false);
   assert.equal(hostView({ now: 5, channelOn: false, offAt: 0, host: holding, lastHost: null, lastHostAt: 0 }).seen, false);
   assert.ok(HOST_GONE_MS >= 10000 && HOST_GONE_MS <= 30000);
+});
+
+test('the screen plays every slide it names: 18 in a loop, the game twice, hallucination first', () => {
+  const ids = new Set([...LESSONS.map(l => l.v), ...STATS.map(s => s.v), ...FACTS.map(f => f.v), 'game']);
+  SEQUENCE.forEach(id => assert.ok(ids.has(id), id));
+  assert.equal(SEQUENCE[0], 'halluc');
+  assert.equal(SEQUENCE.filter(x => x === 'game').length, 2);
+  [...LESSONS, ...STATS, ...FACTS].forEach(x => assert.ok(SEQUENCE.includes(x.v), x.v + ' is on the screen'));
+  assert.equal(slideLabel('game'), 'Play: be the AI'); assert.equal(slideLabel('s-pay'), 'Real numbers'); assert.equal(slideLabel('f-robot'), 'Did you know?'); assert.equal(slideLabel('tokens'), 'AI in ten seconds');
+  assert.equal(slideKind('stat'), 'lesson', 'the 66% lesson stays a lesson');
+});
+
+test('real numbers: the checked figures, a source on every one, one gold word, no em dashes', () => {
+  const want = { 's-weekly': 900, 's-work': 75, 's-pay': 62, 's-adults': 44, 's-jobs': 170, 's-fast': 100 };
+  STATS.forEach(st => {
+    assert.equal(st.to, want[st.v], st.v + ' is the number checked at the source on 10/9');
+    assert.ok(st.src && /20\d\d/.test(st.src), st.v + ' names its source and year');
+    assert.equal((st.h.match(/\{u\}/g) || []).length, 1, st.v);
+    assert.doesNotMatch(st.h + st.why + st.src, /—/);
+  });
+  FACTS.forEach(f => { assert.ok(f.year >= 1900 && f.year <= 2026); assert.doesNotMatch(f.h + f.why, /—/); assert.equal((f.h.match(/\{u\}/g) || []).length, 1, f.v); });
+  assert.match(STATS.find(s => s.v === 's-pay').why, /\$1\.62/);
+});
+
+test('tallyRound: counts the lobby, the favorite wins, ties go to the first option, junk is ignored', () => {
+  const opts = GAME[0].opts;
+  const t = tallyRound([{ picks: { 0: 'time' } }, { picks: { 0: 'time' } }, { picks: { 0: 'day' } }, { picks: { 0: 'banana' } }, { picks: {} }, null], 0, opts);
+  assert.equal(t.n, 3); assert.equal(t.top, 'time'); assert.equal(t.pct.time, 67); assert.equal(t.pct.day, 33); assert.equal(t.pct.dream, 0);
+  assert.equal(tallyRound([{ picks: { 0: 'night' } }, { picks: { 0: 'day' } }], 0, opts).top, 'day', 'a tie goes to the earlier option');
+  const none = tallyRound([], 0, opts); assert.equal(none.n, 0); assert.equal(none.top, null); assert.equal(none.pct.time, 0);
+});
+
+test('cleanPicks keeps only round numbers with short words', () => {
+  assert.deepEqual(cleanPicks({ 0: 'time', 1: 'coffee', x: 'no', 2: 'a'.repeat(40), 3: 5 }), { 0: 'time', 1: 'coffee' });
+  assert.deepEqual(cleanPicks(null), {}); assert.deepEqual(cleanPicks('x'), {});
+});
+
+test('bubbleText: one short line', () => {
+  assert.equal(bubbleText('  my   emails '), 'my emails');
+  const long = bubbleText('I would really love help with writing all of my weekly newsletters faster');
+  assert.ok(long.length <= 34 && long.endsWith('…'));
+  assert.equal(bubbleText(null), '');
+});
+
+test('wallRows: newest first, one per person, blanks out', () => {
+  const rows = [
+    { user_id: 'a', answer: 'old', updated_at: '2026-10-09T23:00:00Z' }, { user_id: 'b', answer: 'newest', updated_at: '2026-10-09T23:05:00Z' },
+    { user_id: 'c', answer: '  ', updated_at: '2026-10-09T23:06:00Z' }, { user_id: 'd', answer: null, city: 'Dallas' }, { user_id: 'a', answer: 'dupe', updated_at: '2026-10-09T22:00:00Z' },
+  ];
+  assert.deepEqual(wallRows(rows).map(r => r.answer), ['newest', 'old']);
+  assert.equal(wallRows(rows, 1).length, 1);
+});
+
+test('readPresence carries each guest’s game picks', () => {
+  const r = readPresence({ g1: [{ role: 'guest', name: 'Meme', at: 1, picks: { 0: 'time', bad: 'x' } }] }, 'me');
+  assert.deepEqual(r.guests[0].picks, { 0: 'time' });
 });

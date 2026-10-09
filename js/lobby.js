@@ -69,7 +69,7 @@ export function readPresence(state, myId) {
     }
     const newest = metas.reduce((a, b) => (Number(b.at) || 0) >= (Number(a.at) || 0) ? b : a);
     const first = metas.reduce((a, b) => (Number(b.at) || Infinity) < (Number(a.at) || Infinity) ? b : a);
-    guests.push({ id: key, name: shortName(newest.name) || 'Someone', city: cityWord(newest.city), at: Number(first.at) || 0, you: key === myId });
+    guests.push({ id: key, name: shortName(newest.name) || 'Someone', city: cityWord(newest.city), at: Number(first.at) || 0, you: key === myId, picks: cleanPicks(newest.picks) });
   }
   guests.sort((a, b) => (a.at - b.at) || a.name.localeCompare(b.name));
   return { host, guests };
@@ -170,6 +170,77 @@ export const LESSONS = [
   { v: 'stat', h: '{u}2 out of 3{/u} leaders won’t hire without AI skills.', why: '66% of business leaders say they wouldn’t hire someone without AI skills. (Microsoft and LinkedIn, 2024 Work Trend Index.) That’s why you’re here.' },
   { v: 'apps', h: 'Learn the {u}skill{/u}, not the app.', why: 'Don’t fall in love with one AI. A good prompt works in all of them, and each one has a strong suit.' },
 ];
+/* Real numbers, checked at the source on 10/9/26 (OpenAI via TechCrunch 2/27/26; Pew 2026 appendix; PwC 2026
+   AI Jobs Barometer press release; Microsoft + LinkedIn 2024 Work Trend Index; WEF Future of Jobs 2025; Reuters on
+   the UBS note, 2/2/23). Every slide names its source on screen. */
+export const STATS = [
+  { v: 's-weekly', viz: 'count', to: 900, unit: 'million', h: 'people use ChatGPT every {u}week{/u}.', why: 'ChatGPT launched on November 30, 2022. A little over three years later, it’s part of everyday life.', src: 'OpenAI, February 2026' },
+  { v: 's-work', viz: 'dots', to: 75, unit: '%', h: 'of knowledge workers already use AI at {u}work{/u}.', why: 'Knowledge workers are people who work with information: email, documents, spreadsheets. And 78% of the ones using AI bring their own tools.', src: 'Microsoft and LinkedIn, 2024 Work Trend Index' },
+  { v: 's-pay', viz: 'bars', to: 62, unit: '%', h: 'more pay, on average, for people with AI {u}skills{/u}.', why: 'For every dollar a job pays without AI skills, the same kind of job asking for AI skills pays about $1.62. It was 57% the year before.', src: 'PwC, 2026 Global AI Jobs Barometer', bars: [['Without AI skills', 100, '$1.00'], ['With AI skills', 162, '$1.62']] },
+  { v: 's-adults', viz: 'dots', to: 44, unit: '%', h: 'of U.S. adults say they use {u}ChatGPT{/u}.', why: 'Almost half of adults already use it. Knowing how to talk to it is becoming a basic skill, like email.', src: 'Pew Research Center, February 2026 survey' },
+  { v: 's-jobs', viz: 'bars', to: 170, unit: 'million', h: 'new jobs by 2030, while 92 million {u}go away{/u}.', why: 'AI and machine learning specialists are among the fastest-growing jobs. Employers say the skills gap is their biggest barrier to change.', src: 'World Economic Forum, Future of Jobs Report 2025', bars: [['New jobs', 170, '170M'], ['Jobs that go away', 92, '92M']] },
+  { v: 's-fast', viz: 'count', to: 100, unit: 'million', h: 'users in about two {u}months{/u}.', why: 'That was ChatGPT’s start in 2023. At the time, analysts called it the fastest-growing consumer app ever.', src: 'UBS study, reported by Reuters, February 2023' },
+];
+export const FACTS = [
+  { v: 'f-1955', year: 1955, h: 'The name “artificial {u}intelligence{/u}” dates to 1955.', why: 'John McCarthy and three colleagues coined it in a proposal for a summer research workshop at Dartmouth College, held in 1956.' },
+  { v: 'f-robot', year: 1920, h: 'The word “{u}robot{/u}” comes from a 1920 play.', why: 'Czech writer Karel Čapek’s play R.U.R. gave us the word. “Robota” means forced labor in Czech.' },
+  { v: 'f-chess', year: 1997, h: 'A computer beat the world chess {u}champion{/u}.', why: 'In 1997, IBM’s Deep Blue beat Garry Kasparov in a six-game match. Today, free chess apps on a phone play stronger than Deep Blue did.' },
+];
+/* Play: be the AI. Everyday sentences, four next words; the lobby's picks are tallied live from presence. */
+export const GAME = [
+  { s: 'Once upon a', opts: ['time', 'day', 'dream', 'night'] },
+  { s: 'I can’t start my day without a cup of', opts: ['coffee', 'tea', 'water', 'juice'] },
+  { s: 'Peanut butter and', opts: ['jelly', 'bananas', 'honey', 'crackers'] },
+  { s: 'Thank you so much for', opts: ['coming', 'everything', 'your help', 'listening'] },
+  { s: 'My favorite part of the weekend is', opts: ['sleeping in', 'brunch', 'family time', 'football'] },
+];
+/* what plays on the screen, in order: a lesson, a number, a lesson, the game … (the game comes up twice a loop) */
+export const SEQUENCE = ['halluc', 's-weekly', 'next', 'game', 'tokens', 's-work', 'f-1955', 'window', 's-pay', 'prompt', 'f-robot', 'stat', 'apps', 's-adults', 'game', 'f-chess', 's-jobs', 's-fast'];
+export function slideKind(id) { return id === 'game' ? 'game' : id.startsWith('s-') ? 'number' : id.startsWith('f-') ? 'fact' : 'lesson'; }
+export function slideLabel(id) { return ({ game: 'Play: be the AI', number: 'Real numbers', fact: 'Did you know?', lesson: 'AI in ten seconds' })[slideKind(id)]; }
+/* the lobby's picks for one sentence: counts, how many played, the favorite (ties go to the earlier option) */
+export function tallyRound(people, r, opts) {
+  const counts = {}; opts.forEach(o => { counts[o] = 0; });
+  let n = 0;
+  (people || []).forEach(p => { const w = p && p.picks ? p.picks[r] : undefined; if (typeof w === 'string' && Object.prototype.hasOwnProperty.call(counts, w)) { counts[w]++; n++; } });
+  let top = null; if (n) { top = opts[0]; opts.forEach(o => { if (counts[o] > counts[top]) top = o; }); }
+  const pct = {}; opts.forEach(o => { pct[o] = n ? Math.round(counts[o] * 100 / n) : 0; });
+  return { counts, n, top, pct };
+}
+/* a person's picks as presence carries them: { round: word }, short strings only */
+export function cleanPicks(p) {
+  const out = {};
+  if (!p || typeof p !== 'object') return out;
+  Object.keys(p).slice(0, GAME.length).forEach(k => { const v = p[k]; if (/^\d+$/.test(k) && typeof v === 'string' && v.length <= 24) out[k] = v; });
+  return out;
+}
+/* a thought bubble's words: one line, never longer than max */
+export function bubbleText(s, max = 34) {
+  const t = String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+  return t.length > max ? t.slice(0, max - 1).trimEnd() + '…' : t;
+}
+/* the answer wall: the newest answers first, blanks left out, one per person */
+export function wallRows(rows, max = 3) {
+  const seen = new Set();
+  return (rows || []).filter(r => r && r.user_id && typeof r.answer === 'string' && r.answer.trim())
+    .sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || '')))
+    .filter(r => (seen.has(r.user_id) ? false : (seen.add(r.user_id), true)))
+    .slice(0, max);
+}
+function numberDemo(st) {
+  const fig = `<p class="sn-num"><b>0</b><span>${st.unit === '%' ? '%' : ' ' + escHtml(st.unit)}</span></p>`;
+  let viz = '';
+  if (st.viz === 'dots') viz = `<div class="sn-dots" aria-hidden="true">${'<i></i>'.repeat(100)}</div>`;
+  if (st.viz === 'bars') { const max = Math.max(...st.bars.map(b => b[1])); viz = `<div class="sn-bars">${st.bars.map((b, i) => `<p class="sn-bar${i ? ' hi' : ''}"><span>${escHtml(b[0])}</span><i style="--w:${(b[1] / max).toFixed(3)}"></i><b>${escHtml(b[2])}</b></p>`).join('')}</div>`; }
+  return `<div class="sn-fig sn-fig-${st.viz}">${fig}${viz}</div>`;
+}
+function slideHtml(id) {
+  const kind = slideKind(id);
+  if (kind === 'lesson') { const l = LESSONS.find(x => x.v === id); return `<article class="lb-vig" data-v="${l.v}"><h2 class="lb-vh">${markU(l.h)}</h2><div class="lb-demo">${lessonDemo(l.v)}</div><p class="lb-why">${escHtml(l.why)}</p></article>`; }
+  if (kind === 'number') { const st = STATS.find(x => x.v === id); return `<article class="lb-vig lb-sn" data-v="${st.v}"><div class="lb-demo">${numberDemo(st)}</div><h2 class="lb-vh">${markU(st.h)}</h2><p class="lb-why">${escHtml(st.why)}</p><p class="sn-src">Source: ${escHtml(st.src)}</p></article>`; }
+  if (kind === 'fact') { const f = FACTS.find(x => x.v === id); return `<article class="lb-vig lb-fc" data-v="${f.v}"><div class="lb-demo"><p class="fc-year"><span>Rewind to</span><b data-year="${f.year}">${f.year}</b></p></div><h2 class="lb-vh">${markU(f.h)}</h2><p class="lb-why">${escHtml(f.why)}</p></article>`; }
+  return `<article class="lb-vig lb-game" data-v="game"><h2 class="lb-vh">You’re the {AI}. Pick the next word.</h2><div class="lb-demo gm-body" aria-live="polite"></div><p class="lb-why">That’s how AI writes. It learned which word usually comes next from billions of sentences people wrote, and picks the likely one. You and the lobby are doing the same thing.</p></article>`.replace('{AI}', '<span class="lb-u">AI</span>');
+}
 function lessonDemo(v) {
   switch (v) {
     case 'next': return `<div class="nx">
@@ -291,6 +362,21 @@ function lessonTimeline(gsap, node, v) {
     items.forEach((it, i) => { tl.call(() => { items.forEach(x => x.classList.toggle('on', x === it)); }, null, 3 + i * 1.3); });
     tl.call(() => items.forEach(x => x.classList.add('on')), null, 3 + items.length * 1.3);   /* it ends on all three: one prompt, every app */
   }
+  if (slideKind(v) === 'number') {
+    const st = STATS.find(x => x.v === v), num = q('.sn-num b'), n = { v: 0 };
+    gsap.set(q('.sn-num'), { autoAlpha: 0, y: 10 }); gsap.set(q('.sn-src'), { autoAlpha: 0 });
+    num.textContent = '0';
+    tl.to(q('.sn-num'), { autoAlpha: 1, y: 0, duration: .5, ease: 'expo.out' }, .05);
+    tl.to(n, { v: st.to, duration: 1.6, ease: 'power3.out', onUpdate: () => { num.textContent = String(Math.round(n.v)); } }, .1);
+    if (st.viz === 'dots') { const dots = qa('.sn-dots i'); dots.forEach(d => d.classList.remove('on')); dots.slice(0, st.to).forEach((d, i) => tl.call(() => d.classList.add('on'), null, .15 + i * (1.5 / st.to))); }
+    if (st.viz === 'bars') { const bars = qa('.sn-bar i'); gsap.set(bars, { scaleX: 0 }); gsap.set(qa('.sn-bar b'), { autoAlpha: 0 }); tl.to(bars, { scaleX: 1, duration: 1.1, ease: 'expo.out', stagger: .35 }, .3); tl.to(qa('.sn-bar b'), { autoAlpha: 1, duration: .3, stagger: .35 }, 1.1); }
+    tl.to(q('.sn-src'), { autoAlpha: 1, duration: .4 }, 2.2);
+  } else if (slideKind(v) === 'fact') {
+    const yr = q('.fc-year b'), to = Number(yr.dataset.year), n = { v: new Date().getFullYear() };
+    yr.textContent = String(n.v); gsap.set(q('.fc-year'), { autoAlpha: 0 });
+    tl.to(q('.fc-year'), { autoAlpha: 1, duration: .3 }, .05);
+    tl.to(n, { v: to, duration: 1.5, ease: 'power3.inOut', onUpdate: () => { yr.textContent = String(Math.round(n.v)); } }, .2);
+  }
   tl.to(why, { autoAlpha: 1, y: 0, duration: .5, ease: 'power2.out' }, 1.1);
   return tl;
 }
@@ -333,7 +419,7 @@ async function realtimeAuth(sb) {
   try { const tok = (await sb.auth.getSession()).data.session?.access_token; if (tok && sb.realtime && typeof sb.realtime.setAuth === 'function') await sb.realtime.setAuth(tok); } catch (e) {}
 }
 /* the lobby channel: presence keyed by the person's id. Never throws; onStatus hears 'on' | 'off'. */
-function lobbyChannel(sb, roomId, key, { onSync, onStatus }) {
+function lobbyChannel(sb, roomId, key, { onSync, onStatus, onBroadcast }) {
   let ch = null, stopped = false;
   const api = {
     async start(meta) {
@@ -343,6 +429,7 @@ function lobbyChannel(sb, roomId, key, { onSync, onStatus }) {
       try {
         ch = sb.channel(topicOf(roomId), { config: { private: true, presence: { key } } });
         ch.on('presence', { event: 'sync' }, () => { try { onSync(ch.presenceState()); } catch (e) { console.warn('[lobby] sync', e); } });
+        if (onBroadcast) ['wall', 'wave'].forEach(ev => ch.on('broadcast', { event: ev }, (msg) => { try { onBroadcast(ev, (msg && msg.payload) || {}); } catch (e) { console.warn('[lobby] ' + ev, e); } }));
         ch.subscribe(async (status) => {
           if (stopped) return;
           if (status === 'SUBSCRIBED') { onStatus('on'); try { await ch.track(meta()); } catch (e) { console.warn('[lobby] track', e); } }
@@ -351,6 +438,7 @@ function lobbyChannel(sb, roomId, key, { onSync, onStatus }) {
       } catch (e) { console.warn('[lobby] channel', e); onStatus('off'); }
     },
     async retrack(meta) { try { if (ch) await ch.track(meta); } catch (e) {} },
+    async send(event, payload) { try { if (ch) await ch.send({ type: 'broadcast', event, payload }); } catch (e) {} },
     stop() { stopped = true; try { if (ch) { ch.untrack && ch.untrack(); sb.removeChannel(ch); } } catch (e) {} ch = null; },
   };
   return api;
@@ -361,9 +449,9 @@ function hash(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.charC
 function hash2(s) { return hash(s + '·y'); }
 function makeNet(canvas, field, { reduced }) {
   const ctx = canvas.getContext('2d');
-  if (!ctx) return { setPeople() {}, converge() {}, stop() {}, burst() {} };
+  if (!ctx) return { setPeople() {}, converge() {}, stop() {}, say() {}, comet() {}, nodeAt() { return null; }, has() { return false; } };
   let W = 0, H = 0, dpr = 1, raf = 0, stopped = false, lastSpawn = 0, conv = null, first = true;
-  const amb = [], ppl = new Map(), pulses = [], rings = [];
+  const amb = [], ppl = new Map(), pulses = [], rings = [], bubbles = [], comets = [];
   const SPEED = reduced ? .25 : 1;
   function newAmb() { return { x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .16, vy: (Math.random() - .5) * .16, r: .7 + Math.random() * 1.5, tw: Math.random() * 6.283 }; }
   function resize() {
@@ -402,6 +490,20 @@ function makeNet(canvas, field, { reduced }) {
     first = false;
   }
   function converge() { if (!conv) conv = { t0: performance.now() }; }
+  /* a thought bubble beside a person: their answer, for 6.5 s; two at most */
+  function say(id, text) {
+    if (!ppl.has(id) || !text) return;
+    for (let i = bubbles.length - 1; i >= 0; i--) if (bubbles[i].id === id) bubbles.splice(i, 1);
+    bubbles.push({ id, text: bubbleText(text), t0: performance.now() });
+    while (bubbles.length > 2) bubbles.shift();
+  }
+  /* a wave: a gold comet from one person to another */
+  function comet(from, to) { if (ppl.has(from) && ppl.has(to) && from !== to) comets.push({ from, to, t0: performance.now(), hit: false }); }
+  function nodeAt(x, y) {
+    let best = null, bd = 30 * 30;
+    for (const n of ppl.values()) { if (n.gone || n.a <= 0) continue; const dx = n.dx - x, dy = n.dy - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = n.id; } }
+    return best;
+  }
   function step(now) {
     if (stopped) return;
     raf = requestAnimationFrame(step);
@@ -490,6 +592,36 @@ function makeNet(canvas, field, { reduced }) {
       ctx.fillStyle = n.you ? '#fdc921' : 'rgba(252,253,255,.95)'; ctx.fillText(label, n.dx, n.dy + R + (small ? 9.5 : 10));
       ctx.globalAlpha = 1;
     }
+    /* waves in flight */
+    for (let i = comets.length - 1; i >= 0; i--) {
+      const c = comets[i], a = ppl.get(c.from), b = ppl.get(c.to), t = (now - c.t0) / 1100;
+      if (!a || !b || t >= 1.4) { comets.splice(i, 1); continue; }
+      const mx = (a.dx + b.dx) / 2, my = Math.max(a.dy, b.dy) + 40;   /* a slight sag, under the crowd line, never through its words */
+      const at = (u) => ({ x: (1 - u) * (1 - u) * a.dx + 2 * (1 - u) * u * mx + u * u * b.dx, y: (1 - u) * (1 - u) * a.dy + 2 * (1 - u) * u * my + u * u * b.dy });
+      const head = Math.min(1, t);
+      for (let k = 0; k < 14; k++) {
+        const u = head - k * .025; if (u < 0) break;
+        const p = at(u), al = (1 - k / 14) * (t > 1 ? Math.max(0, 1 - (t - 1) / .4) : 1);
+        ctx.fillStyle = 'rgba(253,201,33,' + (al * .85).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, 5 - k * .3, 0, 6.283); ctx.fill();
+      }
+      if (t >= 1 && !c.hit) { c.hit = true; ring(b.dx, b.dy, true); }
+    }
+    /* thought bubbles: the person's answer beside their node */
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const bb = bubbles[i], n = ppl.get(bb.id), age = (now - bb.t0) / 6500;
+      if (!n || age >= 1) { bubbles.splice(i, 1); continue; }
+      if (n.a <= 0) continue;
+      const al = Math.max(0, Math.min(1, age * 8, (1 - age) * 6)) * (1 - ce);
+      const R = (n.you ? 20 : 15) * (small ? .85 : 1);
+      ctx.font = '600 ' + (small ? 12 : 13.5) + 'px Inter,sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+      const w = ctx.measureText(bb.text).width + 24, h = small ? 30 : 34, right = n.dx + R + 14 + w < W - 8;
+      const x = right ? n.dx + R + 12 : n.dx - R - 12 - w, y = n.dy - h / 2 - 2 + (1 - Math.min(1, age * 8)) * 6;
+      ctx.globalAlpha = al;
+      ctx.fillStyle = '#fcfdff'; roundRect(ctx, x, y, w, h, h / 2); ctx.fill();
+      ctx.beginPath(); if (right) { ctx.moveTo(x + 2, y + h / 2 - 6); ctx.lineTo(x - 7, y + h / 2 + 2); ctx.lineTo(x + 8, y + h / 2 + 4); } else { ctx.moveTo(x + w - 2, y + h / 2 - 6); ctx.lineTo(x + w + 7, y + h / 2 + 2); ctx.lineTo(x + w - 8, y + h / 2 + 4); } ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#04123a'; ctx.fillText(bb.text, x + 12, y + h / 2 + .5);
+      ctx.globalAlpha = 1;
+    }
   }
   function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   resize();
@@ -497,7 +629,7 @@ function makeNet(canvas, field, { reduced }) {
   window.addEventListener('resize', onResize);
   let ro = null; try { ro = new ResizeObserver(() => { if (canvas.clientWidth !== W || canvas.clientHeight !== H) resize(); }); ro.observe(canvas); } catch (e) {}
   raf = requestAnimationFrame(step);
-  return { setPeople, converge, stop() { stopped = true; cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); try { if (ro) ro.disconnect(); } catch (e) {} } };
+  return { setPeople, converge, say, comet, nodeAt, has: (id) => ppl.has(id), pos: (id) => { const n = ppl.get(id); return n ? { x: n.dx, y: n.dy } : null; }, stop() { stopped = true; cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); try { if (ro) ro.disconnect(); } catch (e) {} } };
 }
 
 /* ---------- 1. the guest's lobby ----------
@@ -543,15 +675,16 @@ export async function mountLobby(o) {
               <label class="lb-warm-cityl"><span class="vh">Where are you joining from?</span><input class="lb-warm-c" type="text" maxlength="${CITY_MAX}" placeholder="Your city" autocomplete="address-level2"></label>
               <button type="submit" class="lb-btn gold lb-warm-go">Send</button>
             </div>
-            <p class="lb-warm-said" role="status">Nelson sees every answer when the class starts.</p>
+            <p class="lb-warm-said" role="status">Everyone in the lobby sees your answer.</p>
+            <ul class="lb-wall" aria-label="Answers from the lobby"></ul>
           </form>
         </section>
         <section class="lb-right" aria-label="AI in ten seconds">
           <div class="lb-screen">
-            <div class="lb-screen-top"><span>AI in ten seconds</span><span class="lb-screen-n"></span></div>
-            <div class="lb-stack">${LESSONS.map(l => `<article class="lb-vig" data-v="${l.v}"><h2 class="lb-vh">${markU(l.h)}</h2><div class="lb-demo">${lessonDemo(l.v)}</div><p class="lb-why">${escHtml(l.why)}</p></article>`).join('')}</div>
+            <div class="lb-screen-top"><span class="lb-screen-k">AI in ten seconds</span><span class="lb-screen-n"></span></div>
+            <div class="lb-stack">${[...new Set(SEQUENCE)].map(slideHtml).join('')}</div>
             <div class="lb-prog" aria-hidden="true"><i></i></div>
-            <div class="lb-nav"><button type="button" class="lb-navb" data-d="-1" aria-label="Previous lesson">‹</button><button type="button" class="lb-navb lb-pause" aria-label="Pause the lessons" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" rx="1"/><rect x="9.5" y="3" width="3" height="10" rx="1"/></svg></button><button type="button" class="lb-navb" data-d="1" aria-label="Next lesson">›</button></div>
+            <div class="lb-nav"><button type="button" class="lb-navb" data-d="-1" aria-label="Previous">‹</button><button type="button" class="lb-navb lb-pause" aria-label="Pause the lessons" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" rx="1"/><rect x="9.5" y="3" width="3" height="10" rx="1"/></svg></button><button type="button" class="lb-navb" data-d="1" aria-label="Next">›</button></div>
           </div>
           <div class="lb-cam">
             <button type="button" class="lb-btn ghost lb-cam-b">Check my camera</button>
@@ -561,7 +694,7 @@ export async function mountLobby(o) {
         </section>
       </div>
       <footer class="lb-crowd">
-        <div class="lb-crowd-k"><b class="lb-count">1</b><span class="lb-crowd-t"></span><span class="lb-arrive" aria-hidden="true"></span><span class="lb-cities"></span></div>
+        <div class="lb-crowd-k"><b class="lb-count">1</b><span class="lb-crowd-t"></span><span class="lb-arrive" aria-hidden="true"></span><span class="lb-cities"></span><span class="lb-hint" hidden>Tap someone to wave hi.</span></div>
         <div class="lb-field" aria-hidden="true"></div>
         <p class="vh lb-sr" aria-live="polite"></p>
       </footer>
@@ -596,6 +729,7 @@ export async function mountLobby(o) {
 
   /* the network */
   const net = makeNet(q('.lb-net'), q('.lb-field'), { reduced });
+  try { Object.defineProperty(root, '__net', { value: net }); } catch (e) {}   /* the e2e harness finds people on the canvas through this */
   let lastIds = new Set();
   function paintCrowd() {
     const all = guests.some(g => g.you) ? guests : [{ id: uid, name: myName, city, at: mountedAt, you: true }, ...guests];
@@ -603,6 +737,7 @@ export async function mountLobby(o) {
     q('.lb-count').textContent = String(all.length);
     q('.lb-crowd-t').textContent = crowdLine(all.length);
     const cl = citiesLine(all); q('.lb-cities').textContent = cl; q('.lb-cities').hidden = !cl;
+    q('.lb-hint').hidden = all.length < 2;
     q('.lb-sr').textContent = namesLine(all.filter(g => !g.you), 8) ? 'Here with you: ' + namesLine(all.filter(g => !g.you), 8) : '';
     /* a toast for each new arrival after the first paint */
     const ids = new Set(all.map(g => g.id));
@@ -615,19 +750,24 @@ export async function mountLobby(o) {
 
   /* the lessons */
   const screen = q('.lb-screen'), vigs = [...root.querySelectorAll('.lb-vig')];
-  let gsap = null, li = -1, tl = null, next = null, prog = null;
+  const slideEl = (id) => vigs.find(v => v.dataset.v === id);
+  let gsap = null, li = -1, tl = null, next = null, prog = null, prevEl = null;
   function showLesson(n) {
     if (stopped) return;
     clearTimeout(next);
-    const prev = vigs[li]; li = (n + vigs.length) % vigs.length; const cur = vigs[li];
-    q('.lb-screen-n').textContent = (li + 1) + ' of ' + vigs.length;
-    if (!gsap) { vigs.forEach(v => v.classList.toggle('on', v === cur)); if (!paused) next = setTimeout(() => showLesson(li + 1), 12000); return; }
+    const prev = prevEl; li = (n + SEQUENCE.length) % SEQUENCE.length; const id = SEQUENCE[li], cur = slideEl(id); prevEl = cur;
+    q('.lb-screen-n').textContent = (li + 1) + ' of ' + SEQUENCE.length;
+    q('.lb-screen-k').textContent = slideLabel(id);
+    screen.dataset.kind = slideKind(id);
+    if (id === 'game') gameShow();
+    if (!gsap) { vigs.forEach(v => v.classList.toggle('on', v === cur)); if (!paused) next = setTimeout(() => showLesson(li + 1), id === 'game' ? 16000 : 12000); return; }
     if (tl) tl.kill();
-    if (prev && prev !== cur) gsap.to(prev, { autoAlpha: 0, y: -10, duration: .35, ease: 'power2.in', onComplete: () => prev.classList.remove('on') });
+    if (prev && prev !== cur) gsap.to(prev, { autoAlpha: 0, y: -10, duration: .35, ease: 'power2.in', onComplete: () => { if (prev !== prevEl) prev.classList.remove('on'); } });
     cur.classList.add('on');
     gsap.set(cur, { autoAlpha: 0, y: 12 });
-    tl = lessonTimeline(gsap, cur, cur.dataset.v);
-    const dur = Math.max(9, tl.duration() + 3.2);
+    tl = lessonTimeline(gsap, cur, id);
+    /* the game waits for people: 16 s untouched, longer once they play (gamePlayed moves it on) */
+    const dur = id === 'game' ? 16 : Math.max(9, tl.duration() + 3.2);
     /* reduced motion: the finished frame, no choreography */
     gsap.to(cur, { autoAlpha: 1, y: 0, duration: reduced ? .2 : .5, delay: prev && prev !== cur && !reduced ? .3 : 0, ease: 'expo.out', onStart: () => { if (tl) { if (reduced) tl.progress(1); else tl.play(0); } } });
     if (prog) prog.kill();
@@ -657,23 +797,123 @@ export async function mountLobby(o) {
     if (preview || !sb) return;
     try {
       const { data } = await sb.from('ea_class_warmups').select('answer, city').eq('room_key', roomKey).eq('user_id', uid).maybeSingle();
-      if (data) { hadRow = true; answer = data.answer || ''; city = data.city || ''; if (!ain.value) ain.value = answer; if (!cin.value) cin.value = city; said.textContent = answer ? 'Sent. Nelson sees your answer in the room.' : ''; goBtn.textContent = 'Update'; retrack(); paintCrowd(); }
+      if (data) { hadRow = true; answer = data.answer || ''; city = data.city || ''; if (!ain.value) ain.value = answer; if (!cin.value) cin.value = city; said.textContent = answer ? 'Sent. It’s on the wall, and Nelson sees it in the room.' : 'Everyone in the lobby sees your answer.'; goBtn.textContent = 'Update'; retrack(); paintCrowd(); }
     } catch (e) {}
   }
   q('.lb-warm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const a = ain.value.trim().slice(0, ANSWER_MAX), c = cin.value.trim().slice(0, CITY_MAX);
     if (!a && !c) { said.textContent = 'Type an answer, or your city, then tap Send.'; ain.focus(); return; }
-    if (preview) { said.textContent = 'Preview: answers are not saved here.'; return; }
+    if (preview) { said.textContent = 'Preview: answers are not saved here.'; if (a) { wall = [{ user_id: uid, answer: a, city: c, updated_at: new Date().toISOString() }, ...wall.filter(r => r.user_id !== uid)]; net.say(uid, a); paintWall(); } return; }
     goBtn.disabled = true; goBtn.textContent = 'Sending…';
     try {
       const { error } = await sb.from('ea_class_warmups').upsert({ room_key: roomKey, user_id: uid, answer: a || null, city: c || null }, { onConflict: 'room_key,user_id' });
       if (error) throw error;
-      answer = a; city = c; hadRow = true; said.textContent = a ? 'Sent. Nelson sees your answer in the room.' : 'Saved. Add an answer too if you like.';
+      answer = a; city = c; hadRow = true; said.textContent = a ? 'Sent. It’s on the wall, and Nelson sees it in the room.' : 'Saved. Add an answer too if you like.';
       retrack(); paintCrowd();
+      if (a) net.say(uid, a);
+      if (chan) chan.send('wall', {});
+      loadWall();
     } catch (err) { console.warn('[lobby] warm-up', err); said.textContent = 'That didn’t send. Check your connection and tap Send again.'; }
     finally { goBtn.disabled = false; goBtn.textContent = hadRow ? 'Update' : 'Send'; }
   });
+
+  /* ---------- the wall: everyone's answers, on the card and as thought bubbles in the network ---------- */
+  const wallEl = q('.lb-wall');
+  let wall = [], wallTimer = null, sayTimer = null, lastSaid = '';
+  const shownKeys = new Set();
+  const nameCache = new Map();
+  const nameFor = (id) => id === uid ? 'You' : ((guests.find(g => g.id === id) || {}).name || nameCache.get(id) || 'Someone');
+  async function namesFor(ids) {
+    const need = ids.filter(id => id !== uid && !guests.some(g => g.id === id) && !nameCache.has(id));
+    if (!need.length || !sb || preview) return;
+    try { const { data } = await sb.rpc('ea_class_names', { p_key: roomKey }); (data || []).forEach(r => { if (r && r.user_id) nameCache.set(r.user_id, shortName(r.name) || 'Someone'); }); } catch (e) {}
+    need.forEach(id => { if (!nameCache.has(id)) nameCache.set(id, 'Someone'); });
+  }
+  function paintWall() {
+    const rows = wallRows(wall, 3);
+    wallEl.innerHTML = rows.length
+      ? rows.map(r => `<li${shownKeys.has(r.user_id + r.updated_at) ? '' : ' class="new"'}><b>${escHtml(nameFor(r.user_id))}</b>${r.city ? `<span>${escHtml(cityWord(r.city))}</span>` : ''}<q>${escHtml(r.answer.trim())}</q></li>`).join('')
+      : '<li class="empty">Answers show up here as people send them.</li>';
+  }
+  async function loadWall() {
+    if (stopped) return;
+    if (!preview && sb) {
+      try {
+        const { data, error } = await sb.from('ea_class_warmups').select('user_id, answer, city, created_at, updated_at').eq('room_key', roomKey);
+        if (error) throw error;
+        wall = (data || []).map(r => Object.assign({}, r, { updated_at: r.updated_at || r.created_at || '' }));
+      } catch (e) { console.warn('[lobby] wall', e); return; }
+    }
+    await namesFor([...new Set(wall.map(r => r.user_id))]);
+    if (stopped) return;
+    /* a new answer pops out of its person right away */
+    wallRows(wall, 50).forEach(r => { const k = r.user_id + r.updated_at; if (!shownKeys.has(k)) { if (shownKeys.size || wallLoaded) net.say(r.user_id, r.answer); } });
+    paintWall();
+    wallRows(wall, 50).forEach(r => shownKeys.add(r.user_id + r.updated_at));
+    wallLoaded = true;
+  }
+  let wallLoaded = false;
+  const wallSoon = () => { clearTimeout(wallTimer); wallTimer = setTimeout(loadWall, 500); };
+  /* every 7 s someone in the network "says" their answer again */
+  sayTimer = setInterval(() => {
+    const live = wallRows(wall, 50).filter(r => net.has(r.user_id));
+    if (!live.length) return;
+    const pick = live.length > 1 ? live.filter(r => r.user_id !== lastSaid) : live;
+    const r = pick[Math.floor(Math.random() * pick.length)]; lastSaid = r.user_id; net.say(r.user_id, r.answer);
+  }, 7000);
+
+  /* ---------- Play: be the AI ---------- */
+  const myPicks = {};
+  let gameRound = 0, gameTimer = null;
+  const gameBody = q('.gm-body');
+  const gamePeople = () => { const me = { id: uid, picks: myPicks }; return [...guests.filter(g => !g.you), me]; };
+  function gameShow() { const r = GAME.findIndex((_, i) => !(i in myPicks)); gameRound = r < 0 ? GAME.length : r; paintGame(); }
+  function paintGame() {
+    if (!gameBody) return;
+    if (gameRound >= GAME.length) {
+      const matched = GAME.filter((g, i) => tallyRound(gamePeople(), i, g.opts).top === myPicks[i]).length;
+      const others = guests.filter(g => !g.you && Object.keys(g.picks || {}).length).length;
+      gameBody.innerHTML = `<p class="gm-line">You picked the lobby’s favorite <b>${matched} of ${GAME.length}</b> times.</p><p class="gm-meta">${others ? 'That’s how AI chooses: the most likely word wins.' : 'You’re the first to play. As more people play, the favorites can change.'}</p><button type="button" class="lb-btn ghost-dark gm-again">Play again</button>`;
+      gameBody.querySelector('.gm-again').addEventListener('click', () => { Object.keys(myPicks).forEach(k => delete myPicks[k]); gameRound = 0; retrack(); paintGame(); gameTouched(); });
+      return;
+    }
+    const g = GAME[gameRound], mine = myPicks[gameRound];
+    if (mine === undefined) {
+      gameBody.innerHTML = `<p class="gm-line">${escHtml(g.s)} <span class="gm-blank">\u2007\u2007\u2007\u2007\u2007\u2007</span></p><div class="gm-opts">${g.opts.map(o => `<button type="button" class="gm-opt" data-w="${escHtml(o)}">${escHtml(o)}</button>`).join('')}</div><p class="gm-meta">Sentence ${gameRound + 1} of ${GAME.length} · tap the word you think comes next</p>`;
+      gameBody.querySelectorAll('.gm-opt').forEach(b => b.addEventListener('click', () => { myPicks[gameRound] = b.dataset.w; retrack(); paintGame(); gameTouched(); }));
+      return;
+    }
+    const t = tallyRound(gamePeople(), gameRound, g.opts);
+    gameBody.innerHTML = `<p class="gm-line">${escHtml(g.s)} <span class="gm-blank done">${escHtml(mine)}</span></p><ul class="gm-res">${g.opts.map(o => `<li class="${o === mine ? 'mine' : ''}${o === t.top ? ' top' : ''}"><b>${escHtml(o)}</b><i style="--p:${(t.pct[o] / 100).toFixed(2)}"></i><em>${t.pct[o]}%</em></li>`).join('')}</ul><p class="gm-meta">${t.n === 1 ? 'Just you so far' : t.n + ' people in the lobby picked'} · <button type="button" class="gm-next">${gameRound + 1 < GAME.length ? 'Next sentence →' : 'See my score →'}</button></p>`;
+    gameBody.querySelector('.gm-next').addEventListener('click', () => { gameRound++; while (gameRound < GAME.length && gameRound in myPicks) gameRound++; paintGame(); gameTouched(); });
+  }
+  /* playing holds the game on screen; 14 s after the last tap the screen moves on */
+  function gameTouched() {
+    if (SEQUENCE[li] !== 'game' || paused) return;
+    clearTimeout(next); clearTimeout(gameTimer);
+    if (prog) { prog.pause(); prog.progress(0); }
+    next = setTimeout(() => showLesson(li + 1), 14000);
+    if (prog && gsap) { prog.kill(); const bar = q('.lb-prog i'); gsap.set(bar, { scaleX: 0 }); prog = gsap.to(bar, { scaleX: 1, duration: 14, ease: 'none' }); curDur = 14; }
+  }
+
+  /* ---------- waves: tap a person ---------- */
+  const field = q('.lb-field');
+  let lastWave = 0;
+  const pointAt = (e) => net.nodeAt(e.clientX, e.clientY);
+  field.addEventListener('pointermove', (e) => { const id = pointAt(e); field.style.cursor = id && id !== uid ? 'pointer' : ''; });
+  field.addEventListener('click', (e) => {
+    const id = pointAt(e);
+    if (!id || id === uid || Date.now() - lastWave < 1200) return;
+    lastWave = Date.now();
+    net.comet(uid, id); toast('You waved at ' + nameFor(id));
+    if (chan) chan.send('wave', { from: uid, to: id });
+  });
+  function gotWave(p) {
+    if (!p || typeof p.from !== 'string' || typeof p.to !== 'string') return;
+    net.comet(p.from, p.to);
+    if (p.to === uid) toast(nameFor(p.from) + ' waved at you');
+  }
 
   /* the camera check: released before the class takes the camera */
   let camStream = null;
@@ -698,7 +938,7 @@ export async function mountLobby(o) {
   }
 
   /* the doors */
-  const meta = () => ({ role: 'guest', name: myName, city: cityWord(city), at: mountedAt });
+  const meta = () => ({ role: 'guest', name: myName, city: cityWord(city), at: mountedAt, picks: Object.assign({}, myPicks) });
   const chan = preview ? null : lobbyChannel(sb, state.id, uid, {
     onSync(ps) {
       const r = readPresence(ps, uid);
@@ -706,9 +946,11 @@ export async function mountLobby(o) {
       host = r.host; guests = r.guests;
       if (host.seen) { lastHost = host; lastHostAt = Date.now(); }
       paintCrowd();
+      if (SEQUENCE[li] === 'game' && gameRound < GAME.length && myPicks[gameRound] !== undefined) paintGame();   /* the lobby's votes move live */
       if (host.live && !wasLive && !isLive) refresh();   /* Nelson just started: ask the server now, not in 10 s */
       evaluate();
     },
+    onBroadcast(ev, p) { if (ev === 'wall') wallSoon(); else if (ev === 'wave') gotWave(p); },
     onStatus(s) { const was = channelOn; channelOn = s === 'on'; if (channelOn && !subscribedAt) subscribedAt = Date.now(); if (!channelOn && was !== false) offAt = Date.now(); evaluate(); },
   });
   function retrack() { if (chan) chan.retrack(meta()); }
@@ -716,7 +958,16 @@ export async function mountLobby(o) {
   else if (preview) {
     /* Nelson's preview: a few sample people so he sees the network move (never saved, never on the channel) */
     const sample = [['p1', 'Meme', 'Atlanta'], ['p2', 'Jamal', 'Washington'], ['p3', 'Dr. Gray', 'Houston'], ['p4', 'Billy', 'Houston'], ['p5', 'Stephania', 'Dallas'], ['p6', 'Alexis', 'Dallas'], ['p7', 'Tiana', 'Fort Worth']];
-    let k = 0; const add = () => { if (stopped || k >= sample.length) return; const s = sample[k++]; guests = [...guests, { id: s[0], name: s[1], city: s[2], at: Date.now() }]; paintCrowd(); setTimeout(add, 1600 + Math.random() * 1400); };
+    const said0 = { p1: 'my emails', p2: 'planning my week', p3: 'grant writing', p4: 'social media posts', p5: 'my small business', p6: 'writing faster', p7: 'meal plans for my family' };
+    const pick0 = (i) => { const o = GAME[i].opts; return Math.random() < .6 ? o[0] : o[1 + Math.floor(Math.random() * 3)]; };
+    let k = 0; const add = () => {
+      if (stopped || k >= sample.length) return;
+      const s = sample[k++], picks = {}; GAME.forEach((_, i) => { if (Math.random() < .8) picks[i] = pick0(i); });
+      guests = [...guests, { id: s[0], name: s[1], city: s[2], at: Date.now(), picks }]; paintCrowd();
+      setTimeout(() => { if (stopped) return; wall = [{ user_id: s[0], answer: said0[s[0]], city: s[2], updated_at: new Date().toISOString() }, ...wall]; loadWall(); }, 1500);
+      if (k === 3) setTimeout(() => gotWave({ from: 'p1', to: uid }), 2500);
+      setTimeout(add, 1600 + Math.random() * 1400);
+    };
     setTimeout(add, 1200);
   }
 
@@ -753,12 +1004,13 @@ export async function mountLobby(o) {
   }
   const tick = setInterval(() => { clock(); evaluate(); }, 1000);
   const poll = setInterval(refresh, POLL_MS);
-  loadMine();
+  const wallPoll = setInterval(loadWall, 15000);
+  loadMine(); loadWall();
   if (preview && o.previewPhase) { phase = o.previewPhase; paintPhase(); }
 
   function stop() {
     if (stopped) return; stopped = true;
-    clearInterval(tick); clearInterval(poll); clearTimeout(next); clearTimeout(toastTimer);
+    clearInterval(tick); clearInterval(poll); clearInterval(wallPoll); clearInterval(sayTimer); clearTimeout(next); clearTimeout(toastTimer); clearTimeout(wallTimer); clearTimeout(gameTimer);
     try { if (tl) tl.kill(); if (prog) prog.kill(); } catch (e) {}
     stopCam(); net.stop();
     try { if (beat) beat.stop(); } catch (e) {}

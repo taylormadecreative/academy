@@ -18,12 +18,22 @@ export function createClient() {
       select() { return q; }, eq(c, v) { st.filters.push([c, v]); return q; }, order() { return q; }, limit() { return q; }, in() { return q; }, ilike() { return q; }, neq() { return q; },
       abortSignal() { return q; },
       update(v) { st.update = v; return q; }, delete() { st.del = true; return q; }, insert(v) { st.insert = v; return q; },
-      upsert(v) { log.push({ upsert: table, values: v }); return done([v]); },
-      maybeSingle() { log.push({ from: table, ...st }); if (table === 'ea_profiles') return done(window.FAKE_NAME ? { display_name: window.FAKE_NAME } : null); return done(null); },
+      upsert(v) {
+        log.push({ upsert: table, values: v });
+        if (table === 'ea_class_warmups') { const rows = JSON.parse(localStorage.getItem('fake-warmups') || '[]').filter(r => r.user_id !== v.user_id); rows.push({ ...v, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }); localStorage.setItem('fake-warmups', JSON.stringify(rows)); }
+        return done([v]);
+      },
+      maybeSingle() {
+        log.push({ from: table, ...st });
+        if (table === 'ea_profiles') return done(window.FAKE_NAME ? { display_name: window.FAKE_NAME } : null);
+        if (table === 'ea_class_warmups') { const uid = (st.filters.find(f => f[0] === 'user_id') || [])[1]; return done(JSON.parse(localStorage.getItem('fake-warmups') || '[]').find(r => r.user_id === uid) || null); }
+        return done(null);
+      },
       single() { log.push({ from: table, ...st }); if (table === 'ea_rooms') return done({ link_key: 'AbC123_-xyzXYZ0987ab-_', title: 'AI 101: Learn to talk to AI' }); return done(null); },
       then(res, rej) {
         if (st.update) { log.push({ update: table, values: st.update }); if (table === 'ea_rooms' && st.update.is_live === false) localStorage.setItem('fake-live', '0'); return done([{ id: 'room-1' }]).then(res, rej); }
         log.push({ from: table, ...st });
+        if (table === 'ea_class_warmups') return done(JSON.parse(localStorage.getItem('fake-warmups') || '[]')).then(res, rej);
         return done((window.FAKE_ROWS || {})[table] || []).then(res, rej);
       },
     };
@@ -32,25 +42,26 @@ export function createClient() {
   function channel(topic, opts) {
     const key = (opts && opts.config && opts.config.presence && opts.config.presence.key) || ('k' + Math.random());
     const bc = new BroadcastChannel('fake-rt:' + topic);
-    const others = new Map(); let mine = null, sync = null, closed = false;
+    const others = new Map(); let mine = null, sync = null, closed = false; const casts = {};
     const fire = () => { if (sync && !closed) setTimeout(() => sync(), 0); };
     bc.onmessage = (e) => {
       const d = e.data || {};
       if (d.key === key) return;
       if (d.t === 'track') { others.set(d.key, d.meta); fire(); if (d.hello && mine) bc.postMessage({ t: 'track', key, meta: mine }); }
       else if (d.t === 'leave') { others.delete(d.key); fire(); }
+      else if (d.t === 'bc' && casts[d.event]) setTimeout(() => casts[d.event]({ event: d.event, payload: d.payload }), 0);
     };
     let hello = true;
     /* a page that goes away says so, like the real channel's presence leave */
     window.addEventListener('pagehide', () => { try { bc.postMessage({ t: 'leave', key }); } catch (e) {} });
     const ch = {
       topic,
-      on(type, filter, cb) { if (type === 'presence' && filter && filter.event === 'sync') sync = cb; return ch; },
+      on(type, filter, cb) { if (type === 'presence' && filter && filter.event === 'sync') sync = cb; if (type === 'broadcast' && filter) casts[filter.event] = cb; return ch; },
       subscribe(cb) { setTimeout(() => cb && cb(window.FAKE_RT_FAIL ? 'CHANNEL_ERROR' : 'SUBSCRIBED'), 60); return ch; },
       track(meta) { if (closed) return Promise.resolve('closed'); mine = { ...meta }; bc.postMessage({ t: 'track', key, meta: mine, hello }); hello = false; fire(); return Promise.resolve('ok'); },
       untrack() { mine = null; try { bc.postMessage({ t: 'leave', key }); } catch (e) {} return Promise.resolve('ok'); },
       presenceState() { const s = {}; for (const [k, m] of others) if (m) s[k] = [m]; if (mine) s[key] = [mine]; return s; },
-      send() { return Promise.resolve('ok'); },
+      send(m) { if (!closed && m && m.type === 'broadcast') bc.postMessage({ t: 'bc', key, event: m.event, payload: m.payload }); return Promise.resolve('ok'); },
       _close() { closed = true; try { bc.close(); } catch (e) {} },
     };
     window.__fakeChannels = (window.__fakeChannels || []); window.__fakeChannels.push(ch);
@@ -60,7 +71,8 @@ export function createClient() {
     auth: { getSession: () => Promise.resolve({ data: { session: window.FAKE_SESSION || null }, error: null }) },
     rpc: (name, args) => {
       log.push({ rpc: name, args });
-      const p = Promise.resolve(name === 'ea_room_state' ? { data: roomState(), error: null } : { data: null, error: null });
+      const names = () => Object.entries(JSON.parse(localStorage.getItem('fake-names') || '{}')).map(([user_id, n]) => ({ user_id, name: n }));
+      const p = Promise.resolve(name === 'ea_room_state' ? { data: roomState(), error: null } : name === 'ea_class_names' ? { data: names(), error: null } : { data: null, error: null });
       return { abortSignal() { return p; }, then: (res, rej) => p.then(res, rej) };
     },
     from: query,
