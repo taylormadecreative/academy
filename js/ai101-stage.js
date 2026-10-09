@@ -84,13 +84,39 @@ export const TIMELINES = {
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); appearBeat(tl, el, 0);
     into(tl, mac.children, { autoAlpha: 0, y: 24, stagger: 0.12, duration: 0.45, ease: EASE_OUT }, '-=0.25');
+    // (10/9) the Mac install movie: the cursor drags Claude onto Applications, the folder takes it, "Installed"
+    const dmac = q('.dm-mac'), dwin = q('.dm-win'), ghost = q('.dm-ghost'), cur = q('.dm-mac .dm-cursor');
+    const I = local(q('.dm-app .dm-icon'), el), F = local(q('.dm-folder .dm-fold'), el), G = local(ghost, el), Cm = local(cur, el); // measure first
+    const dx = F.x + F.w / 2 - (I.x + I.w / 2), dy = F.y + F.h / 2 - (I.y + I.h / 2);
+    tl.fromTo(dwin, { autoAlpha: 0 }, { autoAlpha: 0, duration: 0.01 }, 0);
+    into(tl, dmac, { autoAlpha: 0, y: 30, duration: 0.6, ease: EASE_OUT }, '-=0.3');
+    tl.fromTo([ghost, cur], { autoAlpha: 0, x: (i) => (i ? I.x + I.w * 0.6 - Cm.x : I.x - G.x), y: (i) => (i ? I.y + I.h * 0.6 - Cm.y : I.y - G.y) },
+      { autoAlpha: 1, duration: 0.2 })
+      .to([ghost, cur], { x: (i) => (i ? I.x + I.w * 0.6 - Cm.x : I.x - G.x) + dx, y: (i) => (i ? I.y + I.h * 0.6 - Cm.y : I.y - G.y) + dy, duration: 0.9, ease: EASE_MOVE })
+      .to(q('.dm-fold'), { scale: 1.08, duration: 0.15, yoyo: true, repeat: 1, transformOrigin: '50% 60%' }, '-=0.1')
+      .to(ghost, { autoAlpha: 0, scale: 0.6, duration: 0.25 }, '<')
+      .to(cur, { autoAlpha: 0, duration: 0.2 });
+    into(tl, q('.dm-done'), { autoAlpha: 0, y: 10, duration: 0.35, ease: EASE_OUT }, '<');
     tl.addLabel('b1').fromTo(q('.lp-knob'), { x: 0 }, { x: SLIDE, duration: 0.45, ease: EASE_MOVE })
       .fromTo(q('.lp-opt.mac'), { color: '#ffffff' }, { color: '#04123a', duration: 0.3 }, '<')
       .fromTo(q('.lp-opt.win'), { color: '#04123a' }, { color: '#ffffff', duration: 0.3 }, '<')
       .fromTo(mac, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -16, duration: 0.25 }, '<')
       .fromTo(win, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 });
     into(tl, win.children, { autoAlpha: 0, y: 24, stagger: 0.12, duration: 0.45, ease: EASE_OUT }, '<');
-    tl.addLabel('b2'); into(tl, q('.lp-web'), { autoAlpha: 0, x: 60, duration: 0.5, ease: EASE_OUT });
+    // (10/9) the Windows install movie: "allow this app?", the cursor clicks Yes, the bar fills, "Done"
+    const uac = q('.dw-uac'), wcur = q('.dm-win .dm-cursor'), yes = q('.dw-yes');
+    const Y = local(yes, el), Cw = local(wcur, el);
+    tl.fromTo(dmac, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.25, immediateRender: false }, '<')
+      .fromTo(dwin, { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: EASE_OUT, immediateRender: false }, '<0.1');
+    into(tl, uac, { autoAlpha: 0, scale: 0.94, duration: 0.3, ease: EASE_OUT }, '>-0.1');
+    tl.fromTo(wcur, { autoAlpha: 0, x: Y.x + Y.w + 60 - Cw.x, y: Y.y + 70 - Cw.y }, { autoAlpha: 1, duration: 0.15 })
+      .to(wcur, { x: Y.x + Y.w * 0.5 - Cw.x, y: Y.y + Y.h * 0.5 - Cw.y, duration: 0.45, ease: EASE_MOVE })
+      .to(yes, { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 })
+      .to([uac, wcur], { autoAlpha: 0, duration: 0.2 })
+      .fromTo(q('.dw-prog i'), { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: 'power1.inOut', transformOrigin: 'left center' });
+    into(tl, q('.dw-done'), { autoAlpha: 0, y: 10, duration: 0.35, ease: EASE_OUT });
+    tl.addLabel('b2').fromTo(dwin, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.25, immediateRender: false });
+    into(tl, q('.lp-web'), { autoAlpha: 0, x: 60, duration: 0.5, ease: EASE_OUT });
     return tl.addLabel('end');
   },
   nolove(el) { // "Don't fall in love with one AI." The three trade places twice: they change all the time.

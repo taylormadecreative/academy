@@ -601,6 +601,13 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "laptop_web": "Use claude.ai in your web browser. Same AI, same account.",
     "laptop_work": "Work laptop? Ask IT before you install anything.",
     "laptop_page": "Your steps are on your class page, Step 2.",
+    # 10/9 (Nelson: "cool graphics showing the installation process like how you drag the claude … icons to the install
+    # folder on a mac and whatever way you do it on a pc"): the little install movies beside the steps
+    "laptop_demo_installed": "Installed",
+    "laptop_demo_installing": "Installing Claude…",
+    "laptop_demo_ready": "Done. Open Claude from the Start menu.",
+    "laptop_demo_uac_h": "User Account Control",
+    "laptop_demo_uac_q": "Do you want to allow this app to make changes to your device?",
     "nolove_sub": "They change all the time.",
     "nolove_tools": ["Claude", "ChatGPT", "Gemini"],
     "nolove_foot": "Learn the skill, not the app.",

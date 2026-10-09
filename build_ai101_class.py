@@ -76,8 +76,8 @@ IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 def _sc(id_, beats, label, inner):
     return f'<section class="scene sc-{id_}" data-id="{id_}" data-beats="{beats}" aria-label="{e(label)}">{inner}</section>'
 
-def _qr_card(url, title, head, sub, beat=0, cls=""):
-    return f'<figure class="qr-card {cls}" data-beat="{beat}">{qr_svg(url, title)}<figcaption><b>{e(head)}</b>{e(sub)}</figcaption></figure>'
+def _qr_card(url, title, head, sub, beat=0, cls="", top=""):
+    return f'<figure class="qr-card {cls}" data-beat="{beat}">{top}{qr_svg(url, title)}<figcaption><b>{e(head)}</b>{e(sub)}</figcaption></figure>'
 
 FB_QR = lambda beat=0, cls="": _qr_card(FB['url'], 'QR code for the Taylormade Academy Facebook group', 'Join the Facebook group', FB['handle'], beat, cls)
 IG_QR = lambda beat=0, cls="", sub="on Instagram": _qr_card(IG['url'], 'QR code for Nelson on Instagram', 'Follow ' + IG['handle'], sub, beat, cls)
@@ -102,14 +102,46 @@ def _scene_title():
 # 10/9 (Nelson: "the image of me is nowhere to be found on the stage"): his photo on the title, where he says who he is. It takes
 # the spot the little chat had; the chat itself is scene 7.
 
+# 10/9 (Nelson: "can you show my real profile images for the facebook group and my instagram here"): his real Instagram
+# profile photo and the group's real cover, taken from the live pages that day (assets/social/)
+FO_IG_TOP = '<div class="fo-id"><img class="fo-av" src="/assets/social/ig-avatar.webp" alt="" width="256" height="256"></div>'
+FO_FB_TOP = '<div class="fo-id"><img class="fo-cover" src="/assets/social/fb-cover.webp" alt="" width="720" height="267"></div>'
+
 def _scene_follow():
+    ig = _qr_card(IG['url'], 'QR code for Nelson on Instagram', 'Follow ' + IG['handle'], 'on Instagram', 0, 'big fo-card ig', FO_IG_TOP)
+    fb = _qr_card(FB['url'], 'QR code for the Taylormade Academy Facebook group', 'Join the Facebook group', FB['handle'], 1, 'big fo-card fb', FO_FB_TOP)
     return _sc("follow", 2, "Follow me", f"""<h2 class="sc-h" data-beat="0">{e(FOLLOW_LINE)}</h2>
-<div class="fo-row">{IG_QR(0, 'big')}{FB_QR(1, 'big')}</div>""")
+<div class="fo-row">{ig}{fb}</div>""")
+
+# 10/9 (Nelson: "anyway we can use the real logos for the companies"): each product's own mark, shown where we name it
+LOGO_FILE = {"Claude": "claude", "ChatGPT": "chatgpt", "Gemini": "gemini"}
+def _logo(name, cls="lg"):
+    k = LOGO_FILE.get(name)
+    return f'<span class="{cls} lg-{k}"><img src="/assets/logos/{k}.svg" alt="" width="48" height="48"></span>' if k else ""
 
 def _bar_last(text):
     """The house headline move: the gold bar under the last word ("Get it on your laptop." → bar under "laptop")."""
     head, _, last = text.rstrip(".").rpartition(" ")
     return f'{e(head)} <span class="u-bar">{e(last)}</span>' + ("." if text.endswith(".") else "")
+
+# 10/9: the install, as two little movies beside the steps. Mac: a disk-image window, the cursor drags Claude onto the
+# Applications folder. Windows: the "allow this app" prompt (step 2's "If Windows asks, click Yes"), then the progress bar.
+SVG_CURSOR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5 18.5 15h-7.2l4.1 7.1-3 1.6-4-7.2-3.4 4.1z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>'
+SVG_FOLDER = ('<svg class="dm-fold" viewBox="0 0 120 96" aria-hidden="true"><path d="M6 16a9 9 0 0 1 9-9h30l10 10h50a9 9 0 0 1 9 9v6H6z" fill="#4aa3ea"/>'
+              '<rect x="3" y="24" width="114" height="68" rx="9" fill="#74bcf5"/><g fill="none" stroke="#3a8fd8" stroke-width="5" stroke-linecap="round">'
+              '<circle cx="60" cy="58" r="20"/><path d="M60 45 50 70M60 45l10 25M53 63h14"/></g></svg>')
+def _lp_demos():
+    cl = lambda c="": f'<span class="dm-icon {c}"><img src="/assets/logos/claude.svg" alt="" width="64" height="64"></span>'
+    mac = (f'<div class="lp-demo dm-mac" aria-hidden="true"><div class="dm-bar"><i></i><i></i><i></i><span>Claude</span></div><div class="dm-body">'
+           f'<div class="dm-app">{cl()}<b>Claude</b></div><span class="dm-arrow">&#8594;</span><div class="dm-folder">{SVG_FOLDER}<b>Applications</b></div>'
+           f'{cl("dm-ghost")}<i class="dm-cursor">{SVG_CURSOR}</i><p class="dm-done">&#10003; {e(STAGE["laptop_demo_installed"])}</p></div></div>')
+    win = (f'<div class="lp-demo dm-win" aria-hidden="true"><div class="dw-bar">{cl("xs")}<span>Claude Setup</span><i>&#8212;</i><i>&#10005;</i></div><div class="dw-body">'
+           f'<div class="dw-row">{cl("sm")}<div class="dw-col"><b>{e(STAGE["laptop_demo_installing"])}</b><div class="dw-prog"><i></i></div></div></div>'
+           f'<p class="dw-done">&#10003; {e(STAGE["laptop_demo_ready"])}</p>'
+           f'<div class="dw-uac"><p class="dw-uac-h">{e(STAGE["laptop_demo_uac_h"])}</p><p class="dw-uac-q">{e(STAGE["laptop_demo_uac_q"])}</p>'
+           f'<p class="dw-uac-app">{cl("xs")}Claude Setup</p><div class="dw-btns"><span class="dw-yes">Yes</span><span class="dw-no">No</span></div></div>'
+           f'<i class="dm-cursor w">{SVG_CURSOR}</i></div></div>')
+    return mac + win
 
 def _scene_laptop():
     """Mac, then Windows (the switch slides across, like the one on the class page), then the website fallback."""
@@ -119,12 +151,12 @@ def _scene_laptop():
 <div class="lp-switch" data-beat="0" aria-hidden="true"><i class="lp-knob"></i><span class="lp-opt mac">Mac</span><span class="lp-opt win">Windows</span></div>
 <div class="lp-sets"><ol class="lp-steps mac">{rows(STAGE['laptop_mac'])}</ol><ol class="lp-steps win" aria-label="Windows">{rows(STAGE['laptop_win'])}</ol></div>
 <p class="lp-also" data-beat="0">{e(STAGE['laptop_also'])}</p></div>
-<div class="lp-web" data-beat="2"><h3>{e(STAGE['laptop_web_h'])}</h3><p>{e(STAGE['laptop_web'])}</p><p class="lp-work">{e(STAGE['laptop_work'])}</p><p class="lp-page">{e(STAGE['laptop_page'])}</p></div></div>""")
+<div class="lp-right">{_lp_demos()}<div class="lp-web" data-beat="2"><h3>{e(STAGE['laptop_web_h'])}</h3><p>{e(STAGE['laptop_web'])}</p><p class="lp-work">{e(STAGE['laptop_work'])}</p><p class="lp-page">{e(STAGE['laptop_page'])}</p></div></div></div>""")
 
 def _scene_nolove():
     """His line, full screen: the three tools keep trading places. Learn the skill, not the app."""
     h = e(NO_LOVE['h']).replace(" love ", ' <span class="u-bar">love</span> ', 1)
-    pills = "".join(f'<li class="nl-pill">{e(t)}</li>' for t in STAGE["nolove_tools"])
+    pills = "".join(f'<li class="nl-pill">{_logo(t)}<span>{e(t)}</span></li>' for t in STAGE["nolove_tools"])
     return _sc("nolove", 2, NO_LOVE["h"], f"""<h2 class="sc-h nl-h" data-beat="0">{h}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['nolove_sub'])}</p>
 <ul class="nl-pills" aria-label="Claude, ChatGPT and Gemini">{pills}</ul>
@@ -132,7 +164,7 @@ def _scene_nolove():
 
 def _scene_strengths():
     """One column per click: Nelson's pick for each AI, with two short facts under it."""
-    cols = "".join(f'<div class="sg-col" data-beat="{i}"><p class="sg-n">{e(n)}</p><p class="sg-pick">{e(pick)}</p>'
+    cols = "".join(f'<div class="sg-col" data-beat="{i}"><p class="sg-n">{_logo(n)}{e(n)}</p><p class="sg-pick">{e(pick)}</p>'
                    f'<ul>{"".join(f"<li>{e(pt)}</li>" for pt in pts)}</ul></div>' for i, (n, pick, pts) in enumerate(STAGE["strengths"]))
     return _sc("strengths", 3, STAGE["strengths_h"], f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(STAGE['strengths_h'])}</h2>
 <div class="sg-row">{cols}</div><p class="sg-foot" data-beat="2">{e(STAGE['strengths_foot'])}</p>""")
