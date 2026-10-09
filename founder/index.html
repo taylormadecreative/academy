@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#04123a">
-<link rel="stylesheet" href="/css/build-mode.css?v=d5c726a445">
+<link rel="stylesheet" href="/css/build-mode.css?v=38ff1815f4">
 <script>document.documentElement.classList.add('js')</script>
 <style>
   /* ---- app chrome (matches /dashboard/) ---- */
@@ -89,6 +89,19 @@
   #rvList .st.hidden{background:#fff1f0;color:#b42318;}
   #rvList .btn.xs{min-height:44px;padding:0 16px;font-size:14px;}
   .rv-body-admin{margin:10px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere;}
+  /* class results: one hue, a shared scale inside each card, the count always printed beside its bar */
+  .cr-q{font-size:15px;font-weight:600;color:var(--ink);line-height:1.4;margin:18px 0 4px;}
+  .cr-q:first-of-type{margin-top:12px;}
+  .cr-sub{font-size:13px;color:var(--muted);margin-bottom:4px;}
+  .cr-sub b{font-family:var(--display);font-size:20px;color:var(--ink);letter-spacing:-.02em;margin-right:4px;}
+  .cr-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(64px,2fr) 2.4em;align-items:center;gap:10px;padding:6px 0;font-size:13.5px;color:var(--ink-2);line-height:1.35;}
+  .cr-track{height:10px;background:var(--bg-soft2);border-radius:999px;overflow:hidden;}
+  .cr-fill{display:block;height:100%;min-width:0;background:var(--blue);border-radius:0 4px 4px 0;}
+  .cr-fill.some{min-width:4px;}
+  .cr-n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink);}
+  .cr-row.right .cr-fill{background:var(--emerald);}
+  .cr-tag{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:var(--pill);background:var(--emerald-soft);color:#067a56;white-space:nowrap;}
+  .cr-h{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;}
 
   /* ---- controls ---- */
   .fi{font:inherit;font-weight:400;font-size:14.5px;color:var(--ink);background:#fff;border:1px solid #c9d3e6;border-radius:12px;padding:10px 13px;outline:none;min-width:0;transition:border-color .16s var(--ease),box-shadow .16s var(--ease);}
@@ -152,9 +165,9 @@
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/assets/splash/splash-1242x2208.png">
 <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/assets/splash/splash-750x1334.png">
-<script src="/js/pwa.js?v=d5c726a445" defer></script>
-<script src="/js/native.js?v=d5c726a445" defer></script>
-<script src="/js/meta-pixel.js?v=d5c726a445" defer></script>
+<script src="/js/pwa.js?v=38ff1815f4" defer></script>
+<script src="/js/native.js?v=38ff1815f4" defer></script>
+<script src="/js/meta-pixel.js?v=38ff1815f4" defer></script>
 <!--PWA:end-->
 </head><body>
 <header class="appbar"><div class="wrap"><div class="bar">
@@ -178,6 +191,7 @@
 <a href="#orders" data-tab="orders" role="tab" id="tab-orders" aria-controls="p-orders" aria-selected="false">Orders<span class="n" id="nOrd">0</span></a>
 <a href="#announce" data-tab="announce" role="tab" id="tab-announce" aria-controls="p-announce" aria-selected="false">Announce</a>
 <a href="#reviews" data-tab="reviews" role="tab" id="tab-reviews" aria-controls="p-reviews" aria-selected="false">Reviews<span class="n" id="nRev">0</span></a>
+<a href="#results" data-tab="results" role="tab" id="tab-results" aria-controls="p-results" aria-selected="false">Class results<span class="n" id="nRes">0</span></a>
 </nav></div>
 
 <!-- ---------------- overview ---------------- -->
@@ -271,6 +285,16 @@
 <div id="rvList" class="rv-admin" style="margin-top:12px"></div>
 </div>
 </section>
+
+<!-- ---------------- class results (0059): what people tapped on the AI 101 class page, live during class ---------------- -->
+<section class="panel" id="p-results" role="tabpanel" aria-labelledby="tab-results" tabindex="0">
+<div class="card">
+<div class="row between"><h2>AI 101 class results<small>Live: updates every 30 seconds while this tab is open.</small></h2>
+<div class="row"><span class="muted-sm" id="resAsof"></span><button class="btn ghost xs" id="resRefresh" type="button">Refresh now</button></div></div>
+<p class="muted-sm" style="margin-top:6px">Totals only. Each person only ever sees their own answers. Your own test taps are left out.</p>
+</div>
+<div id="resBody" style="margin-top:16px"></div>
+</section>
 </div>
 </div></main>
 
@@ -311,6 +335,6 @@
 <dialog class="fd-dlg" id="confirmDlg"><div class="in-dlg"><h2 id="cfH" style="font-size:20px;letter-spacing:-.02em"></h2><p class="muted-sm" id="cfP" style="margin-top:8px"></p><div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn ghost" id="cfNo">Cancel</button><button class="btn gold" id="cfYes">Yes</button></div></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/js/config.js?v=d5c726a445"></script>
-<script type="module" src="/js/founder.js?v=d5c726a445"></script>
+<script src="/js/config.js?v=38ff1815f4"></script>
+<script type="module" src="/js/founder.js?v=38ff1815f4"></script>
 </body></html>

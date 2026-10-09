@@ -8,6 +8,9 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const money = (c) => { const d = (c || 0) / 100; return c % 100 === 0 ? "$" + d.toLocaleString() : "$" + d.toFixed(2); };
 const WORKSHOP = "build-your-first-ai-agent";
+const CLASS_SLUG = "ai101"; // the Class results tab reads this class's answers
+// the questions and the math, with this file's own ?v= so a changed copy never comes from a stale cache
+const CLS = await import("./founder-class.js" + new URL(import.meta.url).search);
 const SITE = "https://taylormadeacademy.com";
 
 /* ---------- dates in the event's own time zone ---------- */
@@ -94,12 +97,12 @@ if (!isAdmin) {
 $("app").hidden = false;
 
 /* ---------- state ---------- */
-let signups = [], events = [], tiers = [], orders = [], tickets = [], stats = {}, reviews = [];
+let signups = [], events = [], tiers = [], orders = [], tickets = [], stats = {}, reviews = [], pulse = [];
 
 async function loadAll() {
   // Sweep holds that never reached Stripe so they stop cluttering Orders. Harmless if none.
   sb.rpc("ea_expire_stale_holds").then(({ error }) => { if (error) console.warn("hold sweep", error.message); });
-  const [s, e, t, o, k, st, rv] = await Promise.all([
+  const [s, e, t, o, k, st, rv, pl] = await Promise.all([
     sb.from("ea_wl_signups").select("*").eq("workshop_slug", WORKSHOP).order("created_at", { ascending: false }).limit(2000),
     sb.from("ea_events").select("*").order("starts_at", { ascending: true }),
     sb.from("ea_ticket_tiers").select("*").order("sort").order("price_cents"),
@@ -107,20 +110,21 @@ async function loadAll() {
     sb.from("ea_tickets").select("*").order("created_at").limit(2000),
     sb.rpc("ea_founder_stats"),
     sb.from("ea_reviews").select("*").order("created_at", { ascending: false }).limit(500),
+    pulseQuery(),
   ]);
-  signups = s.data || []; events = e.data || []; tiers = t.data || []; orders = o.data || []; tickets = k.data || []; stats = st.data || {}; reviews = rv.data || [];
-  const err = [s, e, t, o, k, st, rv].find((r) => r.error);
+  signups = s.data || []; events = e.data || []; tiers = t.data || []; orders = o.data || []; tickets = k.data || []; stats = st.data || {}; reviews = rv.data || []; pulse = pl.data || [];
+  const err = [s, e, t, o, k, st, rv, pl].find((r) => r.error);
   if (err) toast("Some data did not load: " + esc(err.error.message));
   $("nWait").textContent = signups.filter((x) => x.status !== "unsubscribed").length;
   $("nEv").textContent = events.filter((x) => !["past", "canceled"].includes(x.status)).length;
   $("nOrd").textContent = orders.filter((x) => x.status === "paid").length;
   $("asof").textContent = "Live numbers as of " + new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) + ".";
-  renderOverview(); renderWaitlist(); renderEvents(); renderOrders(); renderAnnounce(); renderReviews();
+  renderOverview(); renderWaitlist(); renderEvents(); renderOrders(); renderAnnounce(); renderReviews(); renderResults();
 }
 
 /* ---------- tabs (hash routed so emails can deep link) ---------- */
 function go(tab) {
-  const valid = ["overview", "waitlist", "events", "orders", "announce", "reviews"];
+  const valid = ["overview", "waitlist", "events", "orders", "announce", "reviews", "results"];
   if (!valid.includes(tab)) tab = "overview";
   document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("on", p.id === "p-" + tab));
   document.querySelectorAll("#tabs a").forEach((a) => {
@@ -130,6 +134,7 @@ function go(tab) {
   });
   if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
   if (tab === "reviews" && booted) loadReviews(); // fresh every time the tab opens: approve what is there now
+  if (tab === "results") startResults(); else stopResults(); // live only while the tab is open
 }
 let booted = false;
 window.addEventListener("hashchange", () => go(location.hash.slice(1)));
@@ -413,6 +418,66 @@ function renderReviews() {
 }
 $("rvStatus").addEventListener("change", renderReviews);
 
+/* ---------- class results (0059): what people tapped on the AI 101 class page. Admins read ea_class_pulse under
+   pulse_read; everyone else only ever reads their own rows. The math is in js/founder-class.js. ---------- */
+function pulseQuery() { return sb.from("ea_class_pulse").select("user_id,kind,score,updated_at").eq("workshop_slug", CLASS_SLUG).limit(5000); }
+let resTimer = null, resBusy = false;
+async function loadResults(manual) {
+  if (resBusy) return;
+  resBusy = true;
+  const btn = $("resRefresh");
+  if (manual) { btn.disabled = true; btn.textContent = "Refreshing..."; }
+  let res;
+  try { res = await pulseQuery(); } catch (e) { res = { error: e }; }
+  resBusy = false;
+  if (manual) { btn.disabled = false; btn.textContent = "Refresh now"; }
+  if (res.error) {
+    $("resAsof").textContent = "Did not update. Trying again in 30 seconds.";
+    if (manual) toast("Class results did not load: " + esc(res.error.message || res.error));
+    return;
+  }
+  pulse = res.data || []; renderResults();
+}
+function startResults(now = true) { // now=false at boot: loadAll just read them
+  if (!booted || resTimer) return;
+  if (now) loadResults();
+  resTimer = setInterval(() => { if (document.visibilityState === "visible") loadResults(); }, 30000);
+}
+function stopResults() { clearInterval(resTimer); resTimer = null; }
+document.addEventListener("visibilitychange", () => { if (resTimer && document.visibilityState === "visible") loadResults(); }); // back on the tab: catch up now
+$("resRefresh").onclick = () => loadResults(true);
+// one bar: the label, a track scaled to the biggest count in its card, and the count printed (never color alone)
+function crRow(label, n, max, right) {
+  const w = max ? Math.round((n / max) * 100) : 0;
+  return `<div class="cr-row${right ? " right" : ""}" title="${esc(label)}: ${n}"><span>${esc(label)}${right ? `<span class="cr-tag">✓ Right answer</span>` : ""}</span>` +
+    `<span class="cr-track" aria-hidden="true"><span class="cr-fill${n ? " some" : ""}" style="width:${w}%"></span></span><span class="cr-n">${n}</span></div>`;
+}
+function renderResults() {
+  const r = CLS.summarizePulse(pulse, { exclude: session.user.id });
+  $("nRes").textContent = r.people;
+  $("resAsof").textContent = "Last updated " + new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" }) + ".";
+  if (!r.people) { $("resBody").innerHTML = `<div class="card"><div class="empty"><b>No answers yet.</b>They show up here as people tap on the class page.</div></div>`; return; }
+  const tiles = [
+    { v: r.paired.n ? CLS.signed(r.paired.avgChange) : "–", l: "Average change in confidence", d: r.paired.n ? `For the ${r.paired.n} who answered before and after` : "Shows once someone answers both", hero: true },
+    { v: r.people, l: "People who answered", d: "anything on the class page" },
+    { v: CLS.oneDp(r.before.avg), l: "Confidence before, out of 5", d: r.before.n + " answered" },
+    { v: CLS.oneDp(r.after.avg), l: "Confidence after, out of 5", d: r.after.n + " answered" },
+  ];
+  const scaleMax = Math.max(1, ...r.before.dist, ...r.after.dist); // before and after share one scale
+  const scaleLabel = (i) => String(i + 1) + (i === 0 ? " " + CLS.CLASS_Q.ends[0] : i === 4 ? " " + CLS.CLASS_Q.ends[1] : "");
+  const scale = (h, d) => `<div><div class="cr-h">${esc(h)}</div>${d.dist.map((n, i) => crRow(scaleLabel(i), n, scaleMax)).join("")}</div>`;
+  const tapMax = Math.max(1, ...r.taps.flatMap((t) => t.counts)), checkMax = Math.max(1, ...r.checks.flatMap((c) => c.counts));
+  $("resBody").innerHTML =
+    `<div class="tiles">${tiles.map((t) => `<div class="tile${t.hero ? " hero" : ""}"><div class="v">${esc(t.v)}</div><div class="l">${esc(t.l)}</div><div class="d">${esc(t.d)}</div></div>`).join("")}</div>` +
+    `<div class="card" style="margin-top:16px"><h2>How confident they feel<small>${esc(CLS.CLASS_Q.before)}</small></h2>` +
+    `<div class="grid-2">${scale("Before (7:00)", r.before)}${scale("After (7:41)", r.after)}</div></div>` +
+    `<div class="card"><h2>Practice taps<small>During the hands-on steps</small></h2>` +
+    r.taps.map((t) => `<p class="cr-q">${esc(t.q)}</p><p class="cr-sub">${t.n} answered</p>${t.labels.map((l, i) => crRow(l, t.counts[i], tapMax)).join("")}`).join("") + `</div>` +
+    `<div class="card"><h2>Three quick questions<small>Each person's first answer counts</small></h2>` +
+    r.checks.map((c) => `<p class="cr-q">${esc(c.q)}</p><p class="cr-sub">${c.n ? `<b>${c.pct}%</b> got it right · ${c.rightN} of ${c.n}` : "Nobody has answered yet"}</p>` +
+      c.options.map((o, i) => crRow(o, c.counts[i], checkMax, i + 1 === c.right)).join("")).join("") + `</div>`;
+}
+
 /* ---------- import seats sold elsewhere (Eventbrite) ---------- */
 function fillImport() {
   const evSel = $("imEv"), cur = evSel.value;
@@ -576,3 +641,4 @@ $("anSend").onclick = async () => {
 await loadAll();
 go(location.hash.slice(1) || "overview");
 booted = true;
+if ($("p-results").classList.contains("on")) startResults(false); // opened straight on #results: start the 30 s refresh

@@ -16,7 +16,7 @@ def _asset_ver():
     instead of serving a stale cached version. Changes only when the bytes change."""
     h = hashlib.sha256()
     for rel in ("css/build-mode.css", "js/site.js", "js/config.js", "js/pwa.js", "js/native.js", "js/meta-pixel.js",
-                "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js",
+                "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js", "js/founder-class.js",
                 "js/ai101-kit.js", "js/ai101-class.js", "js/ai101-proof.js", "js/ai101-badge.js", "js/ai101-stage.js", "js/reviews.js", "css/ai101-stage.css", "css/ai101-class.css", "js/vendor/gsap.min.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
                 "js/room-page.js",
