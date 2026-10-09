@@ -110,12 +110,16 @@ export const TIMELINES = {
     into(tl, el.querySelector('.p5-foot'), { y: 16, autoAlpha: 0, duration: 0.5, ease: EASE_OUT }, '-=0.1');
     return tl.addLabel('end');
   },
-  chat(el) { // the prompt flies into the AI, the answer writes itself, the loop draws back: "make it better"
-    const ai = el.querySelector('.ch-ai'), bub = el.querySelector('.ch-bubble');
-    const b = local(ai, el), s = local(bub, el);                        // measure first: entrances move things
+  chat(el) { // the prompt types itself into You and STAYS there; a copy flies into the AI, the answer writes itself,
+    // the loop draws back: "make it better". (10/8, Nelson: an answer with nothing typed "doesn't make sense".)
+    const ai = el.querySelector('.ch-ai'), bub = el.querySelector('.ch-bubble'), typed = el.querySelector('.ch-typed');
+    const t = local(typed, el);                                        // measure first: entrances move things
+    gsap.set(bub, { boxSizing: 'border-box', width: t.w, maxWidth: 'none' }); // the copy wraps exactly like the prompt
+    const b = local(ai, el), s = local(bub, el);
     const path = el.querySelector('.ch-loop .ch-line'), head = el.querySelector('.ch-loop .ch-head'), len = path.getTotalLength();
     const tl = gsap.timeline({ paused: true }).addLabel('b0'); appearBeat(tl, el, 0);
-    tl.fromTo(bub, { autoAlpha: 0, x: 0, y: 0, scale: 0.9 }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: EASE_OUT })
+    into(tl, typed.querySelectorAll('.w'), { autoAlpha: 0, duration: 0.05, stagger: 0.06 }, '-=0.1'); // you type it
+    tl.fromTo(bub, { autoAlpha: 0, x: t.x - s.x, y: t.y - s.y, scale: 1 }, { autoAlpha: 1, duration: 0.01 }) // lift a copy off it
       .to(bub, { x: b.x + b.w / 2 - (s.x + s.w / 2), y: b.y + b.h / 2 - (s.y + s.h / 2), scale: 0.35, duration: 0.9, ease: 'power2.inOut' })
       .to(bub, { autoAlpha: 0, duration: 0.2 })
       .to(el.querySelectorAll('.ch-dots i'), { y: -12, duration: 0.25, stagger: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' }, '<');

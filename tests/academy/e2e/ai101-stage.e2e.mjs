@@ -106,6 +106,10 @@ try {
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2000);
   L = await loop();
   assert.ok(L.off < 1 && L.head > 0.99, 'chat, beat 2: the loop draws back to You, arrowhead last');
+  // 10/8 (Nelson): the answer can't appear with nothing typed. The prompt stays in the You card after it flies to the AI.
+  const typed = await w.evaluate(() => { const t = document.querySelector('.sc-chat .ch-you .ch-typed');
+    return t ? { text: t.textContent.replace(/\s+/g, ' ').trim(), op: +getComputedStyle(t).opacity, words: [...t.querySelectorAll('.w')].every((x) => +getComputedStyle(x).opacity > 0.99) } : null; });
+  assert.deepEqual(typed, { text: 'Write a thank-you note to my neighbor.', op: 1, words: true }, 'chat, end: the prompt is still in the You card');
   // a held key (auto-repeat) never skips beats
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5')));
   const before = await w.evaluate(() => window.__stage.pos());

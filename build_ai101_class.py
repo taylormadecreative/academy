@@ -119,7 +119,7 @@ def _scene_nolove():
 
 def _scene_chat():
     return _sc("chat", 3, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
-<div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span></div>
+<div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span><p class="ch-typed">{words(STAGE['chat_prompt'])}</p></div>
 <div class="ch-node ch-ai" data-beat="0"><b>The AI</b><span>reads it and writes back</span><i class="ch-dots" aria-hidden="true"><i></i><i></i><i></i></i></div>
 <div class="ch-node ch-ans" data-beat="1"><b>The answer</b><p class="ch-ans-text">{words(STAGE['chat_answer'])}</p></div>
 <div class="ch-bubble" aria-hidden="true">{e(STAGE['chat_prompt'])}</div></div>
