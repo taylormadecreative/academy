@@ -313,64 +313,111 @@ export const TIMELINES = {
     tl.addLabel('b2'); appearBeat(tl, el, 2);
     return tl.addLabel('end');
   },
-  tokens(el) { // the sentence breaks into the pieces an AI counts
-    const box = el.querySelector('.tk-chips'), sent = el.querySelector('.tk-sentence'), n = el.querySelector('.tk-n');
+  tokens(el) { // (10/9 redesign, Nelson: "be creative … explain how ai charges with tokens") b0: a gold line cuts the sentence into
+    // tokens and counts them. b1: an AI receipt prints: what it read and what it wrote, at a real price. b2: x 100,000 emails a
+    // month; the total rolls up; THAT ADDS UP. b3: a free or monthly plan's limit counts tokens the same way.
+    const q = (c) => el.querySelector(c), box = q('.tq-chips'), cut = q('.tq-cut'), laser = q('.tq-laser'), n = q('.tq-n');
+    const rc = q('.tq-rcpt'), more = q('.tq-more'), month = q('.tq-month'), stamp = q('.tq-stamp');
     const toks = splitTokens(box.dataset.text);
-    box.replaceChildren(...toks.map((t, i) => { const c = document.createElement('i'); c.className = 'tk-chip'; c.style.setProperty('--i', String(i % 6)); c.textContent = t.trim(); return c; }));
+    box.replaceChildren(...toks.map((t) => { const c = document.createElement('i'); c.className = 'tq-chip'; c.textContent = t.trim(); return c; }));
+    const chips = [...box.children], COLORS = ['#e8eeff', '#fff1bf'], INK = getComputedStyle(chips[0]).color;
     const tl = gsap.timeline({ paused: true });
-    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, sent, IN, '-=0.2');
-    tl.addLabel('b1').to(sent, { autoAlpha: 0, y: -20, duration: 0.3 }).to(box, { autoAlpha: 1, duration: 0.01 });
-    into(tl, [...box.children], { autoAlpha: 0, y: -30, scale: 0.8, stagger: 0.07, duration: 0.35, ease: 'back.out(1.6)' });
-    tl.to(n, { textContent: toks.length, snap: { textContent: 1 }, duration: toks.length * 0.07 }, '<');
+    tl.fromTo(more, { height: 0, autoAlpha: 0 }, { height: 0, autoAlpha: 0, duration: 0.01 }, 0)
+      .fromTo(rc, { yPercent: -101 }, { yPercent: -101, duration: 0.01 }, 0);
+    tl.addLabel('b0'); appearBeat(tl, el, 0);
+    into(tl, chips, { autoAlpha: 0, y: 18, duration: 0.35, stagger: 0.025, ease: EASE_OUT }, '<0.1');
+    tl.fromTo(laser, { x: -20, opacity: 0 }, { x: cut.clientWidth, opacity: 1, duration: 0.85, ease: 'power1.inOut' }, '>-0.15')
+      .fromTo(box, { columnGap: 0 }, { columnGap: 14, duration: 0.7, ease: EASE_OUT }, '<0.05')
+      .fromTo(chips, { backgroundColor: 'rgba(0,0,0,0)', color: INK, paddingLeft: 0, paddingRight: 0 },
+        { backgroundColor: (i) => COLORS[i % 2], color: '#04123a', paddingLeft: 16, paddingRight: 16, duration: 0.3, stagger: 0.07, ease: EASE_OUT }, '<')
+      .to(n, { textContent: toks.length, snap: { textContent: 1 }, duration: toks.length * 0.07 }, '<')
+      .to(laser, { opacity: 0, duration: 0.15 });
+    tl.addLabel('b1'); appearBeat(tl, el, 1);
+    tl.fromTo(rc, { yPercent: -101 }, { yPercent: 0, duration: 1.2, ease: 'steps(12)', immediateRender: false }, 'b1');   // the printer feeds it out
+    tl.addLabel('b2'); appearBeat(tl, el, 2);
+    tl.fromTo(more, { height: 0, autoAlpha: 0 }, { height: 'auto', autoAlpha: 1, duration: 0.5, ease: 'steps(6)', immediateRender: false }, 'b2')
+      .fromTo(month, { textContent: 0 }, { textContent: +month.dataset.to, snap: { textContent: 1 }, duration: 0.8, ease: 'power2.out', immediateRender: false }, '>')
+      .fromTo(stamp, { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -8, duration: 0.3, ease: 'power4.in' }, '>-0.1');
+    tl.addLabel('b3'); appearBeat(tl, el, 3);
     return tl.addLabel('end');
   },
-  window(el) { // (10/8 rebuild) your whole chat, re-read for every reply; longer = slower, uses your limit, costs more;
-    // full = the start falls out (the AI can't see Ann's name any more). The meter counts the words actually on screen.
-    const chat = el.querySelector('.wn-chat'), stack = el.querySelector('.wn-stack'), msgs = [...stack.children];
-    const n = el.querySelector('.wn-n'), bar = el.querySelector('.wn-bar i'), full = el.querySelector('.wn-full');
-    const wc = (k) => msgs.slice(0, k).reduce((a, m) => a + m.textContent.trim().split(/\s+/).length, 0);
-    const SEEN = 6, cap = wc(SEEN) / 0.85;                                     // 6 messages fill it to 85%
-    const inner = chat.clientHeight - parseFloat(getComputedStyle(chat).paddingTop) - parseFloat(getComputedStyle(chat).paddingBottom);
-    const last = msgs[msgs.length - 1], shift = Math.max(0, last.offsetTop + last.offsetHeight - stack.offsetTop - inner); // measure first
-    const gone = msgs.filter((m) => m.offsetTop - stack.offsetTop + m.offsetHeight <= shift + 4);
-    const count = (k, d) => tl.to(n, { textContent: wc(k), snap: { textContent: 1 }, duration: d }, '<')
-      .to(bar, { scaleX: Math.min(1, wc(k) / cap), duration: d, ease: EASE_MOVE }, '<');
+  window(el) { // (10/8 rebuild; 10/9 redesign: "make the context window look like a real platform") a real-looking ChatGPT window;
+    // the gold bracket beside it is the context window. It grows with the chat (the counters count the TOKENS it re-reads for
+    // this reply, and everything it has read so far: every reply re-reads the whole chat). Full: new messages push the bracket
+    // down, Ann's intro is left outside it and dims. She asks her name; it can't see it.
+    const q = (c) => el.querySelector(c), stage = q('.wv-stage'), thread = q('.wv-app .aw-thread'), msgs = [...thread.children];
+    const n = q('.wv-n'), tot = q('.wv-tot'), bar = q('.wv-bar i'), full = q('.wv-full'), brk = q('.wv-brk'), costs = q('.wv-costs');
+    const tk = (m) => splitTokens(m.textContent.trim()).length;
+    const pre = (k) => msgs.slice(0, k).reduce((a, m) => a + tk(m), 0);                     // the chat so far, in tokens
+    const soFar = (k) => msgs.slice(0, k).reduce((a, m, i) => a + (m.classList.contains('gp-ai') ? pre(i) : 0), 0); // each reply re-read it all
+    const SEEN = 6, cap = pre(SEEN) / 0.85;                       // six messages fill it to 85%
+    const T0 = local(stage, el).y, top = (m) => local(m, el).y - T0 - 8, bot = (m) => { const r = local(m, el); return r.y + r.h - T0 + 8; }; // measure first
+    const span = (a, b) => ({ top: top(msgs[a]), height: bot(msgs[b]) - top(msgs[a]) });    // the bracket around messages a..b
     const tl = gsap.timeline({ paused: true });
-    tl.addLabel('b0'); appearBeat(tl, el, 0);
-    msgs.slice(0, 2).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>' : '-=0.1'); count(i + 1, 0.35); });
+    const add = (m, i, pos) => {                                                             // a message arrives; the bracket grows to hold it
+      into(tl, m, { autoAlpha: 0, y: 14, duration: 0.28, ease: EASE_OUT }, pos);
+      tl.to(brk, { ...span(0, i), duration: 0.28, ease: EASE_MOVE }, '<')
+        .to(n, { textContent: pre(i + 1), snap: { textContent: 1 }, duration: 0.28 }, '<').to(tot, { textContent: soFar(i + 1), snap: { textContent: 1 }, duration: 0.28 }, '<')
+        .to(bar, { scaleX: Math.min(1, pre(i + 1) / cap), duration: 0.28, ease: EASE_MOVE }, '<');
+    };
+    tl.fromTo(brk, { ...span(0, 0), autoAlpha: 0 }, { ...span(0, 0), autoAlpha: 0, duration: 0.01 }, 0);
+    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, q('.wv-app'), IN, '<');
+    tl.to(brk, { autoAlpha: 1, duration: 0.3 }, '<0.3');
+    msgs.slice(0, 2).forEach((m, i) => add(m, i, i ? '>' : '<'));
     tl.addLabel('b1');
-    msgs.slice(2, SEEN).forEach((m, i) => { into(tl, m, { autoAlpha: 0, y: 16, duration: 0.3, ease: EASE_OUT }, i ? '>-0.05' : '>'); count(i + 3, 0.3); });
-    into(tl, el.querySelector('.wn-costs'), IN); // not a data-beat: the last click swaps it out (and every data-beat ends drawn)
+    msgs.slice(2, SEEN).forEach((m, i) => add(m, i + 2, i ? '>-0.05' : '>'));
+    into(tl, costs, IN); // not a data-beat: the last click swaps it out (and every data-beat ends drawn)
     tl.addLabel('b2');
-    msgs.slice(SEEN).forEach((m, i) => {
-      into(tl, m, { autoAlpha: 0, y: 16, duration: 0.35, ease: EASE_OUT }, i ? '>+0.15' : '>');
-      if (i === 0) tl.to(stack, { y: -shift, duration: 0.7, ease: EASE_MOVE }, '<').to(gone, { autoAlpha: 0.12, duration: 0.5 }, '<')
-        .to(bar, { scaleX: 1, backgroundColor: '#fdc921', duration: 0.5 }, '<').to(full, { autoAlpha: 1, duration: 0.3 }, '<0.2');
+    msgs.slice(SEEN).forEach((m, i) => {                                                     // full: each new message pushes the window down
+      const k = SEEN + i;
+      into(tl, m, { autoAlpha: 0, y: 14, duration: 0.3, ease: EASE_OUT }, i ? '>+0.1' : '>');
+      tl.to(brk, { ...span(i + 1, k), duration: 0.5, ease: EASE_MOVE }, '<').to(msgs[i], { autoAlpha: 0.18, duration: 0.4 }, '<')
+        .to(n, { textContent: pre(k + 1) - pre(i + 1), snap: { textContent: 1 }, duration: 0.3 }, '<').to(tot, { textContent: soFar(k + 1), snap: { textContent: 1 }, duration: 0.3 }, '<');
+      if (i === 0) tl.to(bar, { scaleX: 1, backgroundColor: '#fdc921', duration: 0.4 }, '<').to(full, { autoAlpha: 1, duration: 0.3 }, '<0.2');
     });
     appearBeat(tl, el, 2);
-    tl.addLabel('b3').fromTo(el.querySelector('.wn-costs'), { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false });
+    tl.addLabel('b3').fromTo(costs, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false });
     appearBeat(tl, el, 3); // (10/9, Nelson) so which chat? Same subject: stay. New subject: new chat. Too long: sum it up.
-    into(tl, el.querySelectorAll('.wn-rules p'), { autoAlpha: 0, x: 30, stagger: 0.12, duration: 0.35, ease: EASE_OUT }, '-=0.3');
+    into(tl, el.querySelectorAll('.wv-rules p'), { autoAlpha: 0, x: 30, stagger: 0.12, duration: 0.35, ease: EASE_OUT }, '-=0.3');
     return tl.addLabel('end');
   },
-  check(el) { // it predicts the likeliest word, says a made-up fact with confidence, CHECK IT, never paste
-    // (10/8) the right side says HOW it guesses (beat 1) and WHY that goes wrong (beat 2); (10/9) then USE SEARCH, and which
-    // sources to trust (beat 4); then it turns into Never paste (beat 5)
-    const how = el.querySelector('.ck-how'), why = el.querySelector('.ck-why'), explain = el.querySelector('.ck-explain'), search = el.querySelector('.ck-search');
+  check(el) { // (10/9 redesign: "look like a real platform … be more creative") inside a real-looking Claude window: you ask; Claude
+    // writes "The best pie in Texas is made in", stops on the next word, its guesses pop up with how likely each is, it picks
+    // Dallas (how it works, b0; why that goes wrong, b1). b2: you ask for a number; a confident, made-up statistic; CHECK IT.
+    // b3: use search, and which sources to trust. b4: never paste.
+    const q = (c) => el.querySelector(c), thread = q('.kq-app .aw-thread'), comp = q('.kq-comp');
+    const u1 = q('.kq-u1'), a1 = q('.kq-a1'), u2 = q('.kq-u2'), a2 = q('.kq-a2'), pop = q('.kq-pop'), caret = q('.kq-caret'), fill = q('.kq-fill');
+    const how = q('.kq-how'), why = q('.kq-why'), explain = q('.kq-explain'), search = q('.kq-search'), stamp = q('.kq-stamp');
+    const room = local(comp, el).y - 26, off = (x) => { const r = local(x, el); return Math.max(0, r.y + r.h - room); }; // measure first
+    const A = local(a1, el), S = local(q('.kq-slot'), el);
+    gsap.set(pop, { left: Math.max(52, Math.min(S.x - A.x - 30, A.w - pop.offsetWidth)) });              // the guesses open under the word
+    const think = (a) => { const s = a.querySelector('.cl-think');
+      tl.fromTo(s, { autoAlpha: 0, rotation: 0 }, { autoAlpha: 1, duration: 0.1 }).to(s, { rotation: 90, duration: 0.3, ease: 'none' }).to(s, { autoAlpha: 0, duration: 0.1 }); };
     const tl = gsap.timeline({ paused: true });
-    tl.addLabel('b0'); appearBeat(tl, el, 0);
-    into(tl, [...el.querySelectorAll('.ck-guesses li'), el.querySelector('.ck-note')], { autoAlpha: 0, x: -20, stagger: 0.1, duration: 0.3, ease: EASE_OUT });
-    into(tl, el.querySelectorAll('.ck-bar'), { scaleX: 0, transformOrigin: 'left center', stagger: 0.1, duration: 0.5, ease: EASE_OUT }, '<0.1');
-    tl.to(el.querySelector('.ck-blank'), { autoAlpha: 0, duration: 0.2 }).to(el.querySelector('.ck-fill'), { autoAlpha: 1, duration: 0.3 });
-    into(tl, how, { autoAlpha: 0, x: 40, duration: 0.45, ease: EASE_OUT });
-    tl.addLabel('b1'); appearBeat(tl, el, 1); into(tl, why, { autoAlpha: 0, x: 40, duration: 0.45, ease: EASE_OUT }, '-=0.2');
-    tl.addLabel('b2').fromTo(el.querySelector('.ck-stamp'), { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -10, duration: 0.35, ease: 'power4.in' })
-      .to(el.querySelector('.ck-claim'), { x: 8, duration: 0.05, yoyo: true, repeat: 3 });
-    into(tl, el.querySelectorAll('.ck-list li'), { autoAlpha: 0, y: 20, stagger: 0.08, duration: 0.3, ease: EASE_OUT });
+    [a1, fill, pop, u2, a2].forEach((x) => tl.fromTo(x, { autoAlpha: 0 }, { autoAlpha: 0, duration: 0.01 }, 0));
+    tl.addLabel('b0'); appearBeat(tl, el, 0); into(tl, q('.kq-app'), IN, '<');
+    into(tl, u1, { autoAlpha: 0, y: 20, duration: 0.35, ease: EASE_OUT }, '<0.3');
+    tl.fromTo(a1, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, immediateRender: false }); think(a1);
+    into(tl, a1.querySelectorAll('.kq-text .w'), { autoAlpha: 0, duration: 0.04, stagger: 0.045 }, '<0.15');  // it writes, word by word
+    tl.fromTo(pop, { autoAlpha: 0, y: -8, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.25, ease: EASE_OUT, immediateRender: false }); // and stops on the next word
+    into(tl, pop.querySelectorAll('.kq-bar'), { scaleX: 0, stagger: 0.05, duration: 0.3, ease: EASE_OUT }, '<0.05');
+    tl.to(caret, { autoAlpha: 0, duration: 0.1 }, '>')
+      .fromTo(fill, { autoAlpha: 0, backgroundColor: 'rgba(253,201,33,0.7)' }, { autoAlpha: 1, backgroundColor: 'rgba(253,201,33,0)', duration: 0.5, immediateRender: false }, '<');
+    into(tl, how, { autoAlpha: 0, x: 40, duration: 0.4, ease: EASE_OUT }, '<');
+    tl.addLabel('b1'); appearBeat(tl, el, 1); into(tl, why, { autoAlpha: 0, x: 40, duration: 0.45, ease: EASE_OUT });
+    tl.addLabel('b2').fromTo(pop, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.2, immediateRender: false });
+    tl.fromTo(u2, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: EASE_OUT, immediateRender: false }, '<');
+    if (off(u2)) tl.to(thread, { y: -off(u2), duration: 0.4, ease: EASE_MOVE }, '<');
+    tl.fromTo(a2, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01, immediateRender: false }); think(a2);
+    if (off(a2)) tl.to(thread, { y: -off(a2), duration: 0.5, ease: EASE_MOVE }, '<');
+    into(tl, a2.querySelectorAll('.kq-text .w'), { autoAlpha: 0, duration: 0.04, stagger: 0.03 }, '<0.15');
+    tl.fromTo(stamp, { autoAlpha: 0, scale: 2.2, rotation: -24 }, { autoAlpha: 1, scale: 1, rotation: -10, duration: 0.3, ease: 'power4.in' })
+      .to(a2.querySelector('.kq-text'), { x: 8, duration: 0.05, yoyo: true, repeat: 3 });
+    into(tl, [q('.kq-flag'), ...a2.querySelectorAll('.kq-list li')], { autoAlpha: 0, y: 14, stagger: 0.05, duration: 0.25, ease: EASE_OUT }, '<0.1');
     tl.addLabel('b3').fromTo(explain, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false }); into(tl, search, IN);
-    into(tl, el.querySelectorAll('.ck-src'), { autoAlpha: 0, x: 30, stagger: 0.15, duration: 0.35, ease: EASE_OUT }, '-=0.2');
+    into(tl, el.querySelectorAll('.kq-src'), { autoAlpha: 0, x: 30, stagger: 0.15, duration: 0.35, ease: EASE_OUT }, '-=0.2');
     tl.addLabel('b4').fromTo(search, { autoAlpha: 1, x: 0 }, { autoAlpha: 0, x: -30, duration: 0.3, immediateRender: false }); appearBeat(tl, el, 4);
-    into(tl, el.querySelectorAll('.ck-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
+    into(tl, el.querySelectorAll('.kq-safe li'), { autoAlpha: 0, x: 30, stagger: 0.07, duration: 0.3, ease: EASE_OUT }, '-=0.2');
     return tl.addLabel('end');
   },
   bye(el) { // (10/9, Nelson: "not very creative or colorful") the cards pop in, the phone with the badge rises and a light

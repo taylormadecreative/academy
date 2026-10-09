@@ -69,7 +69,7 @@ def _scene_prompt5():
 </section>"""
 
 
-from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD, FRONTIER, GLOSSARY
+from ai101_course import STAGE, STAGE_DEAL, STAGE_RAIL, MODELS, GOOD, FRONTIER, GLOSSARY, TOKEN_PRICE
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -368,44 +368,81 @@ def _scene_words2026():
 <div class="w6-grid"><div class="w6-cloud">{groups}</div>
 <div class="w6-side"><p class="w6-pick-h" data-beat="1">{e(G['stage_pick_h'])}</p>{defs}<p class="w6-tip" data-beat="2">{e(G['stage_tip'])}</p></div></div>""")
 
+def _money(x):
+    """$0.00002, $0.0012, $0.00122, $122: as few digits as the number needs, never rounded to zero."""
+    if x >= 1: return f"${x:,.0f}"
+    return "$" + f"{x:.6f}".rstrip("0")
+
 def _scene_tokens():
-    return _sc("tokens", 2, "Tokens", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['tokens_h'])}</h2>
+    """(10/9 redesign, Nelson: "be creative … and also explain how ai charges with tokens") b0: a gold line slices the
+    sentence into tokens and counts them. b1: an AI receipt prints: what it read, what it wrote, at Claude Sonnet 5.5's real
+    price. b2: x 100,000 emails a month, the total rolls up. b3: your plan's limit counts tokens the same way."""
+    P = TOKEN_PRICE
+    read, wrote = P["read_tokens"] * P["read"] / 1e6, P["write_tokens"] * P["write"] / 1e6
+    total, month = read + wrote, (read + wrote) * P["times"]
+    foot = (f"Example math at {P['model']}'s price on {P['as_of']}: {_money(P['read'])} per million tokens read, "
+            f"{_money(P['write'])} per million written.")
+    row = lambda k, n, v, cls="": f'<div class="tq-row {cls}"><span>{e(k)}</span><em>{n}</em><b>{v}</b></div>'
+    return _sc("tokens", 4, "Tokens", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['tokens_h'])}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['tokens_sub'])}</p>
-<p class="tk-sentence">{e(STAGE['tokens_sentence'])}</p><div class="tk-chips" data-text="{e(STAGE['tokens_sentence'])}"></div>
-<p class="tk-count"><b class="tk-n">0</b> tokens <span>(about)</span></p>""")
+<div class="tq-top"><div class="tq-cut"><div class="tq-chips" data-text="{e(STAGE['tokens_sentence'])}"></div><i class="tq-laser"></i></div>
+<p class="tq-count"><b class="tq-n">0</b> tokens <span>(about)</span></p></div>
+<div class="tq-grid"><div class="tq-left">
+<p class="tq-say" data-beat="1"><b>{e(STAGE['tokens_price_h'])}</b> {e(STAGE['tokens_price'])} {e(STAGE['tokens_write5'])}</p>
+<p class="tq-say" data-beat="2"><b>{e(STAGE['tokens_scale'])}</b> {e(STAGE['tokens_scale_note'])}</p>
+<p class="tq-plan" data-beat="3">{e(STAGE['tokens_plan'])}</p><p class="tq-foot" data-beat="3">{e(foot)}</p></div>
+<div class="tq-printer"><div class="tq-slot"><i></i></div><div class="tq-clip"><div class="tq-rcpt">
+<p class="tq-r-h">{e(STAGE['rcpt_h'])}</p><p class="tq-r-m">{e(P['model'])}</p>
+{row(STAGE['rcpt_read'], f"{P['read_tokens']} tokens", _money(read))}{row(STAGE['rcpt_wrote'], f"{P['write_tokens']} tokens", _money(wrote))}
+{row(STAGE['rcpt_total'], "", _money(total), "tot")}<p class="tq-r-penny">{e(STAGE['rcpt_penny'])}</p>
+<div class="tq-more">{row(STAGE['rcpt_times'], "", "", "times")}{row(STAGE['rcpt_month'], "", f'$<span class="tq-month" data-to="{month:.0f}">{month:.0f}</span>', "tot big")}
+<b class="tq-stamp">{e(STAGE['rcpt_stamp'])}</b></div></div></div></div></div>""")
 
 def _scene_window():
-    """(10/8 rebuild) 1: it's your whole chat, re-read for every reply (the meter counts the words on screen).
-    2: a longer chat = more to read: slower, uses up your limit, costs more. 3: full, so the start (Ann's name) falls out."""
-    msgs = "".join(f'<p class="wn-msg {who}">{e(t)}</p>' for who, t in STAGE["window_msgs"])
+    """(10/8 rebuild, 10/9 redesign: "make the context window look like a real platform") the chat runs in a real-looking ChatGPT
+    window; a gold bracket beside it is the context window. 1: your whole chat, re-read for every reply (the counters count
+    the tokens on screen, and how many it has read so far). 2: longer = slower, uses your limit, costs more. 3: full, so the
+    start slides out of the bracket (Ann's name is gone). 4: which chat to use."""
+    msgs = "".join(f'<p class="{"gp-user" if who == "you" else "gp-ai"} wv-msg">{e(t)}</p>' for who, t in STAGE["window_msgs"])
     costs = "".join(f"<li>{e(c)}</li>" for c in STAGE["window_costs"])
-    rules = "".join(f"<p><b>{e(k)}</b> {e(v)}</p>" for k, v in STAGE["window_rules"])  # 10/9: 4: same subject = same chat
+    rules = "".join(f"<p><b>{e(k)}</b> {e(v)}</p>" for k, v in STAGE["window_rules"])
     return _sc("window", 4, "The context window", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['window_h'])}</h2>
 <p class="sc-sub" data-beat="0">{e(STAGE['window_sub'])}</p>
-<div class="wn-grid"><div class="wn-chat" data-beat="0"><div class="wn-stack">{msgs}</div></div>
-<div class="wn-side"><div class="wn-meter" data-beat="0"><p class="wn-meter-l">{e(STAGE['window_meter'])}</p>
-<p class="wn-num"><b class="wn-n">0</b> words</p><div class="wn-bar"><i></i><span class="wn-full">Full</span></div><p class="wn-line">{e(STAGE['window_line1'])}</p></div>
-<div class="wn-swap"><div class="wn-costs"><p>{e(STAGE['window_more'])}</p><ul>{costs}</ul><p class="wn-cost-note">{e(STAGE['window_cost_note'])}</p></div>
-<div class="wn-rules" data-beat="3">{rules}</div></div>
-<p class="wn-tip" data-beat="2">{e(STAGE['window_tip'])}</p></div></div>
-<p class="wn-ex">{e(STAGE['window_example'])}</p>""")
+<div class="wv-grid"><div class="wv-stage">
+<div class="aw gp wv-app">{_bar()}<div class="aw-body"><div class="gp-rail">{SVG_ICONS}</div><div class="gp-top"><span class="on">Chat</span><span>Work</span></div>
+<div class="aw-thread">{msgs}</div>{_gp_comp()}</div></div>
+<div class="wv-brk"><i></i><span>{e(STAGE['window_brk'])}</span></div></div>
+<div class="wv-side"><div class="wv-meter" data-beat="0"><p class="wv-meter-l">{e(STAGE['window_reread'])}</p>
+<p class="wv-num"><b class="wv-n">0</b> {e(STAGE['window_tokens'])}</p><div class="wv-bar"><i></i><span class="wv-full">Full</span></div>
+<p class="wv-tot-l">{e(STAGE['window_total'])}: <b class="wv-tot">0</b> {e(STAGE['window_tokens'])}</p><p class="wv-line">{e(STAGE['window_line1'])}</p></div>
+<div class="wv-swap"><div class="wv-costs"><p>{e(STAGE['window_more'])}</p><ul>{costs}</ul><p class="wv-cost-note">{e(STAGE['window_cost_note'])}</p></div>
+<div class="wv-rules" data-beat="3">{rules}</div></div>
+<p class="wv-tip" data-beat="2">{e(STAGE['window_tip'])}</p><p class="st-note wv-ex">{e(STAGE['window_example'])}</p></div></div>""")
 
 def _scene_check():
-    g = "".join(f'<li><span>{e(w)}</span><i class="ck-bar" style="--w:{v}%"></i></li>' for w, v in STAGE["check_guesses"])
+    """(10/9 redesign: "look like a real platform … be more creative") the next word, inside a real-looking Claude window: you ask,
+    Claude writes "The best pie in Texas is made in", stops on the next word, its guesses pop up with how likely each is, and it
+    picks Dallas. Beside it: how it works (b0) and why that goes wrong (b1). b2: you ask a number; it answers with a confident,
+    made-up statistic and source; CHECK IT. b3: use search, and which sources to trust. b4: never paste."""
+    g = "".join(f'<li class="{"pick" if i == 0 else ""}"><span>{e(w)}</span><i class="kq-bar" style="--w:{v}%"></i><em>{v}%</em></li>'
+                for i, (w, v) in enumerate(STAGE["check_guesses"]))
     ck = "".join(f"<li>{e(x)}</li>" for x in STAGE["check_list"])
     safe = "".join(f"<li>{e(x)}</li>" for x in STAGE["safe_items"])
-    return _sc("check", 5, "Check it, and keep it safe", f"""<div class="ck-grid"><div class="ck-left">
-<h2 class="sc-h sm" data-beat="0">{e(STAGE['check_h'])}</h2>
-<p class="ck-sentence" data-beat="0">{e(STAGE['check_sentence'])} <span class="ck-slot"><span class="ck-blank">_____</span><span class="ck-fill">{e(STAGE['check_fill'])}</span></span></p>
-<ol class="ck-guesses">{g}</ol><p class="ck-note">{e(STAGE['check_guess_note'])}</p>
-<div class="ck-claim" data-beat="1"><p>{e(STAGE['check_claim'])}</p><span>{e(STAGE['check_claim_note'])}</span><b class="ck-stamp">Check it</b></div>
-<ul class="ck-list">{ck}</ul></div>
-<div class="ck-right"><div class="ck-explain"><div class="ck-how"><b>{e(STAGE['check_how_k'])}</b><p>{e(STAGE['check_how'])}</p></div>
-<div class="ck-why"><b>{e(STAGE['check_why_k'])}</b><p>{e(STAGE['check_why'])}</p></div></div>
-<div class="ck-search"><b>{e(STAGE['check_search_k'])}</b><p>{e(STAGE['check_search'])}</p>
-<p class="ck-src ok"><i>{e(STAGE['check_trust'][0])}</i>{e(STAGE['check_trust'][1])}</p><p class="ck-src no"><i>{e(STAGE['check_skip'][0])}</i>{e(STAGE['check_skip'][1])}</p>
-<p class="ck-search-foot">{e(STAGE['check_search_foot'])}</p></div>
-<div class="ck-safe" data-beat="4"><h3>{e(STAGE['safe_h'])}</h3><ul>{safe}</ul><p>{e(STAGE['safe_foot'])}</p></div></div></div>""")
+    return _sc("check", 5, "Check it, and keep it safe", f"""<h2 class="sc-h sm" data-beat="0">{e(STAGE['check_h'])}</h2>
+<div class="kq-grid"><div class="aw cl kq-app">{_bar()}<div class="aw-body"><div class="aw-thread">
+<p class="cl-user kq-u1">{e(STAGE['check_ask1'])}</p>
+<div class="cl-ai kq-a1"><i class="cl-think">{SVG_SPARK}</i><p class="kq-text">{words(STAGE['check_sentence'])} <span class="kq-slot"><span class="kq-caret"></span><span class="kq-fill">{e(STAGE['check_fill'])}</span></span>.</p>
+<div class="kq-pop"><p class="kq-pop-h">{e(STAGE['check_pop_h'])}</p><ol>{g}</ol><p class="kq-pop-f">{e(STAGE['check_guess_note'])}</p></div></div>
+<p class="cl-user kq-u2">{e(STAGE['check_ask2'])}</p>
+<div class="cl-ai kq-a2"><i class="cl-think">{SVG_SPARK}</i><p class="kq-text">{words(STAGE['check_claim']).replace(' data-anim', '')}</p><b class="kq-stamp">Check it</b>
+<p class="kq-flag">{e(STAGE['check_claim_note'])}</p><ul class="kq-list">{ck}</ul></div></div>
+{_cl_comp("kq-comp", '<span class="cl-ph">' + e(STAGE["app_reply_ph"]) + '</span>')}</div></div>
+<div class="kq-right"><div class="kq-explain"><div class="kq-how"><b>{e(STAGE['check_how_k'])}</b><p>{e(STAGE['check_how'])}</p></div>
+<div class="kq-why"><b>{e(STAGE['check_why_k'])}</b><p>{e(STAGE['check_why'])}</p></div></div>
+<div class="kq-search"><b>{e(STAGE['check_search_k'])}</b><p>{e(STAGE['check_search'])}</p>
+<p class="kq-src ok"><i>{e(STAGE['check_trust'][0])}</i>{e(STAGE['check_trust'][1])}</p><p class="kq-src no"><i>{e(STAGE['check_skip'][0])}</i>{e(STAGE['check_skip'][1])}</p>
+<p class="kq-search-foot">{e(STAGE['check_search_foot'])}</p></div>
+<div class="kq-safe" data-beat="4"><h3>{e(STAGE['safe_h'])}</h3><ul>{safe}</ul><p>{e(STAGE['safe_foot'])}</p></div></div></div>""")
 
 def _scene_save():
     tools = "".join(f'<p><b>{e(TOOLS[t]["name"])}</b><span>{e(TOOLS[t]["save_short"])}</span></p>' for t in TOOL_ORDER)

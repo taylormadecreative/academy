@@ -740,6 +740,40 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "bye_badge_alt": "The AI 101 badge on a phone: your name, took AI 101: Learn to talk to AI, Taylormade Academy",
 }
 
+# 10/9 redesign (Nelson: "be creative and improve how this looks and also explain how ai charges with tokens"; the context
+# window and the next-word scene "look like a real platform like chatgpt, claude, or gemini").
+# Token prices checked live on claude.com/pricing, 10/9: Claude Sonnet 5.5 = $2 per million tokens read (input), $10 per
+# million written (output). The receipt's math is built from these numbers, never typed by hand.
+TOKEN_PRICE = {"model": "Claude Sonnet 5.5", "read": 2.0, "write": 10.0, "as_of": "October 9, 2026",
+               "read_tokens": 10,      # the sentence on the stage (splitTokens counts 10; a test keeps them equal)
+               "write_tokens": 120,    # a short thank-you note back
+               "times": 100_000}       # customer emails a month
+STAGE.update({
+    "tokens_price_h": "Every token has a price.",
+    "tokens_price": "Companies that build with AI pay for what it reads and what it writes.",
+    "tokens_write5": "Writing costs 5 times more.",
+    "tokens_scale": "Now answer 100,000 emails a month.",
+    "tokens_scale_note": "That adds up.",
+    "tokens_plan": "Free or monthly plan? No bill, but your limit counts tokens too. Long chats and big files use it up faster.",
+    "rcpt_h": "AI receipt",
+    "rcpt_read": "Read your message",
+    "rcpt_wrote": "Wrote the note",
+    "rcpt_total": "Total",
+    "rcpt_penny": "About a tenth of a penny",
+    "rcpt_times": "\u00d7 100,000 emails",
+    "rcpt_month": "A month",
+    "rcpt_stamp": "That adds up",
+    "window_brk": "Context window",
+    "window_out": "Out of the window. It can't see this anymore.",
+    "window_reread": "Re-read for this reply",
+    "window_total": "Read so far in this chat",
+    "window_tokens": "tokens",
+    "check_ask1": "Where's the best pie in Texas?",
+    "check_ask2": "How many small businesses use AI?",
+    "check_pop_h": "Next word?",
+})
+
+
 # The end-of-class badge on the class page (Nelson 10/9: "something cool at the end to show they took my course that they
 # can share on their story or page", then "Story badge + LinkedIn", unlocked "At the end of class for everyone"). A 9:16
 # story image with their name, drawn in the browser (js/ai101-badge.js). It says they TOOK the class, never "certified".

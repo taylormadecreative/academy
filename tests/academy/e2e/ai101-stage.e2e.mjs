@@ -175,28 +175,51 @@ try {
   await w.waitForTimeout(1400);
   assert.equal(await w.evaluate(() => +getComputedStyle(document.querySelector('.wd-warn')).opacity), 1, 'words, last click: the hallucination warning');
   assert.match(await w.textContent('.wd-warn'), /Never trust it blindly/);
-  // 10/8 (Nelson): the context window, rebuilt. End: the first message (Ann's name) has fallen out, the window says Full.
+  // 10/9 (Nelson: "explain how ai charges with tokens"): the sentence cuts into 10 tokens; the receipt's lines; the month rolls to $122
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('tokens')));
+  await w.waitForTimeout(2600);
+  assert.equal(await w.evaluate(() => document.querySelectorAll('.tq-chip').length), 10, 'tokens: ten chips');
+  assert.equal(await w.textContent('.tq-n'), '10', 'tokens: counted ten');
+  for (let i = 0; i < 3; i++) { await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2200); }
+  const tq = await w.evaluate(() => ({ rows: [...document.querySelectorAll('.tq-row')].map((r) => [...r.children].map((c) => c.textContent.trim()).filter(Boolean).join(' ')), month: document.querySelector('.tq-month').textContent,
+    stamp: +getComputedStyle(document.querySelector('.tq-stamp')).opacity, h2: Math.round(document.querySelector('.sc-tokens h2').getBoundingClientRect().top) }));
+  assert.deepEqual(tq.rows.slice(0, 3), ['Read your message 10 tokens $0.00002', 'Wrote the note 120 tokens $0.0012', 'Total $0.00122'], 'tokens: the receipt adds up');
+  assert.deepEqual([tq.month, tq.stamp], ['122', 1], 'tokens: x 100,000 emails a month = $122, THAT ADDS UP');
+  // 10/8 (Nelson): the context window, rebuilt; 10/9 redesign: a real-looking ChatGPT window, the gold bracket beside it. End of
+  // beat 3: the bracket has slid past Ann's intro (dimmed), Full, the token counters ran, the costs showing; nothing under the box.
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('window')));
-  for (let i = 0; i < 2; i++) { await w.waitForTimeout(2600); await w.keyboard.press('ArrowRight'); }
-  await w.waitForTimeout(3000);
-  const wn = await w.evaluate(() => { const m = [...document.querySelectorAll('.wn-msg')].map((x) => +getComputedStyle(x).opacity);
-    return { first: m[0], last: m.at(-1), full: +getComputedStyle(document.querySelector('.wn-full')).opacity, n: +document.querySelector('.wn-n').textContent,
-      costs: +getComputedStyle(document.querySelector('.wn-costs')).opacity }; });
-  assert.ok(wn.first < 0.2 && wn.last > 0.99 && wn.full > 0.99 && wn.n > 40 && wn.costs > 0.99, 'window, beat 3: the start fell out, Full, the costs showing ' + JSON.stringify(wn));
+  await w.waitForTimeout(2600);
+  const brkTop = () => w.evaluate(() => document.querySelector('.wv-brk').getBoundingClientRect().top);
+  const b0top = await brkTop();
+  for (let i = 0; i < 2; i++) { await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2600); }
+  const wn = await w.evaluate(() => { const m = [...document.querySelectorAll('.wv-msg')].map((x) => +getComputedStyle(x).opacity);
+    const comp = document.querySelector('.wv-app .gp-comp').getBoundingClientRect().top, lastBot = document.querySelector('.wv-msg:last-child').getBoundingClientRect().bottom;
+    return { first: m[0], second: m[1], last: m.at(-1), full: +getComputedStyle(document.querySelector('.wv-full')).opacity, n: +document.querySelector('.wv-n').textContent,
+      tot: +document.querySelector('.wv-tot').textContent, costs: +getComputedStyle(document.querySelector('.wv-costs')).opacity, clear: lastBot <= comp }; });
+  assert.ok(wn.first < 0.25 && wn.second < 0.25 && wn.last > 0.99 && wn.full > 0.99 && wn.n > 40 && wn.tot > wn.n && wn.costs > 0.99 && wn.clear,
+    'window, beat 3: Ann\'s intro fell out, Full, read-so-far beats this reply, the costs showing, the last reply clear of the box ' + JSON.stringify(wn));
+  assert.ok(await brkTop() > b0top + 40, 'window, beat 3: the bracket slid down past the start');
   // 10/9 (Nelson): same subject = same chat. The last click swaps the costs for "which chat?" in the same spot.
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(2200);
-  const rules = await w.evaluate(() => ({ costs: +getComputedStyle(document.querySelector('.wn-costs')).opacity, rules: +getComputedStyle(document.querySelector('.wn-rules')).opacity,
-    rows: [...document.querySelectorAll('.wn-rules p')].map((p) => +getComputedStyle(p).opacity > 0.99 && p.querySelector('b').textContent) }));
+  const rules = await w.evaluate(() => ({ costs: +getComputedStyle(document.querySelector('.wv-costs')).opacity, rules: +getComputedStyle(document.querySelector('.wv-rules')).opacity,
+    rows: [...document.querySelectorAll('.wv-rules p')].map((p) => +getComputedStyle(p).opacity > 0.99 && p.querySelector('b').textContent) }));
   assert.deepEqual(rules, { costs: 0, rules: 1, rows: ['Same subject?', 'New subject?', 'Too long?'] }, 'window, last beat: which chat to use');
-  // 10/8 (Nelson): the next-word scene explains itself, then turns into Never paste
+  // 10/8 (Nelson): the next-word scene explains itself, then turns into Never paste. 10/9 redesign: inside a real-looking Claude
+  // window; at the end of beat 0 the guesses are up with Dallas picked and filled in
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('check')));
-  await w.waitForTimeout(3200); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
-  const ex = () => w.evaluate(() => ['.ck-how', '.ck-why', '.ck-explain', '.ck-search', '.ck-safe'].map((q) => +(+getComputedStyle(document.querySelector(q)).opacity).toFixed(2)));
+  await w.waitForTimeout(3200);
+  const kq0 = await w.evaluate(() => ({ pop: +getComputedStyle(document.querySelector('.kq-pop')).opacity, fill: +getComputedStyle(document.querySelector('.kq-fill')).opacity,
+    fillText: document.querySelector('.kq-fill').textContent, bars: [...document.querySelectorAll('.kq-bar')].map((b) => Math.round(b.getBoundingClientRect().width) > 10) }));
+  assert.deepEqual(kq0, { pop: 1, fill: 1, fillText: 'Dallas', bars: [true, true, true, true] }, 'check, beat 0: the guesses pop up, Dallas is picked ' + JSON.stringify(kq0));
+  await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
+  const ex = () => w.evaluate(() => ['.kq-how', '.kq-why', '.kq-explain', '.kq-search', '.kq-safe'].map((q) => +(+getComputedStyle(document.querySelector(q)).opacity).toFixed(2)));
   assert.deepEqual(await ex(), [1, 1, 1, 0, 0], 'check, beat 2: how it guesses + why it goes wrong');
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1500); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
   // 10/9 (Nelson): most chatbots come with a search or research tool now; trust real sources, not Reddit or opinions
   assert.deepEqual((await ex()).slice(2), [0, 1, 0], 'check, beat 4: the explanation gives way to Use search');
-  assert.match(await w.textContent('.ck-src.no'), /Reddit/);
+  assert.match(await w.textContent('.kq-src.no'), /Reddit/);
+  const stamp = await w.evaluate(() => +getComputedStyle(document.querySelector('.kq-stamp')).opacity);
+  assert.equal(stamp, 1, 'check: the made-up statistic is stamped CHECK IT');
   await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
   assert.deepEqual((await ex()).slice(2), [0, 0, 1], 'check, last beat: then Never paste');
   await w.keyboard.press('ArrowLeft'); await w.waitForTimeout(400);

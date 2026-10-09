@@ -270,3 +270,11 @@ test("the 2026 words (Nelson 10/9): his 16 new ones, in plain English, none repe
   assert.match(G.stage_tip, /Explain \[the word\] like I'm brand new to it/);
   assert.equal(C.STAGE_STEP.words2026, 3);
 });
+test("tokens, priced (Nelson 10/9: \"explain how ai charges with tokens\"): real Claude Sonnet 5.5 prices, and the stage's sentence really is the receipt's 10 tokens", async () => {
+  const P = C.TOKEN_PRICE;
+  assert.deepEqual([P.model, P.read, P.write], ['Claude Sonnet 5.5', 2, 10], 'checked on claude.com/pricing 10/9: $2 per million read, $10 per million written');
+  const { splitTokens } = await import('../../js/ai101-kit.js');
+  assert.equal(splitTokens(C.STAGE.tokens_sentence).length, P.read_tokens);
+  assert.equal(P.write / P.read, 5);
+  assert.match(C.STAGE.tokens_write5, /5 times more/);
+});
