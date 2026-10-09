@@ -64,7 +64,7 @@ try {
   // walk the whole deck: every scene, every beat, then check each scene's [data-beat] elements are fully drawn
   const w = await page();
   const n = await w.evaluate(() => document.querySelectorAll('.scene').length);
-  assert.equal(n, 18, 'eighteen scenes (10/8: + laptop, nolove)');
+  assert.equal(n, 19, 'nineteen scenes (10/8: + laptop, nolove, strengths)');
   for (let s = 0; s < n; s++) {
     await w.evaluate((i) => window.__stage.go(i), s);
     const beats = await w.evaluate((i) => +document.querySelectorAll('.scene')[i].dataset.beats, s);
@@ -110,6 +110,22 @@ try {
   const typed = await w.evaluate(() => { const t = document.querySelector('.sc-chat .ch-you .ch-typed');
     return t ? { text: t.textContent.replace(/\s+/g, ' ').trim(), op: +getComputedStyle(t).opacity, words: [...t.querySelectorAll('.w')].every((x) => +getComputedStyle(x).opacity > 0.99) } : null; });
   assert.deepEqual(typed, { text: 'Write a thank-you note to my neighbor.', op: 1, words: true }, 'chat, end: the prompt is still in the You card');
+  // 10/8 (Nelson): "when it said write it as if my grandmother is talking nothing changed". The grandmother answer must SOUND like
+  // a grandmother talking (not "my grandmother's recipe", which is the grandchild), and stay short after "Make it shorter".
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));
+  await w.waitForTimeout(1500); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1500); await w.keyboard.press('ArrowRight'); await w.waitForTimeout(1800);
+  const gm = await w.evaluate(() => { const v = document.querySelector('.st-v.v2'); const t = v.textContent.trim();
+    return { op: +getComputedStyle(v).opacity, honey: /\b(honey|sugar|baby)\b/i.test(t), grandchild: /my grandmother's/i.test(t), words: t.split(/\s+/).length,
+      shown: +document.querySelector('.st-n').textContent, short: document.querySelector('.st-v.v1').textContent.trim().split(/\s+/).length }; });
+  assert.ok(gm.op > 0.99 && gm.honey && !gm.grandchild, 'steer, beat 2: the answer is in a grandmother\'s voice ' + JSON.stringify(gm));
+  assert.equal(gm.shown, gm.words, 'the word count matches the answer on screen');
+  assert.ok(gm.words <= gm.short + 10, 'still short after "Make it shorter" ' + JSON.stringify(gm));
+  // 10/8 (Nelson): hallucination up front. The words scene's last click brings up "Never trust it blindly."
+  await w.evaluate(() => window.__stage.go(window.__stage.indexOf('words')));
+  for (let i = 0; i < 4; i++) { await w.waitForTimeout(1100); await w.keyboard.press('ArrowRight'); }
+  await w.waitForTimeout(1400);
+  assert.equal(await w.evaluate(() => +getComputedStyle(document.querySelector('.wd-warn')).opacity), 1, 'words, last click: the hallucination warning');
+  assert.match(await w.textContent('.wd-warn'), /Never trust it blindly/);
   // a held key (auto-repeat) never skips beats
   await w.evaluate(() => window.__stage.go(window.__stage.indexOf('prompt5')));
   const before = await w.evaluate(() => window.__stage.pos());
@@ -121,8 +137,8 @@ try {
   assert.deepEqual(checks.map((c) => c.id), ['steer', 'yourturn', 'qa', 'next']);
   assert.deepEqual(checks.map((c) => c.at), [19 * 60 + 23, 19 * 60 + 34, 19 * 60 + 45, 19 * 60 + 56]);
   // ---- laptop + nolove (10/8) ----
-  const order = await w.evaluate(() => [...document.querySelectorAll('.scene')].map((e) => e.dataset.id).slice(0, 6));
-  assert.deepEqual(order, ['soon', 'title', 'follow', 'laptop', 'nolove', 'chat'], 'the laptop step comes right after Follow me');
+  const order = await w.evaluate(() => [...document.querySelectorAll('.scene')].map((e) => e.dataset.id).slice(0, 7));
+  assert.deepEqual(order, ['soon', 'title', 'follow', 'laptop', 'nolove', 'strengths', 'chat'], 'the laptop step comes right after Follow me, then each AI\'s strong suit');
   const lp = () => w.evaluate(() => {
     const op = (sel) => +getComputedStyle(document.querySelector(sel)).opacity;
     return { knob: new DOMMatrix(getComputedStyle(document.querySelector('.lp-knob')).transform).m41, mac: op('.lp-steps.mac'), win: op('.lp-steps.win'),

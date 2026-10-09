@@ -58,6 +58,20 @@ html:not([data-os="mac"]) [data-os-for="mac"],html:not([data-os="windows"]) [dat
 .a1c-install li::before,.a1c-setup li::before{content:counter(i);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:var(--gold);font:700 15px/1 var(--display)}
 .a1c-install li .btn{display:flex;width:max-content;max-width:100%;margin-top:10px}
 .a1c-needs{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
+/* each AI's strong suit: three cards side by side, stacked on a phone */
+.a1c-suits{display:grid;gap:10px}
+.a1c-suits-h{margin:0;font:700 20px/1.2 var(--display);letter-spacing:-.01em;color:var(--navy)}
+.a1c-suits-sub{margin:0;font-size:16.5px;line-height:1.55;color:var(--ink-2)}
+.a1c-suits-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.a1c-suit{background:#fff;border:1px solid var(--hair);border-radius:var(--r);padding:16px 18px;display:grid;gap:8px;align-content:start}
+.a1c-suit-n{margin:0;font:700 19px/1.2 var(--display);color:var(--navy)}
+.a1c-suit-pick{margin:0;font:700 16.5px/1.35 var(--display);color:var(--ink)}
+.a1c-suit-pick span{display:block;font:700 12px/1 var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.a1c-suit ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15.5px;line-height:1.5;color:var(--ink-2)}
+/* the trust warning: the same alert colours as "Never paste" (one alert style) */
+.a1c-trust{background:#fff4ef;border:1px solid #f6cbb7;border-radius:var(--r);padding:14px 16px}
+.a1c-trust-h{margin:0 0 4px;font:700 18px/1.3 var(--display);color:#9a3412}
+.a1c-trust p:not(.a1c-trust-h){margin:0;font-size:16.5px;line-height:1.55;color:var(--ink-2);max-width:68ch}
 .a1c-love{background:var(--navy);border-radius:var(--r);padding:18px 20px}
 .a1c-love-h{margin:0 0 6px;font:700 20px/1.2 var(--display);letter-spacing:-.01em;color:var(--gold)}
 .a1c-love p:not(.a1c-love-h){margin:0;font-size:16.5px;line-height:1.6;color:#dbe3f7;max-width:68ch}

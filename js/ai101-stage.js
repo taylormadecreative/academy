@@ -130,7 +130,7 @@ export const TIMELINES = {
     appearBeat(tl, el, 2);
     return tl.addLabel('end');
   },
-  words(el) { // AI ⊃ generative AI ⊃ LLM; training data streams in; the chatbot is the app around it
+  words(el) { // AI ⊃ generative AI ⊃ LLM; training data streams in; the chatbot is the app around it; then: it can hallucinate
     const r = (c) => el.querySelector('.wd-ring.' + c), d = (i) => el.querySelector('.wd-def.d' + i);
     const pop = { scale: 0.7, autoAlpha: 0, duration: 0.6, ease: 'back.out(1.3)' };
     const tl = gsap.timeline({ paused: true });
@@ -141,6 +141,7 @@ export const TIMELINES = {
     into(tl, el.querySelector('.wd-pages em'), { autoAlpha: 0, duration: 0.3 });
     into(tl, d(2), IN, '-=0.6');
     tl.addLabel('b3'); into(tl, el.querySelector('.wd-app'), { scale: 1.15, autoAlpha: 0, duration: 0.6, ease: EASE_OUT }); into(tl, d(3), IN, '-=0.3');
+    tl.addLabel('b4'); into(tl, el.querySelector('.wd-warn'), { autoAlpha: 0, y: 30, scale: 0.96, duration: 0.5, ease: 'back.out(1.3)' }); // 10/8: never trust it blindly
     return tl.addLabel('end');
   },
   bland(el) { // a thin prompt gets gray filler; the same ask with detail gets a specific answer
@@ -152,14 +153,15 @@ export const TIMELINES = {
     return tl.addLabel('end');
   },
   steer(el) { // three follow-ups change one answer; the word count drops, the voice changes, options fan out
-    const v = (i) => el.querySelector('.st-v.v' + i), m = (i) => el.querySelector('.st-me.m' + i), n = el.querySelector('.st-n');
+    const v = (i) => el.querySelector('.st-v.v' + i), m = (i) => el.querySelector('.st-me.m' + i), n = el.querySelector('.st-n'), ans = el.querySelector('.st-ans');
     const words = (i) => v(i).textContent.trim().split(/\s+/).length;
     const tl = gsap.timeline({ paused: true });
     tl.addLabel('b0'); into(tl, el.querySelector('.st-ans'), IN);
     [1, 2].forEach((i) => {
       tl.addLabel('b' + i); into(tl, m(i), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
       tl.to(v(i - 1), { autoAlpha: 0, duration: 0.25 }).to(v(i), { autoAlpha: 1, duration: 0.35 })
-        .to(n, { textContent: words(i), snap: { textContent: 1 }, duration: 0.5 }, '<');
+        .to(n, { textContent: words(i), snap: { textContent: 1 }, duration: 0.5 }, '<')
+        .fromTo(ans, { backgroundColor: '#fff6da' }, { backgroundColor: '#ffffff', duration: 0.9, immediateRender: false }, '<'); // a gold flash: it changed
     });
     tl.addLabel('b3'); into(tl, m(3), { autoAlpha: 0, x: 60, duration: 0.4, ease: EASE_OUT });
     into(tl, el.querySelectorAll('.st-opt'), { autoAlpha: 0, y: 30, rotation: (i) => (i - 1) * 6, stagger: 0.12, duration: 0.45, ease: 'back.out(1.4)' });

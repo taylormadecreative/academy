@@ -26,6 +26,21 @@ test('Step 2: a Mac | Windows switch and one install card per tool x computer, e
   assert.match(page, /class="a1c-love"/);
   assert.match(page, /<a href="#step-laptop" class="textlink">Go to Step 2<\/a>/);
 });
+test('Step 3 opens with the trust warning, and hallucination is in its word list', () => {
+  const step3 = between(page, 'id="step-words"', '</li>\n<li class="a1c-step"');
+  const body = step3.slice(step3.indexOf('class="a1c-step-b"'));
+  assert.match(body, /^class="a1c-step-b"><div class="a1c-trust" role="note"><p class="a1c-trust-h">Never trust AI blindly\.<\/p>/);
+  assert.match(step3, /<dt>Hallucination<\/dt>/);
+  assert.match(page, /<h3>One rule before you start<\/h3>/);
+});
+test("Step 2 shows each AI's strong suit, all three at once, after Don't fall in love", () => {
+  const step2 = between(page, 'id="step-laptop"', '</li>\n<li class="a1c-step"');
+  assert.match(step2, /class="a1c-suits"/);
+  for (const t of ['claude', 'chatgpt', 'gemini']) assert.match(step2, new RegExp(`class="a1c-suit" data-suit="${t}"`), t);
+  assert.ok(!/class="a1c-suit" data-for=/.test(page), 'not tied to the AI switch: everyone sees all three');
+  assert.equal((step2.match(/Nelson&#x27;s pick for/g) || []).length, 3);
+  assert.ok(step2.indexOf('class="a1c-love"') < step2.indexOf('class="a1c-suits"'));
+});
 test('Step 2 also sets up the account: one card per AI, with the AI switch right there', () => {
   const step2 = between(page, 'id="step-laptop"', '</li>\n<li class="a1c-step"');
   assert.match(step2, /class="a1c-picks"/);

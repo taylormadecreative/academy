@@ -9,7 +9,8 @@ import html, os, pathlib, re, sys
 from ai101_course import (EVENT, OUTCOMES, FOLLOW, FOLLOW_LINE, TOOL_ORDER, TOOLS, START_HERE, PARTS, DEMO, DEMO_ALT, STEPS,
                           FOLLOW_UPS, LIBRARY, LEVEL_UPS, TEN_THINGS, FIX_IT, NEVER_PASTE, NEVER_PASTE_SLIP, WORDS_FULL, WORDS_STEP2,
                           WHATS_NEXT, PULSE_Q, PULSE_ENDS, PULSE_NOTE, PRACTICE_TAPS, CHECK_ITEMS, ACCESS,
-                          OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP)
+                          OS_ORDER, OS_NAMES, OS_ON, INSTALL, MAC_WHICH, INSTALL_WEB, NO_LOVE, SETUP,
+                          STRENGTHS, STRENGTHS_H, STRENGTHS_INTRO, STRENGTHS_FOOT, TRUST_WARN)
 
 e = html.escape
 BAKERY = DEMO["parts"]
@@ -117,6 +118,13 @@ def _scene_nolove():
 <ul class="nl-pills" aria-label="Claude, ChatGPT and Gemini">{pills}</ul>
 <p class="nl-foot">{e(STAGE['nolove_foot'])}</p><p class="nl-small">{e(STAGE['nolove_small'])}</p>""")
 
+def _scene_strengths():
+    """One column per click: Nelson's pick for each AI, with two short facts under it."""
+    cols = "".join(f'<div class="sg-col" data-beat="{i}"><p class="sg-n">{e(n)}</p><p class="sg-pick">{e(pick)}</p>'
+                   f'<ul>{"".join(f"<li>{e(pt)}</li>" for pt in pts)}</ul></div>' for i, (n, pick, pts) in enumerate(STAGE["strengths"]))
+    return _sc("strengths", 3, STAGE["strengths_h"], f"""<h2 class="sc-h sm" data-beat="0">{_bar_last(STAGE['strengths_h'])}</h2>
+<div class="sg-row">{cols}</div><p class="sg-foot" data-beat="2">{e(STAGE['strengths_foot'])}</p>""")
+
 def _scene_chat():
     return _sc("chat", 3, "How a chat works", f"""<h2 class="sc-h sm">How a chat works</h2>
 <div class="ch-row"><div class="ch-node ch-you" data-beat="0"><b>You</b><span>type a prompt</span><p class="ch-typed">{words(STAGE['chat_prompt'])}</p></div>
@@ -130,12 +138,13 @@ def _scene_words():
     w = STAGE["words"]
     pages = "".join('<i class="wd-page"></i>' for _ in range(6))
     defs = "".join(f'<p class="wd-def d{i}"><b>{e(a)}</b> {e(b)}</p>' for i, (a, b) in enumerate(w))
-    return _sc("words", 4, "The words", f"""<h2 class="sc-h sm">The words</h2>
+    return _sc("words", 5, "The words", f"""<h2 class="sc-h sm">The words</h2>
 <div class="wd-grid"><div class="wd-rings" aria-hidden="true">
 <div class="wd-ring r1"><span>AI</span></div><div class="wd-ring r2"><span>Generative AI</span></div><div class="wd-ring r3"><span>LLM</span></div>
 <div class="wd-pages">{pages}<em>{e(STAGE['words_data'])}</em></div>
 <div class="wd-app"><span class="wd-app-bar"><i></i><i></i><i></i></span><span class="wd-app-l">Chatbot</span></div></div>
-<div class="wd-defs">{defs}<p class="wd-def d3">{e(STAGE['words_chatbot'])}</p></div></div>""")
+<div class="wd-defs">{defs}<p class="wd-def d3">{e(STAGE['words_chatbot'])}</p>
+<div class="wd-warn" data-beat="4"><b>{e(STAGE['words_warn_h'])}</b><span>{e(STAGE['words_warn'])}</span><em>{e(STAGE['words_warn_rule'])}</em></div></div></div>""")
 
 def _bars(widths, cls):
     return "".join(f'<i class="bl-bar" style="--w:{w}%"></i>' for w in widths)
@@ -212,11 +221,11 @@ def _scene_bye():
 <div class="so-follow">{IG_QR(1, 'row')}{FB_QR(1, 'row')}</div></div>
 <div class="so-qrs">{_qr_card(EVENT['class_url'] + '#review', 'QR code to leave a review', 'Leave a review', 'on your class page', 0, 'main')}</div></div>""")
 
-SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove,
+SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_follow, "laptop": _scene_laptop, "nolove": _scene_nolove, "strengths": _scene_strengths,
                 "chat": _scene_chat, "words": _scene_words,
                 "bland": _scene_bland, "prompt5": _scene_prompt5, "steer": _scene_steer, "tokens": _scene_tokens, "window": _scene_window,
                 "check": _scene_check, "save": _scene_save, "yourturn": _scene_yourturn, "qa": _scene_qa, "next": _scene_next, "bye": _scene_bye}
-STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
+STAGE_ORDER = ["soon", "title", "follow", "laptop", "nolove", "strengths", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
 # Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").
@@ -298,6 +307,19 @@ def setup():
 
 def install_web():
     return "".join(f'<p class="a1c-tool" data-for="{t}">{e(INSTALL_WEB.format(site=TOOLS[t]["site"], name=TOOLS[t]["name"]))}</p>' for t in TOOL_ORDER)
+
+PICK_LABEL = "Nelson's pick for"
+
+def strengths():
+    """Each AI's strong suit, all three side by side (not switched): the headline is Nelson's pick, the lines are checked facts."""
+    cards = "".join(f'<div class="a1c-suit" data-suit="{x["tool"]}"><p class="a1c-suit-n">{e(TOOLS[x["tool"]]["name"])}</p>'
+                    f'<p class="a1c-suit-pick"><span>{e(PICK_LABEL)}</span> {e(x["pick"])}</p>'
+                    f'<ul>{"".join(f"<li>{e(pt)}</li>" for pt in x["points"])}</ul></div>' for x in STRENGTHS)
+    return (f'<section class="a1c-suits" aria-label="{e(STRENGTHS_H)}"><p class="a1c-suits-h">{e(STRENGTHS_H)}</p><p class="a1c-suits-sub">{e(STRENGTHS_INTRO)}</p>'
+            f'<div class="a1c-suits-row">{cards}</div><p class="a1c-needs">{e(STRENGTHS_FOOT)}</p></section>')
+
+def trust():
+    return f'<div class="a1c-trust" role="note"><p class="a1c-trust-h">{e(TRUST_WARN["h"])}</p><p>{e(TRUST_WARN["body"])}</p></div>'
 
 def no_love():
     return f'<div class="a1c-love"><p class="a1c-love-h">{e(NO_LOVE["h"])}</p><p>{e(NO_LOVE["body"])}</p></div>'
@@ -394,6 +416,8 @@ EXTRA = {
     "install": install,
     "install_web": install_web,
     "setup": setup,
+    "strengths": strengths,
+    "trust": trust,
     "no_love": no_love,
 }
 

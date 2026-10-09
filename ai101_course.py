@@ -160,13 +160,47 @@ SETUP = {
 SETUP_CHECKED = "2026-10-08"
 MAC_WHICH = "Not sure which Mac you have? Click the Apple menu at the top left of your screen, then About This Mac."
 INSTALL_WEB = "Can't install it? Use {site} in your web browser. It's the same {name}, with the same account."
+# Nelson 10/8: "never trust AI for facts or that it will do the job correctly; it still messes up or hallucinates."
+# Up front: a warning at the top of Step 3, a card in Start here, and a fifth click on the stage's words scene.
+TRUST_WARN = {"h": "Never trust AI blindly.",
+              "body": "It can make things up and say them like facts. That's called a hallucination. It can also do a job wrong "
+                      "and tell you it's done. Always check its work."}
 NO_LOVE = {"h": "Don't fall in love with one AI.",
            "body": "They change all the time. The best one today might not be the best one next month. Even these apps "
                    "changed this year. So learn the skill, not the app. Everything you learn tonight works in Claude, "
                    "ChatGPT and Gemini."}
 
+# Each AI's strong suit (Step 2, after "Don't fall in love", and the stage scene after it). The headlines are Nelson's picks
+# (his words, 10/8); every line under them was checked on STRENGTHS_CHECKED: Claude leads the LMArena WebDev board and most
+# public coding boards by small margins, builds Artifacts and real Office files on Free, and can't make images, video or
+# music (support.claude.com); OpenAI holds the top Arena text-to-image spots and ChatGPT has Projects + scheduled tasks,
+# Sora shut down Apr 26 2026 (help.openai.com); Gemini understands YouTube and uploaded video (free uploads: 5 min), makes
+# and edits images (editing 18+), makes songs with Lyria (18+), video is paid only (support.google.com/gemini).
+STRENGTHS_CHECKED = "2026-10-08"
+STRENGTHS_H = "Each one has a strong suit"
+STRENGTHS_INTRO = "These are my picks right now. Pick the one that fits the job."
+STRENGTHS = [
+    {"tool": "claude", "pick": "coding and building apps",
+     "points": ["Builds small apps, games, quizzes and web pages right in the chat. Free.",
+                "Leads most public coding leaderboards today, by small margins that change often.",
+                "Reads long documents, and makes real Word, Excel, PowerPoint and PDF files. Free.",
+                "Can't make pictures, videos or music."]},
+    {"tool": "chatgpt", "pick": "images and planning content",
+     "points": ["Makes pictures from your words and edits your photos. Its image maker ranks at the top of a public leaderboard right now. Free plan: a few a day.",
+                "Plans content with you: a Project keeps a whole campaign in one place, and it can send you post ideas on a schedule.",
+                "Talk to it out loud, and interrupt it like a person.",
+                "Can't make videos right now. Its video app shut down in April."]},
+    {"tool": "gemini", "pick": "videos, images and music",
+     "points": ["Breaks down YouTube videos for you: a summary, the main steps, or answers to your questions. Free. You can upload your own clip too (free plan: 5 minutes).",
+                "Makes pictures and edits your photos. Free. Editing photos is 18 and up.",
+                "Makes a song from a description or a photo. Free, with limits. 18 and up.",
+                "Works with your Gmail, Drive, Calendar and YouTube. Making videos needs a paid plan."]},
+]
+STRENGTHS_FOOT = "Checked October 8, 2026. They change all the time, so try the others every few months. Everything tonight works in all three."
+
 START_HERE = [
     {"title": "What a chatbot is", "body": "A website or phone app where you type a question and an AI types back. Claude, ChatGPT and Gemini are three of the best known, and all three are free to start. Tonight I use Claude. Pick yours above and this page changes to match it. You'll see two chats tonight: the room chat is where we all talk to each other, and your AI chat is where you talk to the AI."},
+    {"title": "One rule before you start", "body": "Never trust AI blindly. It can make things up and say them like facts, and it can do a job wrong and tell you it's done. Always check its work."},
     {"title": "Tonight you'll have three things open", "body": "The room, where you watch me. This page, where you copy the prompts. Your AI chat, where you type to the AI. Two devices is easiest: watch the room on your phone or tablet, and use a laptop for this page and your AI chat. One device works too. Watch me first, then try it yourself in the practice time at 7:34. This page keeps every step, so nothing is lost."},
     {"title": "Make a free account", "tool": "signup", "link": ("#step-laptop", "Every setup step is in Step 2")},
     {"title": "Want it on your laptop?", "body": "Step 2 shows you how to get the app on a Mac or a Windows laptop. Do it now if you're early, or with me at 7:02.",
@@ -227,7 +261,7 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Start the download now. While it downloads, keep going in your web browser. It's the same account, and your chats show up in both.",
             "On a work laptop? Ask IT before you install anything, and follow your company's AI rules.",
             "On a Chromebook, a tablet or a phone? Use the website, or get the app from your app store."],
-     "flow": [("do", 0), ("extra", "install"), ("do", 1), ("extra", "setup"), ("extra", "install_web"), ("do", 2), ("do", 3), ("extra", "no_love")],
+     "flow": [("do", 0), ("extra", "install"), ("do", 1), ("extra", "setup"), ("extra", "install_web"), ("do", 2), ("do", 3), ("extra", "no_love"), ("extra", "strengths")],
      "check": "Your AI is open on your laptop, in the app or in your web browser, and you're signed in."},
     {"id": "words", "n": 3, "time": "7:06", "min": 6, "title": "What AI actually is",
      "do": ["AI here means a computer program that can read and write a lot like a person. It learned by reading a huge amount of writing.",
@@ -235,8 +269,8 @@ STEPS = [  # "flow" (optional) orders a step's lines, copy boxes and extras so e
             "Now send your first message. Tap Copy, switch to your AI chat, paste it into the message box, and send it:",
             "You'll hear these words everywhere. You don't have to memorize them. They're on your cheat sheet."],
      "prompts": [("Try it", "In two short sentences, explain what you are to someone who has never used AI before.")],
-     "flow": [("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("do", 3), ("extra", "words_step2")],
-     "check": "You sent your first message, and you can say what a chatbot is in one sentence."},
+     "flow": [("extra", "trust"), ("do", 0), ("do", 1), ("extra", "diagram"), ("do", 2), ("prompt", 0), ("do", 3), ("extra", "words_step2")],
+     "check": "You sent your first message, you can say what a chatbot is in one sentence, and you know AI can be wrong."},
     {"id": "prompt5", "n": 4, "time": "7:12", "min": 11, "title": "The 5-part prompt",
      "do": ["Most AI answers come out bland for one reason: the AI only knows what you tell it.",
             "First, paste the bland prompt into your AI chat and read the answer. It could be anybody's bakery.",
@@ -414,7 +448,7 @@ WORDS_FULL = [
     ("Custom instructions", "Your background and rules, saved once so you don't retype them. They carry into your new chats. A Claude Project is similar, but only for chats inside that Project."),
     ("Agent", "An AI set up to do a whole job for you. It can use tools and take steps on its own. Set it up once, and it can do the job again and again. That's the October 23 workshop."),
 ]
-WORDS_STEP2 = ["AI", "Generative AI", "Chatbot", "Prompt", "Model", "LLM"]
+WORDS_STEP2 = ["AI", "Generative AI", "Chatbot", "Prompt", "Model", "LLM", "Hallucination"]  # 10/8: hallucination up front (Nelson)
 
 WHATS_NEXT = {
     "agent_h": "Next: build an AI that does the job for you.",
@@ -444,6 +478,11 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "nolove_tools": ["Claude", "ChatGPT", "Gemini"],
     "nolove_foot": "Learn the skill, not the app.",
     "nolove_small": "Everything I teach tonight works in all three.",
+    "strengths_h": "Pick the right one for the job.",
+    "strengths": [("Claude", "Coding and building apps", ["Builds apps, games and quizzes in the chat", "Can't make pictures, video or music"]),
+                  ("ChatGPT", "Images and planning content", ["Top-rated image maker right now", "Plans your posts with you"]),
+                  ("Gemini", "Videos, images and music", ["Breaks down YouTube videos", "Makes songs (18 and up)"])],
+    "strengths_foot": "My picks today. They change all the time.",
     "chat_prompt": "Write a thank-you note to my neighbor.",
     "chat_answer": "Thank you so much for watering my plants while I was away. They look happier than ever, and so do I. You're the best neighbor on the block!",
     "chat_loop": "Reply to make it better.",
@@ -452,6 +491,9 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
               ("LLM", "Large Language Model. It learned from a huge amount of writing.")],
     "words_data": "Training data",
     "words_chatbot": "Chatbot = the app you type into. The model = the brain inside it.",
+    "words_warn_h": "Hallucination",
+    "words_warn": "When AI makes something up and says it like a fact.",
+    "words_warn_rule": "Never trust it blindly. Check its work.",
     "bland_left_h": "Write a post about my bakery.",
     "bland_left_note": "Could be anybody's bakery.",
     "bland_right_h": "+ who it's for · what's special · how long · an example",
@@ -459,7 +501,7 @@ STAGE = {  # every word on Nelson's screen (/ai101/class/stage/) that isn't alre
     "bland_foot": "The AI only knows what you tell it.",
     "steer_answer": "Our sweet potato pie is here! It's my grandmother's recipe, baked fresh every Friday and gone by Saturday. Busy week? Let us handle dessert. Swing by for a slice, or the whole pie, and taste a little bit of home. What's your favorite comfort food?",
     "steer_short": "Grandma's sweet potato pie is back, Fridays only. Grab a slice before it's gone! What's your go-to comfort food?",
-    "steer_grandma": "Come on by, friends. The sweet potato pie is ready. It's my grandmother's recipe, made with love every Friday, and it goes fast. Stop in and get a slice while it's warm. What did your grandmother bake best?",
+    "steer_grandma": "Come on in, honey. My sweet potato pie is fresh out of the oven, Fridays only. Grab a slice while it's warm. What's your favorite, sugar?",  # 10/8: grandma's own voice, still short
     "steer_options": ["Friday just got sweeter.", "Grandma's pie is back.", "Warning: this pie sells out."],
     "steer_note": "Example answers. Yours will be different.",
     "tokens_sentence": "Write a thank-you note to my neighbor.",

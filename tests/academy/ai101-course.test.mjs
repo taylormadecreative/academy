@@ -196,3 +196,25 @@ test('account setup: Claude = Google or the emailed link, then the texted code, 
   assert.ok(C.STEPS.find((s) => s.id === 'laptop').flow.some((f) => f[1] === 'setup'));
   assert.match(C.SETUP_CHECKED, /^\d{4}-\d{2}-\d{2}$/);
 });
+
+test("each AI's strong suit: Nelson's picks as headlines, checked lines under them, and what each can't do", () => {
+  assert.deepEqual(C.STRENGTHS.map((x) => x.tool), C.TOOL_ORDER);
+  assert.deepEqual(C.STRENGTHS.map((x) => x.pick), ['coding and building apps', 'images and planning content', 'videos, images and music']);
+  const pts = Object.fromEntries(C.STRENGTHS.map((x) => [x.tool, x.points.join(' ')]));
+  assert.match(pts.claude, /Can't make pictures, videos or music/); assert.match(pts.claude, /small margins that change often/);
+  assert.match(pts.chatgpt, /video app shut down in April/); assert.match(pts.chatgpt, /a few a day/);
+  assert.match(pts.gemini, /18 and up/); assert.match(pts.gemini, /Making videos needs a paid plan/); assert.match(pts.gemini, /5 minutes/);
+  assert.match(C.STRENGTHS_FOOT, /Checked October 8, 2026/);
+  assert.ok(C.STEPS.find((s) => s.id === 'laptop').flow.some((f) => f[1] === 'strengths'));
+  assert.equal(C.STAGE.strengths.length, 3);
+  assert.match(C.STAGE.steer_grandma, /\bhoney\b/); assert.doesNotMatch(C.STAGE.steer_grandma, /my grandmother's/i);
+});
+
+test("never trust AI blindly, up front (Nelson 10/8): Step 3 opens with it, Start here has it, hallucination is a starting word", () => {
+  assert.equal(C.TRUST_WARN.h, 'Never trust AI blindly.');
+  assert.match(C.TRUST_WARN.body, /hallucination/); assert.match(C.TRUST_WARN.body, /do a job wrong/); assert.match(C.TRUST_WARN.body, /check its work/);
+  assert.ok(C.WORDS_STEP2.includes('Hallucination'));
+  assert.deepEqual(C.STEPS.find((s) => s.id === 'words').flow[0], ['extra', 'trust'], 'the warning is the first thing in Step 3');
+  assert.ok(C.START_HERE.some((x) => x.title === 'One rule before you start' && /Never trust AI blindly/.test(x.body)));
+  assert.match(C.STAGE.words_warn_rule, /Never trust it blindly/);
+});
