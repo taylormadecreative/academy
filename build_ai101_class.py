@@ -33,8 +33,13 @@ def _guard_rules():
             rules.append((pat.strip(), why.strip() or "a private code"))
     return rules
 
-def check_public_copy(page):
+LIST_PRICE_WHY = "the list-only $65 price"
+
+def check_public_copy(page, allow_list_price=False):
+    """allow_list_price: the STAGE only (Nelson 10/8: "show $65 on the stage too"). The Eventbrite code, room keys and the
+    rest of the private list are refused everywhere, the stage included."""
     for pat, why in _guard_rules():
+        if allow_list_price and why == LIST_PRICE_WHY: continue
         if re.search(pat, page):
             raise SystemExit(f"build_ai101_class: {why} must never be in a public page")
     return page
@@ -61,7 +66,7 @@ def _scene_prompt5():
 </section>"""
 
 
-from ai101_course import STAGE
+from ai101_course import STAGE, STAGE_DEAL
 
 IG, FB = FOLLOW["instagram"], FOLLOW["facebook"]
 
@@ -220,12 +225,14 @@ def _scene_next():
     return _sc("next", 3, "What's next", f"""<div class="nx-a"><h2 class="sc-h sm">{e(STAGE['next_h1'])}</h2><div class="nx-stack">{cards}</div></div>
 <div class="nx-b"><h2 class="sc-h sm">{e(STAGE['next_h2'])}</h2><div class="nx-agent"><span class="nx-spin" aria-hidden="true">↻</span><b>Your agent</b></div><ul class="nx-jobs">{jobs}</ul></div>
 <div class="nx-c"><div class="nx-c-t"><p class="sc-kicker">The next workshop</p><h2 class="sc-h">{e(EVENT['next_title'])}</h2>
-<p class="nx-when">{e(EVENT['next_when'])}<br>{e(EVENT['next_where'])}</p><p class="nx-url">taylormadeacademy.com/agent</p></div>
+<p class="nx-when">{e(EVENT['next_when'])}<br>{e(EVENT['next_where'])}</p><p class="nx-url">taylormadeacademy.com/agent</p>
+<p class="nx-deal"><b>{e(STAGE_DEAL['next_h'])}</b>{e(STAGE_DEAL['next_p'])}</p></div>
 {_qr_card('https://taylormadeacademy.com' + EVENT['next_href'], 'QR code for the Build Your First AI Agent page', 'See the workshop', 'taylormadeacademy.com/agent', 0, 'big')}</div>""")
 
 def _scene_bye():
     return _sc("bye", 2, "Before you go", f"""<div class="by-grid"><div>
 <h2 class="sc-h" data-beat="0">{e(STAGE['bye_h'])}</h2><p class="sc-sub" data-beat="0">{e(STAGE['bye_sub'])}</p>
+<p class="by-deal" data-beat="0">{e(STAGE_DEAL['bye'])}</p>
 <p class="by-thanks" data-beat="1">{e(STAGE['bye_thanks'])}</p>
 <div class="so-follow">{IG_QR(1, 'row')}{FB_QR(1, 'row')}</div></div>
 <div class="so-qrs">{_qr_card(EVENT['class_url'] + '#review', 'QR code to leave a review', 'Leave a review', 'on your class page', 0, 'main')}</div></div>""")
@@ -263,7 +270,7 @@ def stage_page(head, ver):
 <script src="/js/config.js?v={ver}"></script>
 <script type="module" src="/js/ai101-stage.js?v={ver}"></script>
 </body></html>"""
-    return check_public_copy(page)
+    return check_public_copy(page, allow_list_price=True)  # Nelson 10/8: the stage shows the 48-hour $65 price
 
 from build_ai101 import _DIAGRAM, _DIAGRAM_V
 
@@ -558,6 +565,7 @@ def class_page(head, header, footer, ver):
 <p class="a1c-when">{e(EVENT['next_title'])} · {e(EVENT['next_when'])} · {e(EVENT['next_where'])}</p>
 <div class="a1c-acts"><a class="btn gold" href="{EVENT['next_href']}">See the workshop <span class="arr" aria-hidden="true">&rarr;</span></a>
 <a class="btn ghost on-ink-ghost" href="{EVENT['replay']}">The replay, for members</a></div>
+<p class="a1c-lead a1c-deal"><b>{e(WHATS_NEXT['deal_h'])}</b> {e(WHATS_NEXT['deal_p'])}</p>
 <p class="a1c-lead">{e(WHATS_NEXT['replay_p'])}</p>
 <p class="a1c-lead"><b>Bringing this to your team?</b> {e(WHATS_NEXT['team_p'])}</p>
 {follow_box('bottom')}

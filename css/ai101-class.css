@@ -284,3 +284,7 @@ html{scroll-padding-top:132px}
   .a1c-nav::after{content:"";position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(90deg,rgba(252,253,255,0),#fcfdff);pointer-events:none}
 }
 .a1c .btn.sm{min-height:44px}
+
+/* the 48-hour deal line in What's next (no number on this page) */
+.a1c-deal{background:rgba(253,201,33,.14);border:1px solid rgba(253,201,33,.5);border-radius:var(--r-sm);padding:12px 14px;color:#fff}
+.a1c-deal b{color:var(--gold)}

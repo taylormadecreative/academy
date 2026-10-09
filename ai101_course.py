@@ -7,7 +7,8 @@ plus their logo, not a rewrite.
 Rules for anything added here:
 - Plain words a first-timer understands (about 6th-8th grade). Define every AI word the first time it shows up.
 - Examples from everyday life as well as work. Never assume they own a business or have used a chatbot.
-- Never the list-only price or the Eventbrite code: build_ai101_class.check_public_copy refuses to build.
+- Never the list-only price or the Eventbrite code: build_ai101_class.check_public_copy refuses to build. One exception,
+  Nelson's call 10/8: STAGE_DEAL may name the $65 price (the stage page only). The code is never allowed.
 - Tool menu paths only as checked on TOOLS_CHECKED. Menus move; check again before every run.
 """
 
@@ -454,7 +455,17 @@ WHATS_NEXT = {
     "agent_h": "Next: build an AI that does the job for you.",
     "agent_p": "You saw tonight how to save your “About me” once. An agent saves a whole job: who it is, the steps, and how the answer should look. You hand it the details, and it does the job the same way every time. No code.",
     "replay_p": "Tonight is recorded. If you want to watch it again, the replay is inside the Academy for members. Every prompt from tonight stays free on this page.",
+    "deal_h": "Because you came tonight:",
+    "deal_p": "you get a lower price on it, for 48 hours only. Your link comes by email at 9 PM tonight, and it ends Sunday at 9 PM CT.",
     "team_p": "Want AI 101 for your team at work? Reply to your sign-up email with the word TEAM. I'll send you the outline: what people learn, how we measure it, and how your company's AI rules come first.",
+}
+
+# The 48-hour deal on the stage's last two scenes (Nelson 10/8: "tell people it's 48 hours for the sale"; he chose to show
+# the number). $65 list-only from 9 PM Fri Oct 9 to 9 PM Sun Oct 11, vs the $75 early bird; the link goes out by email at 9 PM.
+STAGE_DEAL = {
+    "next_h": "Because you came tonight",
+    "next_p": "$65 instead of $75, for 48 hours only. Your link comes by email at 9 PM tonight. It ends Sunday at 9 PM CT.",
+    "bye": "Watch your email at 9 PM tonight: your $65 price for October 23, good for 48 hours.",
 }
 
 ACCESS = ("The room doesn't have live captions yet. Everything I show on screen is also on this page as text, and you can use "

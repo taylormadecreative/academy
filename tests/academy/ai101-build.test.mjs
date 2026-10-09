@@ -71,10 +71,22 @@ test('every library prompt is on the page with a copy button', () => {
 });
 // The private list (the Eventbrite code, anything else that must never be public) lives in public-copy-guard.local,
 // which git ignores, so the repo never names it. These tests use a throwaway list with a made-up code.
-const guardRun = (s, guard) => { try { execFileSync('python3', ['-c', `from build_ai101_class import check_public_copy; check_public_copy(${JSON.stringify(s)})`], { cwd: ROOT, stdio: 'pipe', env: { ...process.env, ...(guard ? { PUBLIC_COPY_GUARD: guard } : {}) } }); return 'ok'; } catch (e) { return 'refused'; } };
+const guardRun = (s, guard, stage = false) => { try { execFileSync('python3', ['-c', `from build_ai101_class import check_public_copy; check_public_copy(${JSON.stringify(s)}, allow_list_price=${stage ? 'True' : 'False'})`], { cwd: ROOT, stdio: 'pipe', env: { ...process.env, ...(guard ? { PUBLIC_COPY_GUARD: guard } : {}) } }); return 'ok'; } catch (e) { return 'refused'; } };
 const tmpGuard = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'guard-')); const f = path.join(d, 'guard.local'); fs.writeFileSync(f, '# a test list\n\\bZZTEST42\\b\ta made-up code\n'); return f; };
 test('the built pages pass the guard (with the private list, when this machine has it)', () => {
-  for (const f of ['ai101/class/index.html', 'ai101/class/stage/index.html']) assert.equal(guardRun(fs.readFileSync(ROOT + f, 'utf8')), 'ok', f);
+  assert.equal(guardRun(fs.readFileSync(ROOT + 'ai101/class/index.html', 'utf8')), 'ok', 'the class page: no list-only price, no code');
+  assert.equal(guardRun(fs.readFileSync(ROOT + 'ai101/class/stage/index.html', 'utf8'), null, true), 'ok', 'the stage: the price is allowed (Nelson 10/8), nothing else');
+});
+test("the 48-hour deal (Nelson 10/8): the stage names $65 vs $75; the class page says 48 hours without the number; the code is refused everywhere", () => {
+  const stage = fs.readFileSync(ROOT + 'ai101/class/stage/index.html', 'utf8');
+  assert.match(stage, /class="nx-deal"><b>Because you came tonight<\/b>\$65 instead of \$75, for 48 hours only\./);
+  assert.match(stage, /class="by-deal"[^>]*>Watch your email at 9 PM tonight: your \$65 price/);
+  assert.match(page, /class="a1c-lead a1c-deal"><b>Because you came tonight:<\/b> you get a lower price on it, for 48 hours only\./);
+  assert.doesNotMatch(page, /\$\s?65\b/);
+  assert.equal(guardRun(stage, null, false), 'refused', 'the strict guard still sees the price on the stage');
+  const g = tmpGuard();
+  assert.equal(guardRun('$65 tonight, code ZZTEST42', g, true), 'refused', 'the stage allowance never lets the code through');
+  assert.equal(guardRun('/room/?k=abc123', g, true), 'refused', 'or a room key');
 });
 test('check_public_copy refuses a bad page, and reads the private list from PUBLIC_COPY_GUARD', () => {
   const g = tmpGuard();

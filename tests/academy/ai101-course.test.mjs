@@ -45,7 +45,8 @@ test('follow leads with Instagram then the Facebook group', () => {
   assert.equal(C.FOLLOW.facebook.url, 'https://www.facebook.com/groups/taylormadeacademy');
 });
 test('nothing a public page must never carry (the build guard, with its private list when present)', () => {
-  execFileSync('python3', ['-c', 'import json, ai101_course as c\nfrom build_ai101_class import check_public_copy\ncheck_public_copy(json.dumps({k: getattr(c, k) for k in dir(c) if k.isupper()}, ensure_ascii=False))'], { cwd: ROOT, stdio: 'pipe' });
+  // STAGE_DEAL is the one place the list-only price may appear (the stage only, Nelson 10/8); the code is still refused there
+  execFileSync('python3', ['-c', 'import json, ai101_course as c\nfrom build_ai101_class import check_public_copy\ncheck_public_copy(json.dumps({k: getattr(c, k) for k in dir(c) if k.isupper() and k != "STAGE_DEAL"}, ensure_ascii=False))\ncheck_public_copy(json.dumps(c.STAGE_DEAL), allow_list_price=True)'], { cwd: ROOT, stdio: 'pipe' });
 });
 test('the stage text is complete and the guesses are labelled as an illustration in code', () => {
   for (const k of ['soon_h', 'chat_prompt', 'steer_answer', 'tokens_sentence', 'window_msgs', 'check_claim', 'save_card', 'bye_thanks']) assert.ok(C.STAGE[k], k);
@@ -230,4 +231,9 @@ test('context window (Nelson 10/8): your whole chat, re-read every reply, so lon
 test('the next-word scene explains itself: how it guesses, and why that can be wrong', () => {
   assert.match(C.STAGE.check_how, /doesn't look anything up/); assert.match(C.STAGE.check_why, /not what's true/); assert.match(C.STAGE.check_why, /hallucination/);
   assert.match(C.STAGE.check_guess_note, /Example numbers/);
+});
+
+test('the 48-hour deal: 9 PM tonight to Sunday 9 PM CT, $65 vs $75 on the stage only', () => {
+  assert.match(C.STAGE_DEAL.next_p, /^\$65 instead of \$75, for 48 hours only\./); assert.match(C.STAGE_DEAL.next_p, /Sunday at 9 PM CT/);
+  assert.match(C.WHATS_NEXT.deal_p, /48 hours/); assert.doesNotMatch(C.WHATS_NEXT.deal_p, /\$/);
 });
