@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#04123a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/build-mode.css?v=91b12d9431">
-<link rel="stylesheet" href="/css/rtk-room-v2.css?v=91b12d9431">
+<link rel="stylesheet" href="/css/build-mode.css?v=992c63cc3b">
+<link rel="stylesheet" href="/css/rtk-room-v2.css?v=992c63cc3b">
 <script>document.documentElement.classList.add('js')</script>
 <style>
 /* The room page. One of three things is on it at a time: a card (signed out, dead link, not allowed,
@@ -70,10 +70,10 @@ body.in-room .room-ctl, body.in-room .site-header, body.in-room #card { display:
 <div id="rtkMount"></div>
 </div></main>
 
-<script src="/js/config.js?v=91b12d9431"></script>
+<script src="/js/config.js?v=992c63cc3b"></script>
 <script type="module">
-import { roomKey, roomBranch, loginHref, joinErrorText } from '/js/room-page.js?v=91b12d9431';
-import { ROOM_WORDS, endCopy, backOn } from '/opil/hub/live-rooms.js?v=91b12d9431';
+import { roomKey, roomBranch, loginHref, joinErrorText } from '/js/room-page.js?v=992c63cc3b';
+import { ROOM_WORDS, endCopy, backOn } from '/opil/hub/live-rooms.js?v=992c63cc3b';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const CFG = window.BM_CONFIG || {};
@@ -83,6 +83,15 @@ const POLL_MS = 20000;            /* how often a waiting or joined guest asks th
 /* The link Nelson copies is always the real address, whichever domain this page was opened on (same constant as /live/). */
 const ROOM_ORIGIN = 'https://taylormadeacademy.com';
 const words = ROOM_WORDS;
+/* the lobby (js/lobby.js, Nelson 10/9): everyone who isn't the host waits in it, before AND after he starts, until he
+   presses Bring everyone in. Loaded on its own: if it fails, the room works exactly as it did before it.
+   ?lobby=off — the old waiting screen, and on Nelson's page people walk straight in when he starts.
+   ?lobby=preview — Nelson's look at the lobby (sample people, nothing saved). &phase=hold shows the after-start words. */
+const lobbyMode = new URLSearchParams(location.search).get('lobby');
+let LB = null;
+/* raced against 4 s: a stalled fetch must never hold up the room itself */
+try { LB = await Promise.race([import('/js/lobby.js?v=992c63cc3b'), new Promise((_, no) => setTimeout(() => no(new Error('the lobby took too long')), 4000))]); } catch (e) { console.warn('[room] lobby did not load', e); LB = null; }
+let lobby = null;
 const ec = endCopy(words);   /* the Leave / End words: "End the session for everyone", "You left — the session is still running." */
 const k = roomKey(location.search);
 const card = $('card'), ctl = $('roomCtl'), mount = $('rtkMount');
@@ -158,8 +167,8 @@ const branch = roomBranch(state);
 
 /* the room's code, with one retry: a dropped fetch on a phone connection should not be the end of it */
 async function loadRoom() {
-  try { return await import('/js/rtk-room-v2.js?v=91b12d9431'); }
-  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js?v=91b12d9431'); }
+  try { return await import('/js/rtk-room-v2.js?v=992c63cc3b'); }
+  catch (e) { await new Promise(r => setTimeout(r, 1500)); return import('/js/rtk-room-v2.js?v=992c63cc3b'); }
 }
 /* v2 in room mode: the same module OPIL uses, pointed at the room instead of a session */
 async function enter(mode, hooks) {
@@ -182,15 +191,42 @@ if (branch === 'error') {
   showCard('<span class="kicker gold">Members and invited people</span><h2>You need Nelson’s link or an Academy membership to join.</h2>' +
     '<p class="lede">If Nelson sent you a link, open that link. Members get in without one.</p>' +
     '<div class="acts"><a class="btn gold" href="/pricing/">See membership <span class="arr">&rarr;</span></a><a class="btn ghost" href="/live/">Live page</a></div>');
-} else if (branch === 'waiting') {
-  waitHere();
-} else if (branch === 'student') {
-  joinAsGuest();
+} else if (lobbyMode === 'preview' && LB && state && state.id && user) {
+  previewLobby();
+} else if (branch === 'waiting' || branch === 'student') {
+  if (LB && lobbyMode !== 'off') lobbyHere(); else if (branch === 'waiting') waitHere(); else joinAsGuest();
 } else {
   hostControl(branch === 'host_live');
 }
 
-/* ---------- a guest: wait, or go in ---------- */
+/* ---------- a guest: the lobby, then the class ---------- */
+/* the name on their node in the lobby: the profile name, else what they signed up with */
+async function myDisplayName() {
+  try { const { data } = await sb.from('ea_profiles').select('display_name').eq('user_id', user.id).maybeSingle(); if (data && data.display_name) return data.display_name; } catch (e) {}
+  const md = (user && user.user_metadata) || {};
+  return md.full_name || md.name || (user && user.email ? user.email.split('@')[0] : '') || 'You';
+}
+async function lobbyHere() {
+  try {
+    lobby = await LB.mountLobby({
+      mountEl: mount, sb, user, state, name: await myDisplayName(), pollState,
+      onAdmit: () => { lobby = null; joinAsGuest(); },
+      onDeadLink: () => { lobby = null; deadLinkCard(); },
+    });
+  } catch (e) {
+    /* a lobby that could not draw: the room as it was before it */
+    console.warn('[room] lobby', e); lobby = null;
+    document.body.classList.remove('in-lobby');
+    if (branch === 'waiting') waitHere(); else joinAsGuest();
+  }
+}
+async function previewLobby() {
+  const phase = new URLSearchParams(location.search).get('phase');
+  try { lobby = await LB.mountLobby({ mountEl: mount, sb, user, state, name: 'You', preview: true, previewPhase: phase === 'hold' ? 'hold' : 'wait' }); }
+  catch (e) { failCard(e); }
+}
+
+/* ---------- a guest without the lobby (?lobby=off, or it failed to load): wait, or go in ---------- */
 async function waitHere() {
   try { room = await enter('waiting', {}); } catch (e) { failCard(e); return; }
   /* the server says when Nelson starts; the reload then walks them straight in (v2 remembered the auto-enter).
@@ -234,7 +270,8 @@ async function hostControl(liveNow) {
     '<div class="ah"><b>Your room</b><span>NELSON ONLY</span></div>' +
     '<h2 id="rTitle">' + esc(state.title) + '</h2>' +
     '<div class="ctl-row"><input id="rLink" readonly aria-label="Link to your room" value="" placeholder="Reading your link…"><button type="button" id="rCopy" aria-live="polite">Copy link</button></div>' +
-    '<p class="ctl-cap">Send this link to anyone you want in the room. It works before you start &mdash; people wait in the room until you do. Change the title or make a new link on the <a href="/live/">Live page</a>.</p>' +
+    '<p class="ctl-cap">Send this link to anyone you want in the room. It works before you start &mdash; people wait in the lobby until you bring them in. Change the title or make a new link on the <a href="/live/">Live page</a>.</p>' +
+    '<div id="rLobby"></div>' +
     '<div id="rStill" hidden><b>' + esc(ec.stillRunning) + '</b><span>' + esc(ec.stillRunningHint) + '</span></div>' +
     '<div class="ctl-row"><button type="button" class="go" id="rStart">Start class &mdash; everyone on camera</button><button type="button" class="end" id="rEnd" hidden title="' + esc(ec.endHint) + '. Two taps.">' + esc(ec.endButton) + '</button><span id="rRec" hidden><i></i>Recording</span></div>' +
     '<p id="rNote">1. Copy the link and send it. &nbsp;2. Start class, check your camera, press Enter. &nbsp;3. Leave only leaves &mdash; the session keeps running and you can come back. To end it for everyone, use Tools in the room or the End button here; the replay lands on the Live page.</p>';
@@ -249,6 +286,19 @@ async function hostControl(liveNow) {
     startBtn.innerHTML = !live ? 'Start class &mdash; everyone on camera' : entering ? 'Entering…' : left ? 'Rejoin the running session &rarr;' : 'Enter the running session';
   };
   syncCtl();
+
+  /* the lobby's doors: Nelson's page holds them ('closed') until Bring everyone in, then 'open' for the rest of the
+     session. A page that is not live forgets an earlier session's open doors. */
+  let doors = null;
+  if (LB) {
+    try {
+      doors = LB.hostLobby({ sb, roomId: state.id, uid: user.id, name: LB.shortName(state.host_name || 'Nelson'), hold: LB.holdPref(location.search) });
+      if (!live) doors.reset();
+      doors.setLive(live);
+      LB.mountHostUi({ panelIn: $('rLobby'), lobby: doors, previewHref: here + (location.search ? '&' : '?') + 'lobby=preview' });
+    } catch (e) { console.warn('[room] lobby (host)', e); try { if (doors) doors.stop(); } catch (x) {} doors = null; }   /* no panel, no dock: never leave his presence holding the doors */
+  }
+  const doorsLive = (on) => { try { if (doors) { if (!on) doors.reset(); doors.setLive(on); } } catch (e) {} };
 
   /* the link: link_key is admin-only on ea_rooms (RLS), so only Nelson's page can read it */
   let row = null;
@@ -281,7 +331,7 @@ async function hostControl(liveNow) {
   async function flipOff() {
     const r = await sb.from('ea_rooms').update({ is_live: false, ended_at: new Date().toISOString() }).eq('id', state.id);
     if (r.error) throw new Error(r.error.message);
-    live = false; syncCtl();
+    live = false; syncCtl(); doorsLive(false);
   }
   /* The end of the session — ONLY after the explicit End: Tools in the room ("End the session for everyone",
      two taps), or the two-tap End button here. Leave never reaches this (Nelson, 9/15: "i never asked for a
@@ -342,7 +392,7 @@ async function hostControl(liveNow) {
          The row is re-read first — a host who left, whose session was then ended from another screen, must not be
          walked into a fresh meeting by a button that still said Rejoin (the join function opens one for a host off air). */
       const st = await pollState();
-      if (st && st.is_live === false) { live = false; left = false; syncCtl(); note.textContent = 'The session has ended since you left — the replay lands on the Live page. Start class opens a new one.'; return; }
+      if (st && st.is_live === false) { live = false; left = false; syncCtl(); doorsLive(false); note.textContent = 'The session has ended since you left — the replay lands on the Live page. Start class opens a new one.'; return; }
       try { await goIn(null); } catch (e) { note.textContent = 'Could not get back in: ' + failText(e); }
       return;
     }
@@ -350,8 +400,8 @@ async function hostControl(liveNow) {
     try {
       await goIn(async () => {
         /* the meeting is open and the server has stamped the row live (is_live + live_since, its clock) — nothing to write here */
-        live = true; syncCtl();
-        note.textContent = 'Your room is open. Check your camera below and press Enter — the recording starts when you’re in. When you’re done, open Tools and press ' + ec.endButton + ' — Leave only leaves.';
+        live = true; syncCtl(); doorsLive(true);
+        note.textContent = 'Your room is open. Check your camera below and press Enter — the recording starts when you’re in.' + (doors && doors.hold && !doors.isOpen ? ' Everyone waits in the lobby until you press Bring everyone in.' : '') + ' When you’re done, open Tools and press ' + ec.endButton + ' — Leave only leaves.';
       });
     } catch (e) { note.textContent = 'Could not start: ' + failText(e); }
   });

@@ -19,7 +19,7 @@ def _asset_ver():
                 "css/agent.css", "js/agent.js", "css/workshops.css", "css/ai101.css", "js/ai101.js", "js/founder.js", "js/founder-class.js",
                 "js/ai101-kit.js", "js/ai101-class.js", "js/ai101-proof.js", "js/ai101-badge.js", "js/ai101-stage.js", "js/reviews.js", "css/ai101-stage.css", "css/ai101-class.css", "js/vendor/gsap.min.js",
                 "opil/hub/hub.css", "opil/hub/hub.js", "opil/hub/tour.js", "opil/hub/live-rooms.js",
-                "js/room-page.js",
+                "js/room-page.js", "js/lobby.js", "css/lobby.css",
                 "js/rtk-room.js", "css/rtk-room.css", "js/rtk-room-v2.js", "css/rtk-room-v2.css", "js/rtk-small-groups.js", "js/rtk-resources.js", "js/rtk-presence.js", "js/rtk-reactions.js", "css/rtk-reactions.css", "js/rtk-warmup.js", "css/rtk-warmup.css", "js/rtk-roster.js", "css/rtk-roster.css", "opil/hub/hide-card.js", "js/rtk-help.js", "css/rtk-help.css", "opil/hub/help-button.js", "opil/hub/admin/help-queue.js", "js/rtk-scoring.js", "css/rtk-scoring.css", "opil/hub/admin/scores.js", "opil/hub/calendar-buttons.js", "js/rtk-chapters.js", "css/rtk-chapters.css", "js/rtk-board.js", "css/rtk-board.css", "js/rtk-teamroom-words.js", "js/rtk-teamroom.js", "css/rtk-teamroom.css", "opil/hub/team/room-block.js", "js/rtk-showcase.js", "css/rtk-showcase.css", "opil/hub/team/showcase-editor.js", "opil/hub/admin/showcase-pages.js", "opil/hub/admin/move-student.js", "opil/hub/messages/directory.js"):
         f = ROOT / rel
         if f.exists():
@@ -222,7 +222,7 @@ def render(path, html):
 # NOTE: playbook/ai-avatar is intentionally NOT listed — it is web-only (no PWA/Capacitor
 # head injection) and pins its asset ?v= manually in the page itself.
 APP_PAGES = ("community", "login", "dashboard", "library", "welcome", "review", "course", "founder")
-_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|css/rtk-room\.css|css/rtk-room-v2\.css|js/site\.js|js/config\.js|js/founder\.js|js/room-page\.js|js/rtk-room\.js|js/rtk-room-v2\.js))(?:\?v=[a-z0-9]+)?')
+_ASSET_RX = re.compile(r'(/(?:css/build-mode\.css|css/rtk-room\.css|css/rtk-room-v2\.css|js/site\.js|js/config\.js|js/founder\.js|js/room-page\.js|js/lobby\.js|js/rtk-room\.js|js/rtk-room-v2\.js))(?:\?v=[a-z0-9]+)?')
 
 def _ensure_pwa_head(html):
     """Insert (or refresh) the PWA <head> block in a hand-maintained app page, guarded by a
