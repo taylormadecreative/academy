@@ -129,6 +129,36 @@ try {
   const out2 = await page({ session: null, hash: '#5.0' });
   await out2.waitForFunction(() => getComputedStyle(document.getElementById('stgGate')).display !== 'none');
   assert.match(await out2.$eval('#stgGate a', (a) => a.getAttribute('href')), /next=%2Fai101%2Fclass%2Fstage%2F%235\.0/);
+  // ---- click controls (10/8): back / next / restart timer / full screen in the corner ----
+  const c = await page();
+  await c.evaluate(() => window.__stage.go(window.__stage.indexOf('steer')));
+  await c.waitForTimeout(300);
+  const at = () => c.evaluate(() => window.__stage.pos());
+  const steerAt = await c.evaluate(() => window.__stage.indexOf('steer'));
+  await c.click('#hudNext'); await c.waitForTimeout(300);
+  assert.deepEqual(await at(), { scene: steerAt, beat: 1 }, 'the next button moves exactly one beat (not two: it is not also a slide click)');
+  await c.keyboard.press(' '); await c.waitForTimeout(300);
+  assert.deepEqual(await at(), { scene: steerAt, beat: 2 }, 'Space after clicking a button moves one beat (the button never took focus)');
+  await c.click('#hudBack'); await c.click('#hudBack'); await c.waitForTimeout(300);
+  assert.deepEqual(await at(), { scene: steerAt, beat: 0 }, 'the back button goes back one beat per click');
+  assert.equal(await c.$eval('#hudTimer', (b) => b.hidden), true, 'no timer on this scene: no Restart timer button');
+  await c.evaluate(() => window.__stage.go(window.__stage.indexOf('yourturn')));
+  await c.waitForTimeout(300);
+  assert.equal(await c.$eval('#hudTimer', (b) => b.hidden), false, 'practice has a timer: the Restart timer button shows');
+  await c.waitForTimeout(1300);
+  const tBefore = await c.$eval('.sc-yourturn [data-timer]', (t) => t.textContent);
+  await c.click('#hudTimer'); await c.waitForTimeout(400);
+  assert.equal(await c.$eval('.sc-yourturn [data-timer]', (t) => t.textContent), '11:00', `Restart timer starts it over (was ${tBefore})`);
+  assert.equal(await at().then((p) => p.scene), await c.evaluate(() => window.__stage.indexOf('yourturn')), 'Restart timer does not move the slide');
+  await c.keyboard.press('h');
+  assert.equal(await c.$eval('#hudClock', (e) => getComputedStyle(e).display), 'none', 'H hides the clock');
+  assert.notEqual(await c.$eval('#hudNext', (e) => getComputedStyle(e).display), 'none', 'H leaves the click controls');
+  assert.equal(await c.$eval('#hudFull', (b) => b.getAttribute('aria-label')), 'Full screen');
+  // the controls sit inside the 1920x1080 window, clear of each other, on a small window too
+  const sm = await page({ viewport: { width: 1280, height: 720 } });
+  const boxes = await sm.$$eval('#hud > *:not([hidden])', (els) => els.map((e) => e.getBoundingClientRect()).map((r) => [r.left, r.right, r.bottom]));
+  for (const [l, r, b] of boxes) assert.ok(l >= 0 && r <= 1280 && b <= 720, 'control on screen');
+  for (let i = 1; i < boxes.length; i++) assert.ok(boxes[i][0] >= boxes[i - 1][1], 'controls do not overlap');
   assert.deepEqual(fails, [], 'no page errors');
   console.log('stage e2e: PASS');
 } finally { await browser.close(); srv.kill(); }

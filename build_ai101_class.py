@@ -193,6 +193,17 @@ SCENE_MARKUP = {"soon": _scene_soon, "title": _scene_title, "follow": _scene_fol
 STAGE_ORDER = ["soon", "title", "follow", "chat", "words", "bland", "prompt5", "steer", "tokens", "window", "check", "save",
                "yourturn", "qa", "next", "bye"]
 
+# Click controls for Nelson (10/8 rehearsal: "add arrows too so i can click … so i dont have to remember keys").
+# They sit in the corner HUD, outside #stg, so a click here never also counts as a click on the slide.
+_HUD_ICON = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="{}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+HUD_BUTTONS = (
+    f'<button type="button" class="stg-btn" id="hudBack" tabindex="-1" aria-label="Back one step" title="Back (← key)">{_HUD_ICON.format("M10 3L5 8l5 5")}</button>'
+    '<span id="hudPos" aria-hidden="true"></span>'
+    f'<button type="button" class="stg-btn" id="hudNext" tabindex="-1" aria-label="Next step" title="Next (→ key)">{_HUD_ICON.format("M6 3l5 5-5 5")}</button>'
+    '<button type="button" class="stg-btn stg-btn-text" id="hudTimer" tabindex="-1" title="Start the timer over (R key)" hidden>Restart timer</button>'
+    f'<button type="button" class="stg-btn" id="hudFull" tabindex="-1" aria-label="Full screen" title="Full screen (F key)">{_HUD_ICON.format("M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4")}</button>'
+)
+
 def stage_page(head, ver):
     h = head("AI 101 stage — Taylormade Academy", "Nelson's screen for the AI 101 class.", "/ai101/class/stage/").replace(
         "</head>", f'<meta name="robots" content="noindex">\n<link rel="stylesheet" href="/css/ai101-class.css?v={ver}">\n'
@@ -202,7 +213,7 @@ def stage_page(head, ver):
 <div class="stg" id="stg" data-date="{EVENT['date']}"><div class="stg-canvas" id="canvas">
 {scenes}
 </div></div>
-<div class="stg-hud" id="hud" aria-hidden="true"><span id="hudPos"></span><span id="hudClock"></span></div>
+<div class="stg-hud" id="hud">{HUD_BUTTONS}<span id="hudClock" aria-hidden="true"></span></div>
 <div class="stg-gate" id="stgGate" hidden><div><h1>Sign in to open the stage.</h1><p><a class="btn gold" href="/login/?next=%2Fai101%2Fclass%2Fstage%2F" data-next>Sign in <span class="arr" aria-hidden="true">&rarr;</span></a></p></div></div>
 <script src="/js/vendor/gsap.min.js?v={ver}"></script>
 <script src="/js/config.js?v={ver}"></script>

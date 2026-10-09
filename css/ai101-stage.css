@@ -24,7 +24,13 @@ html,body{margin:0;height:100%;background:var(--navy);overflow:hidden}
 .stg-hud{position:fixed;right:14px;bottom:10px;display:flex;gap:10px;font:600 13px/1 var(--font);color:rgba(255,255,255,.55);pointer-events:none}
 .stg-hud span{padding:6px 9px;border-radius:999px;background:rgba(4,18,58,.6)}
 .stg-hud .behind{background:var(--gold);color:var(--navy)}
-.stg-hud.off{display:none}
+.stg-hud{align-items:center}
+#hudClock.off{display:none} /* H hides only the clock; the click controls stay */
+/* click controls (10/8): same pill as the HUD, clickable, never steal keyboard focus (tabindex -1 + mousedown in JS) */
+.stg-hud .stg-btn{pointer-events:auto;display:inline-grid;place-items:center;height:32px;min-width:38px;padding:0 10px;margin:0;border:0;border-radius:999px;background:rgba(4,18,58,.9);color:#fff;font:600 14px/1 var(--font);cursor:pointer}
+.stg-hud .stg-btn:hover{background:var(--blue)}
+.stg-hud .stg-btn svg{width:16px;height:16px;display:block}
+.stg-hud .stg-btn[hidden]{display:none}
 .stg-gate{position:fixed;inset:0;display:grid;place-items:center;background:var(--navy);color:#fff;text-align:center;z-index:5}
 .stg-gate[hidden]{display:none} /* display:grid above would otherwise beat the hidden attribute */
 .stg-gate h1{color:#fff;font:700 44px/1.1 var(--display);margin:0 0 20px}

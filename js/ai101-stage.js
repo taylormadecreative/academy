@@ -1,6 +1,6 @@
-/* js/ai101-stage.js — Nelson's animated screen for AI 101 (/ai101/class/stage/). He shares this tab.
+/* js/ai101-stage.js — Nelson's animated screen for AI 101 (/ai101/class/stage/). He shares the window that holds it.
    → / Space / PageDown / click = next beat · ← / PageUp = back · F = full screen · R = restart a timer ·
-   H = hide the corner clock. Each scene is a paused GSAP timeline with labels b0…b{n-1} and 'end'; a beat
+   H = hide the corner clock. The corner also has buttons for back, next, restart timer and full screen. Each scene is a paused GSAP timeline with labels b0…b{n-1} and 'end'; a beat
    plays from its label to the next. A new press first finishes the running beat, so mashing the key (or a
    clicker double-firing) can never leave a scene half-drawn; a HELD key's auto-repeat is ignored. Reduced
    motion jumps straight to each end state. The spot is kept in the address (#scene.beat), so a reload in the
@@ -243,12 +243,13 @@ function startTimers(el, restart) {
 }
 
 /* ---- HUD: scene count + CT clock, gold when behind a hard time check ---- */
-const hudEl = document.getElementById('hud'), hudPos = document.getElementById('hudPos'), hudClock = document.getElementById('hudClock');
+const hudPos = document.getElementById('hudPos'), hudClock = document.getElementById('hudClock'), hudTimer = document.getElementById('hudTimer');
 const CLOCK = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' });
 function hud() {
   const p = deck.pos();
   if (location.hash !== `#${p.scene}.${p.beat}`) history.replaceState(null, '', `#${p.scene}.${p.beat}`); // a reload comes back here
   hudPos.textContent = `${p.scene + 1} / ${scenes.length}`;
+  hudTimer.hidden = !scenes[p.scene].el.querySelector('[data-timer]');
   hudClock.textContent = CLOCK.format(new Date()) + ' CT';
   hudClock.classList.toggle('behind', isBehind(Date.now(), p.scene, checks));
 }
@@ -269,12 +270,23 @@ addEventListener('keydown', (ev) => {
   const k = ev.key;
   if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { ev.preventDefault(); next(); }
   else if (k === 'ArrowLeft' || k === 'PageUp') { ev.preventDefault(); prev(); }
-  else if (k === 'f' || k === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
-  else if (k === 'r' || k === 'R') startTimers(scenes[deck.pos().scene].el, true);
-  else if (k === 'h' || k === 'H') hudEl.classList.toggle('off');
+  else if (k === 'f' || k === 'F') toggleFull();
+  else if (k === 'r' || k === 'R') restartTimer();
+  else if (k === 'h' || k === 'H') hudClock.classList.toggle('off');
   else if (k === 'Home') go(0);
 });
 document.getElementById('stg').addEventListener('click', next);
+/* click controls in the corner (10/8, Nelson: "add arrows too so i can click"): the same actions as the keys. A
+   mousedown never takes focus, so the next Space or Enter can't press the button a second time. */
+function toggleFull() { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); }
+function restartTimer() { startTimers(scenes[deck.pos().scene].el, true); }
+for (const [id, fn] of [['hudBack', prev], ['hudNext', next], ['hudTimer', restartTimer], ['hudFull', toggleFull]]) {
+  const b = document.getElementById(id);
+  b.addEventListener('mousedown', (ev) => ev.preventDefault());
+  b.addEventListener('click', (ev) => { ev.stopPropagation(); fn(); });
+}
+const hudFull = document.getElementById('hudFull');
+document.addEventListener('fullscreenchange', () => { const on = !!document.fullscreenElement; hudFull.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen'); hudFull.title = on ? 'Exit full screen (F key)' : 'Full screen (F key)'; });
 
 /* ---- sign-in wall (fails open: a dead CDN or a session error must never blank Nelson's screen) ---- */
 (async () => {
