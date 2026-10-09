@@ -68,6 +68,13 @@ try {
   assert.match(await text(meme, '.lb-crowd-t'), /You and 1 other person/);
   await meme.waitForFunction(() => /Jamal just arrived/.test(document.querySelector('.lb-arrive').textContent), null, { timeout: 3000 });
 
+  /* L2a — fast taps on the arrows never leave two slides on screen */
+  step = 'L2a';
+  for (let i = 0; i < 9; i++) { await jamal.click('.lb-navb[data-d="1"]'); await jamal.waitForTimeout(90); }
+  await jamal.waitForTimeout(1200);
+  const showing = await jamal.$$eval('.lb-vig', (vs) => vs.filter((v) => { const c = getComputedStyle(v); return c.visibility !== 'hidden' && Number(c.opacity) > 0.02; }).map((v) => v.dataset.v));
+  assert.equal(showing.length, 1, 'one slide on screen after fast taps: ' + showing.join(','));
+
   /* L2b — the wall: Meme answers, Jamal sees it on the card */
   step = 'L2b';
   await meme.fill('.lb-warm-a', 'my emails'); await meme.fill('.lb-warm-c', 'Atlanta, GA'); await meme.click('.lb-warm-go');

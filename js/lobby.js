@@ -768,7 +768,10 @@ export async function mountLobby(o) {
     if (id === 'game') gameShow();
     if (!gsap) { vigs.forEach(v => v.classList.toggle('on', v === cur)); if (!paused) next = setTimeout(() => showLesson(li + 1), id === 'game' ? 16000 : 12000); return; }
     if (tl) tl.kill();
-    if (prev && prev !== cur) gsap.to(prev, { autoAlpha: 0, y: -10, duration: .35, ease: 'power2.in', onComplete: () => { if (prev !== prevEl) prev.classList.remove('on'); } });
+    /* fast taps on the arrows: a slide still fading in must never finish fading in behind the new one */
+    vigs.forEach(v => { if (v !== cur && v !== prev) { gsap.killTweensOf(v); gsap.set(v, { autoAlpha: 0 }); v.classList.remove('on'); } });
+    gsap.killTweensOf(cur);
+    if (prev && prev !== cur) { gsap.killTweensOf(prev); gsap.to(prev, { autoAlpha: 0, y: -10, duration: .35, ease: 'power2.in', onComplete: () => { if (prev !== prevEl) prev.classList.remove('on'); } }); }
     cur.classList.add('on');
     gsap.set(cur, { autoAlpha: 0, y: 12 });
     tl = lessonTimeline(gsap, cur, id);
