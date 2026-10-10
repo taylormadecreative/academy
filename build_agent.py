@@ -126,6 +126,13 @@ def agent_page(head, header, footer, ver):
 <div class="ag-sheet"><div class="ag-form ag-ticket" id="heroTicket">
 <div class="ag-form-h">Get your seat</div>
 <p class="ag-form-p">{DATE}. Live online from your desk, or one of 15 seats in the studio.</p>
+<div class="tk-class" id="tkClass" hidden>
+<div class="tk-class-h">Were you in AI 101 on Oct 9?</div>
+<div class="tk-class-row"><span class="tk-class-amt" id="tkClassAmt">$65</span><span class="tk-class-note">Your class price<br><span id="tkClassEnd"></span></span></div>
+<button class="btn dark tk-class-go" id="tkClassBuy" type="button">Get my seat <span class="arr">&rarr;</span></button>
+<p class="tk-class-fine">Use the email you signed in with that night.</p>
+</div>
+<div class="tk-reg" id="tkReg" hidden>Regular price</div>
 <div class="tk-price"><span class="tk-amt" id="tkAmt">$75</span><span class="tk-note" id="tkNote">Online seat &middot; early bird through Fri, Oct 16</span></div>
 <a class="btn gold tk-go" id="tkBuy" href="#seats">Get my seat <span class="arr">&rarr;</span></a>
 <button class="tk-alt" id="tkStudio" type="button" hidden></button>
@@ -219,7 +226,7 @@ def agent_page(head, header, footer, ver):
 <details><summary>Do I need to know how to code?</summary><p>No. You describe the job in plain English. The building is clicking, pasting, and testing. If you can write a text message, you can do this.</p></details>
 <details><summary>What do I need?</summary><p>A laptop or desktop with a browser, and a free Claude account (recommended) or a free ChatGPT account, set up before 7 PM. Bring one task you want handled and a few real examples of it. Phones are fine for watching but not for building.</p></details>
 <details><summary>Do I have to pay for the tools?</summary><p>Not on the night. Everything we build runs on free accounts. If you want to use your agent every day afterward, that may take one subscription of about $20 a month on the platform you choose. I say that now so there are no surprises later.</p></details>
-<details><summary>What does it cost?</summary><p>An online seat is $75 early bird through Friday, October 16, then $90. A seat in the studio, building next to me, is $125, and there are only 15. People who come to the free AI 101 on October 9 get a lower price for 48 hours afterward, through the link in their email.</p></details>
+<details><summary>What does it cost?</summary><p>An online seat is $75 early bird through Friday, October 16, then $90. A seat in the studio, building next to me, is $125, and there are only 15. People who were in the free AI 101 class on October 9 get $65 for 72 hours, until Monday, October 12 at 9 PM CT, with the email they signed in with that night.</p></details>
 <details><summary>Is it online or in person?</summary><p>Both. Most seats are online, live on the Taylormade Academy player. There are also 15 seats in my Dallas studio; the address comes in your ticket email. Your ticket email has the sign-in link; you sign in with a free Academy account and the room opens at 6:45 PM CT. It is one-way video with a live chat, so you can ask questions the whole way through. It is not a Zoom call, and nobody sees your camera.</p></details>
 <details><summary>What if I cannot make {DAY}?</summary><p>You can get a full refund up to 7 days before the workshop. If you are not sure yet, start with the free AI 101 on October 9 and decide after.</p></details>
 <details><summary>What is the refund policy?</summary><p>Seven days, no questions, as long as it is before the workshop date. The full policy is on the <a class="textlink" href="/refunds/">refunds page</a>.</p></details>
@@ -239,7 +246,7 @@ def agent_page(head, header, footer, ver):
 <p class="sub" id="bdSub"></p>
 <div class="ag-fields">
 <div class="ag-field"><label for="bd-name">Name on the seat</label><input id="bd-name" name="name" type="text" autocomplete="name" required maxlength="120"></div>
-<div class="ag-field"><label for="bd-email">Email for the ticket</label><input id="bd-email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="200"></div>
+<div class="ag-field"><label for="bd-email" id="bdEmailLbl">Email for the ticket</label><input id="bd-email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="200"></div>
 <div class="ag-field"><label>Seats</label><div class="qty"><button type="button" id="bdMinus" aria-label="One fewer seat">&minus;</button><output id="bdQty" aria-live="polite">1</output><button type="button" id="bdPlus" aria-label="One more seat">+</button></div></div>
 </div>
 <div class="tot" id="bdTot"></div>

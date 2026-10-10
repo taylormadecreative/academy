@@ -37,8 +37,8 @@ def _guard_rules():
 LIST_PRICE_WHY = "the list-only $65 price"
 
 def check_public_copy(page, allow_list_price=False):
-    """allow_list_price: the STAGE only (Nelson 10/8: "show $65 on the stage too"). The Eventbrite code, room keys and the
-    rest of the private list are refused everywhere, the stage included."""
+    """allow_list_price: the stage (Nelson 10/8: "show $65 on the stage too") and the class page (10/9: the $65 class price
+    on the site). The Eventbrite code, room keys and the rest of the private list are refused everywhere, those included."""
     for pat, why in _guard_rules():
         if allow_list_price and why == LIST_PRICE_WHY: continue
         if re.search(pat, page):
@@ -567,7 +567,7 @@ def stage_page(head, ver):
 <script src="/js/config.js?v={ver}"></script>
 <script type="module" src="/js/ai101-stage.js?v={ver}"></script>
 </body></html>"""
-    return check_public_copy(page, allow_list_price=True)  # Nelson 10/8: the stage shows the 48-hour $65 price
+    return check_public_copy(page, allow_list_price=True)  # Nelson 10/8: the stage shows the $65 class price
 
 from build_ai101 import _DIAGRAM, _DIAGRAM_V
 
@@ -957,4 +957,4 @@ def class_page(head, header, footer, ver):
 </main>
 <script type="module">import("/js/ai101-class.js?v={ver}").then((m) => m.boot()).catch((err) => {{ console.error(err); document.getElementById("gate").hidden = true; document.getElementById("app").hidden = false; }});</script>
 """ + footer(pop=False)
-    return check_public_copy(page)
+    return check_public_copy(page, allow_list_price=True)  # Nelson 10/9: the $65 class price shows on the class page too

@@ -133,7 +133,7 @@ def ai101_page(head, header, footer, ver):
 <li><span>Early bird, through October 16</span><b>$75</b></li>
 <li><span>From October 17</span><b>$90</b></li>
 <li><span>A seat in the studio with me, 15 seats</span><b>$125</b></li>
-<li class="xl-hot"><span>Come to AI 101 and get this price for 48 hours after class</span><b>$65</b></li>
+<li class="xl-hot"><span>Come to AI 101 and get this price for 72 hours after class</span><b>$65</b></li>
 </ul>
 </div></div></section>
 

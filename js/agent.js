@@ -145,7 +145,7 @@
         list.map(function (t) { return tierCard(t, e, now); }).join('');
     }).join('');
     var early = $('earlyNote');
-    if (EARLY && early) { early.classList.add('show'); }
+    if (EARLY && early && tiers.some(function (t) { return t.access === 'waitlist'; })) { early.classList.add('show'); }
     heroTicket(onSale, byEvent, now);
     tiersBox.querySelectorAll('[data-buy]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -176,6 +176,16 @@
   function shortDay(iso, tz) {
     try { return new Intl.DateTimeFormat('en-US', { timeZone: tz || 'America/Chicago', weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(iso)); } catch (_) { return ''; }
   }
+  // "Mon, Oct 12, 9 PM CT": the short day plus the hour, minutes only when they aren't :00
+  function endsAt(iso, tz) {
+    try {
+      var p = {};
+      new Intl.DateTimeFormat('en-US', { timeZone: tz || 'America/Chicago', hour: 'numeric', minute: '2-digit', hour12: true })
+        .formatToParts(new Date(iso)).forEach(function (x) { p[x.type] = x.value; });
+      var zone = (tz || 'America/Chicago') === 'America/Chicago' ? 'CT' : '';
+      return shortDay(iso, tz) + ', ' + p.hour + (p.minute && p.minute !== '00' ? ':' + p.minute : '') + ' ' + (p.dayPeriod || '').toUpperCase() + (zone ? ' ' + zone : '');
+    } catch (_) { return shortDay(iso, tz); }
+  }
   function heroTicket(onSale, byEvent, now) {
     var amt = $('tkAmt'), note = $('tkNote'), buy = $('tkBuy'), studio = $('tkStudio');
     if (!amt || !buy) return;
@@ -183,15 +193,17 @@
     if (!e) { amt.textContent = 'Sold out'; note.textContent = 'Every seat for this date is taken.'; buy.hidden = true; return; }
     var list = byEvent[e.id] || [];
     var isStudio = function (t) { return /in person|studio/i.test(t.name); };
-    var isOpen = function (t) {
-      return !(t.sales_start && now < Date.parse(t.sales_start)) && !(t.sales_end && now > Date.parse(t.sales_end)) &&
-        t.qty - t.sold > 0 && (t.access !== 'waitlist' || EARLY);
+    var inWindow = function (t) {
+      return !(t.sales_start && now < Date.parse(t.sales_start)) && !(t.sales_end && now > Date.parse(t.sales_end)) && t.qty - t.sold > 0;
     };
+    // An 'attendees' tier is never the box's main price: it gets its own panel, and checkout checks the email.
+    var isOpen = function (t) { return inWindow(t) && t.access !== 'attendees' && (t.access !== 'waitlist' || EARLY); };
     var online = list.filter(function (t) { return !isStudio(t) && isOpen(t); }).sort(function (a, b) { return a.price_cents - b.price_cents; })[0];
     var room = list.filter(function (t) { return isStudio(t) && isOpen(t); })[0];
     var pick = online || room;
     if (!pick) { amt.textContent = 'Closed'; note.textContent = 'Sales for this date have closed.'; buy.hidden = true; return; }
-    var later = online && list.filter(function (t) { return !isStudio(t) && t.access !== 'waitlist' && t.sales_start && Date.parse(t.sales_start) > now && t.price_cents > online.price_cents; })
+    classPanel(list.filter(function (t) { return t.access === 'attendees' && inWindow(t); })[0], e);
+    var later = online && list.filter(function (t) { return !isStudio(t) && t.access === 'public' && t.sales_start && Date.parse(t.sales_start) > now && t.price_cents > online.price_cents; })
       .sort(function (a, b) { return Date.parse(a.sales_start) - Date.parse(b.sales_start); })[0];
     amt.textContent = money(pick.price_cents);
     if (pick === online) {
@@ -213,11 +225,29 @@
     }
   }
 
+  // The AI 101 class price (Nelson 10/9: only the people who were in the room, for 72 hours). The panel shows to
+  // everyone; ea_hold_seats sells it only to an email on the tier's list, one seat per checkout.
+  function classPanel(t, e) {
+    var box = $('tkClass');
+    if (!box) return;
+    if (!t) { box.hidden = true; $('tkReg').hidden = true; return; }
+    $('tkClassAmt').textContent = money(t.price_cents);
+    $('tkClassEnd').textContent = t.sales_end ? 'Ends ' + endsAt(t.sales_end, e.tz) : '';
+    var go = $('tkClassBuy');
+    go.innerHTML = 'Get my ' + money(t.price_cents) + ' seat <span class="arr">&rarr;</span>';
+    go.onclick = function () { openBuy(t, e); };
+    box.hidden = false; $('tkReg').hidden = false;
+  }
+
   /* ---------------- buy dialog ---------------- */
   var dlg = $('buyDlg');
   function openBuy(t, e) {
     if (!dlg) return;
-    var qty = 1, max = Math.min(4, Math.max(1, t.qty - t.sold));
+    var listOnly = t.access === 'attendees';
+    var qty = 1, max = listOnly ? 1 : Math.min(4, Math.max(1, t.qty - t.sold));
+    var qtyField = $('bdQty').closest('.ag-field'), emailLbl = $('bdEmailLbl');
+    if (qtyField) qtyField.style.display = listOnly ? 'none' : '';
+    if (emailLbl) emailLbl.textContent = listOnly ? 'The email you signed in with on Oct 9' : 'Email for the ticket';
     $('bdTitle').textContent = t.name + ' · ' + (t.price_cents === 0 ? 'Free' : money(t.price_cents));
     $('bdSub').textContent = e.title + '. ' + when(e.starts_at, e.tz) + '.';
     var out = $('bdQty'), tot = $('bdTot'), err = $('bdErr');
@@ -241,6 +271,7 @@
           if (d.done) { location.href = '/agent/thanks/?free=1&codes=' + encodeURIComponent((d.codes || []).join(',')); return; }
           var m = { sold_out: 'That seat just sold out. Pick another tier or join the waitlist for the next date.',
                     waitlist_only: 'This price is for AI 101 sign-ups. Use the link in your email after the free class.',
+                    not_on_sale: listOnly ? 'That email is not on the AI 101 class list. Use the email you signed in with on Oct 9, or pick a regular seat.' : 'Sales for this date have closed.',
                     not_open_yet: 'This tier is not open yet.', sales_closed: 'Sales for this tier have closed.',
                     payments_not_configured: 'Checkout is turning on. Try again in a few minutes.',
                     rate_limited: 'Too many tries from this connection. Give it a minute.' }[d.error];
